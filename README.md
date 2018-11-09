@@ -1,5 +1,3 @@
-# test
+# Readme
 
-TEST
-
-README
+Spiking Neural Network library based on Tensorflow
