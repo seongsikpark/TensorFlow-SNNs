@@ -45,7 +45,7 @@ class MNISTModel_CNN(tfe.Network):
 
         self.tw=conf.time_step
 
-        self.accuracy_time_point = range(conf.time_step_save_interval,conf.time_step,conf.time_step_save_interval)
+        self.accuracy_time_point = list(range(conf.time_step_save_interval,conf.time_step,conf.time_step_save_interval))
         self.accuracy_time_point.append(conf.time_step)
         #self.num_accuracy_time_point = int(math.ceil(float(conf.time_step)/float(conf.time_step_save_interval))
         self.num_accuracy_time_point = len(self.accuracy_time_point)

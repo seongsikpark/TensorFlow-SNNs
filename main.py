@@ -27,9 +27,24 @@ import tensorflow as tf
 
 import tensorflow.contrib.eager as tfe
 from tensorflow.examples.tutorials.mnist import input_data
+from tensorflow.python.client import timeline
+from tensorflow.python.profiler.model_analyzer import *
+
+from tensorflow.python.platform import gfile
+from tensorflow.python.eager import context
+from tensorflow.python.profiler import model_analyzer
+from tensorflow.python.profiler import option_builder
+from tensorflow.python.profiler import profile_context
+
+builder = option_builder.ProfileOptionBuilder
+
+#from tensorflow.python.profiler.internal import model_analyzer_testlib as lib
 
 from tensorflow.python.framework import ops
 
+
+import tracemalloc
+from memory_profiler import profile
 
 # resnet
 import resnet
@@ -54,6 +69,10 @@ import math
 import csv
 import collections
 import re
+
+import gc
+
+
 
 #
 
@@ -107,7 +126,7 @@ tf.app.flags.DEFINE_float('momentum', 0.9, 'momentum')
 # l2 norm
 tf.app.flags.DEFINE_float('lamb',0.0001, 'lambda')
 
-tf.app.flags.DEFINE_float('lr_decay', 2.0, '')
+tf.app.flags.DEFINE_float('lr_decay', 0.1, '')
 tf.app.flags.DEFINE_integer('lr_decay_step', 50, '')
 
 tf.app.flags.DEFINE_integer('time_step', 10, 'time steps per sample in SNN')
@@ -226,6 +245,7 @@ def compute_accuracy(predictions, labels):
             ) / float(predictions.shape[0].value)
 
 #
+#@profile
 def train_one_epoch(model, optimizer, dataset):
     tf.train.get_or_create_global_step()
     avg_loss = tfe.metrics.Mean('loss')
@@ -240,13 +260,59 @@ def train_one_epoch(model, optimizer, dataset):
         #tf.contrib.summary.scalar('accuracy', compute_accuracy(prediction, labels))
         return loss_value
 
+    #builder = tf.profiler.ProfileOptionBuilder
+    #opts = builder(builder.time_and_memory()).order_by('micros').build()
+
     for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
         #print(batch)
         #print(images)
         #print(labels)
         #with tf.contrib.summary.record_summaries_every_n_global_steps(10):
+
+        #with tf.contrib.tfprof.ProfileContext('./profile/train_'+conf.ann_model+'_'+conf.dataset) as pctx:
+            #pctx.trace_next_step()
+            #pctx.dump_next_step()
+            #batch_model_loss = functools.partial(model_loss, labels, images)
+            #optimizer.minimize(batch_model_loss, global_step=tf.train.get_global_step())
+            #pctx.profiler.profile_operations(options=opts)
+
+
+
+        # profiler
+#        with context.eager_mode():
+#            outfile = os.path.join('./profile/train','dump')
+#            opts = builder(builder.time_and_memory()).with_file_output(outfile).build()
+#            context.enable_run_metadata()
+#
+#
+#            batch_model_loss = functools.partial(model_loss, labels, images)
+#            optimizer.minimize(batch_model_loss, global_step=tf.train.get_global_step())
+#
+#            profiler = model_analyzer.Profiler()
+#            profiler.add_step(0, context.export_run_metadata())
+#            context.disable_run_metadata()
+#            profiler.profile_operations(opts)
+#
+#            with gfile.Open(outfile, 'r') as f:
+#                out_str = f.read()
+#                print(out_str)
+
+
         batch_model_loss = functools.partial(model_loss, labels, images)
         optimizer.minimize(batch_model_loss, global_step=tf.train.get_global_step())
+
+
+
+        #batch_model_loss = functools.partial(model_loss, labels, images)
+        #optimizer.minimize(batch_model_loss, global_step=tf.train.get_global_step())
+
+
+        #if batch==0:
+        #    profiler.add_step(batch, run_meta)
+        #    opts=option_builder.ProfileOptionBuilder.time_and_memory()
+        #    profiler.profile_operations(options=opts)
+
+        #profiler.advise()
 
     #print('Train set: Accuracy: %4f%%\n'%(100*accuracy.result()))
     return avg_loss.result(), 100*accuracy.result()
@@ -426,8 +492,125 @@ def save_dist_activation_neuron_vgg16(model):
             key=l+'_'+c
             f_stat[key].close()
 
+
+def test_old(model, dataset):
+    avg_loss = tfe.metrics.Mean('loss')
+
+    if conf.nn_mode=='SNN':
+        #accuracy_times = np.array((2,))
+        accuracy_times = []
+        accuracy_result = []
+        if conf.nn_mode == 'SNN':
+            accuracy_time_point = range(conf.time_step_save_interval,conf.time_step,conf.time_step_save_interval)
+            accuracy_time_point.append(conf.time_step)
+            argmax_axis_predictions=1
+        else :
+            accuracy_time_point = [1]
+            argmax_axis_predictions=0
+
+        num_accuracy_time_point=len(accuracy_time_point)
+
+        print('accuracy_time_point')
+        print(accuracy_time_point)
+
+        for i in range(num_accuracy_time_point):
+            accuracy_times.append(tfe.metrics.Accuracy('accuracy'))
+
+        num_batch=int(math.ceil(float(conf.num_test_dataset)/float(conf.batch_size)))
+
+        pbar = tqdm(range(1,num_batch+1),ncols=80)
+        #pbar.set_description("test batch")
+        pbar.set_description("batch")
+
+        for (idx_batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
+            #print('idx: %d'%(idx_batch))
+            #print('image')
+            #print(images.shape)
+            #print(images)
+            #print('label')
+            #print(labels)
+
+
+            if idx_batch!=-1:
+                predictions_times = model(images, f_training=False)
+                tf.reshape(predictions_times,(-1,)+labels.numpy().shape)
+
+                for i in range(num_accuracy_time_point):
+                    predictions=predictions_times[i]
+                    accuracy = accuracy_times[i]
+                    accuracy(tf.argmax(predictions,axis=argmax_axis_predictions,output_type=tf.int64), tf.argmax(labels,axis=1,output_type=tf.int64))
+
+                predictions = predictions_times[-1]
+                avg_loss(loss(predictions,labels))
+
+                if conf.verbose:
+                    print(predictions-labels*conf.time_step)
+
+            pbar.update()
+
+        for i in range(num_accuracy_time_point):
+            accuracy_result.append(accuracy_times[i].result().numpy())
+
+        print('')
+        print('accruacy')
+        print(accuracy_result)
+
+        plt.plot(accuracy_time_point,accuracy_result)
+        plt.show()
+
+        #print('Test set: Average loss: %.4f, Accuracy: %4f%%\n'%(avg_loss.result(), 100*accuracy.result()))
+        #with tf.contrib.summary.always_record_summaries():
+            #tf.contrib.summary.scalar('loss', avg_loss.result())
+            #tf.contrib.summary.scalar('accuracy', accuracy.result())
+            #tf.contrib.summary.scalar('w_conv1', model.variables)
+        ret_accu = 100*accuracy_result[-1]
+
+
+        print('total spike count')
+        print(model.total_spike_count)
+
+        plt.plot(accuracy_time_point,model.total_spike_count)
+        plt.show()
+
+    else:
+        accuracy=tfe.metrics.Accuracy('accuracy')
+
+        for (idx_batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
+            #print('idx: %d'%(idx_batch))
+            #print('image')
+            #print(images.shape)
+            #print(images)
+            #print('label')
+            #print(labels)
+
+            if idx_batch!=-1:
+                predictions = model(images, f_training=False)
+
+                accuracy(tf.argmax(predictions,axis=1,output_type=tf.int64), tf.argmax(labels,axis=1,output_type=tf.int64))
+                avg_loss(loss(predictions,labels))
+        ret_accu = 100*accuracy.result()
+
+        #plt.hist(model.stat_a_fc3)
+        #plt.show()
+        #plot_dist_activation_vgg16(model)
+        #save_dist_activation_vgg16(model)
+
+        #print(model.stat_a_fc3)
+        #print(model.stat_a_fc3.shape)
+        #print(tf.reduce_min(model.stat_a_fc3))
+        #print(tf.reduce_max(model.stat_a_fc3))
+
+        #print(tf.reduce_max(model.stat_a_fc2))
+        #print(tf.reduce_max(model.stat_a_fc3))
+
+
+    return avg_loss.result(), ret_accu
+
+
+
 #
-def test(model, dataset):
+#@profile
+def test(model, dataset, f_val=False):
     avg_loss = tfe.metrics.Mean('loss')
 
     if conf.nn_mode=='SNN':
@@ -439,7 +622,7 @@ def test(model, dataset):
             accuracy_times_top5 = []
             accuracy_result_top5 = []
 
-        accuracy_time_point = list(range(conf.time_step_save_interval,conf.time_step,conf.time_step_save_interval))
+        accuracy_time_point = range(conf.time_step_save_interval,conf.time_step,conf.time_step_save_interval)
         accuracy_time_point.append(conf.time_step)
         argmax_axis_predictions=1
 
@@ -472,7 +655,7 @@ def test(model, dataset):
             labels = tf.argmax(labels_one_hot,axis=1,output_type=tf.int32)
 
             if idx_batch!=-1:
-                predictions_times = model(images, labels=labels, f_training=False)
+                predictions_times = model(images, f_training=False)
                 tf.reshape(predictions_times,(-1,)+labels.numpy().shape)
 
                 for i in range(num_accuracy_time_point):
@@ -555,10 +738,14 @@ def test(model, dataset):
         if conf.dataset == 'ImageNet':
             accuracy_top5=tfe.metrics.Mean('accuracy_top5')
 
-        num_batch=int(math.ceil(float(conf.num_test_dataset)/float(conf.batch_size)))
 
-        pbar = tqdm(range(1,num_batch+1),ncols=80)
-        pbar.set_description("batch")
+        if f_val==False:
+            num_batch=int(math.ceil(float(conf.num_test_dataset)/float(conf.batch_size)))
+            pbar = tqdm(range(1,num_batch+1),ncols=80)
+            pbar.set_description("batch")
+
+        #snapshot = tracemalloc.take_snapshot()
+
 
         for (idx_batch, (images, labels_one_hot)) in enumerate(tfe.Iterator(dataset)):
         #for idx_batch in range(0,2):
@@ -571,7 +758,8 @@ def test(model, dataset):
             #print(labels)
             #print(tf.argmax(labels,axis=1))
 
-            labels = tf.argmax(labels_one_hot,axis=1,output_type=tf.int32)
+            #labels = tf.argmax(labels_one_hot,axis=1,output_type=tf.int32)
+            #with tf.argmax(labels_one_hot,axis=1,output_type=tf.int32) as labels:
 
             if idx_batch!=-1:
                 #model=tfe.defun(model)
@@ -579,17 +767,23 @@ def test(model, dataset):
 
                 #print(predictions.shape)
                 #print(str(tf.argmax(predictions,axis=1))+' : '+str(tf.argmax(labels,axis=1)))
-                accuracy(tf.argmax(predictions,axis=1,output_type=tf.int32), labels)
+
+                #accuracy(tf.argmax(predictions,axis=1,output_type=tf.int32), labels)
+                accuracy(tf.argmax(predictions,axis=1,output_type=tf.int32), tf.argmax(labels_one_hot,axis=1,output_type=tf.int32))
 
                 if conf.dataset == 'ImageNet':
                     with tf.device('/cpu:0'):
                         accuracy_top5(tf.cast(tf.nn.in_top_k(predictions,labels,5),tf.int32))
                 avg_loss(loss(predictions,labels_one_hot))
 
-            pbar.update()
+            if f_val==False:
+                pbar.update()
 
         ret_accu = 100*accuracy.result()
-        ret_accu_top5 = 100*accuracy_top5.result()
+        if conf.dataset == 'ImageNet':
+            ret_accu_top5 = 100*accuracy_top5.result()
+        else:
+            ret_accu_top5 = 0.0
 
         #plt.hist(model.stat_a_fc3)
         #plt.show()
@@ -615,14 +809,29 @@ def test(model, dataset):
         #print(tf.reduce_max(model.stat_a_fc3))
 
 
+        #top_stats = snapshot.statistics('lineno')
+
+        #print('[ top 10 ]')
+        #for stat in top_stats[:10]:
+        #    print(stat)
+
+
     return avg_loss.result(), ret_accu, ret_accu_top5
 
 
 
 def preprocess_cifar10_train(img, label):
+    print('preproc - train')
 
     img_p = tf.image.convert_image_dtype(img,tf.float32)
     #img_p = tf.image.resize_image_with_crop_or_pad(img_p,cifar_10_crop_size,cifar_10_crop_size)
+
+    #
+    #img_p = tf.image.random_brightness(img_p,max_delta=20)
+    #img_p = tf.image.random_brightness(img_p,max_delta=23)
+    #img_p = tf.image.random_brightness(img_p,max_delta=83)
+    #img_p = tf.image.random_brightness(img_p,max_delta=103)
+
 
     img_p = tf.image.resize_image_with_crop_or_pad(img_p,36,36)
     img_p = tf.random_crop(img_p,[32,32,3])
@@ -632,13 +841,8 @@ def preprocess_cifar10_train(img, label):
     #img_p = tf.image.convert_image_dtype(img,tf.float32)
     #img_p = tf.image.rgb_to_hsv(img_p)
 
-    #img_p = tf.image.resize_image_with_crop_or_pad(img_p,cifar_10_crop_size,cifar_10_crop_size)
     img_p = tf.image.random_flip_left_right(img_p)
 
-    #
-    #img_p = tf.image.random_brightness(img_p,max_delta=63)
-    #img_p = tf.image.random_brightness(img_p,max_delta=83)
-    #img_p = tf.image.random_brightness(img_p,max_delta=103)
 
     #
     #img_p = tf.image.random_contrast(img_p,lower=0.2,upper=1.8)
@@ -652,6 +856,7 @@ def preprocess_cifar10_train(img, label):
     return img_p, label
 
 def preprocess_cifar10_test(img, label):
+    print('preproc - test')
 
     img_p = tf.image.convert_image_dtype(img,tf.float32)
     #img_p = tf.image.resize_image_with_crop_or_pad(img_p,cifar_10_crop_size,cifar_10_crop_size)
@@ -708,10 +913,6 @@ def load_data_cifar10():
     img_train = img_train / 255.0
     img_test = img_test / 255.0
 
-    #print(type(img_train))
-
-    #print(img_train[0])
-
     #img_train[:,:,:,0] = (img_train[:,:,:,0]-np.mean(img_train[:,:,:,0]))/np.std(img_train[:,:,:,0])
     #img_train[:,:,:,1] = (img_train[:,:,:,1]-np.mean(img_train[:,:,:,1]))/np.std(img_train[:,:,:,1])
     #img_train[:,:,:,2] = (img_train[:,:,:,2]-np.mean(img_train[:,:,:,2]))/np.std(img_train[:,:,:,2])
@@ -719,6 +920,18 @@ def load_data_cifar10():
     #img_test[:,:,:,0] = (img_test[:,:,:,0]-np.mean(img_test[:,:,:,0]))/np.std(img_test[:,:,:,0])
     #img_test[:,:,:,1] = (img_test[:,:,:,1]-np.mean(img_test[:,:,:,1]))/np.std(img_test[:,:,:,1])
     #img_test[:,:,:,2] = (img_test[:,:,:,2]-np.mean(img_test[:,:,:,2]))/np.std(img_test[:,:,:,2])
+
+
+    cifar_mean = [0.485, 0.456, 0.406]
+    cifar_std = [0.229, 0.224, 0.225]
+
+    img_train[:,:,:,0] = (img_train[:,:,:,0]-cifar_mean[0])/cifar_std[0]
+    img_train[:,:,:,1] = (img_train[:,:,:,1]-cifar_mean[1])/cifar_std[1]
+    img_train[:,:,:,2] = (img_train[:,:,:,2]-cifar_mean[2])/cifar_std[2]
+
+    img_test[:,:,:,0] = (img_test[:,:,:,0]-cifar_mean[0])/cifar_std[0]
+    img_test[:,:,:,1] = (img_test[:,:,:,1]-cifar_mean[1])/cifar_std[1]
+    img_test[:,:,:,2] = (img_test[:,:,:,2]-cifar_mean[2])/cifar_std[2]
 
 
     print(tf.reduce_min(img_train))
@@ -734,26 +947,21 @@ def load_data_cifar10():
 
     #train_dataset = tf.data.Dataset.from_tensor_slices((img_train[:45000],tf.squeeze(tf.one_hot(label_train[:45000],10))))
 
-    #val_dataset = tf.data.Dataset.from_tensor_slices((img_train[45000:],tf.squeeze(tf.one_hot(label_train[45000:],10))))
-    #val_dataset = val_dataset.map(preprocess_cifar10_test)
-
     train_dataset = tf.data.Dataset.from_tensor_slices((img_train,tf.squeeze(tf.one_hot(label_train,10))))
 
-    #val_dataset = tf.data.Dataset.from_tensor_slices((img_test[:conf.num_test_dataset],tf.squeeze(tf.one_hot(label_test[:conf.num_test_dataset],10))))
     val_dataset = tf.data.Dataset.from_tensor_slices((img_test,tf.squeeze(tf.one_hot(label_test,10))))
-    val_dataset = val_dataset.map(preprocess_cifar10_test)
+    val_dataset = val_dataset.map(preprocess_cifar10_test, num_parallel_calls=2)
+    val_dataset = val_dataset.prefetch(10*conf.batch_size)
 
-    #test_dataset = tf.data.Dataset.from_tensor_slices((img_test[:conf.num_test_dataset],tf.squeeze(tf.one_hot(label_test[:conf.num_test_dataset],10))))
     test_dataset = tf.data.Dataset.from_tensor_slices((img_test,tf.squeeze(tf.one_hot(label_test,10))))
-    test_dataset = test_dataset.map(preprocess_cifar10_test)
+    test_dataset = test_dataset.map(preprocess_cifar10_test, num_parallel_calls=2)
+    test_dataset = test_dataset.prefetch(10*conf.batch_size)
 
 
     # for stat of train dataset
     if conf.f_stat_train_mode:
         test_dataset = tf.data.Dataset.from_tensor_slices((img_train,tf.squeeze(tf.one_hot(label_train,10))))
-        test_dataset = test_dataset.map(preprocess_cifar10_test)
-
-
+        test_dataset = test_dataset.map(preprocess_cifar10_test, num_parallel_calls=2)
 
     print(train_dataset)
 
@@ -800,12 +1008,10 @@ def load_data_cifar100():
 
     train_dataset = tf.data.Dataset.from_tensor_slices((img_train,tf.squeeze(tf.one_hot(label_train,100))))
 
-    #val_dataset = tf.data.Dataset.from_tensor_slices((img_test[:conf.num_test_dataset],tf.squeeze(tf.one_hot(label_test[:conf.num_test_dataset],10))))
 
     val_dataset = tf.data.Dataset.from_tensor_slices((img_test,tf.squeeze(tf.one_hot(label_test,100))))
     val_dataset = val_dataset.map(preprocess_cifar10_test)
 
-    #test_dataset = tf.data.Dataset.from_tensor_slices((img_test[:conf.num_test_dataset],tf.squeeze(tf.one_hot(label_test[:conf.num_test_dataset],10))))
     test_dataset = tf.data.Dataset.from_tensor_slices((img_test,tf.squeeze(tf.one_hot(label_test,100))))
     test_dataset = test_dataset.map(preprocess_cifar10_test)
 
@@ -861,11 +1067,31 @@ def load_data_imagenet(conf):
 
     return train_dataset, valid_dataset, test_dataset
 
-
-def train_data_augmentation(train_dataset):
+def train_data_augmentation_old(train_dataset):
     train_dataset_p = train_dataset.map(preprocess_cifar10_train)
 
     train_dataset_p = train_dataset_p.shuffle(50000).batch(conf.batch_size)
+
+    return train_dataset_p
+
+def train_data_augmentation(train_dataset):
+    #train_dataset_p = train_dataset.map(preprocess_cifar10_train, num_parallel_calls=8)
+    #train_dataset_p = train_dataset
+
+    #train_dataset_p = train_dataset_p.shuffle(50000).batch(conf.batch_size)
+    train_dataset_p = train_dataset.shuffle(10000)
+    train_dataset_p = train_dataset_p.prefetch(2*conf.batch_size)
+
+    #train_dataset_p = train_dataset_p.prefetch(100)
+
+    train_dataset_p = train_dataset_p.map(preprocess_cifar10_train, num_parallel_calls=8)
+    train_dataset_p = train_dataset_p.batch(conf.batch_size)
+
+
+    #train_dataset_p = train_dataset_p.apply(tf.data.experimental.map_and_batch(
+    #                    preprocess_cifar10_train,conf.batch_size,num_parallel_batches=8))
+
+    #train_dataset_p = train_dataset_p.apply(tf.contrib.data.prefetch_to_device('/gpu:0'))
 
     return train_dataset_p
 
@@ -896,15 +1122,10 @@ def main(_):
         shutil.rmtree(conf.output_dir,ignore_errors=True)
 
     tfe.enable_eager_execution()
+    #tf.set_random_seed(1)
 
-    # ImageNet train data load
-    #print('imagenet train dataset load test')
-    #path_imagenet_root = '/home/sspark/Datasets/ILSVRC2012'
-    #val_label_file = os.path.join(path_imagenet_root,'data/ILSVRC2012_label')
-    #metadata_file = os.path.join(path_imagenet_root,'data/meta.mat')
-    #imagenet._build_synset_lookup(metadata_file)
-
-    #imagenet._find_image_files_train_2012(path_imagenet_root, val_label_file)
+    # profiler
+    #profiler = Profiler()
 
 
     # print flags
@@ -941,7 +1162,6 @@ def main(_):
 
     if conf.dataset!='ImageNet':
         val_dataset = val_dataset.batch(conf.batch_size)
-        val_dataset = val_dataset.range(conf.num_test_dataset)
 
         n_test_batch_sel = {
             'ANN': conf.batch_size,
@@ -951,12 +1171,10 @@ def main(_):
         n_test_batch = n_test_batch_sel[conf.nn_mode]
 
         test_dataset = test_dataset.batch(n_test_batch)
-        test_dataset = test_dataset.range(conf.num_test_dataset)
 
     #print('> Dataset info.')
     #print(train_dataset)
     #print(test_dataset)
-    #
 
     if conf.ann_model=='MLP':
         if conf.dataset=='MNIST':
@@ -969,9 +1187,15 @@ def main(_):
             model = models.CIFARModel_CNN(data_format,conf)
         elif conf.dataset=='CIFAR-100':
             model = models.CIFARModel_CNN(data_format,conf)
+    elif conf.ann_model=='ResNet18':
+        if conf.dataset=='CIFAR-10' or conf.dataset=='CIFAR-100':
+            model = resnet.Resnet18(data_format,conf)
     elif conf.ann_model=='ResNet50':
         if conf.dataset=='ImageNet':
             model = resnet.Resnet50(data_format,conf)
+    else:
+        print('not supported model name: '+self.ann_model)
+        os._exit(0)
 
 
 
@@ -983,7 +1207,7 @@ def main(_):
     en_train = en_train_sel[conf.nn_mode]
 
     #
-    lr = conf.lr
+    lr=tfe.Variable(conf.lr)
     momentum = conf.momentum
     #optimizer = tf.train.GradientDescentOptimizer(lr)
     optimizer = tf.train.MomentumOptimizer(lr,momentum)
@@ -1025,7 +1249,6 @@ def main(_):
 
     checkpoint_prefix = os.path.join(checkpoint_dir, 'ckpt')
 
-    #
     with tf.device(device):
         #if conf.en_train:
         if en_train:
@@ -1034,27 +1257,26 @@ def main(_):
             acc_val_best = 0.0
             #with tfe.restore_variables_on_create(tf.train.latest_checkpoint(FLAGS.checkpoint_dir)):
 
-            with tf.device('/cpu:0'):
-                train_dataset_p = data_preprocessing(train_dataset)
+            #with tf.device('/cpu:0'):
+            train_dataset_p = data_preprocessing(train_dataset)
             #train_dataset_p = data_preprocessing(train_dataset)
 
             images_0, _ = tfe.Iterator(train_dataset_p).get_next()
+            #(images_0,_) = train_dataset_p[0]
+
+            #print(images_0)
 
             if conf.en_load_model:
                 #images_0, _ = tfe.Iterator(test_dataset).get_next()
 
-
-                #if conf.dataset=='MNIST':
-                #    # noinspection PyUnboundLocalVariable
-                #    images_0, _ = tfe.Iterator(train_dataset).get_next()
-                #elif conf.dataset=='CIFAR-10':
-                #    with tf.device('/cpu:0'):
-                #        # noinspection PyUnboundLocalVariable
-                #        train_dataset_p = train_data_augmentation(train_dataset)
-                #        images_0, _ = tfe.Iterator(train_dataset_p).get_next()
+                if conf.dataset=='CIFAR-10' or conf.dataset=='CIFAR-100':
+                    #with tf.device('/cpu:0'):
+                        # noinspection PyUnboundLocalVariable
+                        #train_dataset_p = train_data_augmentation(train_dataset)
+                        #images_0, _ = tfe.Iterator(train_dataset_p).get_next()
+                    train_dataset_p = train_data_augmentation(train_dataset)
 
 
-                # noinspection PyUnboundLocalVariable,PyUnboundLocalVariable
                 model(images_0,False)
 
                 #tfe.restore_variables_on_create(tf.train.latest_checkpoint(checkpoint_load_dir))
@@ -1063,7 +1285,7 @@ def main(_):
                 restore_variables = (model.trainable_weights + optimizer.variables())
                 #restore_variables = (model.trainable_weights)
 
-                #print(restore_variables)
+                print(restore_variables)
 
                 print('load model')
                 print(tf.train.latest_checkpoint(checkpoint_load_dir))
@@ -1071,9 +1293,12 @@ def main(_):
                 saver = tfe.Saver(restore_variables)
                 saver.restore(tf.train.latest_checkpoint(checkpoint_load_dir))
 
-                epoch_start = 1
-            else:
-                epoch_start = 1
+
+            epoch_start = 0
+
+
+            #
+            #tracemalloc.start()
 
             #with tfe.restore_variables_on_create(tf.train.latest_checkpoint(checkpoint_load_dir)):
             #for epoch in range(1,11):
@@ -1081,18 +1306,64 @@ def main(_):
                 global_step = tf.train.get_or_create_global_step()
                 #start = time.time()
 
-                if conf.dataset=='CIFAR-10' or conf.dataset=='CIFAR-100':
-                    with tf.device('/cpu:0'):
-                        train_dataset_p = train_data_augmentation(train_dataset)
-                #train_dataset_p = train_data_augmentation(train_dataset)
+                #if conf.dataset=='CIFAR-10' or conf.dataset=='CIFAR-100':
+                #    #with tf.device('/cpu:0'):
+                #    #    train_dataset_p = train_data_augmentation(train_dataset)
+                #    train_dataset_p = train_data_augmentation(train_dataset)
 
                 with summary_writer.as_default():
+                    #
+#                    if epoch < 5 :
+#                        lr.assign(0.1/5*(epoch+1))
+#                    elif epoch > 5 and epoch < 90:
+#                        lr.assign(0.1)
+#                    elif epoch > 90 and epoch < 135:
+#                        lr.assign(0.01)
+#                    elif epoch > 135 and epoch < 180:
+#                        lr.assign(0.01)
+#                    elif epoch > 180 and epoch < 250:
+#                        lr.assign(0.001)
+#                    elif epoch > 250:
+#                        lr.assign(0.0001)
+
+#                    if epoch == 0:
+#                        lr.assign(0.01)
+#                    elif epoch > 0 and epoch < 150 :
+#                    #if epoch < 90 :
+#                        lr.assign(0.01)
+#                    elif epoch > 150 and epoch < 250 :
+#                        lr.assign(0.001)
+#                    elif epoch > 250:
+#                        lr.assign(0.0001)
+
+                    if epoch == 0:
+                        lr.assign(0.01)
+                    elif epoch > 0 and epoch < 80 :
+                        lr.assign(0.1)
+                    elif epoch > 80 and epoch < 135 :
+                        lr.assign(0.01)
+                    elif epoch > 135 and epoch < 180 :
+                        lr.assign(0.001)
+                    elif epoch > 180 and epoch < 280 :
+                        lr.assign(0.0001)
+                    elif epoch > 280:
+                        lr.assign(0.00001)
+
+
+
                     # learning rate decay
-                    #if epoch%conf.lr_decay_step == 0:
-                    #    lr = lr/conf.lr_decay
-                    #    #optimizer = tf.train.GradientDescentOptimizer(lr)
-                        #optimizer = tf.train.MomentumOptimizer(lr,momentum)
-                        #optimizer = tf.train.AdamOptimizer(lr)
+                    #if (epoch%conf.lr_decay_step==0) and (epoch!=0):
+                    #    lr.assign(lr.numpy()*conf.lr_decay)
+                    #    #print('lr_decay) lr: %',optimizer._learning_rate.numpy())
+
+                    #if epoch > 100 and epoch < 250:
+                    #    lr.assign(0.01)
+                    #elif epoch > 250 and epoch < 350:
+                    #    lr.assign(0.001)
+                    #elif epoch > 350 and epoch < 450:
+                    #    lr.assign(0.0001)
+                    #elif epoch > 450:
+                    #    lr.assign(0.00001)
 
                     # testing on Canyon
                     #if conf.dataset=='MNIST':
@@ -1112,31 +1383,41 @@ def main(_):
 
                 #
                 with val_summary_writer.as_default():
-                    loss_val, acc_val, _ = test(model, val_dataset)
+                    loss_val, acc_val, _ = test(model, val_dataset, f_val=True)
 
                     with tf.contrib.summary.always_record_summaries():
                         tf.contrib.summary.scalar('loss', loss_val, step=epoch)
                         tf.contrib.summary.scalar('accuracy', acc_val, step=epoch)
 
-                    if acc_val_best < acc_val and epoch > 100:
+                    #if acc_val_best < acc_val and epoch > 50:
+                    if acc_val_best < acc_val:
                         acc_val_best = acc_val
 
-                        # save model
-                        #if epoch%conf.save_interval==0:
-                        all_variables = (model.variables + optimizer.variables() + [global_step])
-                        #print([v.name for v in all_variables])
-                        #tfe.Saver(all_variables).save(checkpoint_prefix, global_step=global_step)
-                        tfe.Saver(all_variables).save(checkpoint_prefix, global_step=epoch)
-                        #print(all_variables)
-           #            print('save model > global_step: %d'%(global_step.numpy()))
+                        if acc_val_best > 90.0:
+                            print('save model')
+
+                            # save model
+                            #if epoch%conf.save_interval==0:
+                            all_variables = (model.variables + optimizer.variables() + [global_step])
+                            #print([v.name for v in all_variables])
+                            #tfe.Saver(all_variables).save(checkpoint_prefix, global_step=global_step)
+                            tfe.Saver(all_variables).save(checkpoint_prefix, global_step=epoch)
+                            #print(all_variables)
+                           #print('save model > global_step: %d'%(global_step.numpy()))
+
+
 
                 print('[%3d] train(loss: %.3f, acc: %.3f), valid(loss: %.3f, acc: %.3f, best: %.3f)'%(epoch,loss_train,acc_train,loss_val,acc_val,acc_val_best))
+
+                #gc.collect()
 
 
         print(' Test Phase >')
         #print(model.variables)
         #test(model, test_dataset)
         #print(test_dataset.range(0))
+
+        print(test_dataset)
 
         #if conf.en_train == False:
         if en_train == False:
@@ -1155,24 +1436,28 @@ def main(_):
             #restore_variables = optimizer.variables()
 
 
-            #print('restore variables')
-            var_dict=collections.OrderedDict()
-            for var in restore_variables:
-                v_name=var.name[:-2]
-                v_name=re.sub('kernel','weights',v_name)
-                v_name=re.sub('bias','biases',v_name)
-                v_name=re.sub('_block','/block',v_name)
-                var_dict[v_name] = var
-                #print(v_name)
-            #print([v.name for v in restore_variables])
-            #print(var_list)
-            #print(var_dict['resnet50/conv1/conv/kernel'])
 
-            #restore_var_list = []
-            #restore_var_list = restore_var_list.append(var_dict['resnet50/conv1/conv/kernel'])
-            #print(restore_var_list)
+            if conf.ann_model=='ResNet50':
+                #print('restore variables')
+                var_dict=collections.OrderedDict()
+                for var in restore_variables:
+                    v_name=var.name[:-2]
+                    v_name=re.sub('kernel','weights',v_name)
+                    v_name=re.sub('bias','biases',v_name)
+                    v_name=re.sub('_block','/block',v_name)
+                    var_dict[v_name] = var
+                    #print(v_name)
+                #print([v.name for v in restore_variables])
+                #print(var_list)
+                #print(var_dict['resnet50/conv1/conv/kernel'])
 
+                #restore_var_list = []
+                #restore_var_list = restore_var_list.append(var_dict['resnet50/conv1/conv/kernel'])
+                #print(restore_var_list)
 
+                saver = tfe.Saver(var_dict)
+            else:
+                saver = tfe.Saver(restore_variables)
 
             print('load model')
             print(tf.train.latest_checkpoint(checkpoint_dir))
@@ -1182,7 +1467,6 @@ def main(_):
             # temporally off
             #saver = tfe.Saver(restore_variables)
             #saver = tfe.Saver(restore_var_list)
-            saver = tfe.Saver(var_dict)
             #print(model.variables)
 
             #saver = tfe.Saver(
@@ -1191,14 +1475,15 @@ def main(_):
             #    {'resnet50/conv1/conv/weights': }
             #)
 
-            ckpt_var_list = []
+            #ckpt_var_list = []
+
             #(ckpt_var_list, _) = tf.contrib.framework.list_variables(checkpoint_dir)
             #ckpt_var_list, ckpt_shape_list = tf.contrib.framework.list_variables(checkpoint_dir)
             #print(ckpt_var_list)
 
 
-            for (var, shape) in tf.contrib.framework.list_variables(checkpoint_dir):
-                ckpt_var_list.append(var)
+            #for (var, shape) in tf.contrib.framework.list_variables(checkpoint_dir):
+            #    ckpt_var_list.append(var)
             #    print(var)
             #    print(shape)
             #    saver = tfe.Saver(var)
