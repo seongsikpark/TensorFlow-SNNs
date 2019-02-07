@@ -1,6 +1,13 @@
 from tensorflow.python.framework import tensor_shape
 from tensorflow.python.layers import utils
 
+from tensorflow.python.eager import imperative_grad
+from tensorflow.python.framework import ops
+from tensorflow.python.framework import tensor_shape
+from tensorflow.python.platform import tf_logging as logging
+from tensorflow.python.util import nest
+
+
 
 # from tensorflow/.../convolutional.py
 def cal_output_shape_Conv2D(data_format,input_shape,filters,kernel_size,strides):
@@ -110,3 +117,57 @@ def cal_output_shape_Pooling2D(data_format,input_shape,pool_size,strides):
 
 
 
+# from tensorflow/python/eager/backprop.py
+def gradient(self, target, sources, output_gradients=None):
+    """Computes the gradient using operations recorded in context of this tape.
+
+    Args:
+      target: Tensor (or list of tensors) to be differentiated.
+      sources: a list or nested structure of Tensors or Variables. `target`
+        will be differentiated against elements in `sources`.
+      output_gradients: a list of gradients, one for each element of
+        target. Defaults to None.
+
+    Returns:
+      a list or nested structure of Tensors (or IndexedSlices, or None),
+      one for each element in `sources`. Returned structure is the same as
+      the structure of `sources`.
+
+    Raises:
+      RuntimeError: if called inside the context of the tape, or if called more
+       than once on a non-persistent tape.
+    """
+    if self._tape is None:
+      raise RuntimeError("GradientTape.gradient can only be called once on "
+                         "non-persistent tapes.")
+    if self._recording:
+      if not self._persistent:
+        self._pop_tape()
+      else:
+        logging.log_first_n(logging.WARN,
+                            "Calling GradientTape.gradient on a persistent "
+                            "tape inside it's context is significantly less "
+                            "efficient than calling it outside the context (it "
+                            "causes the gradient ops to be recorded on the "
+                            "tape, leading to increased CPU and memory usage). "
+                            "Only call GradientTape.gradient inside the "
+                            "context if you actually want to trace the "
+                            "gradient in order to compute higher order "
+                            "derrivatives.", 1)
+
+    flat_sources = nest.flatten(sources)
+    flat_sources = [_handle_or_self(x) for x in flat_sources]
+
+    if output_gradients is not None:
+      output_gradients = [None if x is None else ops.convert_to_tensor(x)
+                          for x in nest.flatten(output_gradients)]
+
+    flat_grad = imperative_grad.imperative_grad(
+        _default_vspace, self._tape, nest.flatten(target), flat_sources,
+        output_gradients=output_gradients)
+
+    if not self._persistent:
+      self._tape = None
+
+    grad = nest.pack_sequence_as(sources, flat_grad)
+    return grad

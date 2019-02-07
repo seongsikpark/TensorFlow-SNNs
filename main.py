@@ -8,9 +8,9 @@ import sys
 sys.path.insert(0,'./')
 #sys.path.insert(0,'/home/sspark/Projects/05_SNN/')
 
-# sspark
-import models
-import model_cnn_mnist
+import cProfile
+import pprofile
+
 
 #en_gpu=False
 en_gpu=True
@@ -26,31 +26,35 @@ import numpy as np
 import tensorflow as tf
 
 import tensorflow.contrib.eager as tfe
-from tensorflow.examples.tutorials.mnist import input_data
-from tensorflow.python.client import timeline
-from tensorflow.python.profiler.model_analyzer import *
+from tensorflow.python.eager import context
+from tensorflow.python.framework import ops
 
 from tensorflow.python.platform import gfile
-from tensorflow.python.eager import context
+from tensorflow.python.client import timeline
 from tensorflow.python.profiler import model_analyzer
 from tensorflow.python.profiler import option_builder
-from tensorflow.python.profiler import profile_context
 
 builder = option_builder.ProfileOptionBuilder
 
-#from tensorflow.python.profiler.internal import model_analyzer_testlib as lib
+#
+import train
+import test
 
-from tensorflow.python.framework import ops
-
-
-import tracemalloc
-from memory_profiler import profile
-
-# resnet
+# models
+from models import models
+from models import mlp
+from models import cnn
+import model_cnn_mnist
 import resnet
 
-# imagenet
+
+# dataset
+from datasets import mnist
+from datasets import cifar10
+from datasets import cifar100
 from datasets import imagenet  # from tensornets
+
+# imagenet
 from data import ImageNetDataset
 
 
@@ -92,12 +96,12 @@ tf.app.flags.DEFINE_integer('batch_size', 100, '')
 tf.app.flags.DEFINE_string('activation', 'ReLU', '')
 tf.app.flags.DEFINE_string('optim_type', 'adam', '[exp_decay, adam]')
 
-#tf.app.flags.DEFINE_string('nn_mode', 'SNN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
-tf.app.flags.DEFINE_string('nn_mode', 'ANN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
+tf.app.flags.DEFINE_string('nn_mode', 'SNN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
+#tf.app.flags.DEFINE_string('nn_mode', 'ANN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
 
 tf.app.flags.DEFINE_string('output_dir', './tensorboard', 'Directory to write TensorBoard summaries')
-tf.app.flags.DEFINE_string('checkpoint_dir', './ckpt_tmp', 'Directory to save checkpoints')
-tf.app.flags.DEFINE_string('checkpoint_load_dir', './ckpt_tmp', 'Directory to load checkpoints')
+tf.app.flags.DEFINE_string('checkpoint_dir', './models_ckpt', 'Directory to save checkpoints')
+tf.app.flags.DEFINE_string('checkpoint_load_dir', './models_ckpt', 'Directory to load checkpoints')
 tf.app.flags.DEFINE_bool('en_load_model', False, 'Enable to load model')
 
 #
@@ -147,7 +151,7 @@ tf.app.flags.DEFINE_boolean('use_bias', True, 'use bias')
 tf.app.flags.DEFINE_string('regularizer', 'L2', 'L2 or L1 regularizer')
 
 
-tf.app.flags.DEFINE_string('model_name', 'no_name', 'model name')
+tf.app.flags.DEFINE_string('model_name', 'snn_train_mlp_mnist', 'model name')
 
 tf.app.flags.DEFINE_string('n_type', 'LIF', 'LIF or IF: neuron type')
 
@@ -174,12 +178,13 @@ tf.app.flags.DEFINE_bool('f_w_norm_data',False,'f_w_norm_data')
 tf.app.flags.DEFINE_bool('f_ws',False,'wieghted synapse')
 tf.app.flags.DEFINE_integer('p_ws',8,'period of wieghted synapse')
 
-tf.app.flags.DEFINE_integer('num_class',0,'number_of_class (do not touch)')
+tf.app.flags.DEFINE_integer('num_class',10,'number_of_class (do not touch)')
 
 tf.app.flags.DEFINE_string('input_spike_mode','POISSON','input spike mode - POISSON, WEIGHTED_SPIKE, ROPOSED')
 tf.app.flags.DEFINE_string('neural_coding','RATE','neural coding - RATE, WEIGHTED_SPIKE, PROPOSED')
 
-tf.app.flags.DEFINE_bool('f_positive_vmem',True,'positive vmem')
+tf.app.flags.DEFINE_bool('f_positive_vmem',False,'positive vmem')
+tf.app.flags.DEFINE_bool('f_tot_psp',False,'accumulate total psp')
 
 tf.app.flags.DEFINE_bool('f_isi',False,'isi stat')
 tf.app.flags.DEFINE_bool('f_refractory',False,'refractory mode')
@@ -199,10 +204,14 @@ tf.app.flags.DEFINE_string('path_stat','./stat/', 'path stat')
 tf.app.flags.DEFINE_string('prefix_stat','act_n_train', 'prefix of stat file name')
 
 
+#
+tf.app.flags.DEFINE_bool('f_data_std', True, 'data_standardization')
 
 
-# tmp
-cifar_10_crop_size=36
+# pruning
+tf.app.flags.DEFINE_bool('f_pruning_channel', False, 'purning - channel')
+
+
 
 #
 conf = flags.FLAGS
@@ -210,909 +219,15 @@ conf = flags.FLAGS
 data_path_imagenet='/home/sspark/Datasets/ILSVRC2012'
 conf.data_path_imagenet = data_path_imagenet
 
-# ImageNet datapath
 
-#def imagenet_load(data_dir, resize_wh, crop_wh, crops):
-def imagenet_load():
-    data_dir = data_path_imagenet
-    resize_wh = 256
-    ##resize_wh = 224
-    #crop_wh = 224
-    crop_wh = conf.input_size
-    crops = 1
-    return imagenet.load(
-        data_dir, 'val', batch_size=conf.batch_size,
-        resize_wh=resize_wh,
-        crop_locs=10 if crops == 10 else 4,
-        crop_wh=crop_wh,
-        total_num= conf.num_test_dataset
-    )
+if conf.model_name == 'vgg_cifar_ro_0':
+    conf.f_data_std = False
 
-
-#
-def loss(predictions, labels):
-    return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=predictions,labels=labels))
-
-#
-def compute_accuracy(predictions, labels):
-    return tf.reduce_sum(
-                tf.cast(
-                    tf.equal(
-                        tf.argmax(predictions, axis=1, output_type=tf.int64),
-                        tf.argmax(labels, axis=1, output_type=tf.int64)
-                    ), dtype=tf.float32
-                )
-            ) / float(predictions.shape[0].value)
-
-#
-#@profile
-def train_one_epoch(model, optimizer, dataset):
-    tf.train.get_or_create_global_step()
-    avg_loss = tfe.metrics.Mean('loss')
-    accuracy = tfe.metrics.Accuracy('accuracy')
-
-    def model_loss(labels, images):
-        prediction = model(images, f_training=True)
-        loss_value = loss(prediction, labels)
-        avg_loss(loss_value)
-        accuracy(tf.argmax(prediction,axis=1,output_type=tf.int64), tf.argmax(labels,axis=1,output_type=tf.int64))
-        #tf.contrib.summary.scalar('loss', loss_value)
-        #tf.contrib.summary.scalar('accuracy', compute_accuracy(prediction, labels))
-        return loss_value
-
-    #builder = tf.profiler.ProfileOptionBuilder
-    #opts = builder(builder.time_and_memory()).order_by('micros').build()
-
-    for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
-        #print(batch)
-        #print(images)
-        #print(labels)
-        #with tf.contrib.summary.record_summaries_every_n_global_steps(10):
-
-        #with tf.contrib.tfprof.ProfileContext('./profile/train_'+conf.ann_model+'_'+conf.dataset) as pctx:
-            #pctx.trace_next_step()
-            #pctx.dump_next_step()
-            #batch_model_loss = functools.partial(model_loss, labels, images)
-            #optimizer.minimize(batch_model_loss, global_step=tf.train.get_global_step())
-            #pctx.profiler.profile_operations(options=opts)
-
-
-
-        # profiler
-#        with context.eager_mode():
-#            outfile = os.path.join('./profile/train','dump')
-#            opts = builder(builder.time_and_memory()).with_file_output(outfile).build()
-#            context.enable_run_metadata()
-#
-#
-#            batch_model_loss = functools.partial(model_loss, labels, images)
-#            optimizer.minimize(batch_model_loss, global_step=tf.train.get_global_step())
-#
-#            profiler = model_analyzer.Profiler()
-#            profiler.add_step(0, context.export_run_metadata())
-#            context.disable_run_metadata()
-#            profiler.profile_operations(opts)
-#
-#            with gfile.Open(outfile, 'r') as f:
-#                out_str = f.read()
-#                print(out_str)
-
-
-        batch_model_loss = functools.partial(model_loss, labels, images)
-        optimizer.minimize(batch_model_loss, global_step=tf.train.get_global_step())
-
-
-
-        #batch_model_loss = functools.partial(model_loss, labels, images)
-        #optimizer.minimize(batch_model_loss, global_step=tf.train.get_global_step())
-
-
-        #if batch==0:
-        #    profiler.add_step(batch, run_meta)
-        #    opts=option_builder.ProfileOptionBuilder.time_and_memory()
-        #    profiler.profile_operations(options=opts)
-
-        #profiler.advise()
-
-    #print('Train set: Accuracy: %4f%%\n'%(100*accuracy.result()))
-    return avg_loss.result(), 100*accuracy.result()
-
-def plot_dist_activation_vgg16(model):
-        plt.subplot2grid((6,3),(0,0))
-        plt.hist(model.stat_a_conv1)
-        plt.subplot2grid((6,3),(0,1))
-        plt.hist(model.stat_a_conv1_1)
-        plt.subplot2grid((6,3),(1,0))
-        plt.hist(model.stat_a_conv2)
-        plt.subplot2grid((6,3),(1,1))
-        plt.hist(model.stat_a_conv2_1)
-        plt.subplot2grid((6,3),(2,0))
-        plt.hist(model.stat_a_conv3)
-        plt.subplot2grid((6,3),(2,1))
-        plt.hist(model.stat_a_conv3_1)
-        plt.subplot2grid((6,3),(2,2))
-        plt.hist(model.stat_a_conv3_1)
-        plt.subplot2grid((6,3),(3,0))
-        plt.hist(model.stat_a_conv4)
-        plt.subplot2grid((6,3),(3,1))
-        plt.hist(model.stat_a_conv4_1)
-        plt.subplot2grid((6,3),(3,2))
-        plt.hist(model.stat_a_conv4_2)
-        plt.subplot2grid((6,3),(4,0))
-        plt.hist(model.stat_a_conv5)
-        plt.subplot2grid((6,3),(4,1))
-        plt.hist(model.stat_a_conv5_1)
-        plt.subplot2grid((6,3),(4,2))
-        plt.hist(model.stat_a_conv5_2)
-        plt.subplot2grid((6,3),(5,0))
-        plt.hist(model.stat_a_fc1)
-        plt.subplot2grid((6,3),(5,1))
-        plt.hist(model.stat_a_fc2)
-        plt.subplot2grid((6,3),(5,2))
-        plt.hist(model.stat_a_fc3)
-        plt.show()
-
-
-# distribution of activation - layer-wise
-def save_dist_activation_vgg16(model):
-    layer_name=[
-        #model.stat_a_conv1,
-        #model.stat_a_conv1_1
-        #model.stat_a_conv2,
-        #model.stat_a_conv2_1,
-        #model.stat_a_conv3,
-        #model.stat_a_conv3_1,
-        #model.stat_a_conv3_2,
-        #model.stat_a_conv4,
-        #model.stat_a_conv4_1,
-        #model.stat_a_conv4_2,
-        #model.stat_a_conv5,
-        #model.stat_a_conv5_1,
-        #model.stat_a_conv5_2,
-        #model.stat_a_fc1,
-        #model.stat_a_fc2,
-        model.stat_a_fc3
-    ]
-
-    f = open('./stat/dist_act_neuron_trainset_fc_'+conf.model_name,'wb')
-    wr = csv.writer(f)
-    wr.writerow(['max','min','mean','std','99.9','99','98'])
-
-    for _, s_layer in enumerate(layer_name):
-        wr.writerow([np.max(s_layer),np.min(s_layer),np.mean(s_layer),np.std(s_layer),np.nanpercentile(s_layer,99.9),np.nanpercentile(s_layer,99),np.nanpercentile(s_layer,98)])
-    f.close()
-
-
-# distribution of activation - neuron-wise
-def save_dist_activation_neuron_vgg16(model):
-    # delete later
-    layer_name=[
-    #    'conv1',
-    #    'conv1_1',
-    #    'conv2',
-    #    'conv2_1'
-    #    'conv3',
-    #    'conv3_1',
-    #    'conv3_2',
-    #    'conv4',
-    #    'conv4_1',
-    #    'conv4_2'
-        'conv5',
-        'conv5_1',
-        'conv5_2',
-        'fc1',
-        'fc2',
-        'fc3'
-    ]
-
-    path_stat='/home/sspark/Projects/05_SNN/stat/'
-    #f_name_stat='act_n_train_after_w_norm_max_999'
-    f_name_stat='act_n_train'
-    #stat_conf=['max_999']
-    #stat_conf=['max','mean','max_999','max_99','max_98']
-    stat_conf=['max_95','max_90']
-    #stat_conf=['max','mean','min','max_75','max_25']
-    f_stat=collections.OrderedDict()
-    wr_stat=collections.OrderedDict()
-
-    for idx_l, l in enumerate(layer_name):
-        for idx_c, c in enumerate(stat_conf):
-            key=l+'_'+c
-            f_stat[key]=open(path_stat+f_name_stat+'_'+key+'_'+conf.model_name,'w')
-            wr_stat[key]=csv.writer(f_stat[key])
-
-    #f = open('./stat/dist_act_neuron_trainset_test_'+stat_conf+conf.model_name,'wb')
-
-    #wr = csv.writer(f,quoting=csv.QUOTE_NONE,escapechar='\n')
-    #wr = csv.writer(f)
-    #wr.writerow(['max','min','mean','std','99.9','99','98'])
-    #wr.writerow(['max','min','mean','99.9','99','98'])
-
-    for idx_l, l in enumerate(layer_name):
-        s_layer=model.dict_stat_w[l]
-        #print(np.shape(s_layer))
-        #print(np.shape(s_layer)[1:])
-        #shape_n=np.shape(s_layer)[1:]
-
-        # before
-        #max=np.max(s_layer,axis=0).flatten()
-        #mean=np.mean(s_layer,axis=0).flatten()
-        #max_999=np.nanpercentile(s_layer,99.9,axis=0).flatten()
-        #max_99=np.nanpercentile(s_layer,99,axis=0).flatten()
-        #max_98=np.nanpercentile(s_layer,98,axis=0).flatten()
-        max_95=np.nanpercentile(s_layer,95,axis=0).flatten()
-        max_90=np.nanpercentile(s_layer,90,axis=0).flatten()
-        #wr_stat[l+'_max'].writerow(max)
-        #wr_stat[l+'_mean'].writerow(mean)
-        #wr_stat[l+'_max_999'].writerow(max_999)
-        #wr_stat[l+'_max_99'].writerow(max_99)
-        #wr_stat[l+'_max_98'].writerow(max_98)
-        wr_stat[l+'_max_95'].writerow(max_95)
-        wr_stat[l+'_max_90'].writerow(max_90)
-
-
-        #min=np.min(s_layer,axis=0).flatten()
-        #max=np.max(s_layer).flatten()
-        #print(max)
-        #print(np.nanpercentile(s_layer,99.9))
-        #print(np.nanpercentile(s_layer,99))
-        #print(np.nanpercentile(s_layer,98))
-        #print(np.nanpercentile(s_layer,95))
-        #print(np.nanpercentile(s_layer,90))
-        #print(np.mean(s_layer))
-        #plt.hist(s_layer.flatten(), log=True, bins=int(max*2))
-        #plt.show()
-
-        # for after w norm stat
-        #max=np.max(s_layer,axis=0).flatten()
-        #mean=np.mean(s_layer,axis=0).flatten()
-        #min=np.mean(s_layer,axis=0).flatten()
-        #max_25=np.nanpercentile(s_layer,25,axis=0).flatten()
-        #max_75=np.nanpercentile(s_layer,75,axis=0).flatten()
-        #hist=np.histogram(s_layer)
-
-        #wr_stat[l+'_max'].writerow(max)
-        #wr_stat[l+'_mean'].writerow(mean)
-        #wr_stat[l+'_min'].writerow(min)
-        #wr_stat[l+'_max_75'].writerow(max_25)
-        #wr_stat[l+'_max_25'].writerow(max_75)
-        #wr_stat[l+'_hist'].writerow()
-
-
-        #print(np.shape(max))
-
-        #np.savetxt('a',max)
-
-        #wr.writerow([np.max(s_layer,axis=0),np.min(s_layer,axis=0),np.mean(s_layer,axis=0),np.std(s_layer,axis=0),np.nanpercentile(s_layer,99.9,axis=0),np.nanpercentile(s_layer,99,axis=0),np.nanpercentile(s_layer,98,axis=0)])
-        #wr.writerow([np.max(s_layer,axis=0),np.min(s_layer,axis=0),np.mean(s_layer,axis=0),np.nanpercentile(s_layer,99.9,axis=0),np.nanpercentile(s_layer,99,axis=0),np.nanpercentile(s_layer,98,axis=0)])
-        #wr.writerow([max,min,mean,max_999,max_99,max_98])
-
-    for idx_l, l in enumerate(layer_name):
-        for idx_c, c in enumerate(stat_conf):
-            key=l+'_'+c
-            f_stat[key].close()
-
-
-def test_old(model, dataset):
-    avg_loss = tfe.metrics.Mean('loss')
-
-    if conf.nn_mode=='SNN':
-        #accuracy_times = np.array((2,))
-        accuracy_times = []
-        accuracy_result = []
-        if conf.nn_mode == 'SNN':
-            accuracy_time_point = range(conf.time_step_save_interval,conf.time_step,conf.time_step_save_interval)
-            accuracy_time_point.append(conf.time_step)
-            argmax_axis_predictions=1
-        else :
-            accuracy_time_point = [1]
-            argmax_axis_predictions=0
-
-        num_accuracy_time_point=len(accuracy_time_point)
-
-        print('accuracy_time_point')
-        print(accuracy_time_point)
-
-        for i in range(num_accuracy_time_point):
-            accuracy_times.append(tfe.metrics.Accuracy('accuracy'))
-
-        num_batch=int(math.ceil(float(conf.num_test_dataset)/float(conf.batch_size)))
-
-        pbar = tqdm(range(1,num_batch+1),ncols=80)
-        #pbar.set_description("test batch")
-        pbar.set_description("batch")
-
-        for (idx_batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
-            #print('idx: %d'%(idx_batch))
-            #print('image')
-            #print(images.shape)
-            #print(images)
-            #print('label')
-            #print(labels)
-
-
-            if idx_batch!=-1:
-                predictions_times = model(images, f_training=False)
-                tf.reshape(predictions_times,(-1,)+labels.numpy().shape)
-
-                for i in range(num_accuracy_time_point):
-                    predictions=predictions_times[i]
-                    accuracy = accuracy_times[i]
-                    accuracy(tf.argmax(predictions,axis=argmax_axis_predictions,output_type=tf.int64), tf.argmax(labels,axis=1,output_type=tf.int64))
-
-                predictions = predictions_times[-1]
-                avg_loss(loss(predictions,labels))
-
-                if conf.verbose:
-                    print(predictions-labels*conf.time_step)
-
-            pbar.update()
-
-        for i in range(num_accuracy_time_point):
-            accuracy_result.append(accuracy_times[i].result().numpy())
-
-        print('')
-        print('accruacy')
-        print(accuracy_result)
-
-        plt.plot(accuracy_time_point,accuracy_result)
-        plt.show()
-
-        #print('Test set: Average loss: %.4f, Accuracy: %4f%%\n'%(avg_loss.result(), 100*accuracy.result()))
-        #with tf.contrib.summary.always_record_summaries():
-            #tf.contrib.summary.scalar('loss', avg_loss.result())
-            #tf.contrib.summary.scalar('accuracy', accuracy.result())
-            #tf.contrib.summary.scalar('w_conv1', model.variables)
-        ret_accu = 100*accuracy_result[-1]
-
-
-        print('total spike count')
-        print(model.total_spike_count)
-
-        plt.plot(accuracy_time_point,model.total_spike_count)
-        plt.show()
-
-    else:
-        accuracy=tfe.metrics.Accuracy('accuracy')
-
-        for (idx_batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
-            #print('idx: %d'%(idx_batch))
-            #print('image')
-            #print(images.shape)
-            #print(images)
-            #print('label')
-            #print(labels)
-
-            if idx_batch!=-1:
-                predictions = model(images, f_training=False)
-
-                accuracy(tf.argmax(predictions,axis=1,output_type=tf.int64), tf.argmax(labels,axis=1,output_type=tf.int64))
-                avg_loss(loss(predictions,labels))
-        ret_accu = 100*accuracy.result()
-
-        #plt.hist(model.stat_a_fc3)
-        #plt.show()
-        #plot_dist_activation_vgg16(model)
-        #save_dist_activation_vgg16(model)
-
-        #print(model.stat_a_fc3)
-        #print(model.stat_a_fc3.shape)
-        #print(tf.reduce_min(model.stat_a_fc3))
-        #print(tf.reduce_max(model.stat_a_fc3))
-
-        #print(tf.reduce_max(model.stat_a_fc2))
-        #print(tf.reduce_max(model.stat_a_fc3))
-
-
-    return avg_loss.result(), ret_accu
-
-
-
-#
-#@profile
-def test(model, dataset, f_val=False):
-    avg_loss = tfe.metrics.Mean('loss')
-
-    if conf.nn_mode=='SNN':
-        #accuracy_times = np.array((2,))
-        accuracy_times = []
-        accuracy_result = []
-
-        if conf.dataset == 'ImageNet':
-            accuracy_times_top5 = []
-            accuracy_result_top5 = []
-
-        accuracy_time_point = range(conf.time_step_save_interval,conf.time_step,conf.time_step_save_interval)
-        accuracy_time_point.append(conf.time_step)
-        argmax_axis_predictions=1
-
-
-        num_accuracy_time_point=len(accuracy_time_point)
-
-        print('accuracy_time_point')
-        print(accuracy_time_point)
-
-        for i in range(num_accuracy_time_point):
-            accuracy_times.append(tfe.metrics.Accuracy('accuracy'))
-
-            if conf.dataset == 'ImageNet':
-                accuracy_times_top5.append(tfe.metrics.Mean('accuracy_top5'))
-
-
-        num_batch=int(math.ceil(float(conf.num_test_dataset)/float(conf.batch_size)))
-
-        pbar = tqdm(range(1,num_batch+1),ncols=80)
-        #pbar.set_description("test batch")
-        pbar.set_description("batch")
-
-        for (idx_batch, (images, labels_one_hot)) in enumerate(tfe.Iterator(dataset)):
-            #print('idx: %d'%(idx_batch))
-            #print('image')
-            #print(images.shape)
-            #print(images)
-            #print('label')
-            #print(labels)
-            labels = tf.argmax(labels_one_hot,axis=1,output_type=tf.int32)
-
-            if idx_batch!=-1:
-                predictions_times = model(images, f_training=False)
-                tf.reshape(predictions_times,(-1,)+labels.numpy().shape)
-
-                for i in range(num_accuracy_time_point):
-                    predictions=predictions_times[i]
-                    accuracy = accuracy_times[i]
-                    accuracy(tf.argmax(predictions,axis=argmax_axis_predictions,output_type=tf.int32), labels)
-
-
-                    if conf.dataset == 'ImageNet':
-                        accuracy_top5 = accuracy_times_top5[i]
-                        with tf.device('/cpu:0'):
-                            accuracy_top5(tf.cast(tf.nn.in_top_k(predictions,labels,5),tf.int32))
-
-                predictions = predictions_times[-1]
-                avg_loss(loss(predictions,labels_one_hot))
-
-                if conf.verbose:
-                    print(predictions-labels*conf.time_step)
-
-            pbar.update()
-
-        for i in range(num_accuracy_time_point):
-            accuracy_result.append(accuracy_times[i].result().numpy())
-            accuracy_result_top5.append(accuracy_times_top5[i].result().numpy())
-
-        print('')
-        print('accruacy')
-        print(accuracy_result)
-        print(accuracy_result_top5)
-
-        plt.plot(accuracy_time_point,accuracy_result)
-        plt.show()
-
-        #print('Test set: Average loss: %.4f, Accuracy: %4f%%\n'%(avg_loss.result(), 100*accuracy.result()))
-        #with tf.contrib.summary.always_record_summaries():
-            #tf.contrib.summary.scalar('loss', avg_loss.result())
-            #tf.contrib.summary.scalar('accuracy', accuracy.result())
-            #tf.contrib.summary.scalar('w_conv1', model.variables)
-        ret_accu = 100*accuracy_result[-1]
-        ret_accu_top5 = 100*accuracy_result_top5[-1]
-
-
-        print('total spike count - int')
-        print(model.total_spike_count_int)
-        print('total spike count - float')
-        print(model.total_spike_count)
-        #print('total residual vmem')
-        #print(model.total_residual_vmem)
-
-        if conf.f_comp_act:
-            print('compare act')
-            print(model.total_comp_act)
-
-        if conf.f_isi:
-            print('total isi')
-            print(model.total_isi)
-
-            print('spike amplitude')
-            print(model.total_spike_amp)
-
-            plt.subplot(211)
-            plt.bar(np.arange(conf.time_step)[1:],model.total_isi[1:])
-            plt.subplot(212)
-            plt.bar(np.arange(model.spike_amp_bin[1:-1].size),model.total_spike_amp[1:],tick_label=model.spike_amp_bin[1:-1])
-
-            plt.show()
-
-        if conf.f_entropy:
-            print('total_entropy')
-            print(model.total_entropy)
-
-        print('f write date: '+conf.date)
-
-        #plt.plot(accuracy_time_point,model.total_spike_count)
-        #plt.show()
-
-    else:
-        accuracy=tfe.metrics.Accuracy('accuracy')
-
-        if conf.dataset == 'ImageNet':
-            accuracy_top5=tfe.metrics.Mean('accuracy_top5')
-
-
-        if f_val==False:
-            num_batch=int(math.ceil(float(conf.num_test_dataset)/float(conf.batch_size)))
-            pbar = tqdm(range(1,num_batch+1),ncols=80)
-            pbar.set_description("batch")
-
-        #snapshot = tracemalloc.take_snapshot()
-
-
-        for (idx_batch, (images, labels_one_hot)) in enumerate(tfe.Iterator(dataset)):
-        #for idx_batch in range(0,2):
-            #images, labels = tfe.Iterator(dataset).next()
-            #print('idx: %d'%(idx_batch))
-            #print('image')
-            #print(images.shape)
-            #print(images[0,0,0:10])
-            #print('label')
-            #print(labels)
-            #print(tf.argmax(labels,axis=1))
-
-            #labels = tf.argmax(labels_one_hot,axis=1,output_type=tf.int32)
-            #with tf.argmax(labels_one_hot,axis=1,output_type=tf.int32) as labels:
-
-            if idx_batch!=-1:
-                #model=tfe.defun(model)
-                predictions = model(images, f_training=False)
-
-                #print(predictions.shape)
-                #print(str(tf.argmax(predictions,axis=1))+' : '+str(tf.argmax(labels,axis=1)))
-
-                #accuracy(tf.argmax(predictions,axis=1,output_type=tf.int32), labels)
-                accuracy(tf.argmax(predictions,axis=1,output_type=tf.int32), tf.argmax(labels_one_hot,axis=1,output_type=tf.int32))
-
-                if conf.dataset == 'ImageNet':
-                    with tf.device('/cpu:0'):
-                        accuracy_top5(tf.cast(tf.nn.in_top_k(predictions,labels,5),tf.int32))
-                avg_loss(loss(predictions,labels_one_hot))
-
-            if f_val==False:
-                pbar.update()
-
-        ret_accu = 100*accuracy.result()
-        if conf.dataset == 'ImageNet':
-            ret_accu_top5 = 100*accuracy_top5.result()
-        else:
-            ret_accu_top5 = 0.0
-
-        #plt.hist(model.stat_a_fc3)
-        #plt.show()
-        #plot_dist_activation_vgg16(model)
-        #save_dist_activation_vgg16(model)
-
-        #print(model.stat_a_fc3)
-        #print(model.stat_a_fc3.shape)
-        #print(tf.reduce_min(model.stat_a_fc3))
-        #print(tf.reduce_max(model.stat_a_fc3,axis=0))
-        #print(np.max(model.stat_a_fc3,axis=0))
-
-        # should include the class later
-        #if conf.f_write_stat:
-        #    save_dist_activation_neuron_vgg16(model)
-
-        if conf.f_write_stat:
-            if conf.ann_model=='ResNet50' and conf.dataset=='ImageNet':
-                model.save_activation()
-
-
-        #print(tf.reduce_max(model.stat_a_fc2))
-        #print(tf.reduce_max(model.stat_a_fc3))
-
-
-        #top_stats = snapshot.statistics('lineno')
-
-        #print('[ top 10 ]')
-        #for stat in top_stats[:10]:
-        #    print(stat)
-
-
-    return avg_loss.result(), ret_accu, ret_accu_top5
-
-
-
-def preprocess_cifar10_train(img, label):
-    print('preproc - train')
-
-    img_p = tf.image.convert_image_dtype(img,tf.float32)
-    #img_p = tf.image.resize_image_with_crop_or_pad(img_p,cifar_10_crop_size,cifar_10_crop_size)
-
-    #
-    #img_p = tf.image.random_brightness(img_p,max_delta=20)
-    #img_p = tf.image.random_brightness(img_p,max_delta=23)
-    #img_p = tf.image.random_brightness(img_p,max_delta=83)
-    #img_p = tf.image.random_brightness(img_p,max_delta=103)
-
-
-    img_p = tf.image.resize_image_with_crop_or_pad(img_p,36,36)
-    img_p = tf.random_crop(img_p,[32,32,3])
-
-
-    #img_p = tf.cast(img,tf.float32)
-    #img_p = tf.image.convert_image_dtype(img,tf.float32)
-    #img_p = tf.image.rgb_to_hsv(img_p)
-
-    img_p = tf.image.random_flip_left_right(img_p)
-
-
-    #
-    #img_p = tf.image.random_contrast(img_p,lower=0.2,upper=1.8)
-    #img_p = tf.image.random_contrast(img_p,lower=0.1,upper=2.0)
-
-    #
-    #img_p = tf.image.per_image_standardization(img_p)
-    #img_p.set_shape([cifar_10_crop_size,cifar_10_crop_size,3])
-    img_p.set_shape([32,32,3])
-
-    return img_p, label
-
-def preprocess_cifar10_test(img, label):
-    print('preproc - test')
-
-    img_p = tf.image.convert_image_dtype(img,tf.float32)
-    #img_p = tf.image.resize_image_with_crop_or_pad(img_p,cifar_10_crop_size,cifar_10_crop_size)
-
-    #img_p = tf.cast(img,tf.float32)
-    #img_p = tf.image.convert_image_dtype(img,tf.float32)
-    #img_p = tf.image.rgb_to_hsv(img_p)
-    #img_p = tf.image.resize_image_with_crop_or_pad(img_p,cifar_10_crop_size,cifar_10_crop_size)
-
-    # test 180711
-    #img_p = tf.image.per_image_standardization(img_p)
-
-    #img_p.set_shape([cifar_10_crop_size,cifar_10_crop_size,3])
-    img_p.set_shape([32,32,3])
-
-    return img_p, label
-
-
-# convert class labels from scalars to one-hot vectors
-def dense_to_one_hot(labels_dense, num_classes):
-    num_labels = labels_dense.shape[0]
-    index_offset = numpy.arrange(num_labels) * num_classes
-
-def load_data():
-    print("load MNIST dataset")
-    #data = input_data.read_data_sets(data_dir, one_hot=True)
-    data = input_data.read_data_sets("MNIST-data/", one_hot=True)
-
-    train_dataset = tf.data.Dataset.from_tensor_slices((data.train.images,data.train.labels))
-    train_dataset = train_dataset.shuffle(60000).batch(conf.batch_size)
-
-    val_dataset = tf.data.Dataset.from_tensor_slices((data.validation.images,data.validation.labels))
-    test_dataset = tf.data.Dataset.from_tensor_slices((data.test.images[:conf.num_test_dataset], data.test.labels[:conf.num_test_dataset]))
-
-
-    #print(data.test.images.shape)
-
-    print(train_dataset)
-
-    return train_dataset, val_dataset, test_dataset
-
-def load_data_cifar10():
-    print("load CIFAR10 dataset")
-    (img_train,label_train), (img_test, label_test) = tf.contrib.keras.datasets.cifar10.load_data()
-
-    #print(type(img_train))
-    img_train = img_train.astype(float)
-    img_test = img_test.astype(float)
-
-    #print(img_train[0])
-    print(tf.reduce_min(img_train))
-    print(tf.reduce_min(img_test))
-
-    img_train = img_train / 255.0
-    img_test = img_test / 255.0
-
-    #img_train[:,:,:,0] = (img_train[:,:,:,0]-np.mean(img_train[:,:,:,0]))/np.std(img_train[:,:,:,0])
-    #img_train[:,:,:,1] = (img_train[:,:,:,1]-np.mean(img_train[:,:,:,1]))/np.std(img_train[:,:,:,1])
-    #img_train[:,:,:,2] = (img_train[:,:,:,2]-np.mean(img_train[:,:,:,2]))/np.std(img_train[:,:,:,2])
-
-    #img_test[:,:,:,0] = (img_test[:,:,:,0]-np.mean(img_test[:,:,:,0]))/np.std(img_test[:,:,:,0])
-    #img_test[:,:,:,1] = (img_test[:,:,:,1]-np.mean(img_test[:,:,:,1]))/np.std(img_test[:,:,:,1])
-    #img_test[:,:,:,2] = (img_test[:,:,:,2]-np.mean(img_test[:,:,:,2]))/np.std(img_test[:,:,:,2])
-
-
-    cifar_mean = [0.485, 0.456, 0.406]
-    cifar_std = [0.229, 0.224, 0.225]
-
-    img_train[:,:,:,0] = (img_train[:,:,:,0]-cifar_mean[0])/cifar_std[0]
-    img_train[:,:,:,1] = (img_train[:,:,:,1]-cifar_mean[1])/cifar_std[1]
-    img_train[:,:,:,2] = (img_train[:,:,:,2]-cifar_mean[2])/cifar_std[2]
-
-    img_test[:,:,:,0] = (img_test[:,:,:,0]-cifar_mean[0])/cifar_std[0]
-    img_test[:,:,:,1] = (img_test[:,:,:,1]-cifar_mean[1])/cifar_std[1]
-    img_test[:,:,:,2] = (img_test[:,:,:,2]-cifar_mean[2])/cifar_std[2]
-
-
-    print(tf.reduce_min(img_train))
-    print(tf.reduce_min(img_test))
-
-    label_test=label_test[:conf.num_test_dataset]
-    img_test=img_test[:conf.num_test_dataset,:,:,:]
-
-
-    #print('################################ test start at idx1 - should modify ######################')
-    #label_test=label_test[1:conf.num_test_dataset]
-    #img_test=img_test[1:conf.num_test_dataset,:,:,:]
-
-    #train_dataset = tf.data.Dataset.from_tensor_slices((img_train[:45000],tf.squeeze(tf.one_hot(label_train[:45000],10))))
-
-    train_dataset = tf.data.Dataset.from_tensor_slices((img_train,tf.squeeze(tf.one_hot(label_train,10))))
-
-    val_dataset = tf.data.Dataset.from_tensor_slices((img_test,tf.squeeze(tf.one_hot(label_test,10))))
-    val_dataset = val_dataset.map(preprocess_cifar10_test, num_parallel_calls=2)
-    val_dataset = val_dataset.prefetch(10*conf.batch_size)
-
-    test_dataset = tf.data.Dataset.from_tensor_slices((img_test,tf.squeeze(tf.one_hot(label_test,10))))
-    test_dataset = test_dataset.map(preprocess_cifar10_test, num_parallel_calls=2)
-    test_dataset = test_dataset.prefetch(10*conf.batch_size)
-
-
-    # for stat of train dataset
-    if conf.f_stat_train_mode:
-        test_dataset = tf.data.Dataset.from_tensor_slices((img_train,tf.squeeze(tf.one_hot(label_train,10))))
-        test_dataset = test_dataset.map(preprocess_cifar10_test, num_parallel_calls=2)
-
-    print(train_dataset)
-
-
-    return train_dataset, val_dataset, test_dataset
-
-def load_data_cifar100():
-    print("load CIFAR100 dataset")
-    (img_train,label_train), (img_test, label_test) = tf.contrib.keras.datasets.cifar100.load_data()
-
-    #print(type(img_train))
-    img_train = img_train.astype(float)
-    img_test = img_test.astype(float)
-
-    #print(img_train[0])
-    print(tf.reduce_min(img_train))
-    print(tf.reduce_min(img_test))
-
-    img_train = img_train / 255.0
-    img_test = img_test / 255.0
-
-    #print(type(img_train))
-
-    #print(img_train[0])
-
-    #img_train[:,:,:,0] = (img_train[:,:,:,0]-np.mean(img_train[:,:,:,0]))/np.std(img_train[:,:,:,0])
-    #img_train[:,:,:,1] = (img_train[:,:,:,1]-np.mean(img_train[:,:,:,1]))/np.std(img_train[:,:,:,1])
-    #img_train[:,:,:,2] = (img_train[:,:,:,2]-np.mean(img_train[:,:,:,2]))/np.std(img_train[:,:,:,2])
-
-    #img_test[:,:,:,0] = (img_test[:,:,:,0]-np.mean(img_test[:,:,:,0]))/np.std(img_test[:,:,:,0])
-    #img_test[:,:,:,1] = (img_test[:,:,:,1]-np.mean(img_test[:,:,:,1]))/np.std(img_test[:,:,:,1])
-    #img_test[:,:,:,2] = (img_test[:,:,:,2]-np.mean(img_test[:,:,:,2]))/np.std(img_test[:,:,:,2])
-
-
-    print(tf.reduce_min(img_train))
-    print(tf.reduce_min(img_test))
-
-    label_test=label_test[:conf.num_test_dataset]
-    img_test=img_test[:conf.num_test_dataset,:,:,:]
-    #train_dataset = tf.data.Dataset.from_tensor_slices((img_train[:45000],tf.squeeze(tf.one_hot(label_train[:45000],10))))
-
-    #val_dataset = tf.data.Dataset.from_tensor_slices((img_train[45000:],tf.squeeze(tf.one_hot(label_train[45000:],10))))
-    #val_dataset = val_dataset.map(preprocess_cifar10_test)
-
-    train_dataset = tf.data.Dataset.from_tensor_slices((img_train,tf.squeeze(tf.one_hot(label_train,100))))
-
-
-    val_dataset = tf.data.Dataset.from_tensor_slices((img_test,tf.squeeze(tf.one_hot(label_test,100))))
-    val_dataset = val_dataset.map(preprocess_cifar10_test)
-
-    test_dataset = tf.data.Dataset.from_tensor_slices((img_test,tf.squeeze(tf.one_hot(label_test,100))))
-    test_dataset = test_dataset.map(preprocess_cifar10_test)
-
-
-    # for stat of train dataset
-    if conf.f_stat_train_mode:
-        test_dataset = tf.data.Dataset.from_tensor_slices((img_train,tf.squeeze(tf.one_hot(label_train,100))))
-        test_dataset = test_dataset.map(preprocess_cifar10_test)
-
-
-
-    print(train_dataset)
-
-    return train_dataset, val_dataset, test_dataset
-
-def load_data_imagenet(conf):
-    print('ImageNet load')
-
-    #
-    #train_dataset = ImageNetDataset(conf, 'train')
-    #valid_dataset = ImageNetDataset(conf, 'val')
-    #test_dataset = ImageNetDataset(conf, 'val')
-
-    #print(test_dataset)
-
-
-
-    # tensornets
-    #data_imgs, data_labels = imagenet.get_files(conf.data_path_imagenet,'val', None)
-
-    #dataset = tf.data.Dataset.from_tensor_slices((data_imgs, data_labels))
-    #dataset = dataset.map(imagenet.load_and_crop, resize_wh=256, crop_locs=4, crop_wh=224).batch(conf.batch_size)
-    #dataset = dataset.map(imagenet.load_and_crop).batch(conf.batch_size)
-
-    #(data_imgs, data_labels) = tf.data.Dataset.from_generator\
-    test_dataset = tf.data.Dataset.from_generator\
-        (
-            #lambda: imagenet_load(data_dir=conf.data_path_imagenet,resize_wh=256,crop_wh=224,crops=1),
-            imagenet_load,
-            #(tf.float32, tf.int32),
-            (tf.float32, tf.float32),
-            #((None,224,224,3),(None,1000)),
-            #((None,224,224,3),(None,1000)),
-            #((None,224,224,3),(None,1000)),
-            ((None,conf.input_size,conf.input_size,3),(None,conf.num_class)),
-        )
-
-    test_dataset = test_dataset.map(imagenet.keras_imagenet_preprocess, num_parallel_calls=2)
-    test_dataset = test_dataset.prefetch(1)
-
-    train_dataset = test_dataset
-    valid_dataset = test_dataset
-
-    return train_dataset, valid_dataset, test_dataset
-
-def train_data_augmentation_old(train_dataset):
-    train_dataset_p = train_dataset.map(preprocess_cifar10_train)
-
-    train_dataset_p = train_dataset_p.shuffle(50000).batch(conf.batch_size)
-
-    return train_dataset_p
-
-def train_data_augmentation(train_dataset):
-    #train_dataset_p = train_dataset.map(preprocess_cifar10_train, num_parallel_calls=8)
-    #train_dataset_p = train_dataset
-
-    #train_dataset_p = train_dataset_p.shuffle(50000).batch(conf.batch_size)
-    train_dataset_p = train_dataset.shuffle(10000)
-    train_dataset_p = train_dataset_p.prefetch(2*conf.batch_size)
-
-    #train_dataset_p = train_dataset_p.prefetch(100)
-
-    train_dataset_p = train_dataset_p.map(preprocess_cifar10_train, num_parallel_calls=8)
-    train_dataset_p = train_dataset_p.batch(conf.batch_size)
-
-
-    #train_dataset_p = train_dataset_p.apply(tf.data.experimental.map_and_batch(
-    #                    preprocess_cifar10_train,conf.batch_size,num_parallel_batches=8))
-
-    #train_dataset_p = train_dataset_p.apply(tf.contrib.data.prefetch_to_device('/gpu:0'))
-
-    return train_dataset_p
-
-def bypass(input):
-
-    return input
-
-
-def data_preprocessing(train_dataset):
-    func_pre={
-        'MNIST': bypass,
-        'CIFAR-10': train_data_augmentation,
-        'CIFAR-100': train_data_augmentation
-    }
-
-    train_dataset_p = func_pre[conf.dataset](train_dataset)
-
-    return train_dataset_p
-
-# noinspection PyUnboundLocalVariable
 def main(_):
+    #pr = cProfile.Profile()
+    #pr=pprofile.Profile()
+    #pr.enable()
+
     #print(device_lib.list_local_devices())
     print('main start')
 
@@ -1148,41 +263,60 @@ def main(_):
     #with tf.device('/cpu:0'):
     with tf.device('/gpu:0'):
         # load dataset
-        if conf.dataset=='MNIST':
-            (train_dataset, val_dataset, test_dataset) = load_data()
-        elif conf.dataset=='CIFAR-10':
-            (train_dataset, val_dataset, test_dataset) = load_data_cifar10()
-        elif conf.dataset=='CIFAR-100':
-            (train_dataset, val_dataset, test_dataset) = load_data_cifar100()
-        elif conf.dataset=='ImageNet':
-            print('only test dataset supported yet')
-            (train_dataset, val_dataset, test_dataset) = load_data_imagenet(conf)
+#        if conf.dataset=='MNIST':
+#            (train_dataset, val_dataset, test_dataset) = mnist.load_data(conf.batch_size, conf.num_test_dataset)
+#        elif conf.dataset=='CIFAR-10':
+#            (train_dataset, val_dataset, test_dataset) = cifar10.load_data(conf.batch_size, conf.num_test_dataset, conf.f_stat_train_mode)
+#        elif conf.dataset=='CIFAR-100':
+#            (train_dataset, val_dataset, test_dataset) = cifar100.load_data(conf.batch_size, conf.num_test_dataset, conf.f_stat_train_mode)
+#        elif conf.dataset=='ImageNet':
+#            print('only test dataset supported yet')
+#            (train_dataset, val_dataset, test_dataset) = imagenet.load(conf)
 
-
-
-    if conf.dataset!='ImageNet':
-        val_dataset = val_dataset.batch(conf.batch_size)
-
-        n_test_batch_sel = {
-            'ANN': conf.batch_size,
-            'SNN': conf.batch_size
-            #'SNN': 1
+        dataset_type= {
+            'MNIST': mnist,
+            'CIFAR-10': cifar10,
+            'CIFAR-100': cifar100,
+            'ImageNet': imagenet
         }
-        n_test_batch = n_test_batch_sel[conf.nn_mode]
+        dataset = dataset_type[conf.dataset]
 
-        test_dataset = test_dataset.batch(n_test_batch)
+        (train_dataset, val_dataset, test_dataset) = dataset.load(conf)
 
     #print('> Dataset info.')
     #print(train_dataset)
     #print(test_dataset)
 
+
+
+    #train_func_sel = {
+    #    'ANN': train.train_ann_one_epoch,
+    #    'SNN': train.train_snn_one_epoch
+    #}
+    #
+    #train_func = train_func_sel[conf.nn_mode]
+
+    train_func = train.train_one_epoch
+
     if conf.ann_model=='MLP':
         if conf.dataset=='MNIST':
-            model = models.MNISTModel_MLP(data_format,conf)
+            #model = models.MNISTModel_MLP(data_format,conf)
+            model = mlp.mlp_mnist(data_format,conf)
+            if conf.nn_mode=='ANN':
+                train_func = train.train_ann_one_epoch_mnist
+            else:
+                train_func = train.train_snn_one_epoch_mnist
     elif conf.ann_model=='CNN':
         if conf.dataset=='MNIST':
             #model = models.MNISTModel_CNN(data_format,conf)
-            model = model_cnn_mnist.MNISTModel_CNN(data_format,conf)
+            #model = model_cnn_mnist.MNISTModel_CNN(data_format,conf)
+            model = cnn.cnn_mnist(data_format,conf)
+
+            if conf.nn_mode=='ANN':
+                train_func = train.train_ann_one_epoch_mnist_cnn
+            else:
+                train_func = train.train_snn_one_epoch_mnist_cnn
+
         elif conf.dataset=='CIFAR-10':
             model = models.CIFARModel_CNN(data_format,conf)
         elif conf.dataset=='CIFAR-100':
@@ -1201,7 +335,7 @@ def main(_):
 
     en_train_sel = {
         'ANN': conf.en_train,
-        'SNN': False
+        'SNN': conf.en_train
     }
 
     en_train = en_train_sel[conf.nn_mode]
@@ -1210,8 +344,8 @@ def main(_):
     lr=tfe.Variable(conf.lr)
     momentum = conf.momentum
     #optimizer = tf.train.GradientDescentOptimizer(lr)
-    optimizer = tf.train.MomentumOptimizer(lr,momentum)
-    #optimizer = tf.train.AdamOptimizer(lr)
+    #optimizer = tf.train.MomentumOptimizer(lr,momentum)
+    optimizer = tf.train.AdamOptimizer(lr)
 
 
     if conf.output_dir:
@@ -1249,6 +383,8 @@ def main(_):
 
     checkpoint_prefix = os.path.join(checkpoint_dir, 'ckpt')
 
+
+
     with tf.device(device):
         #if conf.en_train:
         if en_train:
@@ -1257,28 +393,15 @@ def main(_):
             acc_val_best = 0.0
             #with tfe.restore_variables_on_create(tf.train.latest_checkpoint(FLAGS.checkpoint_dir)):
 
-            #with tf.device('/cpu:0'):
-            train_dataset_p = data_preprocessing(train_dataset)
-            #train_dataset_p = data_preprocessing(train_dataset)
+            if conf.dataset!='ImageNet':
+                train_dataset_p = dataset.train_data_augmentation(train_dataset, conf.batch_size)
 
             images_0, _ = tfe.Iterator(train_dataset_p).get_next()
-            #(images_0,_) = train_dataset_p[0]
+            #images_0, _ = tfe.Iterator(test_dataset).get_next()
 
-            #print(images_0)
+            model(images_0,False)
 
             if conf.en_load_model:
-                #images_0, _ = tfe.Iterator(test_dataset).get_next()
-
-                if conf.dataset=='CIFAR-10' or conf.dataset=='CIFAR-100':
-                    #with tf.device('/cpu:0'):
-                        # noinspection PyUnboundLocalVariable
-                        #train_dataset_p = train_data_augmentation(train_dataset)
-                        #images_0, _ = tfe.Iterator(train_dataset_p).get_next()
-                    train_dataset_p = train_data_augmentation(train_dataset)
-
-
-                model(images_0,False)
-
                 #tfe.restore_variables_on_create(tf.train.latest_checkpoint(checkpoint_load_dir))
 
                 #restore_variables = (model.trainable_weights + optimizer.variables() + [epoch])
@@ -1298,7 +421,6 @@ def main(_):
 
 
             #
-            #tracemalloc.start()
 
             #with tfe.restore_variables_on_create(tf.train.latest_checkpoint(checkpoint_load_dir)):
             #for epoch in range(1,11):
@@ -1336,18 +458,19 @@ def main(_):
 #                    elif epoch > 250:
 #                        lr.assign(0.0001)
 
-                    if epoch == 0:
-                        lr.assign(0.01)
-                    elif epoch > 0 and epoch < 80 :
-                        lr.assign(0.1)
-                    elif epoch > 80 and epoch < 135 :
-                        lr.assign(0.01)
-                    elif epoch > 135 and epoch < 180 :
-                        lr.assign(0.001)
-                    elif epoch > 180 and epoch < 280 :
-                        lr.assign(0.0001)
-                    elif epoch > 280:
-                        lr.assign(0.00001)
+                    # for resnet, cifar10
+                    #if epoch == 0:
+                    #    lr.assign(0.01)
+                    #elif epoch > 0 and epoch < 80 :
+                    #    lr.assign(0.1)
+                    #elif epoch > 80 and epoch < 135 :
+                    #    lr.assign(0.01)
+                    #elif epoch > 135 and epoch < 180 :
+                    #    lr.assign(0.001)
+                    #elif epoch > 180 and epoch < 280 :
+                    #    lr.assign(0.0001)
+                    #elif epoch > 280:
+                    #    lr.assign(0.00001)
 
 
 
@@ -1365,14 +488,12 @@ def main(_):
                     #elif epoch > 450:
                     #    lr.assign(0.00001)
 
-                    # testing on Canyon
-                    #if conf.dataset=='MNIST':
-                        #loss_train, acc_train = train_one_epoch(model, optimizer, train_dataset)
-                    #elif conf.dataset=='CIFAR-10':
-                        ## noinspection PyUnboundLocalVariable
-                        #loss_train, acc_train = train_one_epoch(model, optimizer, train_dataset_p)
 
-                    loss_train, acc_train = train_one_epoch(model, optimizer, train_dataset_p)
+                    #loss_train, acc_train = train.train_one_epoch(model, optimizer, train_dataset_p)
+                    #loss_train, acc_train = train.train_snn_one_epoch(model, optimizer, train_dataset_p, conf)
+                    #loss_train, acc_train = train.train_ann_one_epoch_mnist(model, optimizer, train_dataset_p, conf)
+                    loss_train, acc_train = train_func(model, optimizer, train_dataset_p, conf)
+
 
                     with tf.contrib.summary.always_record_summaries():
                         tf.contrib.summary.scalar('loss', loss_train, step=epoch)
@@ -1383,7 +504,7 @@ def main(_):
 
                 #
                 with val_summary_writer.as_default():
-                    loss_val, acc_val, _ = test(model, val_dataset, f_val=True)
+                    loss_val, acc_val, _ = test.test(model, val_dataset, conf, f_val=True)
 
                     with tf.contrib.summary.always_record_summaries():
                         tf.contrib.summary.scalar('loss', loss_val, step=epoch)
@@ -1508,18 +629,57 @@ def main(_):
             #for var in restore_variables:
             #    print(var)
 
+        # for profile
+#        with context.eager_mode():
+#            prof_opt = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+#            run_metadata = tf.RunMetadata()
+#            dump_dir = './'
+#            prof_dump = os.path.join(dump_dir,'dump')
+#            opts = builder(
+#                builder.time_and_memory()
+#            ).with_file_output(prof_dump).build()
+#            context.enable_run_metadata()
+#
+#
+#            # test
+#            with test_summary_writer.as_default():
+#                loss_test, acc_test, acc_test_top5 = test.test(model, test_dataset, conf)
+#                if conf.dataset == 'ImageNet':
+#                    print('loss_test: %f, acc_test: %f, acc_test_top5: %f'%(loss_test,acc_test,acc_test_top5))
+#                else:
+#                    print('loss_test: %f, acc_test: %f'%(loss_test,acc_test))
+#
+#            profiler = model_analyzer.Profiler()
+#            profiler.add_step(0, context.export_run_metadata())
+#            context.disable_run_metadata()
+#            profiler.profile_operations(opts)
+#
+#            with gfile.Open(prof_dump, 'r') as f:
+#                out_str = f.read()
+#
+#                print(out_str)
 
-        with test_summary_writer.as_default():
-            loss_test, acc_test, acc_test_top5 = test(model, test_dataset)
-            if conf.dataset == 'ImageNet':
-                print('loss_test: %f, acc_test: %f, acc_test_top5: %f'%(loss_test,acc_test,acc_test_top5))
-            else:
-                print('loss_test: %f, acc_test: %f'%(loss_test,acc_test))
+        # test
+            with test_summary_writer.as_default():
+                loss_test, acc_test, acc_test_top5 = test.test(model, test_dataset, conf)
+                if conf.dataset == 'ImageNet':
+                    print('loss_test: %f, acc_test: %f, acc_test_top5: %f'%(loss_test,acc_test,acc_test_top5))
+                else:
+                    print('loss_test: %f, acc_test: %f'%(loss_test,acc_test))
 
         print('end')
 
+        #os._exit(0)
 
-        os._exit(0)
+
+    #pr.disable()
+
+    #pr.print_stats(sort='time')
+    #pr.print_stats()
+    #pr_dump_file_name='dump.prof'
+    #pr.dump_stats(pr_dump_file_name)
+
+
 
 
 

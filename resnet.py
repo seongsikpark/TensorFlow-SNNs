@@ -775,6 +775,7 @@ class Resnet50(tf.keras.Model):
     def call_ann(self, input_tensor, f_training=False):
         #print('stage 1')
         s_conv1 = self.conv1(input_tensor)
+
         s_conv1_bn = self.conv1_bn(s_conv1, training=f_training)
         #a_conv1 = tf.nn.relu(s_conv1_bn)
         a_conv1 = self.conv1_act(s_conv1_bn)
