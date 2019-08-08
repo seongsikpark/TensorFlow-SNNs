@@ -1,0 +1,132 @@
+main start
+2018-07-15 16:46:56.823985: I tensorflow/core/platform/cpu_feature_guard.cc:140] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 AVX512F FMA
+2018-07-15 16:46:57.806096: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1356] Found device 0 with properties: 
+name: TITAN V major: 7 minor: 0 memoryClockRate(GHz): 1.455
+pciBusID: 0000:65:00.0
+totalMemory: 11.78GiB freeMemory: 11.37GiB
+2018-07-15 16:46:57.806126: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1435] Adding visible gpu devices: 0
+2018-07-15 16:46:58.008811: I tensorflow/core/common_runtime/gpu/gpu_device.cc:923] Device interconnect StreamExecutor with strength 1 edge matrix:
+2018-07-15 16:46:58.008861: I tensorflow/core/common_runtime/gpu/gpu_device.cc:929]      0 
+2018-07-15 16:46:58.008868: I tensorflow/core/common_runtime/gpu/gpu_device.cc:942] 0:   N 
+2018-07-15 16:46:58.009082: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1053] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 10991 MB memory) -> physical GPU (device: 0, name: TITAN V, pci bus id: 0000:65:00.0, compute capability: 7.0)
+1
+Using device /gpu:0, and data format channels_last.
+load CIFAR10 dataset
+tf.Tensor(0.0, shape=(), dtype=float64)
+tf.Tensor(0.0, shape=(), dtype=float64)
+tf.Tensor(0.0, shape=(), dtype=float64)
+tf.Tensor(0.0, shape=(), dtype=float64)
+<TensorSliceDataset shapes: ((32, 32, 3), (10,)), types: (tf.float64, tf.float32)>
+Neuron setup
+Input shape snn: [1, 32, 32, 3]
+model load path: ./model/vgg_cifar_ro_0
+model save path: ./model/vgg_cifar_ro_0
+ Test Phase >
+restore variables
+['cifar_model_cnn/conv2d/kernel:0', 'cifar_model_cnn/conv2d/bias:0', 'cifar_model_cnn/batch_normalization/gamma:0', 'cifar_model_cnn/batch_normalization/beta:0', 'cifar_model_cnn/batch_normalization/moving_mean:0', 'cifar_model_cnn/batch_normalization/moving_variance:0', 'cifar_model_cnn/conv2d_1/kernel:0', 'cifar_model_cnn/conv2d_1/bias:0', 'cifar_model_cnn/batch_normalization_1/gamma:0', 'cifar_model_cnn/batch_normalization_1/beta:0', 'cifar_model_cnn/batch_normalization_1/moving_mean:0', 'cifar_model_cnn/batch_normalization_1/moving_variance:0', 'cifar_model_cnn/conv2d_2/kernel:0', 'cifar_model_cnn/conv2d_2/bias:0', 'cifar_model_cnn/batch_normalization_2/gamma:0', 'cifar_model_cnn/batch_normalization_2/beta:0', 'cifar_model_cnn/batch_normalization_2/moving_mean:0', 'cifar_model_cnn/batch_normalization_2/moving_variance:0', 'cifar_model_cnn/conv2d_3/kernel:0', 'cifar_model_cnn/conv2d_3/bias:0', 'cifar_model_cnn/batch_normalization_3/gamma:0', 'cifar_model_cnn/batch_normalization_3/beta:0', 'cifar_model_cnn/batch_normalization_3/moving_mean:0', 'cifar_model_cnn/batch_normalization_3/moving_variance:0', 'cifar_model_cnn/conv2d_4/kernel:0', 'cifar_model_cnn/conv2d_4/bias:0', 'cifar_model_cnn/batch_normalization_4/gamma:0', 'cifar_model_cnn/batch_normalization_4/beta:0', 'cifar_model_cnn/batch_normalization_4/moving_mean:0', 'cifar_model_cnn/batch_normalization_4/moving_variance:0', 'cifar_model_cnn/conv2d_5/kernel:0', 'cifar_model_cnn/conv2d_5/bias:0', 'cifar_model_cnn/batch_normalization_5/gamma:0', 'cifar_model_cnn/batch_normalization_5/beta:0', 'cifar_model_cnn/batch_normalization_5/moving_mean:0', 'cifar_model_cnn/batch_normalization_5/moving_variance:0', 'cifar_model_cnn/conv2d_6/kernel:0', 'cifar_model_cnn/conv2d_6/bias:0', 'cifar_model_cnn/batch_normalization_6/gamma:0', 'cifar_model_cnn/batch_normalization_6/beta:0', 'cifar_model_cnn/batch_normalization_6/moving_mean:0', 'cifar_model_cnn/batch_normalization_6/moving_variance:0', 'cifar_model_cnn/conv2d_7/kernel:0', 'cifar_model_cnn/conv2d_7/bias:0', 'cifar_model_cnn/batch_normalization_7/gamma:0', 'cifar_model_cnn/batch_normalization_7/beta:0', 'cifar_model_cnn/batch_normalization_7/moving_mean:0', 'cifar_model_cnn/batch_normalization_7/moving_variance:0', 'cifar_model_cnn/conv2d_8/kernel:0', 'cifar_model_cnn/conv2d_8/bias:0', 'cifar_model_cnn/batch_normalization_8/gamma:0', 'cifar_model_cnn/batch_normalization_8/beta:0', 'cifar_model_cnn/batch_normalization_8/moving_mean:0', 'cifar_model_cnn/batch_normalization_8/moving_variance:0', 'cifar_model_cnn/conv2d_9/kernel:0', 'cifar_model_cnn/conv2d_9/bias:0', 'cifar_model_cnn/batch_normalization_9/gamma:0', 'cifar_model_cnn/batch_normalization_9/beta:0', 'cifar_model_cnn/batch_normalization_9/moving_mean:0', 'cifar_model_cnn/batch_normalization_9/moving_variance:0', 'cifar_model_cnn/conv2d_10/kernel:0', 'cifar_model_cnn/conv2d_10/bias:0', 'cifar_model_cnn/batch_normalization_10/gamma:0', 'cifar_model_cnn/batch_normalization_10/beta:0', 'cifar_model_cnn/batch_normalization_10/moving_mean:0', 'cifar_model_cnn/batch_normalization_10/moving_variance:0', 'cifar_model_cnn/conv2d_11/kernel:0', 'cifar_model_cnn/conv2d_11/bias:0', 'cifar_model_cnn/batch_normalization_11/gamma:0', 'cifar_model_cnn/batch_normalization_11/beta:0', 'cifar_model_cnn/batch_normalization_11/moving_mean:0', 'cifar_model_cnn/batch_normalization_11/moving_variance:0', 'cifar_model_cnn/conv2d_12/kernel:0', 'cifar_model_cnn/conv2d_12/bias:0', 'cifar_model_cnn/batch_normalization_12/gamma:0', 'cifar_model_cnn/batch_normalization_12/beta:0', 'cifar_model_cnn/batch_normalization_12/moving_mean:0', 'cifar_model_cnn/batch_normalization_12/moving_variance:0', 'cifar_model_cnn/dense/kernel:0', 'cifar_model_cnn/dense/bias:0', 'cifar_model_cnn/dense_1/kernel:0', 'cifar_model_cnn/dense_1/bias:0', 'cifar_model_cnn/batch_normalization_13/gamma:0', 'cifar_model_cnn/batch_normalization_13/beta:0', 'cifar_model_cnn/batch_normalization_13/moving_mean:0', 'cifar_model_cnn/batch_normalization_13/moving_variance:0', 'cifar_model_cnn/batch_normalization_14/gamma:0', 'cifar_model_cnn/batch_normalization_14/beta:0', 'cifar_model_cnn/batch_normalization_14/moving_mean:0', 'cifar_model_cnn/batch_normalization_14/moving_variance:0', 'cifar_model_cnn/batch_normalization_15/gamma:0', 'cifar_model_cnn/batch_normalization_15/beta:0', 'cifar_model_cnn/batch_normalization_15/moving_mean:0', 'cifar_model_cnn/batch_normalization_15/moving_variance:0', 'cifar_model_cnn/dense_2/kernel:0', 'cifar_model_cnn/dense_2/bias:0']
+load model
+./model/vgg_cifar_ro_0/ckpt-299
+accuracy_time_point
+[20, 40, 60, 80, 100]
+  0%|                                                     | 0/5 [00:00<?, ?it/s]batch:   0%|                                              | 0/5 [00:00<?, ?it/s]Input   N: [1, 32, 32, 3]
+Conv1   S: (3, 3, 3, 64)
+Conv1   N: (1, 32, 32, 64)
+Conv1_1 S: (3, 3, 64, 64)
+Conv1_1 N: (1, 32, 32, 64)
+Pool1   N: (1, 16, 16, 64)
+Conv2   S: (3, 3, 64, 128)
+Conv2   N: (1, 16, 16, 128)
+Conv2_1 S: (3, 3, 128, 128)
+Conv2_1 N: (1, 16, 16, 128)
+Pool2   N: (1, 8, 8, 128)
+Conv3   S: (3, 3, 128, 256)
+Conv3   N: (1, 8, 8, 256)
+Conv3_1 S: (3, 3, 256, 256)
+Conv3_1 N: (1, 8, 8, 256)
+Conv3_2 S: (3, 3, 256, 256)
+Conv3_2 N: (1, 8, 8, 256)
+Pool3   N: (1, 4, 4, 256)
+Conv4   S: (3, 3, 256, 512)
+Conv4   N: (1, 4, 4, 512)
+Conv4_1 S: (3, 3, 512, 512)
+Conv4_1 N: (1, 4, 4, 512)
+Conv4_1 S: (3, 3, 512, 512)
+Conv4_2 N: (1, 4, 4, 512)
+Pool4   N: (1, 2, 2, 512)
+Conv5   S: (3, 3, 512, 512)
+Conv5   N: (1, 2, 2, 512)
+Conv5_1 S: (3, 3, 512, 512)
+Conv5_1 N: (1, 2, 2, 512)
+Conv5_1 S: (3, 3, 512, 512)
+Conv5_2 N: (1, 2, 2, 512)
+Pool5   N: (1, 1, 1, 512)
+Fc1     S: (512, 512)
+Fc1     N: (1, 512)
+Fc2     S: (512, 512)
+Fc2     N: (1, 512)
+Fc3     S: (512, 10)
+Fc3     N: (1, 10)
+[20.74876594543457, 11.461675643920898, 11.256261827469189, 8.31078052520752, 9.174507141113281, 9.69876194190988, 7.311168193817139, 10.191875457763672, 14.053388597488492, 15.514943128586083, 12.66884329986624, 18.00845337677015, 15.837729455947908, 12.325719957351936, 15.011482284545991, 27.278173879623434]
+conv1: 20.7487659454
+conv1_1: 0.552402763329
+conv2: 0.982078203673
+conv2_1: 0.738325089856
+conv3: 1.10392845934
+conv3_1: 1.05714255739
+conv3_2: 0.753824894106
+conv4: 1.39401463454
+conv4_1: 1.3788815077
+conv4_2: 1.10400015064
+conv5: 0.816557508131
+conv5_1: 1.4214757378
+conv5_2: 0.879460835675
+fc1: 0.778250442504
+fc2: 1.21789902225
+fc3: 1.81715392008
+conv1: 20.7487659454
+conv1_1: 11.4616756439
+conv2: 11.2562618275
+conv2_1: 8.31078052521
+conv3: 9.17450714111
+conv3_1: 9.69876194191
+conv3_2: 7.31116819382
+conv4: 10.1918754578
+conv4_1: 14.0533885975
+conv4_2: 15.5149431286
+conv5: 12.6688432999
+conv5_1: 18.0084533768
+conv5_2: 15.8377294559
+fc1: 12.3257199574
+fc2: 15.0114822845
+fc3: 27.2781738796
+[341525.      0.      0.      0.      0.]
+[341525. 671434.      0.      0.      0.]
+[341525. 671434. 992319.      0.      0.]
+[ 341525.  671434.  992319. 1312209.       0.]
+[ 341525.  671434.  992319. 1312209. 1633741.]
+batch:  20%|███████▌                              | 1/5 [00:00<00:03,  1.06it/s][ 663537.  671434.  992319. 1312209. 1633741.]
+[ 663537. 1309954.  992319. 1312209. 1633741.]
+[ 663537. 1309954. 1943716. 1312209. 1633741.]
+[ 663537. 1309954. 1943716. 2581457. 1633741.]
+[ 663537. 1309954. 1943716. 2581457. 3224155.]
+batch:  40%|███████████████▏                      | 2/5 [00:01<00:02,  1.08it/s][ 982334. 1309954. 1943716. 2581457. 3224155.]
+[ 982334. 1929139. 1943716. 2581457. 3224155.]
+[ 982334. 1929139. 2853440. 2581457. 3224155.]
+[ 982334. 1929139. 2853440. 3783087. 3224155.]
+[ 982334. 1929139. 2853440. 3783087. 4713035.]
+batch:  60%|██████████████████████▊               | 3/5 [00:02<00:01,  1.09it/s][1312037. 1929139. 2853440. 3783087. 4713035.]
+[1312037. 2571010. 2853440. 3783087. 4713035.]
+[1312037. 2571010. 3795880. 3783087. 4713035.]
+[1312037. 2571010. 3795880. 5023799. 4713035.]
+[1312037. 2571010. 3795880. 5023799. 6251333.]
+batch:  80%|██████████████████████████████▍       | 4/5 [00:03<00:00,  1.10it/s][1642081. 2571010. 3795880. 5023799. 6251333.]
+[1642081. 3214719. 3795880. 5023799. 6251333.]
+[1642081. 3214719. 4751238. 5023799. 6251333.]
+[1642081. 3214719. 4751238. 6293470. 6251333.]
+[1642081. 3214719. 4751238. 6293470. 7834721.]
+batch: 100%|██████████████████████████████████████| 5/5 [00:04<00:00,  1.11it/s][0.2, 0.2, 0.2, 0.2, 0.2]
+total spike count
+[1642081. 3214719. 4751238. 6293470. 7834721.]
+loss_test: 11.010013, acc_test: 20.000000
+11.78user 5.68system 0:30.26elapsed 57%CPU (0avgtext+0avgdata 5092976maxresident)k
+0inputs+0outputs (0major+326814minor)pagefaults 0swaps

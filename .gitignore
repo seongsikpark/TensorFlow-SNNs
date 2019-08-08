@@ -1,0 +1,10 @@
+.ckpt
+.log
+.xlsx
+models_ckpt/
+logs_before_181010/
+logs/
+spike_pattern_anal/
+venv/
+ILVRC2012_training_filename
+tmp/

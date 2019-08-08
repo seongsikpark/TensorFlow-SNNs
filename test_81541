@@ -1,0 +1,35 @@
+==81541== NVPROF is profiling process 81541, command: python main.py
+==81541== Profiling application: python main.py
+==81541== Profiling result:
+            Type  Time(%)      Time     Calls       Avg       Min       Max  Name
+ GPU activities:   54.62%  2.2720us         2  1.1360us  1.1200us  1.1520us  [CUDA memcpy HtoD]
+                   45.38%  1.8880us         1  1.8880us  1.8880us  1.8880us  [CUDA memset]
+      API calls:   59.43%  522.86ms         1  522.86ms  522.86ms  522.86ms  cudaFree
+                   39.29%  345.62ms         1  345.62ms  345.62ms  345.62ms  cuDevicePrimaryCtxRetain
+                    0.76%  6.7268ms         1  6.7268ms  6.7268ms  6.7268ms  cuMemAlloc
+                    0.32%  2.7753ms       106  26.182us  4.4580us  1.7979ms  cuDeviceGetAttribute
+                    0.05%  478.92us         1  478.92us  478.92us  478.92us  cudaGetDeviceProperties
+                    0.03%  233.00us         4  58.250us  10.625us  198.13us  cuStreamCreate
+                    0.03%  223.88us         2  111.94us  103.46us  120.42us  cuMemGetInfo
+                    0.02%  199.71us         2  99.854us  89.792us  109.92us  cuDeviceTotalMem
+                    0.02%  178.17us         1  178.17us  178.17us  178.17us  cuDeviceGetProperties
+                    0.01%  86.042us         2  43.021us  38.792us  47.250us  cuDeviceGetName
+                    0.01%  73.626us         2  36.813us  24.667us  48.959us  cuMemcpyHtoDAsync
+                    0.00%  40.917us         2  20.458us  13.917us  27.000us  cuStreamWaitEvent
+                    0.00%  38.084us         2  19.042us  18.875us  19.209us  cuEventQuery
+                    0.00%  36.625us         5  7.3250us  4.4580us  18.000us  cuEventCreate
+                    0.00%  35.833us         1  35.833us  35.833us  35.833us  cuMemsetD32
+                    0.00%  32.249us         4  8.0620us  4.4580us  14.291us  cuEventRecord
+                    0.00%  31.500us         6  5.2500us  4.5000us  9.0000us  cuDeviceGetCount
+                    0.00%  17.958us         3  5.9860us  4.5000us  8.9580us  cuDeviceGet
+                    0.00%  16.792us         3  5.5970us  4.5000us  7.7920us  cuCtxSetCurrent
+                    0.00%  10.001us         2  5.0000us  4.9170us  5.0840us  cudaSetDevice
+                    0.00%  9.0000us         2  4.5000us  4.5000us  4.5000us  cuDriverGetVersion
+                    0.00%  6.2500us         1  6.2500us  6.2500us  6.2500us  cuEventDestroy
+                    0.00%  5.2500us         1  5.2500us  5.2500us  5.2500us  cudaGetDeviceCount
+                    0.00%  4.9170us         1  4.9170us  4.9170us  4.9170us  cuDeviceGetPCIBusId
+                    0.00%  4.5000us         1  4.5000us  4.5000us  4.5000us  cuInit
+                    0.00%  4.5000us         1  4.5000us  4.5000us  4.5000us  cuDevicePrimaryCtxGetState
+                    0.00%  4.5000us         1  4.5000us  4.5000us  4.5000us  cuCtxGetCurrent
+                    0.00%  4.5000us         1  4.5000us  4.5000us  4.5000us  cuDeviceComputeCapability
+                    0.00%  4.5000us         1  4.5000us  4.5000us  4.5000us  cudaGetDevice

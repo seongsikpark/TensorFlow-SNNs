@@ -1,0 +1,24 @@
+main start
+2018-08-04 10:27:50.026650: I tensorflow/core/platform/cpu_feature_guard.cc:140] Your CPU supports instructions that this TensorFlow binary was not compiled to use: AVX2 AVX512F FMA
+2018-08-04 10:27:51.038829: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1356] Found device 0 with properties: 
+name: TITAN V major: 7 minor: 0 memoryClockRate(GHz): 1.455
+pciBusID: 0000:65:00.0
+totalMemory: 11.78GiB freeMemory: 11.37GiB
+2018-08-04 10:27:51.038859: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1435] Adding visible gpu devices: 0
+2018-08-04 10:27:51.255199: I tensorflow/core/common_runtime/gpu/gpu_device.cc:923] Device interconnect StreamExecutor with strength 1 edge matrix:
+2018-08-04 10:27:51.255234: I tensorflow/core/common_runtime/gpu/gpu_device.cc:929]      0 
+2018-08-04 10:27:51.255242: I tensorflow/core/common_runtime/gpu/gpu_device.cc:942] 0:   N 
+2018-08-04 10:27:51.255444: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1053] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 10991 MB memory) -> physical GPU (device: 0, name: TITAN V, pci bus id: 0000:65:00.0, compute capability: 7.0)
+1
+Using device /gpu:0, and data format channels_last.
+load CIFAR10 dataset
+tf.Tensor(0.0, shape=(), dtype=float64)
+tf.Tensor(0.0, shape=(), dtype=float64)
+tf.Tensor(0.0, shape=(), dtype=float64)
+tf.Tensor(0.0, shape=(), dtype=float64)
+<TensorSliceDataset shapes: ((32, 32, 3), (10,)), types: (tf.float64, tf.float32)>
+Neuron setup
+Input shape snn: [500, 32, 32, 3]
+model load path: ./model/vgg_cifar_ro_0
+model save path: ./model/vgg_cifar_ro_0
+ Test Phase >

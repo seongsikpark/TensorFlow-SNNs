@@ -1,0 +1,55 @@
+
+
+Found accelerator operation but misses accelerator stream stats!
+
+It's likely a gpu tracing issue rather than tf-profiler issue.
+If you found your operation missing accelerator time, consider filing a bug to xprof-dev@!
+
+
+Doc:
+op: The nodes are operation kernel type, such as MatMul, Conv2D. Graph nodes belonging to the same type are aggregated together.
+requested bytes: The memory requested by the operation, accumulatively.
+total execution time: Sum of accelerator execution time and cpu execution time.
+cpu execution time: The time from the start to the end of the operation. It's the sum of actual cpu run time plus the time that it spends waiting if part of computation is launched asynchronously.
+accelerator execution time: Time spent executing on the accelerator. This is normally measured by the actual hardware library.
+
+Profile:
+node name | requested bytes | total execution time | accelerator execution time | cpu execution time
+Conv2D                    239382.58MB (100.00%, 83.20%),     604.26ms (100.00%, 25.32%),             0us (0.00%, 0.00%),     604.26ms (100.00%, 25.32%)
+Add                          19918.86MB (16.80%, 6.92%),      601.43ms (74.68%, 25.20%),             0us (0.00%, 0.00%),      601.43ms (74.68%, 25.20%)
+Select                        10487.73MB (9.88%, 3.65%),      327.72ms (49.47%, 13.73%),             0us (0.00%, 0.00%),      327.72ms (49.47%, 13.73%)
+Fill                           4880.07MB (6.23%, 1.70%),       164.84ms (35.74%, 6.91%),             0us (0.00%, 0.00%),       164.84ms (35.74%, 6.91%)
+BiasAdd                        5408.63MB (4.54%, 1.88%),       119.67ms (28.83%, 5.01%),             0us (0.00%, 0.00%),       119.67ms (28.83%, 5.01%)
+Sub                            4469.27MB (2.66%, 1.55%),       108.23ms (23.81%, 4.54%),             0us (0.00%, 0.00%),       108.23ms (23.81%, 4.54%)
+GreaterEqual                   1239.37MB (1.11%, 0.43%),        99.79ms (19.28%, 4.18%),             0us (0.00%, 0.00%),        99.79ms (19.28%, 4.18%)
+Reshape                               0B (0.00%, 0.00%),        77.07ms (15.10%, 3.23%),             0us (0.00%, 0.00%),        77.07ms (15.10%, 3.23%)
+MaxPoolWithArgmax              1704.64MB (0.67%, 0.59%),        73.37ms (11.87%, 3.07%),             0us (0.00%, 0.00%),        73.37ms (11.87%, 3.07%)
+_Send                                 0B (0.00%, 0.00%),         59.25ms (8.79%, 2.48%),             0us (0.00%, 0.00%),         59.25ms (8.79%, 2.48%)
+ReadVariableOp                        0B (0.00%, 0.00%),         58.78ms (6.31%, 2.46%),             0us (0.00%, 0.00%),         58.78ms (6.31%, 2.46%)
+MatMul                           16.90MB (0.08%, 0.01%),         52.88ms (3.85%, 2.22%),             0us (0.00%, 0.00%),         52.88ms (3.85%, 2.22%)
+Shape                             6.98KB (0.08%, 0.00%),          9.73ms (1.63%, 0.41%),             0us (0.00%, 0.00%),          9.73ms (1.63%, 0.41%)
+StridedSlice                      1.60KB (0.08%, 0.00%),          8.26ms (1.22%, 0.35%),             0us (0.00%, 0.00%),          8.26ms (1.22%, 0.35%)
+Pack                              3.20KB (0.08%, 0.00%),          6.49ms (0.88%, 0.27%),             0us (0.00%, 0.00%),          6.49ms (0.88%, 0.27%)
+Sum                             824.83KB (0.08%, 0.00%),          6.26ms (0.60%, 0.26%),             0us (0.00%, 0.00%),          6.26ms (0.60%, 0.26%)
+IteratorGetNextSync                   0B (0.00%, 0.00%),          1.67ms (0.34%, 0.07%),             0us (0.00%, 0.00%),          1.67ms (0.34%, 0.07%)
+MakeIterator                          0B (0.00%, 0.00%),          1.60ms (0.27%, 0.07%),             0us (0.00%, 0.00%),          1.60ms (0.27%, 0.07%)
+Mul                             128.49MB (0.08%, 0.04%),          1.33ms (0.20%, 0.06%),             0us (0.00%, 0.00%),          1.33ms (0.20%, 0.06%)
+RealDiv                          62.75MB (0.03%, 0.02%),           721us (0.15%, 0.03%),             0us (0.00%, 0.00%),           721us (0.15%, 0.03%)
+Abs                              26.99MB (0.01%, 0.01%),           624us (0.12%, 0.03%),             0us (0.00%, 0.00%),           624us (0.12%, 0.03%)
+Cast                              5.63KB (0.00%, 0.00%),           377us (0.09%, 0.02%),             0us (0.00%, 0.00%),           377us (0.09%, 0.02%)
+SoftmaxCrossEntropyWithLogits         6.14KB (0.00%, 0.00%),           300us (0.08%, 0.01%),             0us (0.00%, 0.00%),           300us (0.08%, 0.01%)
+AssignAddVariableOp               3.07KB (0.00%, 0.00%),           261us (0.06%, 0.01%),             0us (0.00%, 0.00%),           261us (0.06%, 0.01%)
+Rsqrt                            22.53KB (0.00%, 0.00%),           239us (0.05%, 0.01%),             0us (0.00%, 0.00%),           239us (0.05%, 0.01%)
+ArgMax                            1.54KB (0.00%, 0.00%),           185us (0.04%, 0.01%),             0us (0.00%, 0.00%),           185us (0.04%, 0.01%)
+Equal                                44B (0.00%, 0.00%),           138us (0.04%, 0.01%),             0us (0.00%, 0.00%),           138us (0.04%, 0.01%)
+Slice                                24B (0.00%, 0.00%),           116us (0.03%, 0.00%),             0us (0.00%, 0.00%),           116us (0.03%, 0.00%)
+VarHandleOp                         240B (0.00%, 0.00%),           103us (0.02%, 0.00%),             0us (0.00%, 0.00%),           103us (0.02%, 0.00%)
+AssignVariableOp                      0B (0.00%, 0.00%),           101us (0.02%, 0.00%),             0us (0.00%, 0.00%),           101us (0.02%, 0.00%)
+VarIsInitializedOp                    6B (0.00%, 0.00%),            90us (0.02%, 0.00%),             0us (0.00%, 0.00%),            90us (0.02%, 0.00%)
+AnonymousIterator                    40B (0.00%, 0.00%),            80us (0.01%, 0.00%),             0us (0.00%, 0.00%),            80us (0.01%, 0.00%)
+Mean                                512B (0.00%, 0.00%),            60us (0.01%, 0.00%),             0us (0.00%, 0.00%),            60us (0.01%, 0.00%)
+ConcatV2                             32B (0.00%, 0.00%),            49us (0.01%, 0.00%),             0us (0.00%, 0.00%),            49us (0.01%, 0.00%)
+All                                   0B (0.00%, 0.00%),            33us (0.00%, 0.00%),             0us (0.00%, 0.00%),            33us (0.00%, 0.00%)
+GeneratorDataset                      8B (0.00%, 0.00%),            31us (0.00%, 0.00%),             0us (0.00%, 0.00%),            31us (0.00%, 0.00%)
+NoOp                                  0B (0.00%, 0.00%),            24us (0.00%, 0.00%),             0us (0.00%, 0.00%),            24us (0.00%, 0.00%)
+PrefetchDataset                       8B (0.00%, 0.00%),            16us (0.00%, 0.00%),             0us (0.00%, 0.00%),            16us (0.00%, 0.00%)
