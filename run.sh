@@ -18,28 +18,34 @@ verbose=False
 verbose_visual=False
 
 # full test
-f_full_test=True
-#f_full_test=False
+#f_full_test=True
+f_full_test=False
 
 #training_mode=True
 training_mode=False
 
-#f_write_stat=True
-f_write_stat=False
+f_write_stat=True
+#f_write_stat=False
 
-#nn_mode='ANN'
-nn_mode='SNN'
+nn_mode='ANN'
+#nn_mode='SNN'
 
 # only inference mode
 # default: False (ANN) / True (SNN)
 f_fused_bn=True
 #f_fused_bn=False
 
-# default: False
+# default: False ?
 #f_stat_train_mode=True
 f_stat_train_mode=False
 
-prefix_stat='act_n_test'
+#
+#act_save_mode='neuron'
+act_save_mode='channel'
+
+#
+#prefix_stat='act_n_test'
+prefix_stat='act_ch_test'
 
 
 #
@@ -206,82 +212,79 @@ then
     #vth_n_in=0.0078125  # 1/256
 fi
 
-if [ ${f_full_test} = True ]
-then
-    #batch_size=1000
-    #batch_size=500
-    batch_size=400
-    #batch_size=250
-    num_test_dataset=10000
+##############################
+#
+##############################
+# small test
+#batch_size=250
+#num_test_dataset=1000
 
-else
-    # small test
-    #batch_size=250
-    #num_test_dataset=1000
+# for ImageNet test
+batch_size=250
+#batch_size=2
+#num_test_dataset=50000
+#num_test_dataset=10000
+num_test_dataset=5000
+#num_test_dataset=500
+#num_test_dataset=250
+#num_test_dataset=10
 
-    # for ImageNet test
-    batch_size=250
-    #num_test_dataset=50000
-    #num_test_dataset=10000
-    num_test_dataset=500
-    #num_test_dataset=250
+#batch_size=1
+#num_test_dataset=2
 
-    #batch_size=1
-    #num_test_dataset=2
+#batch_size=20
+#num_test_dataset=40
 
-    #batch_size=20
-    #num_test_dataset=40
+#batch_size=250
+#batch_size=100
+#num_test_dataset=500
+#num_test_dataset=100
 
-    #batch_size=250
-    #batch_size=100
-    #num_test_dataset=500
-    #num_test_dataset=100
+#batch_size=2
+#num_test_dataset=2
 
-    #batch_size=2
-    #num_test_dataset=2
+# visual verbose
+#batch_size=1
+#num_test_dataset=2
 
-    # visual verbose
-    #batch_size=1
-    #num_test_dataset=2
+# isi stat
+#batch_size=1
+#num_test_dataset=100
 
-    # isi stat
-    #batch_size=1
-    #num_test_dataset=100
+# entropy
+#batch_size=1
+#num_test_dataset=100
 
-    # entropy
-    #batch_size=1
-    #num_test_dataset=100
-
-    # fast inference
-    #batch_size=10
-    #batch_size=100
-    batch_size=250
-    #num_test_dataset=100
-    #num_test_dataset=200
-    num_test_dataset=500
-    #num_test_dataset=10000
+# fast inference
+#batch_size=10
+#batch_size=100
+#batch_size=250
+#num_test_dataset=100
+#num_test_dataset=200
+#num_test_dataset=500
+#num_test_dataset=10000
 
 
-    #batch_size=1
-    #batch_size=2
-    #batch_size=5
-    #batch_size=10
-    #batch_size=100
-    #batch_size=128
-    #batch_size=400
-    #batch_size=500
+#batch_size=1
+#batch_size=2
+#batch_size=5
+#batch_size=10
+#batch_size=100
+#batch_size=128
+#batch_size=400
+#batch_size=500
 
-    #num_test_dataset=2
-    #num_test_dataset=3
-    #num_test_dataset=5
-    #num_test_dataset=10
-    #num_test_dataset=30
-    #num_test_dataset=100
-    #num_test_dataset=128
-    #num_test_dataset=500
-    #num_test_dataset=10000
-    #num_test_dataset=60000
-fi
+#num_test_dataset=2
+#num_test_dataset=3
+#num_test_dataset=5
+#num_test_dataset=10
+#num_test_dataset=30
+#num_test_dataset=100
+#num_test_dataset=128
+#num_test_dataset=500
+#num_test_dataset=10000
+#num_test_dataset=60000
+##############################
 
 if [ ${f_isi} = True ]
 then
@@ -322,7 +325,7 @@ fi
 # acc. 91.41
 # vgg_cifar_0 + (bathnorm+relu_output)
 # data aug.-flip
-model_name='vgg_cifar_ro_0'
+#model_name='vgg_cifar_ro_0'
 
 # acc. 91.62
 # vgg_cifar_0 + bn
@@ -339,7 +342,8 @@ model_name='vgg_cifar_ro_0'
 # "Keras"
 # https://github.com/keras-team/keras/tree/master/keras/applications
 # resnet50 v1, imagenet, pretrained
-# acc.:  74.874/92.018, (top1/top5)
+# acc. (experiment): 74.818/91.946, (top1/top5)
+# acc. (reported): 74.874/92.018, (top1/top5)
 #model_name='resnet50_imgnet'
 
 # SNN training
@@ -364,17 +368,79 @@ batch_size_training=128
 
 
 #ann_model='MLP'
-ann_model='CNN'         # CNN-CIFAR: VGG16
-#ann_model='ResNet50'
 
 
-#dataset='MNIST'
-dataset='CIFAR-10'
-#dataset='CIFAR-100'
-#dataset='ImageNet'
+
+#exp_case='MLP_MNIST'
+#exp_case='VGG16_CIFAR-10'
+#exp_case='VGG16_CIFAR-100'
+exp_case='ResNet50_ImageNet'
 
 pooling='max'
 #pooling='avg'
+
+###############################################3
+
+case ${exp_case} in
+MLP_MNIST)
+    echo "Dataset: MNIST"
+    dataset='MNIST'
+
+    if [ ${f_full_test} = True ]
+    then
+        batch_size=400
+        num_test_dataset=10000
+    fi
+
+    ;;
+VGG16_CIFAR-10)
+    echo "Dataset: CIFAR-10"
+    ann_model='CNN'         # CNN-CIFAR: VGG16
+    dataset='CIFAR-10'
+    model_name='vgg_cifar_ro_0'
+
+    if [ ${f_full_test} = True ]
+    then
+        batch_size=400
+        num_test_dataset=10000
+    fi
+
+    ;;
+
+VGG16_CIFAR-100)
+    echo "Dataset: CIFAR-100"
+    ann_model='CNN'         # CNN-CIFAR: VGG16
+    dataset='CIFAR-100'
+    model_name='vgg_cifar100_ro_0'
+
+    if [ ${f_full_test} = True ]
+    then
+        batch_size=400
+        num_test_dataset=10000
+    fi
+
+    ;;
+
+ResNet50_ImageNet)
+    echo "Model: ResNet50"
+    ann_model='ResNet50'
+    dataset='ImageNet'
+    model_name='resnet50_imgnet'
+
+    if [ ${f_full_test} = True ]
+    then
+        batch_size=250
+        num_test_dataset=50000
+    fi
+
+    ;;
+
+*)
+    echo "not supported dataset"
+    num_class=0
+    exit 1
+    ;;
+esac
 
 
 
@@ -496,6 +562,7 @@ log_file=${path_log_root}/${date}.log
     -f_comp_act=${f_comp_act}\
     -f_entropy=${f_entropy}\
     -f_write_stat=${f_write_stat}\
+    -act_save_mode=${act_save_mode}\
     -f_save_result=${f_save_result}\
     -path_stat=${path_stat}\
     -path_result_root=${path_result_root}\

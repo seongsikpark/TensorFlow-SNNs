@@ -192,6 +192,7 @@ tf.app.flags.DEFINE_bool('f_refractory',False,'refractory mode')
 tf.app.flags.DEFINE_bool('f_comp_act',False,'compare activation')
 tf.app.flags.DEFINE_bool('f_entropy',False,'entropy test')
 tf.app.flags.DEFINE_bool('f_write_stat',False,'write stat')
+tf.app.flags.DEFINE_string('act_save_mode','channel','activation save mode')
 tf.app.flags.DEFINE_bool('f_save_result',True,'save result to xlsx file')
 
 # data.py - imagenet data
@@ -241,6 +242,7 @@ def main(_):
         shutil.rmtree(conf.output_dir,ignore_errors=True)
 
     tfe.enable_eager_execution()
+    #tfe.enable_eager_execution(tfe.DEVICE_PLACEMENT_SILENT)
     #tf.set_random_seed(1)
 
     # profiler
@@ -570,8 +572,9 @@ def main(_):
                     v_name=re.sub('kernel','weights',v_name)
                     v_name=re.sub('bias','biases',v_name)
                     v_name=re.sub('_block','/block',v_name)
-                    var_dict[v_name] = var
-                    #print(v_name)
+                    if v_name != 'Variable':    # inserted Variable in SNN mode
+                        var_dict[v_name] = var
+                        #print(v_name)
                 #print([v.name for v in restore_variables])
                 #print(var_list)
                 #print(var_dict['resnet50/conv1/conv/kernel'])
@@ -593,7 +596,6 @@ def main(_):
             #saver = tfe.Saver(restore_variables)
             #saver = tfe.Saver(restore_var_list)
             #print(model.variables)
-
             #saver = tfe.Saver(
             #    var_list=
             #    #{'resnet50/conv1/conv/weights': kernel}

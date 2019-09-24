@@ -85,7 +85,11 @@ def get_files(data_dir, data_name, max_rows=None):
         np.genfromtxt("%s/%s.txt" % (data_dir, data_name),
                       dtype=np.str, max_rows=max_rows),
         [1], axis=1)
+
     #print(files)
+    #print(np.genfromtxt("%s/%s.txt" % (data_dir, data_name),dtype=np.str, max_rows=max_rows))
+    #print(np.loadtxt("%s/%s.txt" % (data_dir, data_name),dtype=np.str))
+
     files = files.flatten()
     labels = np.asarray(labels.flatten(), dtype=np.int)
     return files, labels

@@ -576,7 +576,8 @@ class Resnet50(tf.keras.Model):
             self.n_conv1 = self.neuron_list['conv1']
             self.n_out = self.neuron_list['out']
 
-
+            #
+            self.spike_count = tf.Variable(initial_value=tf.zeros((self.num_accuracy_time_point,)+tuple(self.n_out.dim)),dtype=tf.float32,trainable=False)
 
         #
         # layer definition
@@ -662,17 +663,31 @@ class Resnet50(tf.keras.Model):
             self.dict_act = collections.OrderedDict()  # activation
 
             # write stat - activation
-            self.stat_conf = ['max', 'max_999', 'max_99', 'max_98']
+            self.stat_conf = ['max', 'max_999']
 
             self.dict_stat_r = collections.OrderedDict()  # read
             self.dict_stat_w = collections.OrderedDict()  # write
 
-            if self.conf.f_write_stat == True:
-                for layer_name in self.layer_name_stat_w:
-                    # self.dict_stat_w[layer_name]=np.zeros([1,]+self.dict_shape[layer_name][1:])
-                    #self.dict_stat_w[layer_name] = np.zeros([self.conf.num_train_dataset, ] + self.dict_shape[layer_name][1:],
-                    self.dict_stat_w[layer_name] = np.zeros([self.num_train_dataset, ] + self.shape_out_conv1.as_list()[1:],np.float32)
-                    print(layer_name + str(self.dict_stat_w[layer_name].shape))
+            print('write stat mode: ' + self.conf.act_save_mode + ', ' + str(self.stat_conf))
+
+            for layer_name in self.layer_name_stat_w:
+                # self.dict_stat_w[layer_name]=np.zeros([1,]+self.dict_shape[layer_name][1:])
+                #self.dict_stat_w[layer_name] = np.zeros([self.conf.num_train_dataset, ] + self.dict_shape[layer_name][1:],
+
+                if self.conf.act_save_mode == 'channel' :
+                    self.dict_stat_w[layer_name] = np.zeros([len(self.stat_conf),]
+                                                            + [self.num_train_dataset, ]
+                                                            + [self.shape_out_conv1.as_list()[-1], ],
+                                                            np.float32)
+                elif self.conf.act_save_mode == 'neuron' :
+                     self.dict_stat_w[layer_name] = np.zeros([len(self.stat_conf),]
+                                                            + [self.num_train_dataset, ]
+                                                            + self.shape_out_conv1.as_list()[1:],
+                                                            np.float32)
+                else :
+                    assert(False)
+
+                print(layer_name + str(self.dict_stat_w[layer_name].shape))
 
             self.dict_act['conv1'] = self.conv1_act
 
@@ -854,18 +869,26 @@ class Resnet50(tf.keras.Model):
         a_out = s_out
 
 
+
         if self.conf.f_write_stat:
             self.dict_act['conv1'] = a_conv1
-
-            #print(tf.reduce_max(a_conv1.numpy()))
-            #print(tf.reduce_max(self.dict_act['conv1']))
+#
+#            #print(tf.reduce_max(a_conv1.numpy()))
+            #print(tf.shape(self.dict_act['conv1']))
+            #print(tf.shape(tf.reduce_max(self.dict_act['conv1'],axis=[1,2])))
 
             for layer_name in self.layer_name_stat_w:
                 act = self.dict_act[layer_name]
-                self.dict_stat_w[layer_name][self.count_stat_w]=act.numpy()
 
-            self.count_stat_w += 1
-
+                if self.conf.act_save_mode=='channel':
+                    self.dict_stat_w[layer_name][0][self.count_stat_w:self.count_stat_w+self.conf.batch_size] = tf.reduce_max(act,axis=[1,2])
+                    #self.dict_stat_w[layer_name][0][self.count_stat_w:self.count_stat_w+self.conf.batch_size] = tf.reduce_max(act,axis=[1,2])
+#                    #print(np.max(act.numpy(),axis=[0,1]))
+#                    #print(shape(np.max(act.numpy(),axis=[0,1])))
+#                elif self.conf.act_save_mode=='neuron':
+#                    self.dict_stat_w[layer_name][self.count_stat_w]=act.numpy()
+#
+            self.count_stat_w += self.conf.batch_size
 
 
 
@@ -1014,11 +1037,15 @@ class Resnet50(tf.keras.Model):
 
             if t==self.accuracy_time_point[self.count_accuracy_time_point]-1:
                 #output = self.n_out.get_spike_count().numpy()
-                output = self.n_out.vmem.numpy()
-                self.snn_out_record(output)
+                #output = self.n_out.vmem.numpy()
+                #self.snn_out_recode(output)
+
+                output = self.n_out.vmem
+                self.recoding_ret_val(output)
 
 
-        return ret_val
+        #return ret_val
+        return self.spike_count
 
     def snn_neuron_reset(self):
         self.n_conv1.reset()
@@ -1034,20 +1061,33 @@ class Resnet50(tf.keras.Model):
         #self.ret_snn = np.zeros((self.num_accuracy_time_point,)+self.conf.num_class)
         self.ret_snn = np.zeros((self.num_accuracy_time_point,)+self.n_out.vmem.numpy().shape)
 
+        self.spike_count.assign(tf.zeros((self.num_accuracy_time_point,)+tuple(self.n_out.dim)))
 
-    def snn_out_record(self, output):
-        self.ret_snn[self.count_accuracy_time_point,:,:]=output
+#
+#    def snn_out_recode(self, output):
+#        self.ret_snn[self.count_accuracy_time_point,:,:]=output
+#
+#        tc_int, tc = self.get_total_spike_count()
+#
+#        self.total_spike_count_int[self.count_accuracy_time_point]+=tc_int
+#        self.total_spike_count[self.count_accuracy_time_point]+=tc
+#
+#        #print('time '+str(t))
+#        #print(spike_count.shape)
+#        #print(self.n_fc3.get_spike_count().numpy())
+#        #print(spike_count)
+#        self.count_accuracy_time_point+=1
+
+
+    def recoding_ret_val(self, output):
+        self.spike_count.scatter_nd_update([self.count_accuracy_time_point],tf.expand_dims(output,0))
 
         tc_int, tc = self.get_total_spike_count()
-
         self.total_spike_count_int[self.count_accuracy_time_point]+=tc_int
         self.total_spike_count[self.count_accuracy_time_point]+=tc
 
-        #print('time '+str(t))
-        #print(spike_count.shape)
-        #print(self.n_fc3.get_spike_count().numpy())
-        #print(spike_count)
         self.count_accuracy_time_point+=1
+
 
     def get_total_spike_count(self):
         tc_int = 0
@@ -1136,10 +1176,13 @@ class Resnet50(tf.keras.Model):
         else:
             scatter(np.full(np.shape(idx_fire), t, dtype=int), idx_fire, 'r')
 
+#############################
+#
+#############################
 
     # start here - 181211
     # path modifi
-    # save activation value - neuron wise
+    # save activation value
     def save_activation(self):
         layer_name = self.layer_name_stat_w
 
@@ -1197,6 +1240,7 @@ class Resnet50(tf.keras.Model):
 
         if conf_name=='max':
             stat=np.max(s_layer,axis=0).flatten()
+            #stat=tf.reshape(tf.reduce_max(s_layer,axis=0),[-1])
         elif conf_name=='max_999':
             stat=np.nanpercentile(s_layer,99.9,axis=0).flatten()
         elif conf_name=='max_99':

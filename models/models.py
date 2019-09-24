@@ -1691,7 +1691,7 @@ class CIFARModel_CNN(tfe.Network):
 
                 if t==self.accuracy_time_point[self.count_accuracy_time_point]-1:
                     output=self.n_fc3.vmem
-                    self.recording_ret_val(output)
+                    self.recoding_ret_val(output)
 
 
                     num_spike_count = tf.cast(tf.reduce_sum(self.spike_count,axis=[2]),tf.int32)
@@ -1772,7 +1772,7 @@ class CIFARModel_CNN(tfe.Network):
 
 
 
-    def recording_ret_val(self, output):
+    def recoding_ret_val(self, output):
         self.spike_count.scatter_nd_update([self.count_accuracy_time_point],tf.expand_dims(output,0))
 
         tc_int, tc = self.get_total_spike_count()

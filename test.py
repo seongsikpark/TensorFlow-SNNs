@@ -63,6 +63,10 @@ def test(model, dataset, conf, f_val=False):
             if idx_batch!=-1:
                 predictions_times = model(images, f_training=False)
 
+                print('shape')
+                print(predictions_times.shape)
+                print(labels.numpy().shape[0])
+
                 if predictions_times.shape[1] != labels.numpy().shape[0]:
                     predictions_times = predictions_times[:,0:labels.numpy().shape[0],:]
 
