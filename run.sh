@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-#source ../05_SNN_git/venv/bin/activate
+#source ../05_SNN/venv/bin/activate
 source ./venv/bin/activate
 
 #path_log_root=/home/sspark/Projects/05_SNN/logs
