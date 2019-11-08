@@ -61,11 +61,15 @@ def test(model, dataset, conf, f_val=False):
             labels = tf.argmax(labels_one_hot,axis=1,output_type=tf.int32)
 
             if idx_batch!=-1:
+                if conf.f_train_time_const:
+                    for itr_train_time_const in range(0,10):
+                        model(images, f_training=False)
+
                 predictions_times = model(images, f_training=False)
 
-                print('shape')
-                print(predictions_times.shape)
-                print(labels.numpy().shape[0])
+                #print('shape')
+                #print(predictions_times.shape)
+                #print(labels.numpy().shape[0])
 
                 if predictions_times.shape[1] != labels.numpy().shape[0]:
                     predictions_times = predictions_times[:,0:labels.numpy().shape[0],:]
@@ -140,13 +144,21 @@ def test(model, dataset, conf, f_val=False):
 
             #
             #df=pd.DataFrame({'time step': model.accuracy_time_point, 'spike count': list(model.total_spike_count[:,-1]),'accuracy': accuracy_result})
-            df=pd.DataFrame({'time step': model.accuracy_time_point, 'accuracy': accuracy_result})
+            df=pd.DataFrame({'time step': model.accuracy_time_point, 'accuracy': accuracy_result, 'spike count': model.total_spike_count_int[:,-1]})
             df.set_index('time step', inplace=True)
             print(df)
 
             if conf.f_save_result:
-                f_name_result = conf.path_result_root+conf.date+'_result.xlsx'
+                f_name_result = conf.path_result_root+'/'+conf.date+'_'+conf.neural_coding
+
+                if conf.neural_coding=="TEMPORAL":
+                    f_name_result = f_name_result+'_tc-'+str(conf.tc)+'_tw-'+str(conf.time_window)+'_tfs-'+str(conf.time_fire_start)\
+                                +'_tfd-'+str(conf.time_fire_duration)+'_ts-'+str(conf.time_step)+'_tssi-'+str(conf.time_step_save_interval)
+
+                f_name_result = f_name_result+'.xlsx'
+
                 df.to_excel(f_name_result)
+                print("output file: "+f_name_result)
 
 
             if conf.f_comp_act:
@@ -175,7 +187,8 @@ def test(model, dataset, conf, f_val=False):
             print('f write date: '+conf.date)
 
         #plt.plot(accuracy_time_point,model.total_spike_count)
-        #plt.show()
+        if conf.verbose_visual:
+            model.figure_hold()
 
     else:
         accuracy=tfe.metrics.Accuracy('accuracy')
@@ -231,7 +244,7 @@ def test(model, dataset, conf, f_val=False):
 
         #plt.hist(model.stat_a_fc3)
         #plt.show()
-        #plot_dist_activation_vgg16(model)
+        #model.plot_dist_activation_vgg16()
         #save_dist_activation_vgg16(model)
 
         #print(model.stat_a_fc3)

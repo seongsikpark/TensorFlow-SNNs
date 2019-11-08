@@ -15,7 +15,7 @@ import pprofile
 #en_gpu=False
 en_gpu=True
 
-gpu_number=1
+gpu_number=0
 
 os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
 
@@ -136,6 +136,7 @@ tf.app.flags.DEFINE_integer('lr_decay_step', 50, '')
 tf.app.flags.DEFINE_integer('time_step', 10, 'time steps per sample in SNN')
 
 
+tf.app.flags.DEFINE_integer('idx_test_dataset_s', 0, 'start index of test dataset')
 tf.app.flags.DEFINE_integer('num_test_dataset', 10000, 'number of test datset')
 tf.app.flags.DEFINE_integer('size_test_batch', 1, 'size of test batch') # not used now
 
@@ -216,6 +217,17 @@ tf.app.flags.DEFINE_bool('f_pruning_channel', False, 'purning - channel')
 
 tf.app.flags.DEFINE_string('path_result_root','./result/', 'path result root')
 
+# temporal coding
+#tf.app.flags.DEFINE_float('tc',10.0,'time constant for temporal coding')
+#tf.app.flags.DEFINE_float('time_window',20.0,'time window of each layer for temporal coding')
+#tf.app.flags.DEFINE_float('time_fire_start',20.0,'time fire start (integration time before starting fire) for temporal coding')
+#tf.app.flags.DEFINE_float('time_fire_duration',20.0,'time fire duration for temporal coding')
+tf.app.flags.DEFINE_integer('tc',10,'time constant for temporal coding')
+tf.app.flags.DEFINE_integer('time_window',20,'time window of each layer for temporal coding')
+tf.app.flags.DEFINE_integer('time_fire_start',20,'time fire start (integration time before starting fire) for temporal coding')
+tf.app.flags.DEFINE_integer('time_fire_duration',20,'time fire duration for temporal coding')
+tf.app.flags.DEFINE_bool('f_record_first_spike_time',False,'flag - recording first spike time of each neuron')
+tf.app.flags.DEFINE_bool('f_train_time_const',False,'flag - enable to train time constant for temporal coding')
 
 
 #
