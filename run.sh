@@ -14,6 +14,10 @@ path_stat=./stat
 batch_run_mode=False
 #batch_run_mode=True
 
+#
+batch_run_train_tc=False
+#batch_run_train_tc=True
+
 
 #verbose=True
 verbose=False
@@ -134,19 +138,27 @@ f_save_result=True
 #f_record_first_spike_time=False
 f_record_first_spike_time=True
 
-#f_visual_record_first_spike_time=False
-f_visual_record_first_spike_time=True
+f_visual_record_first_spike_time=False
+#f_visual_record_first_spike_time=True
 
 # train time cosntant for temporal coding
-f_train_time_const=False
-#f_train_time_const=True
-
-
-#
 #f_train_time_const=False
-f_train_time_const=False
+f_train_time_const=True
+
+#f_load_time_const=False
+f_load_time_const=True
+
 #
-time_const_init_file_name='./temporal_coding/tw-40_itr-88k'
+time_const_init_file_name='./temporal_coding'
+
+#
+time_const_num_trained_data=50000
+
+#
+time_const_save_interval=10000
+
+#
+epoch_train_time_const=10
 
 # full test
 #time_step=1500
@@ -188,9 +200,11 @@ time_const_init_file_name='./temporal_coding/tw-40_itr-88k'
 #time_window=100
 
 tc=20
-time_fire_start=40      # integration duration
-time_fire_duration=40   # time window
+time_fire_start=50      # integration duration
+time_fire_duration=50   # time window
 time_window=${time_fire_duration}
+
+
 
 #tc=15
 #time_window=60
@@ -204,8 +218,8 @@ time_window=${time_fire_duration}
 #time_step=1500
 #time_step=1100
 #time_step=1000
-#time_step=900
-time_step=700
+time_step=900
+#time_step=700
 #time_step=400
 #time_step=200
 #time_step=300
@@ -305,20 +319,21 @@ fi
 #num_test_dataset=10
 
 
-batch_size=200
-idx_test_dataset_s=0
+#batch_size=250
+#idx_test_dataset_s=0
 ##num_test_dataset=5000
-num_test_dataset=400
+#num_test_dataset=400
+#num_test_dataset=500
 #num_test_dataset=10000
 
 
-#batch_size=20
-#idx_test_dataset_s=0
-#num_test_dataset=100
+batch_size=250
+idx_test_dataset_s=0
+num_test_dataset=50000
 
-#batch_size=1
+#batch_size=250
 #idx_test_dataset_s=0
-#num_test_dataset=2
+#num_test_dataset=50000
 
 
 #idx_test_dataset_s=2
@@ -701,7 +716,11 @@ log_file=${path_log_root}/${date}.log
     -f_record_first_spike_time=${f_record_first_spike_time}\
     -f_visual_record_first_spike_time=${f_visual_record_first_spike_time}\
     -f_train_time_const=${f_train_time_const}\
+    -f_load_time_const=${f_load_time_const}\
     -time_const_init_file_name=${time_const_init_file_name}\
+    -time_const_num_trained_data=${time_const_num_trained_data}\
+    -time_const_save_interval=${time_const_save_interval}\
+    -epoch_train_time_const=${epoch_train_time_const}\
     -dataset=${dataset}\
     -input_size=${input_size}\
     -batch_size=${batch_size} ; } 2>&1 | tee ${log_file}

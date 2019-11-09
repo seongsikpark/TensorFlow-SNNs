@@ -429,37 +429,37 @@ class CIFARModel_CNN(tfe.Network):
             self.neuron_list=collections.OrderedDict()
 
             #self.neuron_list['in'] = self.track_layer(lib_snn.Neuron(self.input_shape_snn,'IN',1,self.conf))
-            self.neuron_list['in'] = self.track_layer(lib_snn.Neuron(self.input_shape_snn,'IN',1,self.conf,nc,0))
+            self.neuron_list['in'] = self.track_layer(lib_snn.Neuron(self.input_shape_snn,'IN',1,self.conf,nc,0,'in'))
 
 
-            self.neuron_list['conv1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv1,n_type,self.fanin_conv,self.conf,nc,1))
-            self.neuron_list['conv1_1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv1_1,n_type,self.fanin_conv,self.conf,nc,2))
+            self.neuron_list['conv1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv1,n_type,self.fanin_conv,self.conf,nc,1,'conv1'))
+            self.neuron_list['conv1_1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv1_1,n_type,self.fanin_conv,self.conf,nc,2,'conv1_1'))
 
 
-            self.neuron_list['conv2'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv2,n_type,self.fanin_conv,self.conf,nc,3))
-            self.neuron_list['conv2_1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv2_1,n_type,self.fanin_conv,self.conf,nc,4))
+            self.neuron_list['conv2'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv2,n_type,self.fanin_conv,self.conf,nc,3,'conv2'))
+            self.neuron_list['conv2_1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv2_1,n_type,self.fanin_conv,self.conf,nc,4,'conv2_1'))
 
-            self.neuron_list['conv3'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv3,n_type,self.fanin_conv,self.conf,nc,5))
-            self.neuron_list['conv3_1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv3_1,n_type,self.fanin_conv,self.conf,nc,6))
-            self.neuron_list['conv3_2'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv3_2,n_type,self.fanin_conv,self.conf,nc,7))
+            self.neuron_list['conv3'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv3,n_type,self.fanin_conv,self.conf,nc,5,'conv3'))
+            self.neuron_list['conv3_1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv3_1,n_type,self.fanin_conv,self.conf,nc,6,'conv3_1'))
+            self.neuron_list['conv3_2'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv3_2,n_type,self.fanin_conv,self.conf,nc,7,'conv3_2'))
 
             #nc = 'BURST'
             #self.conf.n_init_vth=0.125
 
-            self.neuron_list['conv4'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv4,n_type,self.fanin_conv,self.conf,nc,8))
-            self.neuron_list['conv4_1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv4_1,n_type,self.fanin_conv,self.conf,nc,9))
-            self.neuron_list['conv4_2'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv4_2,n_type,self.fanin_conv,self.conf,nc,10))
+            self.neuron_list['conv4'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv4,n_type,self.fanin_conv,self.conf,nc,8,'conv4'))
+            self.neuron_list['conv4_1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv4_1,n_type,self.fanin_conv,self.conf,nc,9,'conv4_1'))
+            self.neuron_list['conv4_2'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv4_2,n_type,self.fanin_conv,self.conf,nc,10,'conv4_2'))
 
             #self.conf.n_init_vth=0.125/2.0
 
-            self.neuron_list['conv5'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv5,n_type,self.fanin_conv,self.conf,nc,11))
-            self.neuron_list['conv5_1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv5_1,n_type,self.fanin_conv,self.conf,nc,12))
-            self.neuron_list['conv5_2'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv5_2,n_type,self.fanin_conv,self.conf,nc,13))
+            self.neuron_list['conv5'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv5,n_type,self.fanin_conv,self.conf,nc,11,'conv5'))
+            self.neuron_list['conv5_1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv5_1,n_type,self.fanin_conv,self.conf,nc,12,'conv5_1'))
+            self.neuron_list['conv5_2'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv5_2,n_type,self.fanin_conv,self.conf,nc,13,'conv5_2'))
 
-            self.neuron_list['fc1'] = self.track_layer(lib_snn.Neuron(self.shape_out_fc1,n_type,512,self.conf,nc,14))
-            self.neuron_list['fc2'] = self.track_layer(lib_snn.Neuron(self.shape_out_fc2,n_type,512,self.conf,nc,15))
+            self.neuron_list['fc1'] = self.track_layer(lib_snn.Neuron(self.shape_out_fc1,n_type,512,self.conf,nc,14,'fc1'))
+            self.neuron_list['fc2'] = self.track_layer(lib_snn.Neuron(self.shape_out_fc2,n_type,512,self.conf,nc,15,'fc2'))
             #self.neuron_list['fc3'] = self.track_layer(lib_snn.Neuron(self.shape_out_fc3,n_type,512,self.conf))
-            self.neuron_list['fc3'] = self.track_layer(lib_snn.Neuron(self.shape_out_fc3,'OUT',512,self.conf,nc,16))
+            self.neuron_list['fc3'] = self.track_layer(lib_snn.Neuron(self.shape_out_fc3,'OUT',512,self.conf,nc,16,'fc3'))
 
 
             # modify later
@@ -494,8 +494,15 @@ class CIFARModel_CNN(tfe.Network):
                 self.dnn_act_list=collections.OrderedDict()
 
 
-            if self.conf.neural_coding=='TEMPORAL' and self.conf.load_time_const:
-                file = open(self.conf.time_const_init_file_name,'r')
+            if self.conf.neural_coding=='TEMPORAL' and self.conf.f_load_time_const:
+            #if self.conf.neural_coding=='TEMPORAL':
+
+                file_name = self.conf.time_const_init_file_name
+                file_name = file_name+'/tw-'+str(self.conf.time_window)+'_itr-'+str(self.conf.time_const_num_trained_data)
+
+                print('load trained time constant: file_name: {:s}'.format(file_name))
+
+                file = open(file_name,'r')
                 lines = csv.reader(file)
 
                 for line in lines:

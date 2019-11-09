@@ -14,7 +14,7 @@ from tqdm import tqdm
 import pandas as pd
 
 #
-def test(model, dataset, conf, f_val=False):
+def test(model, dataset, conf, f_val=False, epoch=0):
     avg_loss = tfe.metrics.Mean('loss')
 
     if conf.nn_mode=='SNN':
@@ -61,9 +61,9 @@ def test(model, dataset, conf, f_val=False):
             labels = tf.argmax(labels_one_hot,axis=1,output_type=tf.int32)
 
             if idx_batch!=-1:
-                if conf.f_train_time_const:
-                    for itr_train_time_const in range(0,10):
-                        model(images, f_training=False)
+                #if conf.f_train_time_const:
+                    #for itr_train_time_const in range(0,10):
+                    #    model(images, f_training=False)
 
                 predictions_times = model(images, f_training=False)
 
@@ -101,6 +101,33 @@ def test(model, dataset, conf, f_val=False):
 
             if f_val==False:
                 pbar.update()
+
+            if conf.f_train_time_const:
+                print("idx_batch: {:d}".format(idx_batch))
+                num_data=(idx_batch+1)*conf.batch_size+conf.time_const_num_trained_data+(epoch)*conf.num_test_dataset
+
+                print("num_data: {:d}".format(num_data))
+                #if num_data%10000==0:
+                if num_data%conf.time_const_save_interval==0:
+                #if num_data%1==0:
+                    fname="./temporal_coding/tw-{:d}_itr-{:d}".format(conf.time_window,num_data)
+
+                    print("save time constant: file_name: {:s}".format(fname))
+                    f = open(fname,'w')
+
+                    # time const
+                    for name_neuron, neuron in model.neuron_list.items():
+                        if not ('fc3' in name_neuron):
+                            f.write("tc,"+name_neuron+","+str(neuron.time_const_fire.numpy())+"\n")
+
+                    f.write("\n")
+
+                    # time delay
+                    for name_neuron, neuron in model.neuron_list.items():
+                        if not ('fc3' in name_neuron):
+                            f.write("td,"+name_neuron+","+str(neuron.time_delay_fire.numpy())+"\n")
+
+                    f.close()
 
 
         if f_val == False:

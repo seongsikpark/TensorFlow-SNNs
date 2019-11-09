@@ -7,8 +7,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 class Neuron(tf.layers.Layer):
-    def __init__(self,dim,n_type,fan_in,conf,neural_coding,depth=0,**kwargs):
-        super(Neuron, self).__init__(name="")
+    def __init__(self,dim,n_type,fan_in,conf,neural_coding,depth=0,n_name='',**kwargs):
+        #super(Neuron, self).__init__(name="")
+        super(Neuron, self).__init__()
 
         self.dim = dim
         self.n_type = n_type
@@ -17,6 +18,8 @@ class Neuron(tf.layers.Layer):
         self.conf = conf
 
         self.neural_coding=neural_coding
+
+        self.n_name = n_name
 
         #self.zeros = np.zeros(self.dim,dtype=np.float32)
         #self.zeros = tf.constant(0.0,shape=self.dim,dtype=tf.float32)
@@ -836,7 +839,7 @@ class Neuron(tf.layers.Layer):
         #
         delta = tf.add(tf.multiply(delta1,rho1),tf.multiply(delta2,rho2))
 
-        print("del: {:e}, del1: {:e}, del2: {:e}".format(delta,delta1,delta2))
+        print("name: {:s}, del: {:e}, del1: {:e}, del2: {:e}".format(self.n_name,delta,delta1,delta2))
 
 
         #self.time_const_fire = tf.subtract(self.time_const_fire, delta)
@@ -847,7 +850,7 @@ class Neuron(tf.layers.Layer):
         #idx=0,10,10,0
         #print('x: {:e}, vmem: {:e}, x_hat: {:e}, delta: {:e}'.format(x[idx],self.vmem[idx],x_hat[idx],delta))
 
-        print("loss: {:f}, tc: {:f}".format(loss,self.time_const_fire))
+        print("name: {:s}, loss: {:f}, tc: {:f}".format(self.n_name,loss,self.time_const_fire))
 
         print("\n")
 
@@ -867,7 +870,7 @@ class Neuron(tf.layers.Layer):
         #self.time_delay_fire = tf.subtract(self.time_delay_fire,delta)
         self.time_delay_fire = tf.add(self.time_delay_fire,delta)
 
-        print("del: {:e}, td: {:e}".format(delta,self.time_delay_fire))
+        print("name: {:s}, del: {:e}, td: {:e}".format(self.n_name,delta,self.time_delay_fire))
 
 
 def spike_max_pool(feature_map, spike_count, output_shape):

@@ -229,7 +229,11 @@ tf.app.flags.DEFINE_integer('time_fire_duration',20,'time fire duration for temp
 tf.app.flags.DEFINE_bool('f_record_first_spike_time',False,'flag - recording first spike time of each neuron')
 tf.app.flags.DEFINE_bool('f_visual_record_first_spike_time',False,'flag - visual recording first spike time of each neuron')
 tf.app.flags.DEFINE_bool('f_train_time_const',False,'flag - enable to train time constant for temporal coding')
+tf.app.flags.DEFINE_bool('f_load_time_const',False,'flag - load time constant for temporal coding')
 tf.app.flags.DEFINE_string('time_const_init_file_name','./temporal_coding/time_const','temporal coding file name - time_const, time_delay`')
+tf.app.flags.DEFINE_integer('time_const_num_trained_data',0,'number of trained data - time constant')
+tf.app.flags.DEFINE_integer('time_const_save_interval',10000,'save interval - training time constant')
+tf.app.flags.DEFINE_integer('epoch_train_time_const',1,'epoch - training time constant')
 
 
 #
@@ -689,13 +693,27 @@ def main(_):
             #        print('loss_test: %f, acc_test: %f'%(loss_test,acc_test))
 
 
-            #
-            with test_summary_writer.as_default():
-                loss_test, acc_test, acc_test_top5 = test.test(model, test_dataset, conf)
-                if conf.dataset == 'ImageNet':
-                    print('loss_test: %f, acc_test: %f, acc_test_top5: %f'%(loss_test,acc_test,acc_test_top5))
-                else:
-                    print('loss_test: %f, acc_test: %f'%(loss_test,acc_test))
+            if conf.f_train_time_const:
+
+
+                for epoch in range(conf.epoch_train_time_const):
+                    print("epoch: {:d}".format(epoch))
+                    with test_summary_writer.as_default():
+                        loss_test, acc_test, acc_test_top5 = test.test(model, test_dataset, conf, epoch=epoch)
+                        if conf.dataset == 'ImageNet':
+                            print('loss_test: %f, acc_test: %f, acc_test_top5: %f'%(loss_test,acc_test,acc_test_top5))
+                        else:
+                            print('loss_test: %f, acc_test: %f'%(loss_test,acc_test))
+
+
+            else:
+                #
+                with test_summary_writer.as_default():
+                    loss_test, acc_test, acc_test_top5 = test.test(model, test_dataset, conf)
+                    if conf.dataset == 'ImageNet':
+                        print('loss_test: %f, acc_test: %f, acc_test_top5: %f'%(loss_test,acc_test,acc_test_top5))
+                    else:
+                        print('loss_test: %f, acc_test: %f'%(loss_test,acc_test))
 
         print('end')
 
