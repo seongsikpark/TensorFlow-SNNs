@@ -494,6 +494,44 @@ class CIFARModel_CNN(tfe.Network):
                 self.dnn_act_list=collections.OrderedDict()
 
 
+            if self.conf.neural_coding=='TEMPORAL' and self.conf.load_time_const:
+                file = open(self.conf.time_const_init_file_name,'r')
+                lines = csv.reader(file)
+
+                for line in lines:
+                    if not line:
+                        continue
+
+                    type = line[0]
+                    name = line[1]
+                    val = float(line[2])
+
+                    if (type=='tc') :
+
+                        self.neuron_list[name].set_time_const_init_fire(val)
+
+                        if not ('in' in name):
+                            self.neuron_list[name].set_time_const_init_integ(self.neuron_list[name_prev].time_const_init_fire)
+
+                        name_prev = name
+
+                    elif (type=='td'):
+
+                        self.neuron_list[name].set_time_delay_init_fire(val)
+
+                        if not ('in' in name):
+                            self.neuron_list[name].set_time_delay_init_integ(self.neuron_list[name_prev].time_delay_init_fire)
+
+                        name_prev = name
+
+                    else:
+                        print("not supported temporal coding type")
+                        assert(False)
+
+
+                file.close()
+
+
             #
             self.spike_count = tf.Variable(initial_value=tf.zeros((self.num_accuracy_time_point,)+tuple(self.n_fc3.dim)),dtype=tf.float32,trainable=False)
             #self.spike_count = tf.contrib.eager.Variable(initial_value=tf.zeros((self.num_accuracy_time_point,)+tuple(self.n_fc3.dim)),dtype=tf.float32,trainable=False)
@@ -1940,37 +1978,44 @@ class CIFARModel_CNN(tfe.Network):
                             #print(self.f_idx_pruning_channel)
 
             # first_spike_time visualization
-#            if self.conf.f_record_first_spike_time:
-#                print('first spike time')
-#                _, axes = plt.subplots(4,4)
-#                idx_plot=0
-#                for n_name, n in self.neuron_list.items():
-#                    if not ('fc3' in n_name):
-#                        #positive = n.first_spike_time > 0
-#                        #print(n_name+'] min: '+str(tf.reduce_min(n.first_spike_time[positive]))+', mean: '+str(tf.reduce_mean(n.first_spike_time[positive])))
-#                        #print(tf.reduce_min(n.first_spike_time[positive]))
-#
-#                        positive=n.first_spike_time.numpy().flatten() > 0
-#
-#                        min=np.min(n.first_spike_time.numpy().flatten()[positive,])
-#                        mean=np.mean(n.first_spike_time.numpy().flatten()[positive,])
-#
-#                        fire_s=idx_plot*self.conf.time_fire_start
-#                        fire_e=idx_plot*self.conf.time_fire_start+self.conf.time_fire_duration
-#
-#                        axe=axes.flatten()[idx_plot]
-#                        axe.hist(n.first_spike_time.numpy().flatten()[positive],bins=range(fire_s,fire_e,1))
-#
-#                        axe.axvline(x=min,color='b', linestyle='dashed')
-#
-#                        axe.axvline(x=fire_s)
-#                        axe.axvline(x=fire_e)
-#
-#
-#
-#                        idx_plot+=1
-#
-#                plt.show()
+            if self.conf.f_record_first_spike_time and self.conf.f_visual_record_first_spike_time:
+                print('first spike time')
+                _, axes = plt.subplots(4,4)
+                idx_plot=0
+                for n_name, n in self.neuron_list.items():
+                    if not ('fc3' in n_name):
+                        #positive = n.first_spike_time > 0
+                        #print(n_name+'] min: '+str(tf.reduce_min(n.first_spike_time[positive]))+', mean: '+str(tf.reduce_mean(n.first_spike_time[positive])))
+                        #print(tf.reduce_min(n.first_spike_time[positive]))
+
+                        #positive=n.first_spike_time.numpy().flatten() > 0
+                        positive=tf.boolean_mask(n.first_spike_time,n.first_spike_time>0)
+
+                        if not tf.equal(tf.size(positive),0):
+
+                            #min=np.min(n.first_spike_time.numpy().flatten()[positive,])
+                            #print(positive.shape)
+                            #min=np.min(n.first_spike_time.numpy().flatten()[positive])
+                            min=tf.reduce_min(positive)
+                            #mean=np.mean(n.first_spike_time.numpy().flatten()[positive,])
+
+                            fire_s=idx_plot*self.conf.time_fire_start
+                            fire_e=idx_plot*self.conf.time_fire_start+self.conf.time_fire_duration
+
+                            axe=axes.flatten()[idx_plot]
+                            #axe.hist(n.first_spike_time.numpy().flatten()[positive],bins=range(fire_s,fire_e,1))
+                            axe.hist(positive.numpy().flatten(),bins=range(fire_s,fire_e,1))
+
+                            axe.axvline(x=min.numpy(),color='b', linestyle='dashed')
+
+                            axe.axvline(x=fire_s)
+                            axe.axvline(x=fire_e)
+
+
+
+                        idx_plot+=1
+
+                plt.show()
 
 
 
@@ -2637,6 +2682,7 @@ class CIFARModel_CNN(tfe.Network):
 #        self.neuron_list['conv2'].set_time_const_integ(self.neuron_list[name_layer].time_const_fire)
 
 
+        # train_time_const
         name_layer_prev=''
         for name_layer, layer in self.neuron_list.items():
             if not ('fc3' in name_layer):
@@ -2649,6 +2695,17 @@ class CIFARModel_CNN(tfe.Network):
             name_layer_prev = name_layer
 
 
+        # train_time_delay
+        name_layer_prev=''
+        for name_layer, layer in self.neuron_list.items():
+            if not ('fc3' in name_layer):
+                dnn_act = self.dnn_act_list[name_layer]
+                self.neuron_list[name_layer].train_time_delay_fire(dnn_act)
+
+            if not ('in' in name_layer):
+                self.neuron_list[name_layer].set_time_delay_integ(self.neuron_list[name_layer_prev].time_delay_fire)
+
+            name_layer_prev = name_layer
 
 
 

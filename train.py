@@ -454,7 +454,6 @@ def train_snn_one_epoch_mnist(model, optimizer, dataset, conf):
 
 
 # backprop
-
 def bp_Dense(layer, del_in):
     return tf.matmul(del_in, layer.kernel, transpose_b=True)
 
@@ -469,3 +468,44 @@ def grad_Dense(layer, delta, d_local):
     grad = tf.reduce_sum(tf.multiply(delta_e, d_local_e),0)
 
     return grad, grad_b
+
+
+# temporal coding - trainting time_const, time_delay
+def train_time_const_delay_tmeporal_coding(model, dataset, conf):
+    tf.train.get_or_create_global_step()
+    avg_loss = tfe.metrics.Mean('loss')
+    accuracy = tfe.metrics.Accuracy('accuracy')
+
+    for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
+
+        #with tf.GradientTape(persistent=True) as tape:
+        predictions_times = model(images, f_training=True)
+
+        if predictions_times.shape[1] != labels.numpy().shape[0]:
+            predictions_times_trimmed = predictions_times[:,0:labels.numpy().shape[0],:]
+            d = predictions_times.shape[1] - labels.numpy().shape[0]
+
+        else:
+            predictions_times_trimmed = predictions_times
+
+
+        predictions_trimmed = predictions_times_trimmed[-1]
+
+        loss_value = loss(predictions_trimmed, labels)
+
+        avg_loss(loss_value)
+
+        #accuracy(tf.argmax(predictions_trimmed,axis=1,output_type=tf.int64), tf.argmax(labels,axis=1,output_type=tf.int64))
+        accuracy(tf.argmax(predictions_trimmed,axis=1,output_type=tf.int64), tf.argmax(labels,axis=1,output_type=tf.int64))
+
+
+        #predictions = predictions_times[-1]
+
+        softmax = tf.nn.softmax(predictions_trimmed)
+
+
+
+    return avg_loss.result(), 100*accuracy.result()
+
+
+

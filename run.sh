@@ -117,7 +117,7 @@ n_type='IF'
 
 
 
-# compare activation
+# compare activationtw
 #f_comp_act=True
 f_comp_act=False
 
@@ -131,12 +131,22 @@ f_save_result=True
 
 # record first spike time of each neuron - it should be True for training time constant
 # overwirte this flag as True if f_train_time_const is Ture
-f_record_first_spike_time=False
-#f_record_first_spike_time=True
+#f_record_first_spike_time=False
+f_record_first_spike_time=True
+
+#f_visual_record_first_spike_time=False
+f_visual_record_first_spike_time=True
 
 # train time cosntant for temporal coding
 f_train_time_const=False
 #f_train_time_const=True
+
+
+#
+#f_train_time_const=False
+f_train_time_const=False
+#
+time_const_init_file_name='./temporal_coding/tw-40_itr-88k'
 
 # full test
 #time_step=1500
@@ -178,9 +188,9 @@ f_train_time_const=False
 #time_window=100
 
 tc=20
-time_window=40
-time_fire_start=40
-time_fire_duration=40
+time_fire_start=40      # integration duration
+time_fire_duration=40   # time window
+time_window=${time_fire_duration}
 
 #tc=15
 #time_window=60
@@ -191,11 +201,11 @@ time_fire_duration=40
 #time_step=2500
 #time_step=2000
 #time_step=1700
-time_step=1500
+#time_step=1500
 #time_step=1100
 #time_step=1000
 #time_step=900
-#time_step=700
+time_step=700
 #time_step=400
 #time_step=200
 #time_step=300
@@ -297,9 +307,14 @@ fi
 
 batch_size=200
 idx_test_dataset_s=0
-#num_test_dataset=5000
-num_test_dataset=10000
+##num_test_dataset=5000
+num_test_dataset=400
+#num_test_dataset=10000
 
+
+#batch_size=20
+#idx_test_dataset_s=0
+#num_test_dataset=100
 
 #batch_size=1
 #idx_test_dataset_s=0
@@ -684,7 +699,9 @@ log_file=${path_log_root}/${date}.log
     -time_fire_start=${time_fire_start}\
     -time_fire_duration=${time_fire_duration}\
     -f_record_first_spike_time=${f_record_first_spike_time}\
+    -f_visual_record_first_spike_time=${f_visual_record_first_spike_time}\
     -f_train_time_const=${f_train_time_const}\
+    -time_const_init_file_name=${time_const_init_file_name}\
     -dataset=${dataset}\
     -input_size=${input_size}\
     -batch_size=${batch_size} ; } 2>&1 | tee ${log_file}

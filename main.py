@@ -227,7 +227,9 @@ tf.app.flags.DEFINE_integer('time_window',20,'time window of each layer for temp
 tf.app.flags.DEFINE_integer('time_fire_start',20,'time fire start (integration time before starting fire) for temporal coding')
 tf.app.flags.DEFINE_integer('time_fire_duration',20,'time fire duration for temporal coding')
 tf.app.flags.DEFINE_bool('f_record_first_spike_time',False,'flag - recording first spike time of each neuron')
+tf.app.flags.DEFINE_bool('f_visual_record_first_spike_time',False,'flag - visual recording first spike time of each neuron')
 tf.app.flags.DEFINE_bool('f_train_time_const',False,'flag - enable to train time constant for temporal coding')
+tf.app.flags.DEFINE_string('time_const_init_file_name','./temporal_coding/time_const','temporal coding file name - time_const, time_delay`')
 
 
 #
@@ -677,7 +679,17 @@ def main(_):
 #
 #                print(out_str)
 
-        # test
+
+
+            #if conf.f_train_time_const:
+            #    loss_train, acc_train, acc_train_top5 = test.test(model, train_dataset, conf)
+            #    if conf.dataset == 'ImageNet':
+            #        print('loss_test: %f, acc_test: %f, acc_test_top5: %f'%(loss_test,acc_test,acc_test_top5))
+            #    else:
+            #        print('loss_test: %f, acc_test: %f'%(loss_test,acc_test))
+
+
+            #
             with test_summary_writer.as_default():
                 loss_test, acc_test, acc_test_top5 = test.test(model, test_dataset, conf)
                 if conf.dataset == 'ImageNet':

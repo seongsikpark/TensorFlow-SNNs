@@ -31,6 +31,13 @@ class Neuron(tf.layers.Layer):
             self.init_first_spike_time = -1.0
 
 
+            self.time_const_init_fire = self.conf.tc
+            self.time_const_init_integ = self.conf.tc
+
+            self.time_delay_init_fire = 0.0
+            self.time_delay_init_integ = 0.0
+
+
         #self.spike_counter = tf.Variable(name="spike_counter",dtype=tf.float32,initial_value=tf.zeros(self.dim,dtype=tf.float32),trainable=False)
         #self.spike_counter_int = tf.Variable(name="spike_counter_int",dtype=tf.float32,initial_value=tf.zeros(self.dim,dtype=tf.float32),trainable=False)
         #self.f_fire = tf.Variable(name='f_fire', dtype=tf.bool, initial_value=tf.constant(False,dtype=tf.bool,shape=self.dim),trainable=False)
@@ -75,8 +82,10 @@ class Neuron(tf.layers.Layer):
         #if self.conf.f_train_time_const:
         if self.conf.neural_coding=='TEMPORAL':
             #self.time_const=self.add_variable("time_const",shape=self.dim,dtype=tf.float32,initializer=tf.constant_initializer(self.conf.tc),trainable=False)
-            self.time_const_integ=self.add_variable("time_const_integ",shape=[],dtype=tf.float32,initializer=tf.constant_initializer(self.conf.tc),trainable=False)
-            self.time_const_fire=self.add_variable("time_const_fire",shape=[],dtype=tf.float32,initializer=tf.constant_initializer(self.conf.tc),trainable=False)
+            self.time_const_integ=self.add_variable("time_const_integ",shape=[],dtype=tf.float32,initializer=tf.constant_initializer(self.time_const_init_integ),trainable=False)
+            self.time_const_fire=self.add_variable("time_const_fire",shape=[],dtype=tf.float32,initializer=tf.constant_initializer(self.time_const_init_fire),trainable=False)
+            self.time_delay_integ=self.add_variable("time_delay_integ",shape=[],dtype=tf.float32,initializer=tf.constant_initializer(self.time_delay_init_integ),trainable=False)
+            self.time_delay_fire=self.add_variable("time_delay_fire",shape=[],dtype=tf.float32,initializer=tf.constant_initializer(self.time_delay_init_fire),trainable=False)
 
 
     def call(self,inputs,t):
@@ -170,7 +179,8 @@ class Neuron(tf.layers.Layer):
         # exponential decay
         #self.vth = tf.constant(tf.exp(-float(t)/self.conf.tc),tf.float32,self.out.shape)
         #self.vth = tf.constant(tf.exp(-t/self.conf.tc),tf.float32,self.out.shape)
-        self.vth = tf.constant(tf.exp(-t/self.time_const_fire),tf.float32,self.out.shape)
+        time = tf.subtract(t,self.time_delay_fire)
+        self.vth = tf.constant(tf.exp(-time/self.time_const_fire),tf.float32,self.out.shape)
 
         # polynomial
         #self.vth = tf.constant(tf.add(-tf.pow(t/self.conf.tc,2),1.0),tf.float32,self.out.shape)
@@ -228,27 +238,24 @@ class Neuron(tf.layers.Layer):
         if t == 0:
             self.vmem = inputs
 
-        if t < self.conf.time_window:
 
-            #kernel = self.temporal_kernel(t)
-            #self.vth = tf.constant(kernel,tf.float32,self.out.shape)
-            #self.vth = tf.constant(tf.exp(-t/self.conf.tc),tf.float32,self.out.shape)
-            #self.vth = self.temporal_kernel(t)
-            self.set_vth_temporal_kernel(t)
-            #print(self.vth[0,1,1,1])
+        #kernel = self.temporal_kernel(t)
+        #self.vth = tf.constant(kernel,tf.float32,self.out.shape)
+        #self.vth = tf.constant(tf.exp(-t/self.conf.tc),tf.float32,self.out.shape)
+        #self.vth = self.temporal_kernel(t)
+        self.set_vth_temporal_kernel(t)
+        #print(self.vth[0,1,1,1])
 
-            #print("input_spike_temporal: depth: "+str(self.depth)+", t_glb: "+str(t)+", t_loc: "+str(t)+", kernel: "+str(self.vth[0,0,0,0].numpy()))
+        #print("input_spike_temporal: depth: "+str(self.depth)+", t_glb: "+str(t)+", t_loc: "+str(t)+", kernel: "+str(self.vth[0,0,0,0].numpy()))
 
 
-            if self.conf.f_refractory:
-                self.f_fire = (self.vmem >= self.vth) & \
-                              tf.equal(self.refractory,tf.constant(0.0,tf.float32,self.refractory.shape))
-                            #(self.vth >= tf.constant(10**(-5),tf.float32,self.vth.shape) ) & \
+        if self.conf.f_refractory:
+            self.f_fire = (self.vmem >= self.vth) & \
+                          tf.equal(self.refractory,tf.constant(0.0,tf.float32,self.refractory.shape))
+                        #(self.vth >= tf.constant(10**(-5),tf.float32,self.vth.shape) ) & \
 
-            else:
-                self.f_fire = (self.vmem >= self.vth) & (self.vth >= 10**(-5))
-        else :
-            self.f_fire = tf.constant(False,tf.bool,self.f_fire.shape)
+        else:
+            self.f_fire = (self.vmem >= self.vth) & (self.vth >= 10**(-5))
 
         #print(f_fire)
         #print(self.vth >= 10**(-1))
@@ -291,7 +298,7 @@ class Neuron(tf.layers.Layer):
             'POISSON': self.input_spike_poission,
             'WEIGHTED_SPIKE': self.input_spike_weighted_spike,
             'BURST': self.input_spike_burst,
-            'TEMPORAL': self.input_spike_temporal if t < self.conf.time_window else self.spike_dummy_input
+            'TEMPORAL': self.input_spike_temporal if t < self.conf.time_fire_duration else self.spike_dummy_input
         }
 
         input_spike_mode[self.conf.input_spike_mode](inputs,t)
@@ -389,10 +396,12 @@ class Neuron(tf.layers.Layer):
             time = 0
         else :
             #time = float(t-(self.depth-1)*self.conf.time_window)
-            time = float(t-(self.depth-1)*self.conf.time_fire_start)
+            time = t-(self.depth-1)*self.conf.time_fire_start
+            time = time - self.time_delay_integ
         #time = tf.zeros(self.vmem.shape)
 
         #receptive_kernel = tf.constant(tf.exp(-time/self.conf.tc),tf.float32,self.vmem.shape)
+
         receptive_kernel = tf.constant(tf.exp(-time/self.time_const_integ),tf.float32,self.vmem.shape)
 
         #print("integration_temporal: depth: "+str(self.depth)+", t_glb: "+str(t)+", t_loc: "+str(time)+", kernel: "+str(receptive_kernel[0,0,0,0].numpy()))
@@ -746,8 +755,27 @@ class Neuron(tf.layers.Layer):
     def get_isi(self):
         return self.isi
 
+
+
+    def set_time_const_init_integ(self, time_const_init_integ):
+        self.time_const_init_integ = time_const_init_integ
+
+    def set_time_const_init_fire(self, time_const_init_fire):
+        self.time_const_init_fire = time_const_init_fire
+
+    def set_time_delay_init_integ(self, time_delay_init_integ):
+        self.time_delay_init_integ = time_delay_init_integ
+
+    def set_time_delay_init_fire(self, time_delay_init_fire):
+        self.time_delay_init_fire = time_delay_init_fire
+
+
+
     def set_time_const_integ(self, time_const_integ):
         self.time_const_integ = time_const_integ
+
+    def set_time_delay_integ(self, time_delay_integ):
+        self.time_delay_integ = time_delay_integ
 
     # training time constant (fire) for temporal coding
     def train_time_const_fire(self,dnn_act):
@@ -758,7 +786,7 @@ class Neuron(tf.layers.Layer):
 
         # delta - -1/(2tau^2)(x-x_hat)(x_hat)
 
-        spike_time = self.first_spike_time-self.depth*self.conf.time_fire_start
+        spike_time = self.first_spike_time-self.depth*self.conf.time_fire_start-self.time_delay_fire
         x = dnn_act
         x_hat = tf.where(
                     tf.equal(self.first_spike_time,tf.constant(self.init_first_spike_time,shape=self.first_spike_time.shape,dtype=tf.float32)), \
@@ -823,9 +851,23 @@ class Neuron(tf.layers.Layer):
 
         print("\n")
 
+    def train_time_delay_fire(self, dnn_act):
 
+        x_max = tf.reduce_max(dnn_act)
+        x_max_hat = tf.exp(self.time_delay_fire/self.time_const_fire)
 
+        delta = tf.subtract(x_max,x_max_hat)
+        delta = tf.multiply(delta,x_max_hat)
+        delta = tf.divide(delta,self.time_const_fire)
 
+        rho = 10.0
+
+        delta = tf.multiply(delta,rho)
+
+        #self.time_delay_fire = tf.subtract(self.time_delay_fire,delta)
+        self.time_delay_fire = tf.add(self.time_delay_fire,delta)
+
+        print("del: {:e}, td: {:e}".format(delta,self.time_delay_fire))
 
 
 def spike_max_pool(feature_map, spike_count, output_shape):

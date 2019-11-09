@@ -152,7 +152,7 @@ def test(model, dataset, conf, f_val=False):
                 f_name_result = conf.path_result_root+'/'+conf.date+'_'+conf.neural_coding
 
                 if conf.neural_coding=="TEMPORAL":
-                    f_name_result = f_name_result+'_tc-'+str(conf.tc)+'_tw-'+str(conf.time_window)+'_tfs-'+str(conf.time_fire_start)\
+                    f_name_result = f_name_result+'_tc-'+str(conf.tc)+'_tfs-'+str(conf.time_fire_start)\
                                 +'_tfd-'+str(conf.time_fire_duration)+'_ts-'+str(conf.time_step)+'_tssi-'+str(conf.time_step_save_interval)
 
                 f_name_result = f_name_result+'.xlsx'
