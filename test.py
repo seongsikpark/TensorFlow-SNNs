@@ -110,7 +110,10 @@ def test(model, dataset, conf, f_val=False, epoch=0):
                 #if num_data%10000==0:
                 if num_data%conf.time_const_save_interval==0:
                 #if num_data%1==0:
-                    fname="./temporal_coding/tw-{:d}_itr-{:d}".format(conf.time_window,num_data)
+                    fname="./temporal_coding/tc-{:d}_tw-{:d}_itr-{:d}".format(conf.tc,conf.time_window,num_data)
+
+                    if conf.f_train_time_const_outlier:
+                        fname+="_outlier"
 
                     print("save time constant: file_name: {:s}".format(fname))
                     f = open(fname,'w')

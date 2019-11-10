@@ -145,20 +145,27 @@ f_visual_record_first_spike_time=False
 #f_train_time_const=False
 f_train_time_const=True
 
-#f_load_time_const=False
-f_load_time_const=True
+#
+f_train_time_const_outlier=True
+#f_train_time_const_outlier=False
+
+
+f_load_time_const=False
+#f_load_time_const=True
 
 #
 time_const_init_file_name='./temporal_coding'
 
 #
-time_const_num_trained_data=50000
+time_const_num_trained_data=0
 
 #
-time_const_save_interval=10000
+time_const_save_interval=1000
 
 #
-epoch_train_time_const=10
+epoch_train_time_const=1
+
+
 
 # full test
 #time_step=1500
@@ -330,6 +337,7 @@ fi
 batch_size=250
 idx_test_dataset_s=0
 num_test_dataset=50000
+#num_test_dataset=250
 
 #batch_size=250
 #idx_test_dataset_s=0
@@ -716,6 +724,7 @@ log_file=${path_log_root}/${date}.log
     -f_record_first_spike_time=${f_record_first_spike_time}\
     -f_visual_record_first_spike_time=${f_visual_record_first_spike_time}\
     -f_train_time_const=${f_train_time_const}\
+    -f_train_time_const_outlier=${f_train_time_const_outlier}\
     -f_load_time_const=${f_load_time_const}\
     -time_const_init_file_name=${time_const_init_file_name}\
     -time_const_num_trained_data=${time_const_num_trained_data}\

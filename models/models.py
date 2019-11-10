@@ -500,6 +500,9 @@ class CIFARModel_CNN(tfe.Network):
                 file_name = self.conf.time_const_init_file_name
                 file_name = file_name+'/tw-'+str(self.conf.time_window)+'_itr-'+str(self.conf.time_const_num_trained_data)
 
+                if conf.f_train_time_const_outlier:
+                    file_name+="_outlier"
+
                 print('load trained time constant: file_name: {:s}'.format(file_name))
 
                 file = open(file_name,'r')

@@ -229,6 +229,7 @@ tf.app.flags.DEFINE_integer('time_fire_duration',20,'time fire duration for temp
 tf.app.flags.DEFINE_bool('f_record_first_spike_time',False,'flag - recording first spike time of each neuron')
 tf.app.flags.DEFINE_bool('f_visual_record_first_spike_time',False,'flag - visual recording first spike time of each neuron')
 tf.app.flags.DEFINE_bool('f_train_time_const',False,'flag - enable to train time constant for temporal coding')
+tf.app.flags.DEFINE_bool('f_train_time_const_outlier',True,'flag - enable to outlier roubst train time constant for temporal coding')
 tf.app.flags.DEFINE_bool('f_load_time_const',False,'flag - load time constant for temporal coding')
 tf.app.flags.DEFINE_string('time_const_init_file_name','./temporal_coding/time_const','temporal coding file name - time_const, time_delay`')
 tf.app.flags.DEFINE_integer('time_const_num_trained_data',0,'number of trained data - time constant')

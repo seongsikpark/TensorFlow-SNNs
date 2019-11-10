@@ -1,5 +1,8 @@
 import tensorflow as tf
 import tensorflow.contrib.eager as tfe
+
+#import tensorflow_probability as tfp
+
 import sys
 
 import numpy as np
@@ -814,8 +817,14 @@ class Neuron(tf.layers.Layer):
             delta1 = tf.reduce_mean(tf.boolean_mask(delta1,delta1>0))
 
 
+        if self.conf.f_train_time_const_outlier:
+            #x_min = tf.tfp.stats.percentile(tf.boolean_mask(x,x>0),0.01)
+            x_min = tf.constant(np.percentile(tf.boolean_mask(x,x>0).numpy(),0.01),dtype=tf.float32,shape=[])
 
-        x_min = tf.reduce_min(tf.boolean_mask(x,x>0))
+            print("min: {:e}, min_0.01: {:e}".format(tf.reduce_min(tf.boolean_mask(x,x>0)),x_min))
+        else:
+            x_min = tf.reduce_min(tf.boolean_mask(x,x>0))
+
         x_hat_min = tf.exp(-(self.conf.time_fire_duration/self.time_const_fire))
         delta2 = tf.subtract(x_min,x_hat_min)
         delta2 = tf.multiply(delta2,x_hat_min)
@@ -839,7 +848,7 @@ class Neuron(tf.layers.Layer):
         #
         delta = tf.add(tf.multiply(delta1,rho1),tf.multiply(delta2,rho2))
 
-        print("name: {:s}, del: {:e}, del1: {:e}, del2: {:e}".format(self.n_name,delta,delta1,delta2))
+        #print("name: {:s}, del: {:e}, del1: {:e}, del2: {:e}".format(self.n_name,delta,delta1,delta2))
 
 
         #self.time_const_fire = tf.subtract(self.time_const_fire, delta)
@@ -850,13 +859,21 @@ class Neuron(tf.layers.Layer):
         #idx=0,10,10,0
         #print('x: {:e}, vmem: {:e}, x_hat: {:e}, delta: {:e}'.format(x[idx],self.vmem[idx],x_hat[idx],delta))
 
-        print("name: {:s}, loss: {:f}, tc: {:f}".format(self.n_name,loss,self.time_const_fire))
+        #print("name: {:s}, loss: {:f}, tc: {:f}".format(self.n_name,loss,self.time_const_fire))
+        print("name: {:s}, tc: {:f}".format(self.n_name,self.time_const_fire))
 
-        print("\n")
+        #print("\n")
 
     def train_time_delay_fire(self, dnn_act):
 
-        x_max = tf.reduce_max(dnn_act)
+        if self.conf.f_train_time_const_outlier:
+            #x_min = tf.tfp.stats.percentile(tf.boolean_mask(x,x>0),0.01)
+            x_max = tf.constant(np.percentile(dnn_act.numpy(),99.9),dtype=tf.float32,shape=[])
+
+            #print("max: {:e}, max_99.9: {:e}".format(tf.reduce_max(dnn_act),x_max))
+        else:
+            x_max = tf.reduce_max(dnn_act)
+
         x_max_hat = tf.exp(self.time_delay_fire/self.time_const_fire)
 
         delta = tf.subtract(x_max,x_max_hat)
@@ -870,7 +887,8 @@ class Neuron(tf.layers.Layer):
         #self.time_delay_fire = tf.subtract(self.time_delay_fire,delta)
         self.time_delay_fire = tf.add(self.time_delay_fire,delta)
 
-        print("name: {:s}, del: {:e}, td: {:e}".format(self.n_name,delta,self.time_delay_fire))
+        #print("name: {:s}, del: {:e}, td: {:e}".format(self.n_name,delta,self.time_delay_fire))
+        print("name: {:s}, td: {:e}".format(self.n_name,self.time_delay_fire))
 
 
 def spike_max_pool(feature_map, spike_count, output_shape):
