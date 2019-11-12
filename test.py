@@ -185,6 +185,17 @@ def test(model, dataset, conf, f_val=False, epoch=0):
                     f_name_result = f_name_result+'_tc-'+str(conf.tc)+'_tw-'+str(conf.time_window)+'_tfs-'+str(conf.time_fire_start)\
                                 +'_tfd-'+str(conf.time_fire_duration)+'_ts-'+str(conf.time_step)+'_tssi-'+str(conf.time_step_save_interval)
 
+                if conf.f_load_time_const:
+                    f_name_result += '_trained_data-'+str(conf.time_const_num_traine_data)
+
+
+                if conf.f_train_time_const_outlier:
+                    f_name_result += '_outlier'
+
+                if conf.f_train_time_const:
+                    f_name_result += '_train-tc'
+
+
                 f_name_result = f_name_result+'.xlsx'
 
                 df.to_excel(f_name_result)

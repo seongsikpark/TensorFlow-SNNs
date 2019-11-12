@@ -812,6 +812,7 @@ class Neuron(tf.layers.Layer):
         # l2
         delta1 = tf.subtract(x,x_hat)
         delta1 = tf.multiply(delta1,x_hat)
+        delta1 = tf.multiply(delta1, tf.subtract(self.first_spike_time,self.time_delay_fire))
 
         if tf.equal(tf.size(tf.boolean_mask(delta1,delta1>0)),0):
             delta1 = tf.zeros([])
@@ -830,6 +831,7 @@ class Neuron(tf.layers.Layer):
         x_hat_min = tf.exp(-(self.conf.time_fire_duration/self.time_const_fire))
         delta2 = tf.subtract(x_min,x_hat_min)
         delta2 = tf.multiply(delta2,x_hat_min)
+        delta2 = tf.multiply(delta2, tf.subtract(self.conf.time_window,self.time_delay_fire))
 
         #
         #idx=0,0,0,0
@@ -890,7 +892,7 @@ class Neuron(tf.layers.Layer):
         self.time_delay_fire = tf.add(self.time_delay_fire,delta)
 
         #print("name: {:s}, del: {:e}, td: {:e}".format(self.n_name,delta,self.time_delay_fire))
-        print("name: {:s}, td: {:e}".format(self.n_name,self.time_delay_fire))
+        print("name: {:s}, td: {:f}".format(self.n_name,self.time_delay_fire))
 
 
 def spike_max_pool(feature_map, spike_count, output_shape):
