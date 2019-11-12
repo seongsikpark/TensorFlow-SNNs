@@ -26,8 +26,8 @@ verbose=False
 verbose_visual=False
 
 # full test
-#f_full_test=True
-f_full_test=False
+f_full_test=True
+#f_full_test=False
 
 #training_mode=True
 training_mode=False
@@ -135,29 +135,29 @@ f_save_result=True
 
 # record first spike time of each neuron - it should be True for training time constant
 # overwirte this flag as True if f_train_time_const is Ture
-#f_record_first_spike_time=False
-f_record_first_spike_time=True
+f_record_first_spike_time=False
+#f_record_first_spike_time=True
 
 f_visual_record_first_spike_time=False
 #f_visual_record_first_spike_time=True
 
 # train time cosntant for temporal coding
-#f_train_time_const=False
-f_train_time_const=True
+f_train_time_const=False
+#f_train_time_const=True
 
 #
-f_train_time_const_outlier=True
-#f_train_time_const_outlier=False
+#f_train_time_const_outlier=True
+f_train_time_const_outlier=False
 
 
-f_load_time_const=False
-#f_load_time_const=True
+#f_load_time_const=False
+f_load_time_const=True
 
 #
 time_const_init_file_name='./temporal_coding'
 
 #
-time_const_num_trained_data=0
+time_const_num_trained_data=50000
 
 #
 time_const_save_interval=1000
@@ -207,8 +207,8 @@ epoch_train_time_const=1
 #time_window=100
 
 tc=20
-time_fire_start=50      # integration duration
-time_fire_duration=50   # time window
+time_fire_start=80      # integration duration
+time_fire_duration=80   # time window
 time_window=${time_fire_duration}
 
 
@@ -233,6 +233,8 @@ time_step=900
 #time_step=400
 #time_step=30
 time_step_save_interval=50
+
+
 
 # test
 #tc=5
@@ -512,6 +514,7 @@ MLP_MNIST)
     if [ ${f_full_test} = True ]
     then
         batch_size=400
+        idx_test_dataset_s=0
         num_test_dataset=10000
     fi
 
@@ -525,9 +528,14 @@ VGG16_CIFAR-10)
     if [ ${f_full_test} = True ]
     then
         batch_size=400
+        idx_test_dataset_s=0
         num_test_dataset=10000
     fi
 
+    if [ ${neural_coding} = "TEMPORAL" ]
+    then
+        time_step="$((17 * ${time_window}))"
+    fi
     ;;
 
 VGG16_CIFAR-100)
@@ -539,6 +547,7 @@ VGG16_CIFAR-100)
     if [ ${f_full_test} = True ]
     then
         batch_size=400
+        idx_test_dataset_s=0
         num_test_dataset=10000
     fi
 
@@ -553,6 +562,7 @@ ResNet50_ImageNet)
     if [ ${f_full_test} = True ]
     then
         batch_size=250
+        idx_test_dataset_s=0
         num_test_dataset=50000
     fi
 

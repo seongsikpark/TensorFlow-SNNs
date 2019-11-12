@@ -37,6 +37,8 @@ class Neuron(tf.layers.Layer):
             self.init_first_spike_time = -1.0
 
 
+
+        if self.conf.neural_coding=='TEMPORAL':
             self.time_const_init_fire = self.conf.tc
             self.time_const_init_integ = self.conf.tc
 
@@ -821,7 +823,7 @@ class Neuron(tf.layers.Layer):
             #x_min = tf.tfp.stats.percentile(tf.boolean_mask(x,x>0),0.01)
             x_min = tf.constant(np.percentile(tf.boolean_mask(x,x>0).numpy(),0.01),dtype=tf.float32,shape=[])
 
-            print("min: {:e}, min_0.01: {:e}".format(tf.reduce_min(tf.boolean_mask(x,x>0)),x_min))
+            #print("min: {:e}, min_0.01: {:e}".format(tf.reduce_min(tf.boolean_mask(x,x>0)),x_min))
         else:
             x_min = tf.reduce_min(tf.boolean_mask(x,x>0))
 

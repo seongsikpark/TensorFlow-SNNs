@@ -498,7 +498,7 @@ class CIFARModel_CNN(tfe.Network):
             #if self.conf.neural_coding=='TEMPORAL':
 
                 file_name = self.conf.time_const_init_file_name
-                file_name = file_name+'/tw-'+str(self.conf.time_window)+'_itr-'+str(self.conf.time_const_num_trained_data)
+                file_name = file_name+'/tc-'+str(self.conf.tc)+'_tw-'+str(self.conf.time_window)+'_itr-'+str(self.conf.time_const_num_trained_data)
 
                 if conf.f_train_time_const_outlier:
                     file_name+="_outlier"
