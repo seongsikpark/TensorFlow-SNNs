@@ -846,8 +846,8 @@ class Neuron(tf.layers.Layer):
         delta2 = tf.divide(delta2,tf.square(self.time_const_fire))
 
 
-        rho1 = 1000.0
-        rho2 = 1000.0
+        rho1 = 100.0
+        rho2 = 100.0
 
         #
         delta = tf.add(tf.multiply(delta1,rho1),tf.multiply(delta2,rho2))
@@ -870,13 +870,20 @@ class Neuron(tf.layers.Layer):
 
     def train_time_delay_fire(self, dnn_act):
 
-        if self.conf.f_train_time_const_outlier:
-            #x_min = tf.tfp.stats.percentile(tf.boolean_mask(x,x>0),0.01)
-            x_max = tf.constant(np.percentile(dnn_act.numpy(),99.9),dtype=tf.float32,shape=[])
+        #if self.conf.f_train_time_const_outlier:
+        #    #x_min = tf.tfp.stats.percentile(tf.boolean_mask(x,x>0),0.01)
+        #    x_max = tf.constant(np.percentile(dnn_act.numpy(),99.9),dtype=tf.float32,shape=[])
+        #
+        #    #print("max: {:e}, max_99.9: {:e}".format(tf.reduce_max(dnn_act),x_max))
+        #else:
+        #    x_max = tf.reduce_max(dnn_act)
 
-            #print("max: {:e}, max_99.9: {:e}".format(tf.reduce_max(dnn_act),x_max))
-        else:
-            x_max = tf.reduce_max(dnn_act)
+        #x_max = tf.reduce_max(dnn_act)
+
+        t_ref = self.depth*self.conf.time_window
+        t_min = tf.reduce_min(tf.boolean_mask(self.first_spike_time,self.first_spike_time>0))
+        t_min = t_min-t_ref
+        x_max = tf.exp(-(t_min-self.time_delay_fire)/self.time_const_fire)
 
         x_max_hat = tf.exp(self.time_delay_fire/self.time_const_fire)
 
@@ -884,7 +891,7 @@ class Neuron(tf.layers.Layer):
         delta = tf.multiply(delta,x_max_hat)
         delta = tf.divide(delta,self.time_const_fire)
 
-        rho = 10.0
+        rho = 100.0
 
         delta = tf.multiply(delta,rho)
 
