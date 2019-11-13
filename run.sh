@@ -26,8 +26,8 @@ verbose=False
 verbose_visual=False
 
 # full test
-#f_full_test=True
-f_full_test=False
+f_full_test=True
+#f_full_test=False
 
 #training_mode=True
 training_mode=False
@@ -135,8 +135,8 @@ f_save_result=True
 
 # record first spike time of each neuron - it should be True for training time constant
 # overwirte this flag as True if f_train_time_const is Ture
-#f_record_first_spike_time=False
-f_record_first_spike_time=True
+f_record_first_spike_time=False
+#f_record_first_spike_time=True
 
 f_visual_record_first_spike_time=False
 #f_visual_record_first_spike_time=True
@@ -158,6 +158,8 @@ time_const_init_file_name='./temporal_coding'
 
 #
 #time_const_num_trained_data=50000
+#time_const_num_trained_data=30000
+#time_const_num_trained_data=20000
 time_const_num_trained_data=0
 
 #
@@ -207,9 +209,9 @@ epoch_train_time_const=1
 #tc=25
 #time_window=100
 
-tc=20
-time_fire_start=60      # integration duration
-time_fire_duration=60   # time window
+tc=5
+time_fire_start=15      # integration duration
+time_fire_duration=15   # time window
 time_window=${time_fire_duration}
 
 
@@ -339,8 +341,13 @@ fi
 
 batch_size=250
 idx_test_dataset_s=0
-num_test_dataset=10000
+#idx_test_dataset_s=30000
+#idx_test_dataset_s=20000
+#idx_test_dataset_s=10000
 #num_test_dataset=50000
+#num_test_dataset=30000
+num_test_dataset=20000
+#num_test_dataset=10000
 #num_test_dataset=250
 
 #batch_size=250

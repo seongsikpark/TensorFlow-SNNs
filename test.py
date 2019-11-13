@@ -186,7 +186,7 @@ def test(model, dataset, conf, f_val=False, epoch=0):
                                 +'_tfd-'+str(conf.time_fire_duration)+'_ts-'+str(conf.time_step)+'_tssi-'+str(conf.time_step_save_interval)
 
                 if conf.f_load_time_const:
-                    f_name_result += '_trained_data-'+str(conf.time_const_num_traine_data)
+                    f_name_result += '_trained_data-'+str(conf.time_const_num_trained_data)
 
 
                 if conf.f_train_time_const_outlier:
