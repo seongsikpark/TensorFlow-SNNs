@@ -158,6 +158,7 @@ time_const_init_file_name='./temporal_coding'
 
 #
 #time_const_num_trained_data=50000
+#time_const_num_trained_data=40000
 #time_const_num_trained_data=30000
 #time_const_num_trained_data=20000
 #time_const_num_trained_data=10000
@@ -347,8 +348,8 @@ batch_size=250
 idx_test_dataset_s=0
 #num_test_dataset=50000
 #num_test_dataset=30000
-num_test_dataset=20000
-#num_test_dataset=10000
+#num_test_dataset=20000
+num_test_dataset=10000
 #num_test_dataset=250
 
 #batch_size=250
