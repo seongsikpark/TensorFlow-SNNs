@@ -512,6 +512,8 @@ class CIFARModel_CNN(tfe.Network):
                     if not line:
                         continue
 
+                    print(line)
+
                     type = line[0]
                     name = line[1]
                     val = float(line[2])
@@ -2708,11 +2710,11 @@ class CIFARModel_CNN(tfe.Network):
         # train_time_delay
         name_layer_prev=''
         for name_layer, layer in self.neuron_list.items():
-            if not ('fc3' in name_layer):
+            if not ('fc3' in name_layer or 'in' in name_layer):
                 dnn_act = self.dnn_act_list[name_layer]
                 self.neuron_list[name_layer].train_time_delay_fire(dnn_act)
 
-            if not ('in' in name_layer):
+            if not ('in' in name_layer or 'conv1' in name_layer):
                 self.neuron_list[name_layer].set_time_delay_integ(self.neuron_list[name_layer_prev].time_delay_fire)
 
             name_layer_prev = name_layer

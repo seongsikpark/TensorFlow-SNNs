@@ -812,7 +812,8 @@ class Neuron(tf.layers.Layer):
         # l2
         delta1 = tf.subtract(x,x_hat)
         delta1 = tf.multiply(delta1,x_hat)
-        delta1 = tf.multiply(delta1, tf.subtract(self.first_spike_time,self.time_delay_fire))
+        #delta1 = tf.multiply(delta1, tf.subtract(self.first_spike_time,self.time_delay_fire))
+        delta1 = tf.multiply(delta1, spike_time)
 
         if tf.equal(tf.size(tf.boolean_mask(delta1,delta1>0)),0):
             delta1 = tf.zeros([])
@@ -847,7 +848,7 @@ class Neuron(tf.layers.Layer):
 
 
         rho1 = 10.0
-        rho2 = 10.0
+        rho2 = 30.0
 
         #
         delta = tf.add(tf.multiply(delta1,rho1),tf.multiply(delta2,rho2))
@@ -870,15 +871,17 @@ class Neuron(tf.layers.Layer):
 
     def train_time_delay_fire(self, dnn_act):
 
-        #if self.conf.f_train_time_const_outlier:
-        #    #x_min = tf.tfp.stats.percentile(tf.boolean_mask(x,x>0),0.01)
-        #    x_max = tf.constant(np.percentile(dnn_act.numpy(),99.9),dtype=tf.float32,shape=[])
-        #
-        #    #print("max: {:e}, max_99.9: {:e}".format(tf.reduce_max(dnn_act),x_max))
-        #else:
-        #    x_max = tf.reduce_max(dnn_act)
+        if self.conf.f_train_time_const_outlier:
+            t_ref = self.depth*self.conf.time_fire_start
+            t_min = np.percentile(tf.boolean_mask(self.first_spike_time,self.first_spike_time>0).numpy(),0.01)
+            t_min = t_min-t_ref
+        else:
+            t_ref = self.depth*self.conf.time_fire_start
+            t_min = tf.reduce_min(tf.boolean_mask(self.first_spike_time,self.first_spike_time>0))
+            t_min = t_min-t_ref
 
-        x_max = tf.reduce_max(dnn_act)
+
+        x_max = tf.exp(-(t_min-self.time_delay_fire)/self.time_const_fire)
 
         x_max_hat = tf.exp(self.time_delay_fire/self.time_const_fire)
 
@@ -886,7 +889,7 @@ class Neuron(tf.layers.Layer):
         delta = tf.multiply(delta,x_max_hat)
         delta = tf.divide(delta,self.time_const_fire)
 
-        rho = 10.0
+        rho = 30.0
 
         delta = tf.multiply(delta,rho)
 
