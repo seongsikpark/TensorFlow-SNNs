@@ -150,8 +150,8 @@ f_train_time_const_outlier=True
 #f_train_time_const_outlier=False
 
 
-f_load_time_const=False
-#f_load_time_const=True
+#f_load_time_const=False
+f_load_time_const=True
 
 #
 time_const_init_file_name='./temporal_coding'
@@ -159,10 +159,10 @@ time_const_init_file_name='./temporal_coding'
 #
 #time_const_num_trained_data=50000
 #time_const_num_trained_data=40000
-#time_const_num_trained_data=30000
+time_const_num_trained_data=30000
 #time_const_num_trained_data=20000
 #time_const_num_trained_data=10000
-time_const_num_trained_data=0
+#time_const_num_trained_data=0
 
 #
 time_const_save_interval=1000
@@ -342,10 +342,10 @@ fi
 
 
 batch_size=250
-#idx_test_dataset_s=30000
+idx_test_dataset_s=30000
 #idx_test_dataset_s=20000
 #idx_test_dataset_s=10000
-idx_test_dataset_s=0
+#idx_test_dataset_s=0
 #num_test_dataset=50000
 #num_test_dataset=30000
 #num_test_dataset=20000
