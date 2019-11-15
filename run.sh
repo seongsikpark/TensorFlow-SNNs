@@ -26,8 +26,8 @@ verbose=False
 verbose_visual=False
 
 # full test
-#f_full_test=True
-f_full_test=False
+f_full_test=True
+#f_full_test=False
 
 #training_mode=True
 training_mode=False
@@ -142,16 +142,16 @@ f_visual_record_first_spike_time=False
 #f_visual_record_first_spike_time=True
 
 # train time cosntant for temporal coding
-#f_train_time_const=False
-f_train_time_const=True
+f_train_time_const=False
+#f_train_time_const=True
 
 #
 f_train_time_const_outlier=True
 #f_train_time_const_outlier=False
 
 
-f_load_time_const=False
-#f_load_time_const=True
+#f_load_time_const=False
+f_load_time_const=True
 
 #
 time_const_init_file_name='./temporal_coding'
@@ -161,8 +161,8 @@ time_const_init_file_name='./temporal_coding'
 #time_const_num_trained_data=40000
 #time_const_num_trained_data=30000
 #time_const_num_trained_data=20000
-#time_const_num_trained_data=10000
-time_const_num_trained_data=0
+time_const_num_trained_data=10000
+#time_const_num_trained_data=0
 
 #
 time_const_save_interval=5000
@@ -214,13 +214,8 @@ epoch_train_time_const=1
 tc=15
 
 
-#time_fire_start=45      # integration duration - n x tc
-#time_fire_duration=45   # time window - n x tc
-
-
-time_fire_start=4      # integration duration - n x tc
-time_fire_duration=4   # time window - n x tc
-
+time_fire_start=60      # integration duration - n x tc
+time_fire_duration=60   # time window - n x tc
 time_window=${time_fire_duration}
 
 
@@ -554,7 +549,8 @@ VGG16_CIFAR-10)
     if [ ${neural_coding} = "TEMPORAL" ]
     then
         #time_step="$((17 * ${time_window}))"
-        time_step="$((16*${time_fire_start}*${tc} + ${time_fire_duration}*${tc}))"
+        #time_step="$((16*${time_fire_start}*${tc} + ${time_fire_duration}*${tc}))"
+        time_step="$((16*${time_fire_start} + ${time_fire_duration}))"
 
         echo "time_step: " ${time_step}
     fi
