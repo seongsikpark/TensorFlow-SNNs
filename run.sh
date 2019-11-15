@@ -150,8 +150,8 @@ f_train_time_const_outlier=True
 #f_train_time_const_outlier=False
 
 
-#f_load_time_const=False
-f_load_time_const=True
+f_load_time_const=False
+#f_load_time_const=True
 
 #
 time_const_init_file_name='./temporal_coding'
@@ -159,13 +159,13 @@ time_const_init_file_name='./temporal_coding'
 #
 #time_const_num_trained_data=50000
 #time_const_num_trained_data=40000
-time_const_num_trained_data=30000
+#time_const_num_trained_data=30000
 #time_const_num_trained_data=20000
 #time_const_num_trained_data=10000
-#time_const_num_trained_data=0
+time_const_num_trained_data=0
 
 #
-time_const_save_interval=1000
+time_const_save_interval=5000
 
 #
 epoch_train_time_const=1
@@ -211,9 +211,16 @@ epoch_train_time_const=1
 #tc=25
 #time_window=100
 
-tc=5
-time_fire_start=20      # integration duration
-time_fire_duration=20   # time window
+tc=15
+
+
+#time_fire_start=45      # integration duration - n x tc
+#time_fire_duration=45   # time window - n x tc
+
+
+time_fire_start=3      # integration duration - n x tc
+time_fire_duration=3   # time window - n x tc
+
 time_window=${time_fire_duration}
 
 
@@ -342,10 +349,11 @@ fi
 
 
 batch_size=250
-idx_test_dataset_s=30000
+#idx_test_dataset_s=40000
+#idx_test_dataset_s=30000
 #idx_test_dataset_s=20000
 #idx_test_dataset_s=10000
-#idx_test_dataset_s=0
+idx_test_dataset_s=0
 #num_test_dataset=50000
 #num_test_dataset=30000
 #num_test_dataset=20000
@@ -545,9 +553,14 @@ VGG16_CIFAR-10)
 
     if [ ${neural_coding} = "TEMPORAL" ]
     then
-        time_step="$((17 * ${time_window}))"
+        #time_step="$((17 * ${time_window}))"
+        time_step="$((16*${time_fire_start}*${tc} + ${time_fire_duration}*${tc}))"
+
+        echo "time_step: " ${time_step}
     fi
     ;;
+
+
 
 VGG16_CIFAR-100)
     echo "Dataset: CIFAR-100"
