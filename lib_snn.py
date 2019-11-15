@@ -46,6 +46,20 @@ class Neuron(tf.layers.Layer):
             self.time_delay_init_integ = 0.0
 
 
+            if self.conf.f_tc_based:
+                self.time_start_integ_init = (self.depth-1)*self.conf.time_fire_start
+                self.time_start_fire_init = (self.depth)*self.conf.time_fire_start
+
+                self.time_end_integ_init = self.time_start_integ_init + self.conf.time_fire_duration
+                self.time_end_fire_init = self.time_start_fire_init + self.conf.time_fire_duration
+            else:
+                self.time_start_integ_init = (self.depth-1)*self.conf.time_fire_start
+                self.time_start_fire_init = (self.depth)*self.conf.time_fire_start
+
+                self.time_end_integ_init = self.time_start_integ_init + self.conf.time_fire_duration
+                self.time_end_fire_init = self.time_start_fire_init + self.conf.time_fire_duration
+
+
         #self.spike_counter = tf.Variable(name="spike_counter",dtype=tf.float32,initial_value=tf.zeros(self.dim,dtype=tf.float32),trainable=False)
         #self.spike_counter_int = tf.Variable(name="spike_counter_int",dtype=tf.float32,initial_value=tf.zeros(self.dim,dtype=tf.float32),trainable=False)
         #self.f_fire = tf.Variable(name='f_fire', dtype=tf.bool, initial_value=tf.constant(False,dtype=tf.bool,shape=self.dim),trainable=False)
@@ -94,6 +108,12 @@ class Neuron(tf.layers.Layer):
             self.time_const_fire=self.add_variable("time_const_fire",shape=[],dtype=tf.float32,initializer=tf.constant_initializer(self.time_const_init_fire),trainable=False)
             self.time_delay_integ=self.add_variable("time_delay_integ",shape=[],dtype=tf.float32,initializer=tf.constant_initializer(self.time_delay_init_integ),trainable=False)
             self.time_delay_fire=self.add_variable("time_delay_fire",shape=[],dtype=tf.float32,initializer=tf.constant_initializer(self.time_delay_init_fire),trainable=False)
+
+
+            self.time_start_integ=self.add_variable("time_start_integ",shape=[],dtype=tf.float32,initializer=tf.constant_initializer(self.time_start_integ_init),trainable=False)
+            self.time_end_integ=self.add_variable("time_end_integ",shape=[],dtype=tf.float32,initializer=tf.constant_initializer(self.time_end_integ_init),trainable=False)
+            self.time_start_fire=self.add_variable("time_start_fire",shape=[],dtype=tf.float32,initializer=tf.constant_initializer(self.time_start_fire_init),trainable=False)
+            self.time_end_fire=self.add_variable("time_end_fire",shape=[],dtype=tf.float32,initializer=tf.constant_initializer(self.time_end_fire_init),trainable=False)
 
 
     def call(self,inputs,t):
@@ -816,6 +836,17 @@ class Neuron(tf.layers.Layer):
 
     def set_time_delay_integ(self, time_delay_integ):
         self.time_delay_integ = time_delay_integ
+
+
+    def set_time_integ(self, time_start_integ):
+        self.time_start_integ = time_start_integ
+        self.time_end_integ = self.time_start_integ + self.conf.time_fire_duration
+
+    def set_time_fire(self, time_start_fire):
+        self.time_start_fire = time_start_fire
+        self.time_end_fire = self.time_start_fire + self.conf.time_fire_duration
+
+
 
     # training time constant (fire) for temporal coding
     def train_time_const_fire(self,dnn_act):
