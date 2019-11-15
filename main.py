@@ -236,6 +236,11 @@ tf.app.flags.DEFINE_integer('time_const_num_trained_data',0,'number of trained d
 tf.app.flags.DEFINE_integer('time_const_save_interval',10000,'save interval - training time constant')
 tf.app.flags.DEFINE_integer('epoch_train_time_const',1,'epoch - training time constant')
 
+tf.app.flags.DEFINE_bool('f_tc_based',False,'flag - tau based')
+tf.app.flags.DEFINE_integer('n_tau_fire_start',4,'n tau - fire start')
+tf.app.flags.DEFINE_integer('n_tau_fire_duration',4,'n tau - fire duration')
+tf.app.flags.DEFINE_integer('n_tau_time_window',4,'n tau - time window')
+
 
 #
 conf = flags.FLAGS
