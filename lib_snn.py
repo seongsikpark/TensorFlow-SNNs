@@ -306,7 +306,7 @@ class Neuron(tf.layers.Layer):
             'POISSON': self.input_spike_poission,
             'WEIGHTED_SPIKE': self.input_spike_weighted_spike,
             'BURST': self.input_spike_burst,
-            'TEMPORAL': self.input_spike_temporal if t < self.conf.time_fire_duration else self.spike_dummy_input
+            'TEMPORAL': self.input_spike_temporal if t < self.conf.time_fire_duration*self.time_const_fire else self.spike_dummy_input
         }
 
         input_spike_mode[self.conf.input_spike_mode](inputs,t)
@@ -332,8 +332,8 @@ class Neuron(tf.layers.Layer):
         #f_run_int_temporal = (t >= (self.depth-1)*self.conf.time_window and t < (self.depth)*self.conf.time_window) or (t==0)   # t==0 : for bias integration
         #f_run_int_temporal = (t >= (self.depth-1)*self.conf.time_fire_start and t < (self.depth)*self.conf.time_window) or (t==0)   # t==0 : for bias integration
 
-        t_int_s = (self.depth-1)*self.conf.time_fire_start
-        t_int_e = t_int_s + self.conf.time_fire_duration
+        t_int_s = (self.depth-1)*self.conf.time_fire_start*self.time_const_integ
+        t_int_e = t_int_s + self.conf.time_fire_duration*self.time_const_integ
 
 
         f_run_int_temporal = (t >= t_int_s and t < t_int_e) or (t==0)   # t==0 : for bias integration
@@ -404,7 +404,7 @@ class Neuron(tf.layers.Layer):
             time = 0
         else :
             #time = float(t-(self.depth-1)*self.conf.time_window)
-            time = t-(self.depth-1)*self.conf.time_fire_start
+            time = t-(self.depth-1)*self.conf.time_fire_start*self.time_const_integ
             time = time - self.time_delay_integ
         #time = tf.zeros(self.vmem.shape)
 
@@ -553,7 +553,7 @@ class Neuron(tf.layers.Layer):
     #
     def fire_temporal(self,t):
         #time = t-self.depth*self.conf.time_window
-        time = t-self.depth*self.conf.time_fire_start
+        time = t-self.depth*self.conf.time_fire_start*self.time_const_fire
         #print("fire_temporal: depth: "+str(self.depth)+", t_glb: "+str(t)+", t_loc: "+str(time))
 
         self.set_vth_temporal_kernel(time)
@@ -703,8 +703,8 @@ class Neuron(tf.layers.Layer):
         # run_fire flag of each layer
         #f_run_fire = t >= self.depth*self.conf.time_fire_start  and t < (self.depth+1)*self.conf.time_window
 
-        t_fire_s = self.depth*self.conf.time_fire_start
-        t_fire_e = t_fire_s + self.conf.time_fire_duration
+        t_fire_s = self.depth*self.conf.time_fire_start*self.time_const_fire
+        t_fire_e = t_fire_s + self.conf.time_fire_duration*self.time_const_fire
 
         f_run_fire = t >= t_fire_s and t < t_fire_e
 
@@ -794,7 +794,7 @@ class Neuron(tf.layers.Layer):
 
         # delta - -1/(2tau^2)(x-x_hat)(x_hat)
 
-        spike_time = self.first_spike_time-self.depth*self.conf.time_fire_start-self.time_delay_fire
+        spike_time = self.first_spike_time-self.depth*self.conf.time_fire_start*self.time_const_fire-self.time_delay_fire
         x = dnn_act
         x_hat = tf.where(
                     tf.equal(self.first_spike_time,tf.constant(self.init_first_spike_time,shape=self.first_spike_time.shape,dtype=tf.float32)), \
@@ -823,16 +823,16 @@ class Neuron(tf.layers.Layer):
 
         if self.conf.f_train_time_const_outlier:
             #x_min = tf.tfp.stats.percentile(tf.boolean_mask(x,x>0),0.01)
-            x_min = tf.constant(np.percentile(tf.boolean_mask(x,x>0).numpy(),0.01),dtype=tf.float32,shape=[])
+            x_min = tf.constant(np.percentile(tf.boolean_mask(x,x>0).numpy(),1),dtype=tf.float32,shape=[])
 
             #print("min: {:e}, min_0.01: {:e}".format(tf.reduce_min(tf.boolean_mask(x,x>0)),x_min))
         else:
             x_min = tf.reduce_min(tf.boolean_mask(x,x>0))
 
-        x_hat_min = tf.exp(-(self.conf.time_fire_duration/self.time_const_fire))
+        x_hat_min = tf.exp(-(self.conf.time_fire_duration*self.time_const_fire/self.time_const_fire))
         delta2 = tf.subtract(x_min,x_hat_min)
         delta2 = tf.multiply(delta2,x_hat_min)
-        delta2 = tf.multiply(delta2, tf.subtract(self.conf.time_window,self.time_delay_fire))
+        delta2 = tf.multiply(delta2, tf.subtract(self.conf.time_window*self.time_const_fire,self.time_delay_fire))
 
         #
         #idx=0,0,0,0
@@ -847,8 +847,8 @@ class Neuron(tf.layers.Layer):
         delta2 = tf.divide(delta2,tf.square(self.time_const_fire))
 
 
-        rho1 = 10.0
-        rho2 = 30.0
+        rho1 = 1000.0
+        rho2 = 2000.0
 
         #
         delta = tf.add(tf.multiply(delta1,rho1),tf.multiply(delta2,rho2))
@@ -871,14 +871,19 @@ class Neuron(tf.layers.Layer):
 
     def train_time_delay_fire(self, dnn_act):
 
-        if self.conf.f_train_time_const_outlier:
-            t_ref = self.depth*self.conf.time_fire_start
-            t_min = np.percentile(tf.boolean_mask(self.first_spike_time,self.first_spike_time>0).numpy(),0.01)
-            t_min = t_min-t_ref
-        else:
-            t_ref = self.depth*self.conf.time_fire_start
-            t_min = tf.reduce_min(tf.boolean_mask(self.first_spike_time,self.first_spike_time>0))
-            t_min = t_min-t_ref
+#        if self.conf.f_train_time_const_outlier:
+#            t_ref = self.depth*self.conf.time_fire_start
+#            t_min = np.percentile(tf.boolean_mask(self.first_spike_time,self.first_spike_time>0).numpy(),0.01)
+#            t_min = t_min-t_ref
+#        else:
+#            t_ref = self.depth*self.conf.time_fire_start
+#            t_min = tf.reduce_min(tf.boolean_mask(self.first_spike_time,self.first_spike_time>0))
+#            t_min = t_min-t_ref
+
+
+        t_ref = self.depth*self.conf.time_fire_start*self.time_const_fire
+        t_min = tf.reduce_min(tf.boolean_mask(self.first_spike_time,self.first_spike_time>0))
+        t_min = t_min-t_ref
 
 
         x_max = tf.exp(-(t_min-self.time_delay_fire)/self.time_const_fire)
@@ -889,7 +894,7 @@ class Neuron(tf.layers.Layer):
         delta = tf.multiply(delta,x_max_hat)
         delta = tf.divide(delta,self.time_const_fire)
 
-        rho = 30.0
+        rho = 1.0
 
         delta = tf.multiply(delta,rho)
 

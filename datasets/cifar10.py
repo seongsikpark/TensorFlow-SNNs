@@ -70,7 +70,6 @@ def load(conf):
         test_dataset = test_dataset.map(preprocess_test, num_parallel_calls=2)
 
     if conf.f_train_time_const:
-
         label_train=label_train[conf.idx_test_dataset_s:conf.idx_test_dataset_s+conf.num_test_dataset]
         img_train=img_train[conf.idx_test_dataset_s:conf.idx_test_dataset_s+conf.num_test_dataset,:,:,:]
 

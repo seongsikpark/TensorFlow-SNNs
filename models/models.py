@@ -2677,23 +2677,6 @@ class CIFARModel_CNN(tfe.Network):
 
         print("models: train_time_const")
 
-#        name_layer = 'conv1'
-#
-#        dnn_act = self.dnn_act_list[name_layer]
-#        self.neuron_list[name_layer].train_time_const_fire(dnn_act)
-#
-#
-#        name_layer = 'conv1_1'
-#        self.neuron_list[name_layer].set_time_const_integ(self.neuron_list[name_layer].time_const_fire)
-#
-#        dnn_act = self.dnn_act_list[name_layer]
-#        self.neuron_list[name_layer].train_time_const_fire(dnn_act)
-#
-#
-#        name_layer = 'conv2'
-#        self.neuron_list['conv2'].set_time_const_integ(self.neuron_list[name_layer].time_const_fire)
-
-
         # train_time_const
         name_layer_prev=''
         for name_layer, layer in self.neuron_list.items():
