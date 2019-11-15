@@ -218,8 +218,8 @@ tc=15
 #time_fire_duration=45   # time window - n x tc
 
 
-time_fire_start=3      # integration duration - n x tc
-time_fire_duration=3   # time window - n x tc
+time_fire_start=4      # integration duration - n x tc
+time_fire_duration=4   # time window - n x tc
 
 time_window=${time_fire_duration}
 
