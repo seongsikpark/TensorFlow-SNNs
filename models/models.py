@@ -499,7 +499,8 @@ class CIFARModel_CNN(tfe.Network):
 
 
                 file_name = self.conf.time_const_init_file_name
-                if self.conf.f_tc_based:
+                #if self.conf.f_tc_based:
+                if False:
                     file_name = file_name+'/tc-'+str(self.conf.tc)+'_tw-'+str(self.conf.n_tau_time_window)+'_tau_itr-'+str(self.conf.time_const_num_trained_data)
                 else:
                     file_name = file_name+'/tc-'+str(self.conf.tc)+'_tw-'+str(self.conf.time_window)+'_itr-'+str(self.conf.time_const_num_trained_data)
@@ -2015,8 +2016,18 @@ class CIFARModel_CNN(tfe.Network):
                             min=tf.reduce_min(positive)
                             #mean=np.mean(n.first_spike_time.numpy().flatten()[positive,])
 
-                            fire_s=idx_plot*self.conf.time_fire_start
-                            fire_e=idx_plot*self.conf.time_fire_start+self.conf.time_fire_duration
+                            #if self.conf.f_tc_based:
+                            #    fire_s=idx_plot*self.conf.time_fire_start
+                            #    fire_e=idx_plot*self.conf.time_fire_start+self.conf.time_fire_duration
+                            #else:
+                            #    fire_s=idx_plot*self.conf.time_fire_start
+                            #    fire_e=idx_plot*self.conf.time_fire_start+self.conf.time_fire_duration
+
+                            #fire_s = n.time_start_fire
+                            #fire_e = n.time_end_fire
+
+                            fire_s = idx_plot * self.conf.time_fire_start
+                            fire_e = idx_plot * self.conf.time_fire_start + self.conf.time_fire_duration
 
                             axe=axes.flatten()[idx_plot]
                             #axe.hist(n.first_spike_time.numpy().flatten()[positive],bins=range(fire_s,fire_e,1))
@@ -2705,6 +2716,19 @@ class CIFARModel_CNN(tfe.Network):
                 self.neuron_list[name_layer].set_time_delay_integ(self.neuron_list[name_layer_prev].time_delay_fire)
 
             name_layer_prev = name_layer
+
+
+#        if self.conf.f_tc_based:
+#            # update integ and fire time
+#            name_layer_prev=''
+#            for name_layer, layer in self.neuron_list.items():
+#                if not ('fc3' in name_layer):
+#                    self.neuron_list[name_layer].set_time_fire(self.neuron_list[name_layer].time_const_fire*self.conf.n_tau_fire_start)
+#
+#                if not ('in' in name_layer):
+#                    self.neuron_list[name_layer].set_time_integ(self.neuron_list[name_layer_prev].time_const_integ*self.conf.n_tau_fire_start)
+#
+#                name_layer_prev = name_layer
 
 
 

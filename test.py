@@ -186,7 +186,7 @@ def test(model, dataset, conf, f_val=False, epoch=0):
                 f_name_result = conf.path_result_root+'/'+conf.date+'_'+conf.neural_coding
 
                 if conf.neural_coding=="TEMPORAL":
-                    if conf.f_tau_based:
+                    if conf.f_tc_based:
                         f_name_result = f_name_result+'_tau_tc-'+str(conf.tc)+'_tw-'+str(conf.n_tau_time_window)+'_tfs-'+str(conf.n_tau_fire_start) \
                                         +'_tfd-'+str(conf.n_tau_fire_duration)+'_ts-'+str(conf.time_step)+'_tssi-'+str(conf.time_step_save_interval)
                     else:

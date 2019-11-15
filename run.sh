@@ -11,8 +11,8 @@ path_models_ckpt=./models_ckpt
 path_result_root=./output/temporal
 path_stat=./stat
 
-batch_run_mode=False
-#batch_run_mode=True
+#batch_run_mode=False
+batch_run_mode=True
 
 #
 batch_run_train_tc=False
@@ -165,7 +165,7 @@ time_const_init_file_name='./temporal_coding'
 time_const_num_trained_data=0
 
 #
-time_const_save_interval=5000
+time_const_save_interval=1000
 
 #
 epoch_train_time_const=1
@@ -211,15 +211,15 @@ epoch_train_time_const=1
 #tc=25
 #time_window=100
 
-tc=15
+tc=10
 
-time_fire_start=60      # integration duration - n x tc
-time_fire_duration=60   # time window - n x tc
+time_fire_start=10      # integration duration - n x tc
+time_fire_duration=10   # time window - n x tc
 time_window=${time_fire_duration}
 
 
-f_tc_based=True
-#f_tc_based=False
+#f_tc_based=True
+f_tc_based=False
 
 n_tau_fire_start=3
 n_tau_fire_duration=3
@@ -561,7 +561,7 @@ VGG16_CIFAR-10)
 
         if [ ${f_tc_based} = True ]
         then
-            time_step="$((16*${n_tau_fire_start}*${tc} + ${n_tau_fire_duration}*${tc}))"
+            time_step="$((18*${n_tau_fire_start}*${tc} + ${n_tau_fire_duration}*${tc}))"
         else
             time_step="$((16*${time_fire_start} + ${time_fire_duration}))"
         fi
@@ -631,6 +631,19 @@ then
     f_record_first_spike_time=True
 fi
 ###############################################3
+
+###############################################3
+## visual spike time ditribution
+###############################################3
+if [ ${f_visual_record_first_spike_time} = True ]
+then
+    f_record_first_spike_time=True
+
+    idx_test_dataset_s=0
+    num_test_dataset=${batch_size}
+fi
+###############################################3
+
 
 
 
