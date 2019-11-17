@@ -11,8 +11,8 @@ path_models_ckpt=./models_ckpt
 path_result_root=./output/temporal
 path_stat=./stat
 
-#batch_run_mode=False
-batch_run_mode=True
+batch_run_mode=False
+#batch_run_mode=True
 
 #
 batch_run_train_tc=False
@@ -211,10 +211,10 @@ epoch_train_time_const=1
 #tc=25
 #time_window=100
 
-tc=10
+tc=20
 
-time_fire_start=10      # integration duration - n x tc
-time_fire_duration=10   # time window - n x tc
+time_fire_start=80      # integration duration - n x tc
+time_fire_duration=80   # time window - n x tc
 time_window=${time_fire_duration}
 
 
@@ -357,10 +357,10 @@ batch_size=250
 #idx_test_dataset_s=20000
 #idx_test_dataset_s=10000
 idx_test_dataset_s=0
-#num_test_dataset=50000
+num_test_dataset=50000
 #num_test_dataset=30000
 #num_test_dataset=20000
-num_test_dataset=10000
+#num_test_dataset=10000
 #num_test_dataset=250
 
 #batch_size=250

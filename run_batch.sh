@@ -4,11 +4,12 @@
 
 # tc
 #tc_arr=(5 10 15 20 25 30)
-tc_arr=(15 20)
+#tc_arr=(15 20)
+tc_arr=(20)
 
 # time_window - x(tc)
-#time_window_arr=(2 3 4)
-time_window_arr=(1 2 3 4 5)
+time_window_arr=(2 3 4)
+#time_window_arr=(1 2 3 4 5)
 
 # time_fire_start - smaller than time_window
 

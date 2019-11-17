@@ -890,13 +890,27 @@ class Neuron(tf.layers.Layer):
             delta1 = tf.reduce_mean(tf.boolean_mask(delta1,delta1>0))
 
 
+        dim = tf.size(tf.shape(x))
+        if tf.equal(dim, tf.constant(4)):
+            reduce_axis = [1,2,3]
+        elif tf.equal(dim, tf.constant(3)):
+            reduce_axis = [1,2]
+        elif tf.equal(dim, tf.constant(2)):
+            reduce_axis = [1]
+
+
         if self.conf.f_train_time_const_outlier:
             #x_min = tf.tfp.stats.percentile(tf.boolean_mask(x,x>0),0.01)
-            x_min = tf.constant(np.percentile(tf.boolean_mask(x,x>0).numpy(),1),dtype=tf.float32,shape=[])
+            #x_min = tf.constant(np.percentile(tf.boolean_mask(x,x>0).numpy(),1),dtype=tf.float32,shape=[])
+
+            x_pos = tf.where(x>tf.zeros(x.shape),x,tf.zeros(x.shape))
+            x_min = tf.constant(np.percentile(x_pos.numpy(),1,axis=reduce_axis),dtype=tf.float32,shape=x_pos.shape[0])
 
             #print("min: {:e}, min_0.01: {:e}".format(tf.reduce_min(tf.boolean_mask(x,x>0)),x_min))
         else:
-            x_min = tf.reduce_min(tf.boolean_mask(x,x>0))
+            #~x_min = tf.reduce_min(tf.boolean_mask(x,x>0))
+            x_pos = tf.where(x>tf.zeros(x.shape),x,tf.zeros(x.shape))
+            x_min = tf.reduce_min(x_pos,axis=reduce_axis)
 
         if self.conf.f_tc_based:
             fire_duration = self.conf.n_tau_fire_duration*self.time_const_fire
@@ -912,6 +926,9 @@ class Neuron(tf.layers.Layer):
             delta2 = tf.multiply(delta2, tf.subtract(self.conf.n_tau_time_window*self.time_const_fire,self.time_delay_fire))
         else:
             delta2 = tf.multiply(delta2, tf.subtract(self.conf.time_window,self.time_delay_fire))
+
+
+        delta2 = tf.reduce_mean(delta2)
 
         #
         #idx=0,0,0,0
@@ -967,9 +984,21 @@ class Neuron(tf.layers.Layer):
         else:
             t_ref = self.depth*self.conf.time_fire_start
 
-        t_min = tf.reduce_min(tf.boolean_mask(self.first_spike_time,self.first_spike_time>0))
-        t_min = t_min-t_ref
 
+        dim = tf.size(tf.shape(self.first_spike_time))
+        if tf.equal(dim, tf.constant(4)):
+            reduce_axis = [1,2,3]
+        elif tf.equal(dim, tf.constant(3)):
+            reduce_axis = [1,2]
+        elif tf.equal(dim, tf.constant(2)):
+            reduce_axis = [1]
+
+        #print(tf.boolean_mask(self.first_spike_time,self.first_spike_time>0,keepdims=True).shape)
+
+        #t_min = tf.reduce_min(tf.boolean_mask(self.first_spike_time,self.first_spike_time>0))
+        t_min = tf.where(tf.equal(self.first_spike_time,self.init_first_spike_time),tf.constant(99999.9,shape=self.first_spike_time.shape),self.first_spike_time)
+        t_min = tf.reduce_min(t_min,axis=reduce_axis)
+        t_min = t_min-t_ref
 
         x_max = tf.exp(-(t_min-self.time_delay_fire)/self.time_const_fire)
 
@@ -978,6 +1007,7 @@ class Neuron(tf.layers.Layer):
         delta = tf.subtract(x_max,x_max_hat)
         delta = tf.multiply(delta,x_max_hat)
         delta = tf.divide(delta,self.time_const_fire)
+        delta = tf.reduce_mean(delta)
 
         rho = 10.0
 
