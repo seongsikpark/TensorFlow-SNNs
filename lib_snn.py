@@ -904,7 +904,7 @@ class Neuron(tf.layers.Layer):
             #x_min = tf.constant(np.percentile(tf.boolean_mask(x,x>0).numpy(),1),dtype=tf.float32,shape=[])
 
             x_pos = tf.where(x>tf.zeros(x.shape),x,tf.zeros(x.shape))
-            x_min = tf.constant(np.percentile(x_pos.numpy(),1,axis=reduce_axis),dtype=tf.float32,shape=x_pos.shape[0])
+            x_min = tf.constant(np.percentile(x_pos.numpy(),2,axis=reduce_axis),dtype=tf.float32,shape=x_pos.shape[0])
 
             #print("min: {:e}, min_0.01: {:e}".format(tf.reduce_min(tf.boolean_mask(x,x>0)),x_min))
         else:
@@ -912,13 +912,15 @@ class Neuron(tf.layers.Layer):
             x_pos = tf.where(x>tf.zeros(x.shape),x,tf.zeros(x.shape))
             x_min = tf.reduce_min(x_pos,axis=reduce_axis)
 
+        x_min = tf.reduce_mean(x_min)
+
         if self.conf.f_tc_based:
             fire_duration = self.conf.n_tau_fire_duration*self.time_const_fire
         else:
             fire_duration = self.conf.time_fire_duration
 
         #x_hat_min = tf.exp(-(self.conf.time_fire_duration/self.time_const_fire))
-        x_hat_min = tf.exp(-(fire_duration/self.time_const_fire))
+        x_hat_min = tf.exp(-(fire_duration-self.time_delay_fire)/self.time_const_fire)
         delta2 = tf.subtract(x_min,x_hat_min)
         delta2 = tf.multiply(delta2,x_hat_min)
 
@@ -928,7 +930,7 @@ class Neuron(tf.layers.Layer):
             delta2 = tf.multiply(delta2, tf.subtract(self.conf.time_window,self.time_delay_fire))
 
 
-        delta2 = tf.reduce_mean(delta2)
+        #delta2 = tf.reduce_mean(delta2)
 
         #
         #idx=0,0,0,0
@@ -943,8 +945,8 @@ class Neuron(tf.layers.Layer):
         delta2 = tf.divide(delta2,tf.square(self.time_const_fire))
 
 
-        rho1 = 100.0
-        rho2 = 200.0
+        rho1 = 10.0
+        rho2 = 20.0
 
         #
         delta = tf.add(tf.multiply(delta1,rho1),tf.multiply(delta2,rho2))
@@ -1009,7 +1011,7 @@ class Neuron(tf.layers.Layer):
         delta = tf.divide(delta,self.time_const_fire)
         delta = tf.reduce_mean(delta)
 
-        rho = 10.0
+        rho = 1.0
 
         delta = tf.multiply(delta,rho)
 

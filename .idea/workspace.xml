@@ -16,7 +16,6 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib_snn.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib_snn.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/run.sh" beforeDir="false" afterPath="$PROJECT_DIR$/run.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/run_batch.sh" beforeDir="false" afterPath="$PROJECT_DIR$/run_batch.sh" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -101,16 +100,16 @@
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="Python Console" value="1" />
-          <entry key="py" value="47769" />
-          <entry key="sh" value="8133" />
+          <entry key="py" value="47847" />
+          <entry key="sh" value="8540" />
           <entry key="txt" value="38" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Bash" value="8133" />
+          <entry key="Bash" value="8540" />
           <entry key="PLAIN_TEXT" value="38" />
-          <entry key="Python" value="47770" />
+          <entry key="Python" value="47848" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -224,8 +223,8 @@
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/run_batch.sh">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="165">
-                  <caret line="11" selection-start-line="11" selection-end-line="11" />
+                <state relative-caret-position="150">
+                  <caret line="10" column="22" selection-start-line="10" selection-start-column="22" selection-end-line="10" selection-end-column="22" />
                 </state>
               </provider>
             </entry>
@@ -246,8 +245,8 @@
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/run.sh">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="270">
-                  <caret line="213" column="5" selection-start-line="213" selection-start-column="5" selection-end-line="213" selection-end-column="5" />
+                <state relative-caret-position="885">
+                  <caret line="153" selection-start-line="153" selection-end-line="153" />
                 </state>
               </provider>
             </entry>
@@ -255,12 +254,12 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/lib_snn.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="270">
-                  <caret line="906" column="116" selection-start-line="906" selection-start-column="116" selection-end-line="906" selection-end-column="116" />
+                <state relative-caret-position="-75">
+                  <caret line="948" column="16" selection-start-line="948" selection-start-column="16" selection-end-line="948" selection-end-column="16" />
                   <folding>
                     <element signature="e#0#23#0" expanded="true" />
-                    <marker date="1574011029054" expanded="true" signature="32084:32093" ph="..." />
-                    <marker date="1574011029054" expanded="true" signature="36870:36872" ph="..." />
+                    <marker date="1574066103514" expanded="true" signature="32084:32093" ph="..." />
+                    <marker date="1574066103514" expanded="true" signature="36929:36931" ph="..." />
                   </folding>
                 </state>
               </provider>
@@ -321,9 +320,9 @@
         <option value="$PROJECT_DIR$/main.py" />
         <option value="$PROJECT_DIR$/test.py" />
         <option value="$PROJECT_DIR$/models/models.py" />
-        <option value="$PROJECT_DIR$/run.sh" />
-        <option value="$PROJECT_DIR$/lib_snn.py" />
         <option value="$PROJECT_DIR$/run_batch.sh" />
+        <option value="$PROJECT_DIR$/lib_snn.py" />
+        <option value="$PROJECT_DIR$/run.sh" />
       </list>
     </option>
   </component>
@@ -608,7 +607,14 @@
       <option name="project" value="LOCAL" />
       <updated>1573807498459</updated>
     </task>
-    <option name="localTasksCounter" value="20" />
+    <task id="LOCAL-00020" summary="temporal coding">
+      <created>1574011671006</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1574011671007</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
@@ -1027,27 +1033,27 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/lib_snn.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="270">
-          <caret line="906" column="116" selection-start-line="906" selection-start-column="116" selection-end-line="906" selection-end-column="116" />
+        <state relative-caret-position="-75">
+          <caret line="948" column="16" selection-start-line="948" selection-start-column="16" selection-end-line="948" selection-end-column="16" />
           <folding>
             <element signature="e#0#23#0" expanded="true" />
-            <marker date="1574011029054" expanded="true" signature="32084:32093" ph="..." />
-            <marker date="1574011029054" expanded="true" signature="36870:36872" ph="..." />
+            <marker date="1574066103514" expanded="true" signature="32084:32093" ph="..." />
+            <marker date="1574066103514" expanded="true" signature="36929:36931" ph="..." />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/run.sh">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="270">
-          <caret line="213" column="5" selection-start-line="213" selection-start-column="5" selection-end-line="213" selection-end-column="5" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/run_batch.sh">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="165">
-          <caret line="11" selection-start-line="11" selection-end-line="11" />
+        <state relative-caret-position="150">
+          <caret line="10" column="22" selection-start-line="10" selection-start-column="22" selection-end-line="10" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/run.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="885">
+          <caret line="153" selection-start-line="153" selection-end-line="153" />
         </state>
       </provider>
     </entry>
