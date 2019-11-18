@@ -211,10 +211,10 @@ epoch_train_time_const=1
 #tc=25
 #time_window=100
 
-tc=20
+tc=17
 
-time_fire_start=80      # integration duration - n x tc
-time_fire_duration=80   # time window - n x tc
+time_fire_start=70      # integration duration - n x tc
+time_fire_duration=70   # time window - n x tc
 time_window=${time_fire_duration}
 
 
@@ -358,6 +358,7 @@ batch_size=250
 #idx_test_dataset_s=10000
 idx_test_dataset_s=0
 num_test_dataset=50000
+#num_test_dataset=40000
 #num_test_dataset=30000
 #num_test_dataset=20000
 #num_test_dataset=10000
