@@ -211,10 +211,10 @@ epoch_train_time_const=1
 #tc=25
 #time_window=100
 
-tc=10
+tc=5
 
-time_fire_start=30      # integration duration - n x tc
-time_fire_duration=40   # time window - n x tc
+time_fire_start=10      # integration duration - n x tc
+time_fire_duration=20   # time window - n x tc
 time_window=${time_fire_duration}
 
 
@@ -583,7 +583,22 @@ VGG16_CIFAR-100)
         num_test_dataset=10000
     fi
 
+    if [ ${neural_coding} = "TEMPORAL" ]
+    then
+        #time_step="$((17 * ${time_window}))"
+        #time_step="$((16*${time_fire_start}*${tc} + ${time_fire_duration}*${tc}))"
+
+        if [ ${f_tc_based} = True ]
+        then
+            time_step="$((18*${n_tau_fire_start}*${tc} + ${n_tau_fire_duration}*${tc}))"
+        else
+            time_step="$((16*${time_fire_start} + ${time_fire_duration}))"
+        fi
+    fi
     ;;
+
+
+
 
 ResNet50_ImageNet)
     echo "Model: ResNet50"
