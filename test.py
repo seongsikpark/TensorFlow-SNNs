@@ -111,10 +111,12 @@ def test(model, dataset, conf, f_val=False, epoch=0):
                 if num_data%conf.time_const_save_interval==0:
                 #if num_data%1==0:
 
+
+                    fname = conf.time_const_init_file_name + '/' + conf.model_name
                     if conf.f_tc_based:
-                        fname="./temporal_coding/tc-{:d}_tw-{:d}_tau_itr-{:d}".format(conf.tc,conf.n_tau_time_window,num_data)
+                        fname="/tc-{:d}_tw-{:d}_tau_itr-{:d}".format(conf.tc,conf.n_tau_time_window,num_data)
                     else:
-                        fname="./temporal_coding/tc-{:d}_tw-{:d}_itr-{:d}".format(conf.tc,conf.time_window,num_data)
+                        fname="/tc-{:d}_tw-{:d}_itr-{:d}".format(conf.tc,conf.time_window,num_data)
 
                     if conf.f_train_time_const_outlier:
                         fname+="_outlier"

@@ -26,8 +26,8 @@ verbose=False
 verbose_visual=False
 
 # full test
-#f_full_test=True
-f_full_test=False
+f_full_test=True
+#f_full_test=False
 
 #training_mode=True
 training_mode=False
@@ -142,8 +142,8 @@ f_visual_record_first_spike_time=False
 #f_visual_record_first_spike_time=True
 
 # train time cosntant for temporal coding
-#f_train_time_const=False
-f_train_time_const=True
+f_train_time_const=False
+#f_train_time_const=True
 
 #
 f_train_time_const_outlier=True
@@ -158,11 +158,11 @@ time_const_init_file_name='./temporal_coding'
 
 #
 #time_const_num_trained_data=50000
-#time_const_num_trained_data=40000
+time_const_num_trained_data=40000
 #time_const_num_trained_data=30000
 #time_const_num_trained_data=20000
 #time_const_num_trained_data=10000
-time_const_num_trained_data=0
+#time_const_num_trained_data=0
 
 #
 time_const_save_interval=1000
@@ -211,10 +211,10 @@ epoch_train_time_const=1
 #tc=25
 #time_window=100
 
-tc=17
+tc=10
 
-time_fire_start=70      # integration duration - n x tc
-time_fire_duration=70   # time window - n x tc
+time_fire_start=30      # integration duration - n x tc
+time_fire_duration=40   # time window - n x tc
 time_window=${time_fire_duration}
 
 
@@ -713,10 +713,12 @@ log_file=${path_log_root}/log_${model_name}_${nn_mode}_${log_file_post_fix}
 date=`date +%Y%m%d_%H%M`
 
 path_result_root=${path_result_root}/${model_name}
+time_const_root=${time_const_init_file_name}/${model_name}
 
 #
 mkdir -p ${path_log_root}
 mkdir -p ${path_result_root}
+mkdir -p ${time_const_root}
 
 #log_file=${path_log_root}/log_${model_name}_${nn_mode}_${time_step}_${vth}_999_norm_${f_real_value_input_snn}_${date}
 log_file=${path_log_root}/${date}.log
