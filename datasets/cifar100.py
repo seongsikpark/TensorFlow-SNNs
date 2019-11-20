@@ -52,11 +52,17 @@ def load(conf):
     test_dataset = test_dataset.prefetch(10*conf.batch_size)
 
 
-
     # for stat of train dataset
     if conf.f_stat_train_mode:
         test_dataset = tf.data.Dataset.from_tensor_slices((img_train,tf.squeeze(tf.one_hot(label_train,100))))
         test_dataset = test_dataset.map(cifar10.preprocess_test)
+
+    if conf.f_train_time_const:
+        label_train=label_train[conf.idx_test_dataset_s:conf.idx_test_dataset_s+conf.num_test_dataset]
+        img_train=img_train[conf.idx_test_dataset_s:conf.idx_test_dataset_s+conf.num_test_dataset,:,:,:]
+
+        test_dataset = tf.data.Dataset.from_tensor_slices((img_train,tf.squeeze(tf.one_hot(label_train,100))))
+        test_dataset = test_dataset.map(preprocess_test, num_parallel_calls=2)
 
 
     print(train_dataset)

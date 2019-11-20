@@ -26,8 +26,8 @@ verbose=False
 verbose_visual=False
 
 # full test
-f_full_test=True
-#f_full_test=False
+#f_full_test=True
+f_full_test=False
 
 #training_mode=True
 training_mode=False
@@ -142,8 +142,8 @@ f_visual_record_first_spike_time=False
 #f_visual_record_first_spike_time=True
 
 # train time cosntant for temporal coding
-f_train_time_const=False
-#f_train_time_const=True
+#f_train_time_const=False
+f_train_time_const=True
 
 #
 f_train_time_const_outlier=True
@@ -158,11 +158,11 @@ time_const_init_file_name='./temporal_coding'
 
 #
 #time_const_num_trained_data=50000
-time_const_num_trained_data=40000
+#time_const_num_trained_data=40000
 #time_const_num_trained_data=30000
 #time_const_num_trained_data=20000
 #time_const_num_trained_data=10000
-#time_const_num_trained_data=0
+time_const_num_trained_data=0
 
 #
 time_const_save_interval=1000
@@ -211,10 +211,10 @@ epoch_train_time_const=1
 #tc=25
 #time_window=100
 
-tc=5
+tc=40
 
-time_fire_start=10      # integration duration - n x tc
-time_fire_duration=20   # time window - n x tc
+time_fire_start=160     # integration duration - n x tc
+time_fire_duration=160   # time window - n x tc
 time_window=${time_fire_duration}
 
 
@@ -520,8 +520,8 @@ batch_size_training=128
 
 
 #exp_case='MLP_MNIST'
-exp_case='VGG16_CIFAR-10'
-#exp_case='VGG16_CIFAR-100'
+#exp_case='VGG16_CIFAR-10'
+exp_case='VGG16_CIFAR-100'
 #exp_case='ResNet50_ImageNet'
 
 pooling='max'
