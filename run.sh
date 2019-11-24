@@ -150,8 +150,8 @@ f_train_time_const_outlier=True
 #f_train_time_const_outlier=False
 
 
-#f_load_time_const=False
-f_load_time_const=True
+f_load_time_const=False
+#f_load_time_const=True
 
 #
 time_const_init_file_name='./temporal_coding'
@@ -161,8 +161,8 @@ time_const_init_file_name='./temporal_coding'
 #time_const_num_trained_data=40000
 #time_const_num_trained_data=30000
 #time_const_num_trained_data=20000
-time_const_num_trained_data=10000
-#time_const_num_trained_data=0
+#time_const_num_trained_data=10000
+time_const_num_trained_data=0
 
 #
 time_const_save_interval=1000
@@ -213,8 +213,8 @@ epoch_train_time_const=1
 
 tc=40
 
-time_fire_start=160     # integration duration - n x tc
-time_fire_duration=160   # time window - n x tc
+time_fire_start=80     # integration duration - n x tc
+time_fire_duration=80   # time window - n x tc
 time_window=${time_fire_duration}
 
 
@@ -357,10 +357,11 @@ batch_size=250
 #idx_test_dataset_s=20000
 #idx_test_dataset_s=10000
 idx_test_dataset_s=0
-#num_test_dataset=50000
+#num_test_dataset=50
+num_test_dataset=50000
 #num_test_dataset=40000
 #num_test_dataset=30000
-num_test_dataset=20000
+#num_test_dataset=20000
 #num_test_dataset=10000
 #num_test_dataset=250
 
@@ -520,8 +521,8 @@ batch_size_training=128
 
 
 #exp_case='MLP_MNIST'
-#exp_case='VGG16_CIFAR-10'
-exp_case='VGG16_CIFAR-100'
+exp_case='VGG16_CIFAR-10'
+#exp_case='VGG16_CIFAR-100'
 #exp_case='ResNet50_ImageNet'
 
 pooling='max'
@@ -541,7 +542,17 @@ MLP_MNIST)
         num_test_dataset=10000
     fi
 
+    if [ ${neural_coding} = "TEMPORAL" ]
+    then
+        if [ ${f_tc_based} = True ]
+        then
+            time_step="$((18*${n_tau_fire_start}*${tc} + ${n_tau_fire_duration}*${tc}))"
+        else
+            time_step="$((16*${time_fire_start} + ${time_fire_duration}))"
+        fi
+    fi
     ;;
+
 VGG16_CIFAR-10)
     echo "Dataset: CIFAR-10"
     ann_model='CNN'         # CNN-CIFAR: VGG16
@@ -621,6 +632,8 @@ ResNet50_ImageNet)
     exit 1
     ;;
 esac
+
+
 
 
 ###############################################3

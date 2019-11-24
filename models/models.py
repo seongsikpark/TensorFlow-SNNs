@@ -2731,6 +2731,22 @@ class CIFARModel_CNN(tfe.Network):
 #                name_layer_prev = name_layer
 
 
+    def get_time_const_train_loss(self):
+
+        loss_prec=0
+        loss_min=0
+        loss_max=0
+
+        for name_layer, layer in self.neuron_list.items():
+            if not ('fc3' in name_layer):
+                loss_prec += self.neuron_list[name_layer].loss_prec
+                loss_min += self.neuron_list[name_layer].loss_min
+                loss_max += self.neuron_list[name_layer].loss_max
+
+        return [loss_prec, loss_min, loss_max]
+
+
+
 
 
 
