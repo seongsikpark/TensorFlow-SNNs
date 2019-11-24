@@ -211,7 +211,7 @@ epoch_train_time_const=1
 #tc=25
 #time_window=100
 
-tc=40
+tc=5
 
 time_fire_start=80     # integration duration - n x tc
 time_fire_duration=80   # time window - n x tc
