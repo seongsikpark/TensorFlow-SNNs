@@ -46,6 +46,12 @@ def test(model, dataset, conf, f_val=False, epoch=0):
 
         num_batch=int(math.ceil(float(conf.num_test_dataset)/float(conf.batch_size)))
 
+        print_loss = True
+        if conf.f_train_time_const and print_loss:
+            list_loss_prec = list(range(num_batch))
+            list_loss_min = list(range(num_batch))
+            list_loss_max = list(range(num_batch))
+
 
         if f_val==False:
             pbar = tqdm(range(1,num_batch+1),ncols=80)
@@ -99,6 +105,13 @@ def test(model, dataset, conf, f_val=False, epoch=0):
                 if conf.verbose:
                     print(predictions-labels*conf.time_step)
 
+                if conf.f_train_time_const and print_loss:
+                    [loss_prec, loss_min, loss_max] = model.get_time_const_train_loss()
+
+                    list_loss_prec[idx_batch]=loss_prec.numpy()
+                    list_loss_min[idx_batch]=loss_min.numpy()
+                    list_loss_max[idx_batch]=loss_max.numpy()
+
             if f_val==False:
                 pbar.update()
 
@@ -114,9 +127,9 @@ def test(model, dataset, conf, f_val=False, epoch=0):
 
                     fname = conf.time_const_init_file_name + '/' + conf.model_name
                     if conf.f_tc_based:
-                        fname="/tc-{:d}_tw-{:d}_tau_itr-{:d}".format(conf.tc,conf.n_tau_time_window,num_data)
+                        fname+="/tc-{:d}_tw-{:d}_tau_itr-{:d}".format(conf.tc,conf.n_tau_time_window,num_data)
                     else:
-                        fname="/tc-{:d}_tw-{:d}_itr-{:d}".format(conf.tc,conf.time_window,num_data)
+                        fname+="/tc-{:d}_tw-{:d}_itr-{:d}".format(conf.tc,conf.time_window,num_data)
 
                     if conf.f_train_time_const_outlier:
                         fname+="_outlier"
@@ -213,6 +226,12 @@ def test(model, dataset, conf, f_val=False, epoch=0):
 
                 df.to_excel(f_name_result)
                 print("output file: "+f_name_result)
+
+
+            if conf.f_train_time_const and print_loss:
+                df=pd.DataFrame({'loss_prec': list_loss_prec, 'loss_min': list_loss_min, 'loss_max': list_loss_max})
+                fname="./time-const-train-loss_b-"+str(conf.batch_size)+"_d-"+str(conf.num_test_dataset)+"_tc-"+str(conf.tc)+"_tw-"+str(conf.time_window)+".xlsx"
+                df.to_excel(fname)
 
 
             if conf.f_comp_act:

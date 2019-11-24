@@ -116,6 +116,14 @@ class Neuron(tf.layers.Layer):
             self.time_end_fire=self.add_variable("time_end_fire",shape=[],dtype=tf.float32,initializer=tf.constant_initializer(self.time_end_fire_init),trainable=False)
 
 
+            print_loss=True
+
+            if self.conf.f_train_time_const and print_loss:
+                self.loss_prec=self.add_variable("loss_prec",shape=[],dtype=tf.float32,initializer=tf.zeros_initializer,trainable=False)
+                self.loss_min=self.add_variable("loss_min",shape=[],dtype=tf.float32,initializer=tf.zeros_initializer,trainable=False)
+                self.loss_max=self.add_variable("loss_max",shape=[],dtype=tf.float32,initializer=tf.zeros_initializer,trainable=False)
+
+
     def call(self,inputs,t):
         
         #print('neuron call')
@@ -876,7 +884,8 @@ class Neuron(tf.layers.Layer):
         #loss = tf.reduce_sum(tf.square(x-x_hat))
 
 
-        loss = tf.reduce_mean(tf.square(x-x_hat))
+        loss_prec = tf.reduce_mean(tf.square(x-x_hat))
+        loss_prec = loss_prec/2.0
 
         # l2
         delta1 = tf.subtract(x,x_hat)
@@ -912,7 +921,7 @@ class Neuron(tf.layers.Layer):
             x_pos = tf.where(x>tf.zeros(x.shape),x,tf.zeros(x.shape))
             x_min = tf.reduce_min(x_pos,axis=reduce_axis)
 
-        x_min = tf.reduce_mean(x_min)
+
 
         if self.conf.f_tc_based:
             fire_duration = self.conf.n_tau_fire_duration*self.time_const_fire
@@ -921,6 +930,15 @@ class Neuron(tf.layers.Layer):
 
         #x_hat_min = tf.exp(-(self.conf.time_fire_duration/self.time_const_fire))
         x_hat_min = tf.exp(-(fire_duration-self.time_delay_fire)/self.time_const_fire)
+
+        loss_min = tf.reduce_mean(tf.square(x_min-x_hat_min))
+        loss_min = loss_min/2.0
+
+        x_min = tf.reduce_mean(x_min)
+
+
+
+
         delta2 = tf.subtract(x_min,x_hat_min)
         delta2 = tf.multiply(delta2,x_hat_min)
 
@@ -962,8 +980,14 @@ class Neuron(tf.layers.Layer):
         #idx=0,10,10,0
         #print('x: {:e}, vmem: {:e}, x_hat: {:e}, delta: {:e}'.format(x[idx],self.vmem[idx],x_hat[idx],delta))
 
-        #print("name: {:s}, loss: {:f}, tc: {:f}".format(self.n_name,loss,self.time_const_fire))
-        print("name: {:s}, tc: {:f}".format(self.n_name,self.time_const_fire))
+        #print("name: {:s}, loss_prec: {:g}, loss_min: {:g}, tc: {:f}".format(self.n_name,loss_prec,loss_min,self.time_const_fire))
+
+        self.loss_prec = loss_prec
+        self.loss_min = loss_min
+
+        #
+        #print("name: {:s}, tc: {:f}".format(self.n_name,self.time_const_fire))
+
 
         #print("\n")
 
@@ -1006,6 +1030,9 @@ class Neuron(tf.layers.Layer):
 
         x_max_hat = tf.exp(self.time_delay_fire/self.time_const_fire)
 
+        loss_max = tf.reduce_mean(tf.square(x_max-x_max_hat))
+        loss_max = loss_max/2.0
+
         delta = tf.subtract(x_max,x_max_hat)
         delta = tf.multiply(delta,x_max_hat)
         delta = tf.divide(delta,self.time_const_fire)
@@ -1019,7 +1046,9 @@ class Neuron(tf.layers.Layer):
         self.time_delay_fire = tf.add(self.time_delay_fire,delta)
 
         #print("name: {:s}, del: {:e}, td: {:e}".format(self.n_name,delta,self.time_delay_fire))
-        print("name: {:s}, td: {:f}".format(self.n_name,self.time_delay_fire))
+        #print("name: {:s}, loss_max: {:e}, td: {:f}".format(self.n_name,loss_max,self.time_delay_fire))
+
+        self.loss_max = loss_max
 
 
 def spike_max_pool(feature_map, spike_count, output_shape):

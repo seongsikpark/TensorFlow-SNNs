@@ -26,8 +26,8 @@ verbose=False
 verbose_visual=False
 
 # full test
-f_full_test=True
-#f_full_test=False
+#f_full_test=True
+f_full_test=False
 
 #training_mode=True
 training_mode=False
@@ -142,8 +142,8 @@ f_visual_record_first_spike_time=False
 #f_visual_record_first_spike_time=True
 
 # train time cosntant for temporal coding
-f_train_time_const=False
-#f_train_time_const=True
+#f_train_time_const=False
+f_train_time_const=True
 
 #
 f_train_time_const_outlier=True
@@ -158,11 +158,11 @@ time_const_init_file_name='./temporal_coding'
 
 #
 #time_const_num_trained_data=50000
-time_const_num_trained_data=40000
+#time_const_num_trained_data=40000
 #time_const_num_trained_data=30000
 #time_const_num_trained_data=20000
 #time_const_num_trained_data=10000
-#time_const_num_trained_data=0
+time_const_num_trained_data=0
 
 #
 time_const_save_interval=1000
@@ -211,10 +211,10 @@ epoch_train_time_const=1
 #tc=25
 #time_window=100
 
-tc=5
+tc=40
 
-time_fire_start=10      # integration duration - n x tc
-time_fire_duration=20   # time window - n x tc
+time_fire_start=80     # integration duration - n x tc
+time_fire_duration=80   # time window - n x tc
 time_window=${time_fire_duration}
 
 
@@ -357,6 +357,7 @@ batch_size=250
 #idx_test_dataset_s=20000
 #idx_test_dataset_s=10000
 idx_test_dataset_s=0
+#num_test_dataset=50
 num_test_dataset=50000
 #num_test_dataset=40000
 #num_test_dataset=30000
@@ -541,7 +542,17 @@ MLP_MNIST)
         num_test_dataset=10000
     fi
 
+    if [ ${neural_coding} = "TEMPORAL" ]
+    then
+        if [ ${f_tc_based} = True ]
+        then
+            time_step="$((18*${n_tau_fire_start}*${tc} + ${n_tau_fire_duration}*${tc}))"
+        else
+            time_step="$((16*${time_fire_start} + ${time_fire_duration}))"
+        fi
+    fi
     ;;
+
 VGG16_CIFAR-10)
     echo "Dataset: CIFAR-10"
     ann_model='CNN'         # CNN-CIFAR: VGG16
@@ -621,6 +632,8 @@ ResNet50_ImageNet)
     exit 1
     ;;
 esac
+
+
 
 
 ###############################################3
