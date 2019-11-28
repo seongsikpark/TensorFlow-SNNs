@@ -26,8 +26,8 @@ verbose=False
 verbose_visual=False
 
 # full test
-#f_full_test=True
-f_full_test=False
+f_full_test=True
+#f_full_test=False
 
 #training_mode=True
 training_mode=False
@@ -142,27 +142,27 @@ f_visual_record_first_spike_time=False
 #f_visual_record_first_spike_time=True
 
 # train time cosntant for temporal coding
-#f_train_time_const=False
-f_train_time_const=True
+f_train_time_const=False
+#f_train_time_const=True
 
 #
 f_train_time_const_outlier=True
 #f_train_time_const_outlier=False
 
 
-f_load_time_const=False
-#f_load_time_const=True
+#f_load_time_const=False
+f_load_time_const=True
 
 #
 time_const_init_file_name='./temporal_coding'
 
 #
 #time_const_num_trained_data=50000
-#time_const_num_trained_data=40000
+time_const_num_trained_data=40000
 #time_const_num_trained_data=30000
 #time_const_num_trained_data=20000
 #time_const_num_trained_data=10000
-time_const_num_trained_data=0
+#time_const_num_trained_data=0
 
 #
 time_const_save_interval=1000
@@ -211,10 +211,10 @@ epoch_train_time_const=1
 #tc=25
 #time_window=100
 
-tc=5
+tc=4
 
-time_fire_start=80     # integration duration - n x tc
-time_fire_duration=80   # time window - n x tc
+time_fire_start=8    # integration duration - n x tc
+time_fire_duration=16   # time window - n x tc
 time_window=${time_fire_duration}
 
 
@@ -240,14 +240,14 @@ n_tau_time_window=${n_tau_fire_duration}
 #time_step=1500
 #time_step=1100
 #time_step=1000
-time_step=900
+#time_step=900
 #time_step=700
 #time_step=400
-#time_step=200
+time_step=200
 #time_step=300
 #time_step=400
 #time_step=30
-time_step_save_interval=50
+time_step_save_interval=1
 
 
 
@@ -352,14 +352,15 @@ fi
 
 
 batch_size=250
+#batch_size=2
 #idx_test_dataset_s=40000
 #idx_test_dataset_s=30000
 #idx_test_dataset_s=20000
 #idx_test_dataset_s=10000
 idx_test_dataset_s=0
 #num_test_dataset=50
-num_test_dataset=50000
-#num_test_dataset=40000
+#num_test_dataset=50000
+num_test_dataset=40000
 #num_test_dataset=30000
 #num_test_dataset=20000
 #num_test_dataset=10000
@@ -505,7 +506,7 @@ fi
 #
 #model_name='snn_train_cnn_mnist'
 
-num_epoch=100
+num_epoch=300
 save_interval=50
 
 lr=0.001
@@ -520,8 +521,8 @@ batch_size_training=128
 
 
 
-#exp_case='MLP_MNIST'
-exp_case='VGG16_CIFAR-10'
+exp_case='CNN_MNIST'
+#exp_case='VGG16_CIFAR-10'
 #exp_case='VGG16_CIFAR-100'
 #exp_case='ResNet50_ImageNet'
 
@@ -531,9 +532,11 @@ pooling='max'
 ###############################################3
 
 case ${exp_case} in
-MLP_MNIST)
+CNN_MNIST)
     echo "Dataset: MNIST"
     dataset='MNIST'
+    ann_model='CNN'
+    model_name='cnn_mnist_ro_0'
 
     if [ ${f_full_test} = True ]
     then
@@ -546,12 +549,13 @@ MLP_MNIST)
     then
         if [ ${f_tc_based} = True ]
         then
-            time_step="$((18*${n_tau_fire_start}*${tc} + ${n_tau_fire_duration}*${tc}))"
+            time_step="$((5*${n_tau_fire_start}*${tc} + ${n_tau_fire_duration}*${tc}))"
         else
-            time_step="$((16*${time_fire_start} + ${time_fire_duration}))"
+            time_step="$((4*${time_fire_start} + ${time_fire_duration}))"
         fi
     fi
     ;;
+
 
 VGG16_CIFAR-10)
     echo "Dataset: CIFAR-10"
@@ -645,7 +649,7 @@ then
     tc=$1
     time_window=$2
     time_fire_start=$3
-    time_fire_duration=$3
+    time_fire_duration=$4
     time_step=$5
     time_step_save_interval=$6
 

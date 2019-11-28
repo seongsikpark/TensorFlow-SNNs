@@ -338,13 +338,15 @@ def main(_):
     elif conf.ann_model=='CNN':
         if conf.dataset=='MNIST':
             #model = models.MNISTModel_CNN(data_format,conf)
-            #model = model_cnn_mnist.MNISTModel_CNN(data_format,conf)
-            model = cnn.cnn_mnist(data_format,conf)
+            model = model_cnn_mnist.MNISTModel_CNN(data_format,conf)
+            #model = cnn.cnn_mnist(data_format,conf)
 
-            if conf.nn_mode=='ANN':
-                train_func = train.train_ann_one_epoch_mnist_cnn
-            else:
-                train_func = train.train_snn_one_epoch_mnist_cnn
+
+            #if conf.nn_mode=='ANN':
+            #    #train_func = train.train_ann_one_epoch_mnist_cnn
+            #    train_func = train.train_ann_one_epoch_mnist_cnn
+            #else:
+            #    train_func = train.train_snn_one_epoch_mnist_cnn
 
         elif conf.dataset=='CIFAR-10':
             model = models.CIFARModel_CNN(data_format,conf)
@@ -519,10 +521,10 @@ def main(_):
                     #    lr.assign(0.00001)
 
 
-                    #loss_train, acc_train = train.train_one_epoch(model, optimizer, train_dataset_p)
+                    loss_train, acc_train = train.train_one_epoch(model, optimizer, train_dataset_p)
                     #loss_train, acc_train = train.train_snn_one_epoch(model, optimizer, train_dataset_p, conf)
                     #loss_train, acc_train = train.train_ann_one_epoch_mnist(model, optimizer, train_dataset_p, conf)
-                    loss_train, acc_train = train_func(model, optimizer, train_dataset_p, conf)
+                    #loss_train, acc_train = train_func(model, optimizer, train_dataset_p, conf)
 
 
                     with tf.contrib.summary.always_record_summaries():

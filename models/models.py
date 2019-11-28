@@ -2042,8 +2042,25 @@ class CIFARModel_CNN(tfe.Network):
 
                         idx_plot+=1
 
-                plt.show()
 
+
+                # file write raw data
+                for n_name, n in self.neuron_list.items():
+                    if not ('fc3' in n_name):
+                        positive=tf.boolean_mask(n.first_spike_time,n.first_spike_time>0).numpy()
+
+                        fname = './spike_time/spike-time'
+                        if self.conf.f_load_time_const:
+                            fname += '_train-'+str(self.conf.time_const_num_trained_data)+'_tc-'+str(self.conf.tc)+'_tw-'+str(self.conf.time_window)
+
+                        fname += '_'+n_name+'.csv'
+                        f = open(fname,'w')
+                        wr = csv.writer(f)
+                        wr.writerow(positive)
+                        f.close()
+
+
+                plt.show()
 
 
         return self.spike_count

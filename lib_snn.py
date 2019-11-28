@@ -274,7 +274,6 @@ class Neuron(tf.layers.Layer):
         if t == 0:
             self.vmem = inputs
 
-
         #kernel = self.temporal_kernel(t)
         #self.vth = tf.constant(kernel,tf.float32,self.out.shape)
         #self.vth = tf.constant(tf.exp(-t/self.conf.tc),tf.float32,self.out.shape)
@@ -390,9 +389,12 @@ class Neuron(tf.layers.Layer):
         #if(self.depth==16):
         #    print(self.vmem.numpy())
 
+        if self.neural_coding=='TEMPORAL':
+            if f_run_int_temporal:
+                self.integration_temporal(inputs,t)
+        else:
+            self.integration_default(inputs,t)
 
-        if f_run_int_temporal:
-            self.integration_temporal(inputs,t)
 
 
         #
@@ -463,6 +465,9 @@ class Neuron(tf.layers.Layer):
         #print("integration_temporal: depth: "+str(self.depth)+", t_glb: "+str(t)+", t_loc: "+str(time)+", kernel: "+str(receptive_kernel[0,0,0,0].numpy()))
 
         #
+        #print(inputs.shape)
+        #print(receptive_kernel.shape)
+
         psp = tf.multiply(inputs,receptive_kernel)
         #print(inputs[0,0,0,1])
         #print(psp[0,0,0,1])
@@ -585,7 +590,7 @@ class Neuron(tf.layers.Layer):
         self.vmem = tf.subtract(self.vmem,self.out)
 
         if self.conf.f_refractory:
-            self.cal_refractory(f_fire)
+            self.cal_refractory(self.f_fire)
 
 
         # exp increasing order
@@ -964,7 +969,7 @@ class Neuron(tf.layers.Layer):
 
 
         rho1 = 10.0
-        rho2 = 20.0
+        rho2 = 100.0
 
         #
         delta = tf.add(tf.multiply(delta1,rho1),tf.multiply(delta2,rho2))
@@ -980,7 +985,7 @@ class Neuron(tf.layers.Layer):
         #idx=0,10,10,0
         #print('x: {:e}, vmem: {:e}, x_hat: {:e}, delta: {:e}'.format(x[idx],self.vmem[idx],x_hat[idx],delta))
 
-        #print("name: {:s}, loss_prec: {:g}, loss_min: {:g}, tc: {:f}".format(self.n_name,loss_prec,loss_min,self.time_const_fire))
+        print("name: {:s}, loss_prec: {:g}, loss_min: {:g}, tc: {:f}".format(self.n_name,loss_prec,loss_min,self.time_const_fire))
 
         self.loss_prec = loss_prec
         self.loss_min = loss_min
@@ -1046,7 +1051,7 @@ class Neuron(tf.layers.Layer):
         self.time_delay_fire = tf.add(self.time_delay_fire,delta)
 
         #print("name: {:s}, del: {:e}, td: {:e}".format(self.n_name,delta,self.time_delay_fire))
-        #print("name: {:s}, loss_max: {:e}, td: {:f}".format(self.n_name,loss_max,self.time_delay_fire))
+        print("name: {:s}, loss_max: {:e}, td: {:f}".format(self.n_name,loss_max,self.time_delay_fire))
 
         self.loss_max = loss_max
 

@@ -23,6 +23,10 @@ def load(conf):
     print(train_dataset)
 
 
+    if conf.f_train_time_const:
+        test_dataset = tf.data.Dataset.from_tensor_slices((data.train.images[conf.idx_test_dataset_s:conf.idx_test_dataset_s+conf.num_test_dataset], tf.cast(data.train.labels[conf.idx_test_dataset_s:conf.idx_test_dataset_s+conf.num_test_dataset],tf.float32)))
+
+
     val_dataset = val_dataset.batch(conf.batch_size)
     test_dataset = test_dataset.batch(conf.batch_size)
 
