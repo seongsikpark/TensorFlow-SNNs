@@ -52,6 +52,10 @@ def test(model, dataset, conf, f_val=False, epoch=0):
             list_loss_min = list(range(num_batch))
             list_loss_max = list(range(num_batch))
 
+            list_tc = list(range(num_batch))
+            list_td = list(range(num_batch))
+
+
 
         if f_val==False:
             pbar = tqdm(range(1,num_batch+1),ncols=80)
@@ -111,6 +115,8 @@ def test(model, dataset, conf, f_val=False, epoch=0):
                     list_loss_prec[idx_batch]=loss_prec.numpy()
                     list_loss_min[idx_batch]=loss_min.numpy()
                     list_loss_max[idx_batch]=loss_max.numpy()
+
+
 
             if f_val==False:
                 pbar.update()

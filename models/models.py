@@ -2042,8 +2042,25 @@ class CIFARModel_CNN(tfe.Network):
 
                         idx_plot+=1
 
-                plt.show()
 
+
+                # file write raw data
+                for n_name, n in self.neuron_list.items():
+                    if not ('fc3' in n_name):
+                        positive=tf.boolean_mask(n.first_spike_time,n.first_spike_time>0).numpy()
+
+                        fname = './spike_time/spike-time'
+                        if self.conf.f_load_time_const:
+                            fname += '_train-'+str(self.conf.time_const_num_trained_data)+'_tc-'+str(self.conf.tc)+'_tw-'+str(self.conf.time_window)
+
+                        fname += '_'+n_name+'.csv'
+                        f = open(fname,'w')
+                        wr = csv.writer(f)
+                        wr.writerow(positive)
+                        f.close()
+
+
+                plt.show()
 
 
         return self.spike_count
@@ -2437,11 +2454,9 @@ class CIFARModel_CNN(tfe.Network):
             plt.close("dummy")
             _, self.debug_visual_axes = plt.subplots(subplot_y,subplot_x)
 
-
             for neuron_name, neuron in self.neuron_list.items():
                 if not ('fc3' in neuron_name):
                     self.debug_visual_neuron_list[neuron_name]=neuron
-
 
                     axe = self.debug_visual_axes.flatten()[plt_idx]
 
@@ -2478,101 +2493,9 @@ class CIFARModel_CNN(tfe.Network):
 
 
 
-        ## multi threading
-#        self.debug_visual_threads=[]
-#        for neuron_name, neuron in self.neuron_list.items():
-#            if not ('fc3' in neuron_name):
-#                self.debug_visual_threads.append(threading.Thread(target=self.debug_visual_raster_thread, args=(neuron, t, subplot_x, subplot_y, idx_print_s, idx_print_e, plt_idx)))
-#
-#                plt_idx+=1
-#
-#        for thread in self.debug_visual_threads:
-#            thread.start()
-#
-#        for thread in self.debug_visual_threads:
-#            thread.join()
-
-
-        ## old
-#        for neuron_name, neuron in self.neuron_list.items():
-#            if not ('fc3' in neuron_name):
-#                idx_fire=tf.where(tf.not_equal(tf.reshape(neuron.out,[-1])[idx_print_s:idx_print_e],tf.constant(0,dtype=tf.float32)))
-#
-#                axe = self.debug_visual_axes.flatten()[plt_idx]
-#
-#                #fig, axes = tfplot.subplots(subplot_x, subplot_y)
-#                #fig.suptitle("raster plot")
-#
-#                if t==0:
-#                    #plt.subplot(subplot_y,subplot_x,plt_idx+1)
-#
-#                    #plt.ylim([0,neuron.out.numpy().flatten()[idx_print_s:idx_print_e].size])
-#                    #plt.xlim([0,self.tw])
-#
-#                    #plt.grid(True)
-#                    #if(plt_idx>0):
-#                    #    plt.axvline(x=(plt_idx-1)*self.conf.time_fire_start, color='b')                 # integration
-#                    #plt.axvline(x=plt_idx*self.conf.time_fire_start, color='b')                         # fire start
-#                    #plt.axvline(x=plt_idx*self.conf.time_fire_start+self.conf.time_fire_duration, color='b') # fire end
-#                    #
-#
-#
-#                    axe.set_ylim([0,neuron.out.numpy().flatten()[idx_print_s:idx_print_e].size])
-#                    axe.set_xlim([0,self.tw])
-#
-#                    axe.grid(True)
-#
-#                    if(plt_idx>0):
-#                        axe.axvline(x=(plt_idx-1)*self.conf.time_fire_start, color='b')                 # integration
-#                    axe.axvline(x=plt_idx*self.conf.time_fire_start, color='b')                         # fire start
-#                    axe.axvline(x=plt_idx*self.conf.time_fire_start+self.conf.time_fire_duration, color='b') # fire end
-#
-#
-#
-#                    #axes[plt_idx].ylim([0,neuron.out.numpy().flatten()[idx_print_s:idx_print_e].size])
-#
-#                #idx_fire=np.where(neuron.out.numpy().flatten()[idx_print_s:idx_print_e]!=0.0)
-#                #idx_fire=tf.where(neuron.out.numpy().flatten()[idx_print_s:idx_print_e]!=0.0)
-#
-#
-#                #print(idx_fire)
-#
-#                #if not len(idx_fire)==0:
-#                if tf.size(idx_fire) != 0:
-#                    #axe.subplot(subplot_y,subplot_x,plt_idx+1)
-#
-#                    #self.scatter(np.full(np.shape(idx_fire),t,dtype=int),idx_fire,'r')
-#                    self.scatter(tf.fill(idx_fire.shape,t),idx_fire,'r', axe=axe)
-#                    #tfplot.scatter(tf.constant(t,dtype=tf.int32,shape=idx_fire.shape),idx_fire,'r')
-#                    #tfplot.autowrap(plt.scatter,tf.constant(t,dtype=tf.int32,shape=idx_fire.shape),idx_fire,'r')
-#                    #axes[plt_idx].scatter(tf.constant(t,dtype=tf.int32,shape=idx_fire.shape),idx_fire,'r')
-#                    #axes[plt_idx].scatter(tf.constant(0,dtype=tf.int32,shape=idx_fire.shape),idx_fire,'r')
-#                    #axes[plt_idx].scatter(idx_fire,idx_fire,'r')
-#
-#                plt_idx+=1
-#
-#                if(num_subplot <= plt_idx) :
-#                    break
-
         if t==self.tw-1:
             plt.figure("dummy")
 
-
-
-    def debug_visual_raster_thread(self, neuron, t, subplot_x, subplot_y, idx_print_s, idx_print_e, plt_idx):
-        if t==0:
-            plt.subplot(subplot_y,subplot_y,plt_idx+1)
-
-            plt.ylim([0,neuron.out.numpy().flatten()[idx_print_s:idx_print_e].size])
-            plt.xlim([0,self.tw])
-
-
-        idx_fire=tf.where(tf.not_equal(tf.reshape(neuron.out,[-1])[idx_print_s:idx_print_e],tf.constant(0,dtype=tf.float32)))
-
-        if tf.size(idx_fire) != 0:
-            #plt.subplot(subplot_y,subplot_y,plt_idx+1)
-
-            self.scatter(tf.fill(idx_fire.shape,t),idx_fire,'r')
 
 
 
