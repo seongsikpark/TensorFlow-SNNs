@@ -484,22 +484,28 @@ class Neuron(tf.layers.Layer):
 
     def integration_non_lin(self,inputs,t):
 
+        #
+        #alpha=tf.constant(1.0,tf.float32,self.vmem.shape)
+        #beta=tf.constant(0.1,tf.float32,self.vmem.shape)
+        #gamma=tf.constant(1.0,tf.float32,self.vmem.shape)
+        #eps=tf.constant(0.01,tf.float32,self.vmem.shape)
+        #non_lin=tf.multiply(alpha,tf.log(tf.add(beta,tf.divide(gamma,tf.abs(tf.add(self.vmem,eps))))))
+
+        #
+        #alpha=tf.constant(0.0459,tf.float32,self.vmem.shape)
+        #beta=tf.constant(-7.002,tf.float32,self.vmem.shape)
+
+        #
+        alpha=tf.constant(0.3,tf.float32,self.vmem.shape)
+        beta=tf.constant(-2.30259,tf.float32,self.vmem.shape)
 
 
-        alpha=1.0
-        beta=1.0
-        gamma=0.1
+        #alpha=tf.constant(0.459,tf.float32,self.vmem.shape)
+        #alpha=tf.constant(1.5,tf.float32,self.vmem.shape)
 
-
-
-        non_lin=tf.multiply(alpha,tf.log(tf.add(beta,tf.divide(gamma,self.vmem))))
-
-
+        non_lin=tf.multiply(alpha,tf.exp(tf.multiply(beta,tf.abs(self.vmem))))
 
         psp = tf.multiply(inputs,non_lin)
-
-
-
 
 
         dim = tf.size(tf.shape(inputs))
@@ -510,7 +516,7 @@ class Neuron(tf.layers.Layer):
         elif tf.equal(dim, tf.constant(2)):
             idx=0,0
 
-        print("non_lin: {:g}, inputs: {:g}, psp: {:g}".format(non_lin[idx],inputs[idx],psp[idx]))
+        #print("vmem: {:g}, non_lin: {:g}, inputs: {:g}, psp: {:g}".format(self.vmem[idx],non_lin[idx],inputs[idx],psp[idx]))
 
         self.vmem = tf.add(self.vmem,psp)
 
@@ -726,12 +732,25 @@ class Neuron(tf.layers.Layer):
 
     #
     def fire_non_lin(self,t):
-        self.f_fire = self.vmem >= self.vth
 
+        #
+        self.f_fire = self.vmem >= self.vth
         self.out = tf.where(self.f_fire,self.fires,self.zeros)
 
+        #
+        #rand = tf.random_uniform(shape=self.vmem.shape,minval=0.90*self.vth,maxval=self.vth)
+        #self.f_fire = tf.logical_or(self.vmem >= self.vth,self.vmem >= rand)
+
+        #self.out = tf.where(self.f_fire,self.fires,self.zeros)
+
+
+        # reset by subtract
         self.vmem = tf.subtract(self.vmem,self.out)
-        #self.vmem = tf.subtract(self.vmem,self.vmem)
+
+        # reset to zero
+        #self.out = tf.where(self.f_fire,tf.ones(self.out.shape),tf.zeros(self.out.shape))
+        #self.vmem = tf.where(self.f_fire,tf.zeros(self.out.shape),self.vmem)
+
 
         if self.conf.f_isi:
             self.cal_isi(self.f_fire,t)

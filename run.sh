@@ -26,8 +26,8 @@ verbose=False
 verbose_visual=False
 
 # full test
-#f_full_test=True
-f_full_test=False
+f_full_test=True
+#f_full_test=False
 
 #training_mode=True
 training_mode=False
@@ -234,13 +234,15 @@ n_tau_time_window=${n_tau_fire_duration}
 
 
 #
+#time_step=15000
+#time_step=5000
 #time_step=3000
 #time_step=2500
 #time_step=2000
 #time_step=1700
-#time_step=1500
+time_step=1500
 #time_step=1100
-time_step=1000
+#time_step=1000
 #time_step=900
 #time_step=700
 #time_step=400
@@ -282,10 +284,16 @@ time_step_save_interval=100
 #vth=3.0
 #vth=1.2
 #vth=1.1
-vth=1.0        # weight norm. default
+#vth=1.0        # weight norm. default
 #vth=0.9
 #vth=0.7
+#vth=0.5
+vth=0.3
+#vth=0.2
 #vth=0.1
+#vth=0.07
+#vth=0.0459
+#vth=0.02
 #vth=0.01
 #vth=0.003`
 #vth=0.001
@@ -523,8 +531,8 @@ batch_size_training=128
 
 
 
-#exp_case='CNN_MNIST'
-exp_case='VGG16_CIFAR-10'
+exp_case='CNN_MNIST'
+#exp_case='VGG16_CIFAR-10'
 #exp_case='VGG16_CIFAR-100'
 #exp_case='ResNet50_ImageNet'
 

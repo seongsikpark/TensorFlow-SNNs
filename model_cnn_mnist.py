@@ -889,7 +889,7 @@ class MNISTModel_CNN(tfe.Network):
                             self.bias_disable()
 
 
-            if self.conf.neural_coding == 'TEMPORAL':
+            if self.conf.neural_coding == 'TEMPORAL' or self.conf.neural_coding == 'NON_LINEAR':
                 #if (int)(t%self.conf.p_ws) == 0:
                 if t == 0:
                     self.bias_enable()
