@@ -15,9 +15,8 @@ import pprofile
 #en_gpu=False
 en_gpu=True
 
-#gpu_number=0
-
-#os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
+gpu_number=0
+os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
 
 if en_gpu==False:
     os.environ["CUDA_VISIBLE_DEVICES"]="-1"
