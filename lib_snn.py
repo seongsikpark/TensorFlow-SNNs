@@ -745,11 +745,11 @@ class Neuron(tf.layers.Layer):
 
 
         # reset by subtract
-        self.vmem = tf.subtract(self.vmem,self.out)
+        #self.vmem = tf.subtract(self.vmem,self.out)
 
         # reset to zero
         #self.out = tf.where(self.f_fire,tf.ones(self.out.shape),tf.zeros(self.out.shape))
-        #self.vmem = tf.where(self.f_fire,tf.zeros(self.out.shape),self.vmem)
+        self.vmem = tf.where(self.f_fire,tf.zeros(self.out.shape),self.vmem)
 
 
         if self.conf.f_isi:
