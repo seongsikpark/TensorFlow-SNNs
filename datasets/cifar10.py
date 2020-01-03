@@ -43,11 +43,15 @@ def load(conf):
         img_test[:,:,:,2] = (img_test[:,:,:,2]-cifar_mean[2])/cifar_std[2]
 
 
-    print(tf.reduce_min(img_train))
-    print(tf.reduce_min(img_test))
+    #print(tf.reduce_min(img_train))
+    #print(tf.reduce_min(img_test))
 
-    label_test=label_test[:conf.num_test_dataset]
-    img_test=img_test[:conf.num_test_dataset,:,:,:]
+    #label_test=label_test[:conf.num_test_dataset]
+    #img_test=img_test[:conf.num_test_dataset,:,:,:]
+
+
+    label_test=label_test[conf.idx_test_dataset_s:conf.idx_test_dataset_s+conf.num_test_dataset]
+    img_test=img_test[conf.idx_test_dataset_s:conf.idx_test_dataset_s+conf.num_test_dataset,:,:,:]
 
     train_dataset = tf.data.Dataset.from_tensor_slices((img_train,tf.squeeze(tf.one_hot(label_train,10))))
 
@@ -64,6 +68,14 @@ def load(conf):
     if conf.f_stat_train_mode:
         test_dataset = tf.data.Dataset.from_tensor_slices((img_train,tf.squeeze(tf.one_hot(label_train,10))))
         test_dataset = test_dataset.map(preprocess_test, num_parallel_calls=2)
+
+    if conf.f_train_time_const:
+        label_train=label_train[conf.idx_test_dataset_s:conf.idx_test_dataset_s+conf.num_test_dataset]
+        img_train=img_train[conf.idx_test_dataset_s:conf.idx_test_dataset_s+conf.num_test_dataset,:,:,:]
+
+        test_dataset = tf.data.Dataset.from_tensor_slices((img_train,tf.squeeze(tf.one_hot(label_train,10))))
+        test_dataset = test_dataset.map(preprocess_test, num_parallel_calls=2)
+
 
     print(train_dataset)
 

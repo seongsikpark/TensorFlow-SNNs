@@ -30,6 +30,9 @@ from operator import itemgetter
 
 from functools import partial
 
+#import tfplot
+import threading
+
 #
 # noinspection PyUnboundLocalVariable
 class CIFARModel_CNN(tfe.Network):
@@ -58,6 +61,11 @@ class CIFARModel_CNN(tfe.Network):
         #self.num_accuracy_time_point = int(math.ceil(float(conf.time_step)/float(conf.time_step_save_interval))
         self.num_accuracy_time_point = len(self.accuracy_time_point)
 
+
+        if self.f_debug_visual:
+            #self.debug_visual_threads = []
+            self.debug_visual_axes = []
+            self.debug_visual_neuron_list = collections.OrderedDict()
 
         #
         self.f_skip_bn = self.conf.f_fused_bn
@@ -92,7 +100,7 @@ class CIFARModel_CNN(tfe.Network):
             type_spike_amp_kind = {
                 'RATE': 1,
                 'WEIGHTED_SPIKE': self.conf.p_ws,
-                'PROPOSED': int(5-np.log2(self.conf.n_init_vth))
+                'BURST': int(5-np.log2(self.conf.n_init_vth))
             }
 
             self.spike_amp_kind = type_spike_amp_kind[self.conf.neural_coding]+1
@@ -101,7 +109,7 @@ class CIFARModel_CNN(tfe.Network):
             type_spike_amp_bin = {
                 'RATE': np.power(0.5,range(0,self.spike_amp_kind+1)),
                 'WEIGHTED_SPIKE': np.power(0.5,range(0,self.spike_amp_kind+1)),
-                'PROPOSED': 32*np.power(0.5,range(0,self.spike_amp_kind+1))
+                'BURST': 32*np.power(0.5,range(0,self.spike_amp_kind+1))
             }
 
             #self.spike_amp_bin=type_spike_amp_bin[self.conf.neural_coding]
@@ -367,7 +375,6 @@ class CIFARModel_CNN(tfe.Network):
             self.arr_length = [2,3,4,5,8,10]
             self.total_entropy=np.zeros([len(self.arr_length),len(self.layer_name)+1])
 
-
         if self.conf.f_write_stat or self.conf.f_comp_act:
             self.dict_stat_w['conv1']=np.zeros([1,]+self.shape_out_conv1.as_list()[1:])
             self.dict_stat_w['conv1_1']=np.zeros([1,]+self.shape_out_conv1_1.as_list()[1:])
@@ -385,7 +392,6 @@ class CIFARModel_CNN(tfe.Network):
             self.dict_stat_w['fc1']=np.zeros([1,]+self.shape_out_fc1.as_list()[1:])
             self.dict_stat_w['fc2']=np.zeros([1,]+self.shape_out_fc2.as_list()[1:])
             self.dict_stat_w['fc3']=np.zeros([1,]+self.shape_out_fc3.as_list()[1:])
-
 
 
         self.conv_p=collections.OrderedDict()
@@ -423,41 +429,41 @@ class CIFARModel_CNN(tfe.Network):
             self.neuron_list=collections.OrderedDict()
 
             #self.neuron_list['in'] = self.track_layer(lib_snn.Neuron(self.input_shape_snn,'IN',1,self.conf))
-            self.neuron_list['in'] = self.track_layer(lib_snn.Neuron(self.input_shape_snn,'IN',1,self.conf,nc))
+            self.neuron_list['in'] = self.track_layer(lib_snn.Neuron(self.input_shape_snn,'IN',1,self.conf,nc,0,'in'))
 
 
-            self.neuron_list['conv1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv1,n_type,self.fanin_conv,self.conf,nc))
-            self.neuron_list['conv1_1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv1_1,n_type,self.fanin_conv,self.conf,nc))
+            self.neuron_list['conv1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv1,n_type,self.fanin_conv,self.conf,nc,1,'conv1'))
+            self.neuron_list['conv1_1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv1_1,n_type,self.fanin_conv,self.conf,nc,2,'conv1_1'))
 
 
-            self.neuron_list['conv2'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv2,n_type,self.fanin_conv,self.conf,nc))
-            self.neuron_list['conv2_1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv2_1,n_type,self.fanin_conv,self.conf,nc))
+            self.neuron_list['conv2'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv2,n_type,self.fanin_conv,self.conf,nc,3,'conv2'))
+            self.neuron_list['conv2_1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv2_1,n_type,self.fanin_conv,self.conf,nc,4,'conv2_1'))
 
-            self.neuron_list['conv3'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv3,n_type,self.fanin_conv,self.conf,nc))
-            self.neuron_list['conv3_1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv3_1,n_type,self.fanin_conv,self.conf,nc))
-            self.neuron_list['conv3_2'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv3_2,n_type,self.fanin_conv,self.conf,nc))
+            self.neuron_list['conv3'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv3,n_type,self.fanin_conv,self.conf,nc,5,'conv3'))
+            self.neuron_list['conv3_1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv3_1,n_type,self.fanin_conv,self.conf,nc,6,'conv3_1'))
+            self.neuron_list['conv3_2'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv3_2,n_type,self.fanin_conv,self.conf,nc,7,'conv3_2'))
 
-            #nc = 'PROPOSED'
+            #nc = 'BURST'
             #self.conf.n_init_vth=0.125
 
-            self.neuron_list['conv4'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv4,n_type,self.fanin_conv,self.conf,nc))
-            self.neuron_list['conv4_1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv4_1,n_type,self.fanin_conv,self.conf,nc))
-            self.neuron_list['conv4_2'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv4_2,n_type,self.fanin_conv,self.conf,nc))
+            self.neuron_list['conv4'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv4,n_type,self.fanin_conv,self.conf,nc,8,'conv4'))
+            self.neuron_list['conv4_1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv4_1,n_type,self.fanin_conv,self.conf,nc,9,'conv4_1'))
+            self.neuron_list['conv4_2'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv4_2,n_type,self.fanin_conv,self.conf,nc,10,'conv4_2'))
 
             #self.conf.n_init_vth=0.125/2.0
 
-            self.neuron_list['conv5'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv5,n_type,self.fanin_conv,self.conf,nc))
-            self.neuron_list['conv5_1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv5_1,n_type,self.fanin_conv,self.conf,nc))
-            self.neuron_list['conv5_2'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv5_2,n_type,self.fanin_conv,self.conf,nc))
+            self.neuron_list['conv5'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv5,n_type,self.fanin_conv,self.conf,nc,11,'conv5'))
+            self.neuron_list['conv5_1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv5_1,n_type,self.fanin_conv,self.conf,nc,12,'conv5_1'))
+            self.neuron_list['conv5_2'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv5_2,n_type,self.fanin_conv,self.conf,nc,13,'conv5_2'))
 
-            self.neuron_list['fc1'] = self.track_layer(lib_snn.Neuron(self.shape_out_fc1,n_type,512,self.conf,nc))
-            self.neuron_list['fc2'] = self.track_layer(lib_snn.Neuron(self.shape_out_fc2,n_type,512,self.conf,nc))
+            self.neuron_list['fc1'] = self.track_layer(lib_snn.Neuron(self.shape_out_fc1,n_type,512,self.conf,nc,14,'fc1'))
+            self.neuron_list['fc2'] = self.track_layer(lib_snn.Neuron(self.shape_out_fc2,n_type,512,self.conf,nc,15,'fc2'))
             #self.neuron_list['fc3'] = self.track_layer(lib_snn.Neuron(self.shape_out_fc3,n_type,512,self.conf))
-            self.neuron_list['fc3'] = self.track_layer(lib_snn.Neuron(self.shape_out_fc3,'OUT',512,self.conf,nc))
+            self.neuron_list['fc3'] = self.track_layer(lib_snn.Neuron(self.shape_out_fc3,'OUT',512,self.conf,nc,16,'fc3'))
 
 
             # modify later
-            self.n_in = self.neuron_list['in'];
+            self.n_in = self.neuron_list['in']
 
             self.n_conv1 = self.neuron_list['conv1']
             self.n_conv1_1 = self.neuron_list['conv1_1']
@@ -484,7 +490,68 @@ class CIFARModel_CNN(tfe.Network):
 
 
             #
+            if self.conf.f_train_time_const:
+                self.dnn_act_list=collections.OrderedDict()
+
+
+            if self.conf.neural_coding=='TEMPORAL' and self.conf.f_load_time_const:
+            #if self.conf.neural_coding=='TEMPORAL':
+
+                file_name = self.conf.time_const_init_file_name
+                file_name = file_name + '/'+self.conf.model_name
+                #if self.conf.f_tc_based:
+                if False:
+                    file_name = file_name+'/tc-'+str(self.conf.tc)+'_tw-'+str(self.conf.n_tau_time_window)+'_tau_itr-'+str(self.conf.time_const_num_trained_data)
+                else:
+                    file_name = file_name+'/tc-'+str(self.conf.tc)+'_tw-'+str(self.conf.time_window)+'_itr-'+str(self.conf.time_const_num_trained_data)
+
+                if conf.f_train_time_const_outlier:
+                    file_name+="_outlier"
+
+                print('load trained time constant: file_name: {:s}'.format(file_name))
+
+                file = open(file_name,'r')
+                lines = csv.reader(file)
+
+                for line in lines:
+                    if not line:
+                        continue
+
+                    print(line)
+
+                    type = line[0]
+                    name = line[1]
+                    val = float(line[2])
+
+                    if (type=='tc') :
+
+                        self.neuron_list[name].set_time_const_init_fire(val)
+
+                        if not ('in' in name):
+                            self.neuron_list[name].set_time_const_init_integ(self.neuron_list[name_prev].time_const_init_fire)
+
+                        name_prev = name
+
+                    elif (type=='td'):
+
+                        self.neuron_list[name].set_time_delay_init_fire(val)
+
+                        if not ('in' in name):
+                            self.neuron_list[name].set_time_delay_init_integ(self.neuron_list[name_prev].time_delay_init_fire)
+
+                        name_prev = name
+
+                    else:
+                        print("not supported temporal coding type")
+                        assert(False)
+
+
+                file.close()
+
+
+            #
             self.spike_count = tf.Variable(initial_value=tf.zeros((self.num_accuracy_time_point,)+tuple(self.n_fc3.dim)),dtype=tf.float32,trainable=False)
+            #self.spike_count = tf.contrib.eager.Variable(initial_value=tf.zeros((self.num_accuracy_time_point,)+tuple(self.n_fc3.dim)),dtype=tf.float32,trainable=False)
         #
         self.cmap=matplotlib.cm.get_cmap('viridis')
         #self.normalize=matplotlib.colors.Normalize(vmin=min(self.n_fc3.vmem),vmax=max(self.n_fc3.vmem))
@@ -505,7 +572,22 @@ class CIFARModel_CNN(tfe.Network):
                 ret_val = self.call_snn(inputs,f_training,tw_sampling)
                 ret_val = self.nn_mode[self.conf.nn_mode](inputs,f_training,self.conf.time_step)
             else:
-                ret_val = self.nn_mode[self.conf.nn_mode](inputs,f_training,self.conf.time_step)
+                if (self.conf.nn_mode=='SNN' and self.conf.neural_coding=="TEMPORAL"):
+                    # inference - temporal coding
+                    #ret_val = self.call_snn_temporal(inputs,f_training,self.conf.time_step)
+
+                    #
+                    self.nn_mode['ANN'](inputs,f_training,self.conf.time_step)
+
+                    ret_val = self.nn_mode[self.conf.nn_mode](inputs,f_training,self.conf.time_step)
+
+                    # training time constant
+                    if self.conf.f_train_time_const:
+                        self.train_time_const()
+
+                else:
+                    # inference - rate, phase burst coding
+                    ret_val = self.nn_mode[self.conf.nn_mode](inputs,f_training,self.conf.time_step)
         else:
             ret_val = self.nn_mode_load_model[self.conf.nn_mode](inputs,f_training,self.conf.time_step)
             self.f_load_model_done=True
@@ -633,7 +715,7 @@ class CIFARModel_CNN(tfe.Network):
             #if self.conf.f_ws:
                 #self.dict_stat_r['conv1']=self.dict_stat_r['conv1']/(1-1/np.power(2,8))
 
-            #print(np.shape(self.dict_stat_r[l]))
+            print(np.shape(self.dict_stat_r[l]))
 
 
         self.w_norm_layer_wise()
@@ -700,11 +782,13 @@ class CIFARModel_CNN(tfe.Network):
 
     def call_ann(self,inputs,f_training, tw):
         #print(type(inputs))
-        if self.f_1st_iter == False and self.conf.nn_mode=='ANN':
+        #if self.f_1st_iter == False and self.conf.nn_mode=='ANN':
+        if self.f_1st_iter == False:
             if self.f_done_preproc == False:
                 self.f_done_preproc=True
                 self.print_model_conf()
                 self.preproc_ann_norm()
+
 
             self.f_skip_bn=self.conf.f_fused_bn
         else:
@@ -712,7 +796,9 @@ class CIFARModel_CNN(tfe.Network):
 
         x = tf.reshape(inputs,self._input_shape)
 
-        s_conv1 = self.conv1(x)
+        a_in = x
+
+        s_conv1 = self.conv1(a_in)
 #        if self.f_1st_iter:
 #            s_conv1 = self.conv1(x)
 #        else:
@@ -881,7 +967,11 @@ class CIFARModel_CNN(tfe.Network):
         #   x = self.dropout(x,training=f_training)
 
 
+        #print("here")
         # write stat
+        #print(self.conf.f_write_stat)
+        #print(self.f_1st_iter)
+        #print(self.dict_stat_w["fc1"])
         if (self.conf.f_write_stat) and (not self.f_1st_iter):
             #self.dict_stat_w['conv1']=np.append(self.dict_stat_w['conv1'],a_conv1.numpy(),axis=0)
             #self.dict_stat_w['conv1_1']=np.append(self.dict_stat_w['conv1_1'],a_conv1_1.numpy(),axis=0)
@@ -893,12 +983,14 @@ class CIFARModel_CNN(tfe.Network):
             #self.dict_stat_w['conv4']=np.append(self.dict_stat_w['conv4'],a_conv4.numpy(),axis=0)
             #self.dict_stat_w['conv4_1']=np.append(self.dict_stat_w['conv4_1'],a_conv4_1.numpy(),axis=0)
             #self.dict_stat_w['conv4_2']=np.append(self.dict_stat_w['conv4_2'],a_conv4_2.numpy(),axis=0)
-            self.dict_stat_w['conv5']=np.append(self.dict_stat_w['conv5'],a_conv5.numpy(),axis=0)
-            self.dict_stat_w['conv5_1']=np.append(self.dict_stat_w['conv5_1'],a_conv5_1.numpy(),axis=0)
-            self.dict_stat_w['conv5_2']=np.append(self.dict_stat_w['conv5_2'],a_conv5_2.numpy(),axis=0)
-            self.dict_stat_w['fc1']=np.append(self.dict_stat_w['fc1'],a_fc1.numpy(),axis=0)
-            self.dict_stat_w['fc2']=np.append(self.dict_stat_w['fc2'],a_fc2.numpy(),axis=0)
-            self.dict_stat_w['fc3']=np.append(self.dict_stat_w['fc3'],a_fc3.numpy(),axis=0)
+            #self.dict_stat_w['conv5']=np.append(self.dict_stat_w['conv5'],a_conv5.numpy(),axis=0)
+            #self.dict_stat_w['conv5_1']=np.append(self.dict_stat_w['conv5_1'],a_conv5_1.numpy(),axis=0)
+            #self.dict_stat_w['conv5_2']=np.append(self.dict_stat_w['conv5_2'],a_conv5_2.numpy(),axis=0)
+            #self.dict_stat_w['fc1']=np.append(self.dict_stat_w['fc1'],a_fc1.numpy(),axis=0)
+            #self.dict_stat_w['fc2']=np.append(self.dict_stat_w['fc2'],a_fc2.numpy(),axis=0)
+            #self.dict_stat_w['fc3']=np.append(self.dict_stat_w['fc3'],a_fc3.numpy(),axis=0)
+            # test bn activation distribution
+            self.dict_stat_w['fc1']=np.append(self.dict_stat_w['fc1'],s_fc1_bn.numpy(),axis=0)
 
 
         if self.conf.f_comp_act and (not self.f_1st_iter):
@@ -937,6 +1029,32 @@ class CIFARModel_CNN(tfe.Network):
             self.f_1st_iter = False
             self.f_skip_bn = (not self.f_1st_iter) and (self.conf.f_fused_bn)
 
+
+        if not self.f_1st_iter and self.conf.f_train_time_const:
+            print("training time constant for temporal coding in SNN")
+
+            self.dnn_act_list['in'] = a_in
+            self.dnn_act_list['conv1']   = a_conv1
+            self.dnn_act_list['conv1_1'] = a_conv1_1
+
+            self.dnn_act_list['conv2']   = a_conv2
+            self.dnn_act_list['conv2_1'] = a_conv2_1
+
+            self.dnn_act_list['conv3']   = a_conv3
+            self.dnn_act_list['conv3_1'] = a_conv3_1
+            self.dnn_act_list['conv3_2'] = a_conv3_2
+
+            self.dnn_act_list['conv4']   = a_conv4
+            self.dnn_act_list['conv4_1'] = a_conv4_1
+            self.dnn_act_list['conv4_2'] = a_conv4_2
+
+            self.dnn_act_list['conv5']   = a_conv5
+            self.dnn_act_list['conv5_1'] = a_conv5_1
+            self.dnn_act_list['conv5_2'] = a_conv5_2
+
+            self.dnn_act_list['fc1'] = a_fc1
+            self.dnn_act_list['fc2'] = a_fc2
+            self.dnn_act_list['fc3'] = a_fc3
 
 
         return a_out
@@ -1241,12 +1359,21 @@ class CIFARModel_CNN(tfe.Network):
         #plt.ioff()
 
 
-    def scatter(self, x, y, color, marker='o'):
-        #plt.ion()
-        plt.scatter(x, y, c=color, s=1, marker=marker)
-        plt.draw()
-        plt.pause(0.00000001)
-        #plt.ioff()
+    def scatter(self, x, y, color, axe=None, marker='o'):
+        if axe==None:
+            plt.scatter(x, y, c=color, s=1, marker=marker)
+            plt.draw()
+            plt.pause(0.0000000000000001)
+        else:
+            axe.scatter(x, y, c=color, s=1, marker=marker)
+            plt.draw()
+            plt.pause(0.0000000000000001)
+
+    def figure_hold(self):
+        plt.close("dummy")
+        plt.show()
+
+
 
     def visual(self, t):
         #plt.subplot2grid((2,4),(0,0))
@@ -1370,7 +1497,10 @@ class CIFARModel_CNN(tfe.Network):
                 spike_count[idx]=tf.reduce_sum(n.get_spike_count())
                 spike_count[len-1]+=spike_count[idx]
 
-                #print(spike_count_int[idx])
+                #print(nn+": "+str(spike_count_int[idx]))
+
+
+        #print("total: "+str(spike_count_int[len-1])+"\n")
 
         return [spike_count_int, spike_count]
 
@@ -1491,6 +1621,21 @@ class CIFARModel_CNN(tfe.Network):
 #####
     def call_snn(self,inputs,f_training,tw):
 
+        #####
+        #print("inputs: ")
+        #print(inputs.shape)
+        #
+        #_, axes = plt.subplots(1,4)
+        #
+        #axes[0].imshow(inputs[0,:,:,:])
+        #axes[1].imshow(inputs[0,:,:,0])
+        #axes[2].imshow(inputs[0,:,:,1])
+        #axes[3].imshow(inputs[0,:,:,2])
+        #plt.show()
+
+
+
+
         self.count_accuracy_time_point=0
 
         # reset for sample
@@ -1536,7 +1681,9 @@ class CIFARModel_CNN(tfe.Network):
             #else:
             #    a_in = self.n_in(inputs,t)
 
-
+            ####################
+            # bias control
+            ####################
             if self.conf.input_spike_mode == 'WEIGHTED_SPIKE' or self.conf.neural_coding == 'WEIGHTED_SPIKE':
                 #if self.conf.neural_coding == 'WEIGHTED_SPIKE':
                 #if tf.equal(tf.reduce_max(a_in),0.0):
@@ -1545,7 +1692,7 @@ class CIFARModel_CNN(tfe.Network):
                 else:
                     self.bias_disable()
             else:
-                if self.conf.input_spike_mode == 'PROPOSED':
+                if self.conf.input_spike_mode == 'BURST':
                     if t==0:
                         self.bias_enable()
                     else:
@@ -1554,6 +1701,18 @@ class CIFARModel_CNN(tfe.Network):
                         else:
                             self.bias_disable()
 
+
+            if self.conf.neural_coding == 'TEMPORAL':
+                #if (int)(t%self.conf.p_ws) == 0:
+                if t == 0:
+                    self.bias_enable()
+                else:
+                    self.bias_disable()
+
+
+            ####################
+            #
+            ####################
             s_conv1 = self.conv1(a_in)
             a_conv1 = self.n_conv1(s_conv1,t)
 
@@ -1649,15 +1808,78 @@ class CIFARModel_CNN(tfe.Network):
             a_fc3 = self.n_fc3(s_fc3,t)
 
 
+            #print(str(t)+" : "+str(self.n_fc3.vmem.numpy()))
+
+
+
+            ###
+#            idx_print=0,10,10,0
+#            print("time: {time:} - input: {input:0.5f}, vmem: {vmem:0.5f}, spk: {spike:f} {spike_bool:}\n"
+#                  .format(
+#                        time=t,
+#                        input=inputs.numpy()[idx_print],
+#                        vmem=self.n_in.vmem.numpy()[idx_print],
+#                        spike=self.n_in.out.numpy()[idx_print],
+#                        spike_bool= (self.n_in.out.numpy()[idx_print]>0.0))
+#                  )
+
+
+
+
+            #print('synapse')
+            #print(s_conv1[0,15,15,0])
+            #print('vmem')
+            #print(self.n_conv1.vmem[0,15,15,0])
+            #print('vth')
+            #print(self.n_conv1.vth[0,15,15,0])
+            #print('')
+
+
+            #
+            #if self.f_1st_iter == False:
+            #    plt_idx=0
+            #    subplot_x=4
+            #    subplot_y=4
+            #    for layer_name, layer in self.layer_list.items():
+            #        if not ('bn' in layer_name):
+            #            print('subplot {}, {}'.format(int(plt_idx/subplot_x+1),int(plt_idx%subplot_x+1)))
+            #            #plt.subplot(subplot_x*subplot_y,int(plt_idx/subplot_x+1),int(plt_idx%subplot_x+1))
+            #            #plt.subplot(int(plt_idx/subplot_x+1),int(plt_idx%subplot_x+1),plt_idx+1)
+            #            plt.subplot(subplot_y,subplot_y,plt_idx+1)
+            #            plt.hist(np.abs(layer.kernel.numpy().flatten()),bins=100)
+            #            plt_idx+=1
+            #
+            #            print("{} - max: {}, mean: {}".format(layer_name,np.max(np.abs(layer.kernel.numpy())),np.mean(np.abs(layer.kernel.numpy()))))
+            #
+            #    plt.show()
 
             if self.f_1st_iter == False and self.f_debug_visual == True:
                 #self.visual(t)
 
-                synapse=s_fc2
-                neuron=self.n_fc2
-                self.debug_visual(synapse, neuron)
+
+                synapse=s_conv1
+                neuron=self.n_in
+
+                #synapse=s_fc2
+                #neuron=self.n_fc2
+
+                synapse_1=s_conv1
+                neuron_1=self.n_conv1
+
+                synapse_2 = s_conv1_1
+                neuron_2 = self.n_conv1_1
 
 
+                #self.debug_visual(synapse, neuron, synapse_1, neuron_1, synapse_2, neuron_2, t)
+                self.debug_visual_raster(t)
+
+                #if t==self.tw-1:
+                #    plt.figure()
+                #    #plt.show()
+
+            ##########
+            #
+            ##########
 
             if self.f_1st_iter == False:
                 if self.conf.f_comp_act:
@@ -1665,7 +1887,7 @@ class CIFARModel_CNN(tfe.Network):
                         self.comp_act_rate(t)
                     elif self.conf.neural_coding=='WEIGHTED_SPIKE':
                         self.comp_act_ws(t)
-                    elif self.conf.neural_coding=='PROPOSED':
+                    elif self.conf.neural_coding=='BURST':
                         self.comp_act_pro(t)
 
                 if self.conf.f_isi:
@@ -1694,7 +1916,8 @@ class CIFARModel_CNN(tfe.Network):
                     self.recoding_ret_val(output)
 
 
-                    num_spike_count = tf.cast(tf.reduce_sum(self.spike_count,axis=[2]),tf.int32)
+                    #num_spike_count = tf.cast(tf.reduce_sum(self.spike_count,axis=[2]),tf.int32)
+                    #num_spike_count = tf.reduce_sum(self.spike_count,axis=[2])
 
             #print(t, self.n_fc3.last_spike_time.numpy())
             #print(t, self.n_fc3.isi.numpy())
@@ -1736,7 +1959,11 @@ class CIFARModel_CNN(tfe.Network):
             if not self.conf.f_pruning_channel:
                 self.get_total_residual_vmem()
 
-                if np.any(num_spike_count.numpy() == 0):
+                spike_zero = tf.reduce_sum(self.spike_count,axis=[0,2])
+                #spike_zero = tf.count_nonzero(self.spike_count,axis=[0,2])
+
+                if np.any(spike_zero.numpy() == 0.0):
+                #if num_spike_count==0.0:
                     print('spike count 0')
                     #print(num_spike_count.numpy())
                     #a = input("press any key to exit")
@@ -1767,6 +1994,74 @@ class CIFARModel_CNN(tfe.Network):
                             self.f_idx_pruning_channel[kernel_name]=remain_ratio < self.th_idx_pruning_channel
                             #print(self.f_idx_pruning_channel)
 
+            # first_spike_time visualization
+            if self.conf.f_record_first_spike_time and self.conf.f_visual_record_first_spike_time:
+                print('first spike time')
+                _, axes = plt.subplots(4,4)
+                idx_plot=0
+                for n_name, n in self.neuron_list.items():
+                    if not ('fc3' in n_name):
+                        #positive = n.first_spike_time > 0
+                        #print(n_name+'] min: '+str(tf.reduce_min(n.first_spike_time[positive]))+', mean: '+str(tf.reduce_mean(n.first_spike_time[positive])))
+                        #print(tf.reduce_min(n.first_spike_time[positive]))
+
+                        #positive=n.first_spike_time.numpy().flatten() > 0
+                        positive=tf.boolean_mask(n.first_spike_time,n.first_spike_time>0)
+
+                        if not tf.equal(tf.size(positive),0):
+
+                            #min=np.min(n.first_spike_time.numpy().flatten()[positive,])
+                            #print(positive.shape)
+                            #min=np.min(n.first_spike_time.numpy().flatten()[positive])
+                            min=tf.reduce_min(positive)
+                            #mean=np.mean(n.first_spike_time.numpy().flatten()[positive,])
+
+                            #if self.conf.f_tc_based:
+                            #    fire_s=idx_plot*self.conf.time_fire_start
+                            #    fire_e=idx_plot*self.conf.time_fire_start+self.conf.time_fire_duration
+                            #else:
+                            #    fire_s=idx_plot*self.conf.time_fire_start
+                            #    fire_e=idx_plot*self.conf.time_fire_start+self.conf.time_fire_duration
+
+                            #fire_s = n.time_start_fire
+                            #fire_e = n.time_end_fire
+
+                            fire_s = idx_plot * self.conf.time_fire_start
+                            fire_e = idx_plot * self.conf.time_fire_start + self.conf.time_fire_duration
+
+                            axe=axes.flatten()[idx_plot]
+                            #axe.hist(n.first_spike_time.numpy().flatten()[positive],bins=range(fire_s,fire_e,1))
+                            axe.hist(positive.numpy().flatten(),bins=range(fire_s,fire_e,1))
+
+                            axe.axvline(x=min.numpy(),color='b', linestyle='dashed')
+
+                            axe.axvline(x=fire_s)
+                            axe.axvline(x=fire_e)
+
+
+
+                        idx_plot+=1
+
+
+
+                # file write raw data
+                for n_name, n in self.neuron_list.items():
+                    if not ('fc3' in n_name):
+                        positive=tf.boolean_mask(n.first_spike_time,n.first_spike_time>0).numpy()
+
+                        fname = './spike_time/spike-time'
+                        if self.conf.f_load_time_const:
+                            fname += '_train-'+str(self.conf.time_const_num_trained_data)+'_tc-'+str(self.conf.tc)+'_tw-'+str(self.conf.time_window)
+
+                        fname += '_'+n_name+'.csv'
+                        f = open(fname,'w')
+                        wr = csv.writer(f)
+                        wr.writerow(positive)
+                        f.close()
+
+
+                plt.show()
+
 
         return self.spike_count
 
@@ -1776,8 +2071,18 @@ class CIFARModel_CNN(tfe.Network):
         self.spike_count.scatter_nd_update([self.count_accuracy_time_point],tf.expand_dims(output,0))
 
         tc_int, tc = self.get_total_spike_count()
-        self.total_spike_count_int[self.count_accuracy_time_point]+=tc_int
-        self.total_spike_count[self.count_accuracy_time_point]+=tc
+        #self.total_spike_count_int[self.count_accuracy_time_point]+=tc_int
+        #self.total_spike_count[self.count_accuracy_time_point]+=tc
+
+        self.total_spike_count_int[self.count_accuracy_time_point] = self.total_spike_count_int[self.count_accuracy_time_point]+tc_int
+        self.total_spike_count[self.count_accuracy_time_point] = self.total_spike_count[self.count_accuracy_time_point]+tc
+
+
+
+        #self.total_spike_count_int[self.count_accuracy_time_point]=tc_int
+        #self.total_spike_count[self.count_accuracy_time_point]=tc
+
+        #print(self.total_spike_count_int[self.count_accuracy_time_point][0])
 
         self.count_accuracy_time_point+=1
 
@@ -1840,7 +2145,7 @@ class CIFARModel_CNN(tfe.Network):
                 else:
                     self.bias_disable()
             else:
-                if self.conf.input_spike_mode == 'PROPOSED':
+                if self.conf.input_spike_mode == 'BURST':
                     if t==0:
                         self.bias_enable()
                     else:
@@ -1961,7 +2266,7 @@ class CIFARModel_CNN(tfe.Network):
                     self.comp_act_rate(t)
                 elif self.conf.neural_coding=='WEIGHTED_SPIKE':
                     self.comp_act_ws(t)
-                elif self.conf.neural_coding=='PROPOSED':
+                elif self.conf.neural_coding=='BURST':
                     self.comp_act_pro(t)
 
             if self.conf.f_isi:
@@ -2014,34 +2319,38 @@ class CIFARModel_CNN(tfe.Network):
         for idx, l in self.neuron_list.items():
             l.reset()
 
-    def debug_visual(self, synapse, neuron):
-        ax=plt.subplot(3,4,5)
+    def debug_visual(self, synapse, neuron, synapse_1, neuron_1, synapse_2, neuron_2, t):
+
+        idx_print_s, idx_print_e = 0, 200
+
+        ax=plt.subplot(3,4,1)
         plt.title('w_sum_in (max)')
         self.plot(t,tf.reduce_max(tf.reshape(synapse,[-1])).numpy(), 'bo')
         #plt.subplot2grid((2,4),(0,1),sharex=ax)
-        plt.subplot(3,4,6,sharex=ax)
+        plt.subplot(3,4,2,sharex=ax)
         plt.title('vmem (max)')
         #self.plot(t,tf.reduce_max(neuron.vmem).numpy(), 'bo')
         self.plot(t,tf.reduce_max(tf.reshape(neuron.vmem,[-1])).numpy(), 'bo')
+        self.plot(t,tf.reduce_max(tf.reshape(neuron.vth,[-1])).numpy(), 'ro')
         #self.plot(t,neuron.out.numpy()[neuron.out.numpy()>0].sum(), 'bo')
         #plt.subplot2grid((2,4),(0,2))
-        plt.subplot(3,4,7,sharex=ax)
-        plt.title('# spikes (max)')
+        plt.subplot(3,4,3,sharex=ax)
+        plt.title('# spikes (total)')
         #spike_rate=neuron.get_spike_count()/t
-        #self.plot(t,tf.reduce_max(tf.reshape(neuron.get_spike_count(),[-1])).numpy(), 'bo')
-        self.plot(t,neuron.vmem.numpy()[neuron.vmem.numpy()>0].sum(), 'bo')
+        self.plot(t,tf.reduce_sum(tf.reshape(neuron.spike_counter_int,[-1])).numpy(), 'bo')
+        #self.plot(t,neuron.vmem.numpy()[neuron.vmem.numpy()>0].sum(), 'bo')
         #self.plot(t,tf.reduce_max(spike_rate), 'bo')
         #plt.subplot2grid((2,4),(0,3))
-        plt.subplot(3,4,8,sharex=ax)
+        plt.subplot(3,4,4,sharex=ax)
         plt.title('spike neuron idx')
         plt.grid(True)
         #plt.ylim([0,512])
-        plt.ylim([0,neuron.vmem.numpy().flatten().size])
+        plt.ylim([0,neuron.vmem.numpy().flatten()[idx_print_s:idx_print_e].size])
         #plt.ylim([0,int(self.n_fc2.dim[1])])
         plt.xlim([0,self.tw])
         #self.plot(t,np.where(self.n_fc2.out.numpy()==1),'bo')
         #if np.where(self.n_fc2.out.numpy()==1).size == 0:
-        idx_fire=np.where(neuron.out.numpy().flatten()!=0)
+        idx_fire=np.where(neuron.out.numpy().flatten()[idx_print_s:idx_print_e]!=0.0)
         if not len(idx_fire)==0:
             #print(np.shape(idx_fire))
             #print(idx_fire)
@@ -2049,35 +2358,146 @@ class CIFARModel_CNN(tfe.Network):
             self.scatter(np.full(np.shape(idx_fire),t,dtype=int),idx_fire,'r')
             #self.scatter(t,np.argmax(neuron.get_spike_count().numpy().flatten()),'b')
 
-
-
-        #plt.subplot2grid((2,4),(1,0))
-        plt.subplot(3,4,9,sharex=ax)
-        self.plot(t,tf.reduce_max(s_fc3).numpy(), 'bo')
-        #plt.subplot2grid((2,4),(1,1))
-        plt.subplot(3,4,10,sharex=ax)
-        self.plot(t,tf.reduce_max(self.n_fc3.vmem).numpy(), 'bo')
-        #plt.subplot2grid((2,4),(1,2))
-        plt.subplot(3,4,11,sharex=ax)
-        self.plot(t,tf.reduce_max(self.n_fc3.get_spike_count()).numpy(), 'bo')
-        plt.subplot(3,4,12)
+        addr=0,0,0,6
+        ax=plt.subplot(3,4,5)
+        #self.plot(t,tf.reduce_max(tf.reshape(synapse_1,[-1])).numpy(), 'bo')
+        self.plot(t,synapse_1[addr].numpy(), 'bo')
+        plt.subplot(3,4,6,sharex=ax)
+        #self.plot(t,tf.reduce_max(tf.reshape(neuron_1.vmem,[-1])).numpy(), 'bo')
+        self.plot(t,neuron_1.vmem.numpy()[addr], 'bo')
+        self.plot(t,neuron_1.vth.numpy()[addr], 'ro')
+        plt.subplot(3,4,7,sharex=ax)
+        #self.plot(t,neuron_1.vmem.numpy()[neuron_1.vmem.numpy()>0].sum(), 'bo')
+        self.plot(t,neuron_1.spike_counter_int.numpy()[addr], 'bo')
+        plt.subplot(3,4,8,sharex=ax)
         plt.grid(True)
-        #plt.ylim([0,self.n_fc3.dim[1]])
-        plt.ylim([0,self.num_class])
+        plt.ylim([0,neuron_1.vmem.numpy().flatten()[idx_print_s:idx_print_e].size])
         plt.xlim([0,self.tw])
-        idx_fire=np.where(self.n_fc3.out.numpy()!=0)[1]
+        idx_fire=np.where(neuron_1.out.numpy().flatten()[idx_print_s:idx_print_e]!=0.0)
+        #idx_fire=neuron_1.f_fire.numpy().flatten()[idx_print_s:idx_print_e]
+        #idx_fire=neuron_1.f_fire.numpy()[0,0,0,0:10]
+        #print(neuron_1.vmem.numpy()[0,0,0,1])
+        #print(neuron_1.f_fire.numpy()[0,0,0,1])
+        #print(idx_fire)
+        if not len(idx_fire)==0:
+            self.scatter(np.full(np.shape(idx_fire),t,dtype=int),idx_fire,'r')
+
+        addr=0,0,0,6
+        ax=plt.subplot(3,4,9)
+        #self.plot(t,tf.reduce_max(tf.reshape(synapse_2,[-1])).numpy(), 'bo')
+        self.plot(t,synapse_2[addr].numpy(), 'bo')
+        plt.subplot(3,4,10,sharex=ax)
+        #self.plot(t,tf.reduce_max(tf.reshape(neuron_2.vmem,[-1])).numpy(), 'bo')
+        self.plot(t,neuron_2.vmem.numpy()[addr], 'bo')
+        self.plot(t,neuron_2.vth.numpy()[addr], 'ro')
+        plt.subplot(3,4,11,sharex=ax)
+        #self.plot(t,neuron_2.vmem.numpy()[neuron_2.vmem.numpy()>0].sum(), 'bo')
+        self.plot(t,neuron_2.spike_counter_int.numpy()[addr], 'bo')
+        plt.subplot(3,4,12,sharex=ax)
+        plt.grid(True)
+        plt.ylim([0,neuron_2.vmem.numpy().flatten()[idx_print_s:idx_print_e].size])
+        plt.xlim([0,self.tw])
+        idx_fire=np.where(neuron_2.out.numpy().flatten()[idx_print_s:idx_print_e]!=0.0)
+        #idx_fire=neuron_2.f_fire.numpy().flatten()[idx_print_s:idx_print_e]
+        #idx_fire=neuron_2.f_fire.numpy()[0,0,0,0:10]
+        #print(neuron_2.vmem.numpy()[0,0,0,1])
+        #print(neuron_2.f_fire.numpy()[0,0,0,1])
+        #print(idx_fire)
+        if not len(idx_fire)==0:
+            self.scatter(np.full(np.shape(idx_fire),t,dtype=int),idx_fire,'r')
+
+
+
+#        #plt.subplot2grid((2,4),(1,0))
+#        plt.subplot(3,4,9,sharex=ax)
+#        self.plot(t,tf.reduce_max(s_fc3).numpy(), 'bo')
+#        #plt.subplot2grid((2,4),(1,1))
+#        plt.subplot(3,4,10,sharex=ax)
+#        self.plot(t,tf.reduce_max(self.n_fc3.vmem).numpy(), 'bo')
+#        #plt.subplot2grid((2,4),(1,2))
+#        plt.subplot(3,4,11,sharex=ax)
+#        self.plot(t,tf.reduce_max(self.n_fc3.get_spike_count()).numpy(), 'bo')
+#        plt.subplot(3,4,12)
+#        plt.grid(True)
+#        #plt.ylim([0,self.n_fc3.dim[1]])
+#        plt.ylim([0,self.num_class])
+#        plt.xlim([0,self.tw])
+#        idx_fire=np.where(self.n_fc3.out.numpy()!=0)[1]
 
 
         #self.colors = [self.cmap(self.normalize(value)) for value in self.n_fc3.out.numpy()]
 
-        if not len(idx_fire)==0:
-            self.scatter(np.full(np.shape(idx_fire),t,dtype=int),idx_fire,'r')
-            self.scatter(t,np.argmax(self.n_fc3.get_spike_count().numpy()),'b')
+        #if not len(idx_fire)==0:
+        #    self.scatter(np.full(np.shape(idx_fire),t,dtype=int),idx_fire,'r')
+        #    self.scatter(t,np.argmax(self.n_fc3.get_spike_count().numpy()),'b')
             #self.scatter(t,np.argmax(self.n_fc3.get_spike_count().numpy()),'g','^')
+        #else:
+        #    #self.scatter(np.broadcast_to(t,self.n_fc3.vmem.numpy().size),self.n_fc3.vmem.numpy(),self.n_fc3.vmem.numpy())
+        #    self.scatter(np.broadcast_to(t,self.n_fc3.vmem.numpy().size),self.n_fc3.vmem.numpy(),np.arange(0,1,0.1))
+        #    self.scatter(t,np.argmax(self.n_fc3.vmem.numpy()),'b')
+
+
+
+
+
+    #@tfplot.autowrap
+    def debug_visual_raster(self,t):
+
+        subplot_x, subplot_y = 4, 4
+
+        num_subplot = subplot_x*subplot_y
+        idx_print_s, idx_print_e = 0, 100
+
+        if t==0:
+            plt_idx=0
+            #plt.figure()
+            plt.close("dummy")
+            _, self.debug_visual_axes = plt.subplots(subplot_y,subplot_x)
+
+            for neuron_name, neuron in self.neuron_list.items():
+                if not ('fc3' in neuron_name):
+                    self.debug_visual_neuron_list[neuron_name]=neuron
+
+                    axe = self.debug_visual_axes.flatten()[plt_idx]
+
+                    axe.set_ylim([0,neuron.out.numpy().flatten()[idx_print_s:idx_print_e].size])
+                    axe.set_xlim([0,self.tw])
+
+                    axe.grid(True)
+
+                    if(plt_idx>0):
+                        axe.axvline(x=(plt_idx-1)*self.conf.time_fire_start, color='b')                 # integration
+                    axe.axvline(x=plt_idx*self.conf.time_fire_start, color='b')                         # fire start
+                    axe.axvline(x=plt_idx*self.conf.time_fire_start+self.conf.time_fire_duration, color='b') # fire end
+
+
+                    plt_idx+=1
+
+
         else:
-            #self.scatter(np.broadcast_to(t,self.n_fc3.vmem.numpy().size),self.n_fc3.vmem.numpy(),self.n_fc3.vmem.numpy())
-            self.scatter(np.broadcast_to(t,self.n_fc3.vmem.numpy().size),self.n_fc3.vmem.numpy(),np.arange(0,1,0.1))
-            self.scatter(t,np.argmax(self.n_fc3.vmem.numpy()),'b')
+            plt_idx=0
+            for neuron_name, neuron in self.debug_visual_neuron_list.items():
+
+                t_fire_s = plt_idx*self.conf.time_fire_start
+                t_fire_e = t_fire_s + self.conf.time_fire_duration
+
+                if t >= t_fire_s and t < t_fire_e :
+                    if tf.reduce_sum(neuron.out) != 0.0:
+                        idx_fire=tf.where(tf.not_equal(tf.reshape(neuron.out,[-1])[idx_print_s:idx_print_e],tf.constant(0,dtype=tf.float32)))
+
+                    #if tf.size(idx_fire) != 0:
+                        axe = self.debug_visual_axes.flatten()[plt_idx]
+                        self.scatter(tf.fill(idx_fire.shape,t),idx_fire,'r', axe=axe)
+
+                plt_idx+=1
+
+
+
+        if t==self.tw-1:
+            plt.figure("dummy")
+
+
+
 
     def get_pruning_channel_idx(self, act):
         #act = tf.reshape(act,-1)
@@ -2190,41 +2610,107 @@ class CIFARModel_CNN(tfe.Network):
         return s_p
 
 
+    # training time constant for temporal coding
+    def train_time_const(self):
 
-##############################################################
-def plot_dist_activation_vgg16(model):
-        plt.subplot2grid((6,3),(0,0))
-        plt.hist(model.stat_a_conv1)
-        plt.subplot2grid((6,3),(0,1))
-        plt.hist(model.stat_a_conv1_1)
-        plt.subplot2grid((6,3),(1,0))
-        plt.hist(model.stat_a_conv2)
-        plt.subplot2grid((6,3),(1,1))
-        plt.hist(model.stat_a_conv2_1)
-        plt.subplot2grid((6,3),(2,0))
-        plt.hist(model.stat_a_conv3)
-        plt.subplot2grid((6,3),(2,1))
-        plt.hist(model.stat_a_conv3_1)
-        plt.subplot2grid((6,3),(2,2))
-        plt.hist(model.stat_a_conv3_1)
-        plt.subplot2grid((6,3),(3,0))
-        plt.hist(model.stat_a_conv4)
-        plt.subplot2grid((6,3),(3,1))
-        plt.hist(model.stat_a_conv4_1)
-        plt.subplot2grid((6,3),(3,2))
-        plt.hist(model.stat_a_conv4_2)
-        plt.subplot2grid((6,3),(4,0))
-        plt.hist(model.stat_a_conv5)
-        plt.subplot2grid((6,3),(4,1))
-        plt.hist(model.stat_a_conv5_1)
-        plt.subplot2grid((6,3),(4,2))
-        plt.hist(model.stat_a_conv5_2)
-        plt.subplot2grid((6,3),(5,0))
-        plt.hist(model.stat_a_fc1)
-        plt.subplot2grid((6,3),(5,1))
-        plt.hist(model.stat_a_fc2)
-        plt.subplot2grid((6,3),(5,2))
-        plt.hist(model.stat_a_fc3)
+        print("models: train_time_const")
+
+        # train_time_const
+        name_layer_prev=''
+        for name_layer, layer in self.neuron_list.items():
+            if not ('fc3' in name_layer):
+                dnn_act = self.dnn_act_list[name_layer]
+                self.neuron_list[name_layer].train_time_const_fire(dnn_act)
+
+            if not ('in' in name_layer):
+                self.neuron_list[name_layer].set_time_const_integ(self.neuron_list[name_layer_prev].time_const_fire)
+
+            name_layer_prev = name_layer
+
+
+        # train_time_delay
+        name_layer_prev=''
+        for name_layer, layer in self.neuron_list.items():
+            if not ('fc3' in name_layer or 'in' in name_layer):
+                dnn_act = self.dnn_act_list[name_layer]
+                self.neuron_list[name_layer].train_time_delay_fire(dnn_act)
+
+            if not ('in' in name_layer or 'conv1' in name_layer):
+                self.neuron_list[name_layer].set_time_delay_integ(self.neuron_list[name_layer_prev].time_delay_fire)
+
+            name_layer_prev = name_layer
+
+
+#        if self.conf.f_tc_based:
+#            # update integ and fire time
+#            name_layer_prev=''
+#            for name_layer, layer in self.neuron_list.items():
+#                if not ('fc3' in name_layer):
+#                    self.neuron_list[name_layer].set_time_fire(self.neuron_list[name_layer].time_const_fire*self.conf.n_tau_fire_start)
+#
+#                if not ('in' in name_layer):
+#                    self.neuron_list[name_layer].set_time_integ(self.neuron_list[name_layer_prev].time_const_integ*self.conf.n_tau_fire_start)
+#
+#                name_layer_prev = name_layer
+
+
+    def get_time_const_train_loss(self):
+
+        loss_prec=0
+        loss_min=0
+        loss_max=0
+
+        for name_layer, layer in self.neuron_list.items():
+            if not ('fc3' in name_layer):
+                loss_prec += self.neuron_list[name_layer].loss_prec
+                loss_min += self.neuron_list[name_layer].loss_min
+                loss_max += self.neuron_list[name_layer].loss_max
+
+        return [loss_prec, loss_min, loss_max]
+
+
+
+
+
+
+    ##############################################################
+    def plot_dist_activation_vgg16(self):
+    #        plt.subplot2grid((6,3),(0,0))
+    #        plt.hist(model.stat_a_conv1)
+    #        plt.subplot2grid((6,3),(0,1))
+    #        plt.hist(model.stat_a_conv1_1)
+    #        plt.subplot2grid((6,3),(1,0))
+    #        plt.hist(model.stat_a_conv2)
+    #        plt.subplot2grid((6,3),(1,1))
+    #        plt.hist(model.stat_a_conv2_1)
+    #        plt.subplot2grid((6,3),(2,0))
+    #        plt.hist(model.stat_a_conv3)
+    #        plt.subplot2grid((6,3),(2,1))
+    #        plt.hist(model.stat_a_conv3_1)
+    #        plt.subplot2grid((6,3),(2,2))
+    #        plt.hist(model.stat_a_conv3_1)
+    #        plt.subplot2grid((6,3),(3,0))
+    #        plt.hist(model.stat_a_conv4)
+    #        plt.subplot2grid((6,3),(3,1))
+    #        plt.hist(model.stat_a_conv4_1)
+    #        plt.subplot2grid((6,3),(3,2))
+    #        plt.hist(model.stat_a_conv4_2)
+    #        plt.subplot2grid((6,3),(4,0))
+    #        plt.hist(model.stat_a_conv5)
+    #        plt.subplot2grid((6,3),(4,1))
+    #        plt.hist(model.stat_a_conv5_1)
+    #        plt.subplot2grid((6,3),(4,2))
+    #        plt.hist(model.stat_a_conv5_2)
+    #        plt.subplot2grid((6,3),(5,0))
+    #        plt.hist(model.stat_a_fc1)
+    #        plt.subplot2grid((6,3),(5,1))
+    #        plt.hist(model.stat_a_fc2)
+    #        plt.subplot2grid((6,3),(5,2))
+    #        plt.hist(model.stat_a_fc3)
+
+        print(np.shape(self.dict_stat_w['fc1']))
+
+        plt.hist(self.dict_stat_w["fc1"][:,120],bins=100)
         plt.show()
 
 

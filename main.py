@@ -15,8 +15,7 @@ import pprofile
 #en_gpu=False
 en_gpu=True
 
-gpu_number=1
-
+gpu_number=0
 os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
 
 if en_gpu==False:
@@ -136,6 +135,7 @@ tf.app.flags.DEFINE_integer('lr_decay_step', 50, '')
 tf.app.flags.DEFINE_integer('time_step', 10, 'time steps per sample in SNN')
 
 
+tf.app.flags.DEFINE_integer('idx_test_dataset_s', 0, 'start index of test dataset')
 tf.app.flags.DEFINE_integer('num_test_dataset', 10000, 'number of test datset')
 tf.app.flags.DEFINE_integer('size_test_batch', 1, 'size of test batch') # not used now
 
@@ -216,6 +216,31 @@ tf.app.flags.DEFINE_bool('f_pruning_channel', False, 'purning - channel')
 
 tf.app.flags.DEFINE_string('path_result_root','./result/', 'path result root')
 
+# temporal coding
+#tf.app.flags.DEFINE_float('tc',10.0,'time constant for temporal coding')
+#tf.app.flags.DEFINE_float('time_window',20.0,'time window of each layer for temporal coding')
+#tf.app.flags.DEFINE_float('time_fire_start',20.0,'time fire start (integration time before starting fire) for temporal coding')
+#tf.app.flags.DEFINE_float('time_fire_duration',20.0,'time fire duration for temporal coding')
+tf.app.flags.DEFINE_integer('tc',10,'time constant for temporal coding')
+tf.app.flags.DEFINE_integer('time_window',20,'time window of each layer for temporal coding')
+#tf.app.flags.DEFINE_integer('time_fire_start',20,'time fire start (integration time before starting fire) for temporal coding')
+#tf.app.flags.DEFINE_integer('time_fire_duration',20,'time fire duration for temporal coding')
+tf.app.flags.DEFINE_float('time_fire_start',20,'time fire start (integration time before starting fire) for temporal coding')
+tf.app.flags.DEFINE_float('time_fire_duration',20,'time fire duration for temporal coding')
+tf.app.flags.DEFINE_bool('f_record_first_spike_time',False,'flag - recording first spike time of each neuron')
+tf.app.flags.DEFINE_bool('f_visual_record_first_spike_time',False,'flag - visual recording first spike time of each neuron')
+tf.app.flags.DEFINE_bool('f_train_time_const',False,'flag - enable to train time constant for temporal coding')
+tf.app.flags.DEFINE_bool('f_train_time_const_outlier',True,'flag - enable to outlier roubst train time constant for temporal coding')
+tf.app.flags.DEFINE_bool('f_load_time_const',False,'flag - load time constant for temporal coding')
+tf.app.flags.DEFINE_string('time_const_init_file_name','./temporal_coding/time_const','temporal coding file name - time_const, time_delay`')
+tf.app.flags.DEFINE_integer('time_const_num_trained_data',0,'number of trained data - time constant')
+tf.app.flags.DEFINE_integer('time_const_save_interval',10000,'save interval - training time constant')
+tf.app.flags.DEFINE_integer('epoch_train_time_const',1,'epoch - training time constant')
+
+tf.app.flags.DEFINE_bool('f_tc_based',False,'flag - tau based')
+tf.app.flags.DEFINE_integer('n_tau_fire_start',4,'n tau - fire start')
+tf.app.flags.DEFINE_integer('n_tau_fire_duration',4,'n tau - fire duration')
+tf.app.flags.DEFINE_integer('n_tau_time_window',4,'n tau - time window')
 
 
 #
@@ -223,6 +248,10 @@ conf = flags.FLAGS
 
 data_path_imagenet='/home/sspark/Datasets/ILSVRC2012'
 conf.data_path_imagenet = data_path_imagenet
+
+
+#
+conf.time_fire_start = 1.5
 
 
 if conf.model_name == 'vgg_cifar_ro_0':
@@ -314,13 +343,15 @@ def main(_):
     elif conf.ann_model=='CNN':
         if conf.dataset=='MNIST':
             #model = models.MNISTModel_CNN(data_format,conf)
-            #model = model_cnn_mnist.MNISTModel_CNN(data_format,conf)
-            model = cnn.cnn_mnist(data_format,conf)
+            model = model_cnn_mnist.MNISTModel_CNN(data_format,conf)
+            #model = cnn.cnn_mnist(data_format,conf)
 
-            if conf.nn_mode=='ANN':
-                train_func = train.train_ann_one_epoch_mnist_cnn
-            else:
-                train_func = train.train_snn_one_epoch_mnist_cnn
+
+            #if conf.nn_mode=='ANN':
+            #    #train_func = train.train_ann_one_epoch_mnist_cnn
+            #    train_func = train.train_ann_one_epoch_mnist_cnn
+            #else:
+            #    train_func = train.train_snn_one_epoch_mnist_cnn
 
         elif conf.dataset=='CIFAR-10':
             model = models.CIFARModel_CNN(data_format,conf)
@@ -495,10 +526,10 @@ def main(_):
                     #    lr.assign(0.00001)
 
 
-                    #loss_train, acc_train = train.train_one_epoch(model, optimizer, train_dataset_p)
+                    loss_train, acc_train = train.train_one_epoch(model, optimizer, train_dataset_p)
                     #loss_train, acc_train = train.train_snn_one_epoch(model, optimizer, train_dataset_p, conf)
                     #loss_train, acc_train = train.train_ann_one_epoch_mnist(model, optimizer, train_dataset_p, conf)
-                    loss_train, acc_train = train_func(model, optimizer, train_dataset_p, conf)
+                    #loss_train, acc_train = train_func(model, optimizer, train_dataset_p, conf)
 
 
                     with tf.contrib.summary.always_record_summaries():
@@ -665,13 +696,37 @@ def main(_):
 #
 #                print(out_str)
 
-        # test
-            with test_summary_writer.as_default():
-                loss_test, acc_test, acc_test_top5 = test.test(model, test_dataset, conf)
-                if conf.dataset == 'ImageNet':
-                    print('loss_test: %f, acc_test: %f, acc_test_top5: %f'%(loss_test,acc_test,acc_test_top5))
-                else:
-                    print('loss_test: %f, acc_test: %f'%(loss_test,acc_test))
+
+
+            #if conf.f_train_time_const:
+            #    loss_train, acc_train, acc_train_top5 = test.test(model, train_dataset, conf)
+            #    if conf.dataset == 'ImageNet':
+            #        print('loss_test: %f, acc_test: %f, acc_test_top5: %f'%(loss_test,acc_test,acc_test_top5))
+            #    else:
+            #        print('loss_test: %f, acc_test: %f'%(loss_test,acc_test))
+
+
+            if conf.f_train_time_const:
+
+
+                for epoch in range(conf.epoch_train_time_const):
+                    print("epoch: {:d}".format(epoch))
+                    with test_summary_writer.as_default():
+                        loss_test, acc_test, acc_test_top5 = test.test(model, test_dataset, conf, epoch=epoch)
+                        if conf.dataset == 'ImageNet':
+                            print('loss_test: %f, acc_test: %f, acc_test_top5: %f'%(loss_test,acc_test,acc_test_top5))
+                        else:
+                            print('loss_test: %f, acc_test: %f'%(loss_test,acc_test))
+
+
+            else:
+                #
+                with test_summary_writer.as_default():
+                    loss_test, acc_test, acc_test_top5 = test.test(model, test_dataset, conf)
+                    if conf.dataset == 'ImageNet':
+                        print('loss_test: %f, acc_test: %f, acc_test_top5: %f'%(loss_test,acc_test,acc_test_top5))
+                    else:
+                        print('loss_test: %f, acc_test: %f'%(loss_test,acc_test))
 
         print('end')
 

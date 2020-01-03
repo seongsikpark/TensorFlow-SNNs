@@ -32,6 +32,7 @@ from operator import itemgetter
 
 
 #
+#class cnn_mnist(tfe.Network):
 class cnn_mnist(tf.keras.Model):
     def __init__(self, data_format, conf):
         super(cnn_mnist, self).__init__(name='')
@@ -162,29 +163,12 @@ class cnn_mnist(tf.keras.Model):
 
             nc = self.conf.neural_coding
 
-            self.list_n.append(lib_snn.Neuron(
-                self.i_shape,
-                'IN',
-                1,
-                self.conf,
-                nc
-            ))
 
-            self.list_n.append(lib_snn.Neuron(
-                self.h_shape,
-                'LIF',
-                1,
-                self.conf,
-                nc
-            ))
-
-            self.list_n.append(lib_snn.Neuron(
-                self.o_shape,
-                'LIF',
-                1,
-                self.conf,
-                nc
-            ))
+            self.list_n.append(lib_snn.Neuron(self.i_shape,'IN',1,self.conf,nc,0,'in'))
+            self.list_n.append(lib_snn.Neuron([self.conf.batch_size,24,24,15],'IF',1,self.conf,nc,1,'conv1'))
+            self.list_n.append(lib_snn.Neuron([self.conf.batch_size,8,8,40],'IF',1,self.conf,nc,2,'conv2'))
+            self.list_n.append(lib_snn.Neuron(self.h_shape,'IF',1,self.conf,nc,1,'fc1'))
+            self.list_n.append(lib_snn.Neuron(self.o_shape,'IF',1,self.conf,nc,2,'fc2'))
 
             self.accuracy_time_point = list(range(conf.time_step_save_interval,conf.time_step,conf.time_step_save_interval))
             self.accuracy_time_point.append(conf.time_step)
@@ -224,7 +208,6 @@ class cnn_mnist(tf.keras.Model):
 
         #print(tf.shape(input_tensor))
         #print(self._input_shape)
-        print("a1234")
         if self.f_model_load_done == True:
             #if self.f_1st_iter == True:
             #    self.preproc()
@@ -308,12 +291,24 @@ class cnn_mnist(tf.keras.Model):
     def call_snn(self, inputs, f_training):
         if self.f_model_load_done:
             self.reset_neuron()
+
         for t in range(self.conf.time_step):
+
             self.list_a[0] = self.list_n[0](inputs,t)
             self.list_s[0] = self.list_l[0](self.list_a[0])
 
+            print(self.list_a[0].shape)
+            print(self.list_s[0].shape)
+
+
+
+
             self.list_a[1] = self.list_n[1](self.list_s[0],t)
             self.list_s[1] = self.list_l[1](self.list_a[1])
+
+
+            print(self.list_a[1].shape)
+
 
             self.list_a[2] = self.list_n[2](self.list_s[1],t)
 

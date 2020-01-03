@@ -211,17 +211,77 @@ class MNISTModel_CNN(tfe.Network):
 
             self.neuron_list=collections.OrderedDict()
 
-            self.neuron_list['in'] = self.track_layer(lib_snn.Neuron(self.input_shape_snn,'IN',1,self.conf,nc))
-            self.neuron_list['conv1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv1,n_type,self.fanin_conv,self.conf,nc))
-            self.neuron_list['conv2'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv2,n_type,self.fanin_conv,self.conf,nc))
-            self.neuron_list['fc1'] = self.track_layer(lib_snn.Neuron(self.shape_out_fc1,'OUT',512,self.conf,nc))
+            self.neuron_list['in'] = self.track_layer(lib_snn.Neuron(self.input_shape_snn,'IN',1,self.conf,nc,0,'in'))
+            self.neuron_list['conv1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv1,n_type,self.fanin_conv,self.conf,nc,1,'conv1'))
+            self.neuron_list['conv2'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv2,n_type,self.fanin_conv,self.conf,nc,2,'conv2'))
+            self.neuron_list['fc1'] = self.track_layer(lib_snn.Neuron(self.shape_out_fc1,'OUT',512,self.conf,nc,3,'fc1'))
 
 
             # modify later
-            self.n_in = self.neuron_list['in'];
+            self.n_in = self.neuron_list['in']
             self.n_conv1 = self.neuron_list['conv1']
             self.n_conv2 = self.neuron_list['conv2']
             self.n_fc1 = self.neuron_list['fc1']
+
+
+                        #
+            if self.conf.f_train_time_const:
+                self.dnn_act_list=collections.OrderedDict()
+
+
+            if self.conf.neural_coding=='TEMPORAL' and self.conf.f_load_time_const:
+            #if self.conf.neural_coding=='TEMPORAL':
+
+                file_name = self.conf.time_const_init_file_name
+                file_name = file_name + '/'+self.conf.model_name
+                #if self.conf.f_tc_based:
+                if False:
+                    file_name = file_name+'/tc-'+str(self.conf.tc)+'_tw-'+str(self.conf.n_tau_time_window)+'_tau_itr-'+str(self.conf.time_const_num_trained_data)
+                else:
+                    file_name = file_name+'/tc-'+str(self.conf.tc)+'_tw-'+str(self.conf.time_window)+'_itr-'+str(self.conf.time_const_num_trained_data)
+
+                if conf.f_train_time_const_outlier:
+                    file_name+="_outlier"
+
+                print('load trained time constant: file_name: {:s}'.format(file_name))
+
+                file = open(file_name,'r')
+                lines = csv.reader(file)
+
+                for line in lines:
+                    if not line:
+                        continue
+
+                    print(line)
+
+                    type = line[0]
+                    name = line[1]
+                    val = float(line[2])
+
+                    if (type=='tc') :
+
+                        self.neuron_list[name].set_time_const_init_fire(val)
+
+                        if not ('in' in name):
+                            self.neuron_list[name].set_time_const_init_integ(self.neuron_list[name_prev].time_const_init_fire)
+
+                        name_prev = name
+
+                    elif (type=='td'):
+
+                        self.neuron_list[name].set_time_delay_init_fire(val)
+
+                        if not ('in' in name):
+                            self.neuron_list[name].set_time_delay_init_integ(self.neuron_list[name_prev].time_delay_init_fire)
+
+                        name_prev = name
+
+                    else:
+                        print("not supported temporal coding type")
+                        assert(False)
+
+
+                file.close()
 
         #
         self.cmap=matplotlib.cm.get_cmap('viridis')
@@ -234,7 +294,23 @@ class MNISTModel_CNN(tfe.Network):
             'SNN': self.call_snn
         }
 
-        ret_val = nn_mode[self.conf.nn_mode](inputs,f_training)
+        if self.f_1st_iter==False:
+            if (self.conf.nn_mode=='SNN' and self.conf.neural_coding=="TEMPORAL"):
+                #
+                if self.conf.f_train_time_const:
+                    self.call_ann(inputs,f_training)
+
+                ret_val = self.call_snn(inputs,f_training)
+
+                # training time constant
+                if self.conf.f_train_time_const:
+                    self.train_time_const()
+
+            else:
+                ret_val = nn_mode[self.conf.nn_mode](inputs,f_training)
+        else:
+            ret_val = nn_mode[self.conf.nn_mode](inputs,f_training)
+
 
         return ret_val
 
@@ -255,7 +331,7 @@ class MNISTModel_CNN(tfe.Network):
             if idx_l==0:
                 self.norm[l]=f_norm(self.dict_stat_r[l])
             else:
-                self.norm[l]=f_norm(self.dict_stat_r.values()[idx_l])/f_norm(self.dict_stat_r.values()[idx_l-1])
+                self.norm[l]=f_norm(list(self.dict_stat_r.values())[idx_l])/f_norm(list(self.dict_stat_r.values())[idx_l-1])
 
             self.norm_b[l]=f_norm(self.dict_stat_r[l])
 
@@ -267,10 +343,10 @@ class MNISTModel_CNN(tfe.Network):
 
         #self.print_act_d()
         # print
-        for k, v in self.norm.iteritems():
+        for k, v in self.norm.items():
             print(k +': '+str(v))
 
-        for k, v in self.norm_b.iteritems():
+        for k, v in self.norm_b.items():
             print(k +': '+str(v))
 
 
@@ -360,7 +436,7 @@ class MNISTModel_CNN(tfe.Network):
 
     def temporal_norm(self):
         print('Temporal normalization')
-        for key, value in self.layer_list.iteritems():
+        for key, value in self.layer_list.items():
             if self.conf.f_fused_bn:
                 if not ('bn' in key):
                     value.kernel=value.kernel/self.tw
@@ -443,6 +519,15 @@ class MNISTModel_CNN(tfe.Network):
             self.dict_stat_w['conv2']=np.append(self.dict_stat_w['conv2'],a_conv2.numpy(),axis=0)
             self.dict_stat_w['fc1']=np.append(self.dict_stat_w['fc1'],a_fc1.numpy(),axis=0)
 
+
+        if not self.f_1st_iter and self.conf.f_train_time_const:
+            print("training time constant for temporal coding in SNN")
+
+            self.dnn_act_list['in'] = x
+            self.dnn_act_list['conv1']   = a_conv1
+            self.dnn_act_list['conv2']   = a_conv2
+            self.dnn_act_list['fc1'] = a_fc1
+
         return a_out
 
 
@@ -470,7 +555,7 @@ class MNISTModel_CNN(tfe.Network):
         axs=axs.ravel()
 
         #for idx_l, (name_l,stat_l) in enumerate(self.dict_stat_r):
-        for idx, (key, value) in enumerate(self.dict_stat_r.iteritems()):
+        for idx, (key, value) in enumerate(self.dict_stat_r.items()):
             axs[idx].hist(value.flatten())
 
         plt.show()
@@ -603,7 +688,7 @@ class MNISTModel_CNN(tfe.Network):
         #plt.ioff()
     def get_total_residual_vmem(self):
         len=self.total_residual_vmem.shape[0]
-        for idx_n, (nn, n) in enumerate(self.neuron_list.iteritems()):
+        for idx_n, (nn, n) in enumerate(self.neuron_list.items()):
             idx=idx_n-1
             if nn!='in' or nn!='fc1':
                 self.total_residual_vmem[idx]+=tf.reduce_sum(tf.abs(n.vmem))
@@ -612,7 +697,7 @@ class MNISTModel_CNN(tfe.Network):
     def get_total_isi(self):
         isi_count=np.zeros(self.conf.time_step)
 
-        for idx_n, (nn, n) in enumerate(self.neuron_list.iteritems()):
+        for idx_n, (nn, n) in enumerate(self.neuron_list.items()):
             if nn!='in' or nn!='fc1':
                 isi_count_n = np.bincount(np.int32(n.isi.numpy().flatten()))
                 isi_count_n.resize(self.conf.time_step)
@@ -625,7 +710,7 @@ class MNISTModel_CNN(tfe.Network):
         #print(range(0,self.spike_amp_kind)[::-1])
         #print(np.power(0.5,range(0,self.spike_amp_kind)))
 
-        for idx_n, (nn, n) in enumerate(self.neuron_list.iteritems()):
+        for idx_n, (nn, n) in enumerate(self.neuron_list.items()):
             if nn!='in' or nn!='fc1':
                 spike_amp_n = np.histogram(n.out.numpy().flatten(),self.spike_amp_bin)
                 #spike_amp = spike_amp + spike_amp_n[0]
@@ -643,7 +728,7 @@ class MNISTModel_CNN(tfe.Network):
         spike_count = np.zeros([len,])
         spike_count_int = np.zeros([len,])
 
-        for idx_n, (nn, n) in enumerate(self.neuron_list.iteritems()):
+        for idx_n, (nn, n) in enumerate(self.neuron_list.items()):
             idx=idx_n-1
             if nn!='in':
                 spike_count_int[idx]=tf.reduce_sum(n.get_spike_count_int())
@@ -656,26 +741,26 @@ class MNISTModel_CNN(tfe.Network):
         return [spike_count_int, spike_count]
 
     def bias_norm_weighted_spike(self):
-        for k, l in self.layer_list.iteritems():
+        for k, l in self.layer_list.items():
             if not 'bn' in k:
             #if (not 'bn' in k) and (not 'fc1' in k) :
                 #l.bias = l.bias/(1-1/np.power(2,8))
                 l.bias = l.bias/8.0
 
     def bias_norm_proposed_method(self):
-        for k, l in self.layer_list.iteritems():
+        for k, l in self.layer_list.items():
             if not 'bn' in k:
                 l.bias = l.bias*self.conf.n_init_vth
                 #l.bias = l.bias/200
                 #l.bias = l.bias*0.0
 
     def bias_enable(self):
-        for k, l in self.layer_list.iteritems():
+        for k, l in self.layer_list.items():
             if not 'bn' in k:
                 l.use_bias = True
 
     def bias_disable(self):
-        for k, l in self.layer_list.iteritems():
+        for k, l in self.layer_list.items():
             if not 'bn' in k:
                 l.use_bias = False
 
@@ -719,7 +804,7 @@ class MNISTModel_CNN(tfe.Network):
                 #print(self.dict_stat_w[l])
 
                 #print(np.array2string(str(self.dict_stat_w[l]),max_line_width=4))
-                print(self.dict_stat_w[l].shape)
+                #print(self.dict_stat_w[l].shape)
 
                 num_words = self.dict_stat_w[l].shape[0]/length
                 tmp = np.zeros((num_words,)+(self.dict_stat_w[l].shape[1:]))
@@ -775,7 +860,6 @@ class MNISTModel_CNN(tfe.Network):
                 print('time: '+str(t))
             #x = tf.reshape(inputs,self._input_shape)
 
-            a_in = self.n_in(inputs,t)
 
             if self.conf.f_real_value_input_snn:
                 if self.conf.neural_coding=='WEIGHTED_SPIKE':
@@ -783,7 +867,10 @@ class MNISTModel_CNN(tfe.Network):
                 else:
                     a_in = inputs
             else:
-                a_in = self.n_in(inputs*2.0,t)
+                #a_in = self.n_in(inputs*2.0,t)
+                a_in = self.n_in(inputs,t)
+
+
 
             if self.conf.input_spike_mode == 'WEIGHTED_SPIKE' or self.conf.neural_coding== 'WEIGHTED_SPIKE':
                 if (int)(t%self.conf.p_ws) == 0:
@@ -801,17 +888,33 @@ class MNISTModel_CNN(tfe.Network):
                         else:
                             self.bias_disable()
 
+
+            if self.conf.neural_coding == 'TEMPORAL' or self.conf.neural_coding == 'NON_LINEAR':
+                #if (int)(t%self.conf.p_ws) == 0:
+                if t == 0:
+                    self.bias_enable()
+                else:
+                    self.bias_disable()
+
             #print(a_in)
+
+            #a_in = self.n_in(inputs,t)
 
             s_conv1 = self.conv1(a_in)
             a_conv1 = self.n_conv1(s_conv1,t)
 
             if self.conf.f_spike_max_pool:
-                tmp = tf.reshape(self.n_conv1.get_spike_count(),[1,-1,]+self.dict_shape['conv1'].as_list()[2:])
-                _, arg = tf.nn.max_pool_with_argmax(tmp,(1,2,2,1),(1,2,2,1),padding='SAME')
-                arg = tf.reshape(arg,self.dict_shape['conv1_p'])
-                a_conv1_f = tf.reshape(a_conv1,[-1])
-                p_conv1 = tf.convert_to_tensor(a_conv1_f.numpy()[arg],dtype=tf.float32)
+                #tmp = tf.reshape(self.n_conv1.get_spike_count(),[1,-1,]+self.dict_shape['conv1'].as_list()[2:])
+                #_, arg = tf.nn.max_pool_with_argmax(tmp,(1,2,2,1),(1,2,2,1),padding='SAME')
+                #arg = tf.reshape(arg,self.dict_shape['conv1_p'])
+                #a_conv1_f = tf.reshape(a_conv1,[-1])
+                #p_conv1 = tf.convert_to_tensor(a_conv1_f.numpy()[arg],dtype=tf.float32)
+
+                p_conv1 = lib_snn.spike_max_pool(
+                    a_conv1,
+                    self.n_conv1.get_spike_count(),
+                    self.dict_shape['conv1_p']
+                )
             else:
                 p_conv1 = self.pool2d(a_conv1)
 
@@ -819,11 +922,18 @@ class MNISTModel_CNN(tfe.Network):
             a_conv2 = self.n_conv2(s_conv2,t)
 
             if self.conf.f_spike_max_pool:
-                tmp = tf.reshape(self.n_conv2.get_spike_count(),[1,-1,]+self.dict_shape['conv2'].as_list()[2:])
-                _, arg = tf.nn.max_pool_with_argmax(tmp,(1,2,2,1),(1,2,2,1),padding='SAME')
-                arg = tf.reshape(arg,self.dict_shape['conv2_p'])
-                a_conv2_f = tf.reshape(a_conv2,[-1])
-                p_conv2 = tf.convert_to_tensor(a_conv2_f.numpy()[arg],dtype=tf.float32)
+                #tmp = tf.reshape(self.n_conv2.get_spike_count(),[1,-1,]+self.dict_shape['conv2'].as_list()[2:])
+                #_, arg = tf.nn.max_pool_with_argmax(tmp,(1,2,2,1),(1,2,2,1),padding='SAME')
+                #arg = tf.reshape(arg,self.dict_shape['conv2_p'])
+                #a_conv2_f = tf.reshape(a_conv2,[-1])
+                #p_conv2 = tf.convert_to_tensor(a_conv2_f.numpy()[arg],dtype=tf.float32)
+
+                p_conv2 = lib_snn.spike_max_pool(
+                    a_conv2,
+                    self.n_conv2.get_spike_count(),
+                    self.dict_shape['conv2_p']
+                )
+
             else:
                 p_conv2 = self.pool2d(a_conv2)
 
@@ -885,9 +995,76 @@ class MNISTModel_CNN(tfe.Network):
         return spike_count
 
 
+        # training time constant for temporal coding
+    def train_time_const(self):
+
+        print("models: train_time_const")
+
+        # train_time_const
+        name_layer_prev=''
+        for name_layer, layer in self.neuron_list.items():
+            if not ('fc1' in name_layer):
+                dnn_act = self.dnn_act_list[name_layer]
+                self.neuron_list[name_layer].train_time_const_fire(dnn_act)
+
+            if not ('in' in name_layer):
+                self.neuron_list[name_layer].set_time_const_integ(self.neuron_list[name_layer_prev].time_const_fire)
+
+            name_layer_prev = name_layer
+
+
+        # train_time_delay
+        name_layer_prev=''
+        for name_layer, layer in self.neuron_list.items():
+            if not ('fc1' in name_layer or 'in' in name_layer):
+                dnn_act = self.dnn_act_list[name_layer]
+                self.neuron_list[name_layer].train_time_delay_fire(dnn_act)
+
+            if not ('in' in name_layer or 'conv1' in name_layer):
+                self.neuron_list[name_layer].set_time_delay_integ(self.neuron_list[name_layer_prev].time_delay_fire)
+
+            name_layer_prev = name_layer
+
+
+#        if self.conf.f_tc_based:
+#            # update integ and fire time
+#            name_layer_prev=''
+#            for name_layer, layer in self.neuron_list.items():
+#                if not ('fc3' in name_layer):
+#                    self.neuron_list[name_layer].set_time_fire(self.neuron_list[name_layer].time_const_fire*self.conf.n_tau_fire_start)
+#
+#                if not ('in' in name_layer):
+#                    self.neuron_list[name_layer].set_time_integ(self.neuron_list[name_layer_prev].time_const_integ*self.conf.n_tau_fire_start)
+#
+#                name_layer_prev = name_layer
+
+
+    def get_time_const_train_loss(self):
+
+        loss_prec=0
+        loss_min=0
+        loss_max=0
+
+        for name_layer, layer in self.neuron_list.items():
+            if not ('fc3' in name_layer):
+                loss_prec += self.neuron_list[name_layer].loss_prec
+                loss_min += self.neuron_list[name_layer].loss_min
+                loss_max += self.neuron_list[name_layer].loss_max
+
+        return [loss_prec, loss_min, loss_max]
+
+
+
+
+
+
+
     def reset_neuron(self):
         self.n_in.reset()
         self.n_conv1.reset()
         self.n_conv2.reset()
         self.n_fc1.reset()
+
+
+
 
