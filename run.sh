@@ -101,17 +101,17 @@ f_real_value_input_snn=False
 
 # input spike mode
 #input_spike_mode='REAL'
-input_spike_mode='POISSON'
+#input_spike_mode='POISSON'
 #input_spike_mode='WEIGHTED_SPIKE'
 #input_spike_mode='BURST'
-#input_spike_mode='TEMPORAL'
+input_spike_mode='TEMPORAL'
 
 # neural coding
 #neural_coding='RATE'
 #neural_coding='WEIGHTED_SPIKE'
 #neural_coding='BURST'
-#neural_coding='TEMPORAL'
-neural_coding='NON_LINEAR'
+neural_coding='TEMPORAL'
+#neural_coding='NON_LINEAR'     # PF-Neuron
 
 output_dir=""
 
