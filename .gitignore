@@ -1,6 +1,8 @@
 .ckpt
 .log
 .xlsx
+.png
+.pyc
 models_ckpt/
 logs_before_181010/
 logs/

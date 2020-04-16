@@ -1,0 +1,16 @@
+
+tensorboard==1.11.0
+tensorflow-gpu==1.11.0
+
+matplotlib==3.0.2
+numpy==1.15.4
+scikit-learn==0.20.1
+scipy==0.17.0
+
+sklearn
+tqdm
+pprofile
+pandas
+image
+opencv-python
+openpyxl
