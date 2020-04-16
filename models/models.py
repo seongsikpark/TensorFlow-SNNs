@@ -30,7 +30,7 @@ from operator import itemgetter
 
 from functools import partial
 
-import tfplot
+#import tfplot
 import threading
 
 #

@@ -16,7 +16,6 @@ import pprofile
 en_gpu=True
 
 gpu_number=0
-
 os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
 
 if en_gpu==False:
@@ -224,8 +223,10 @@ tf.app.flags.DEFINE_string('path_result_root','./result/', 'path result root')
 #tf.app.flags.DEFINE_float('time_fire_duration',20.0,'time fire duration for temporal coding')
 tf.app.flags.DEFINE_integer('tc',10,'time constant for temporal coding')
 tf.app.flags.DEFINE_integer('time_window',20,'time window of each layer for temporal coding')
-tf.app.flags.DEFINE_integer('time_fire_start',20,'time fire start (integration time before starting fire) for temporal coding')
-tf.app.flags.DEFINE_integer('time_fire_duration',20,'time fire duration for temporal coding')
+#tf.app.flags.DEFINE_integer('time_fire_start',20,'time fire start (integration time before starting fire) for temporal coding')
+#tf.app.flags.DEFINE_integer('time_fire_duration',20,'time fire duration for temporal coding')
+tf.app.flags.DEFINE_float('time_fire_start',20,'time fire start (integration time before starting fire) for temporal coding')
+tf.app.flags.DEFINE_float('time_fire_duration',20,'time fire duration for temporal coding')
 tf.app.flags.DEFINE_bool('f_record_first_spike_time',False,'flag - recording first spike time of each neuron')
 tf.app.flags.DEFINE_bool('f_visual_record_first_spike_time',False,'flag - visual recording first spike time of each neuron')
 tf.app.flags.DEFINE_bool('f_train_time_const',False,'flag - enable to train time constant for temporal coding')
@@ -247,6 +248,10 @@ conf = flags.FLAGS
 
 data_path_imagenet='/home/sspark/Datasets/ILSVRC2012'
 conf.data_path_imagenet = data_path_imagenet
+
+
+#
+conf.time_fire_start = 1.5
 
 
 if conf.model_name == 'vgg_cifar_ro_0':
