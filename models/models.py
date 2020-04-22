@@ -1635,7 +1635,7 @@ class CIFARModel_CNN(tfe.Network):
 
 
 
-
+        #
         self.count_accuracy_time_point=0
 
         # reset for sample
@@ -1661,11 +1661,9 @@ class CIFARModel_CNN(tfe.Network):
             if self.conf.f_comp_act:
                 self.save_ann_act(inputs,f_training)
             #print((self.num_accuracy_time_point,)+self.n_fc3.get_spike_count().numpy().shape)
-        plt.clf()
 
         #
-
-
+        plt.clf()
 
         #
         for t in range(tw):

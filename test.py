@@ -37,6 +37,8 @@ def test(model, dataset, conf, f_val=False, epoch=0):
             print('accuracy_time_point')
             print(accuracy_time_point)
 
+            print('num_accuracy_time_point: {:d}'.format(model.num_accuracy_time_point))
+
         for i in range(num_accuracy_time_point):
             accuracy_times.append(tfe.metrics.Accuracy('accuracy'))
 

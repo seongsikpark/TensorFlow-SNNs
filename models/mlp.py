@@ -84,7 +84,7 @@ class mlp_mnist(tf.keras.Model):
             kernel_initializer=kernel_initializer
         ))
 
-        self.list_s.append([])
+        self.lists.append([])
         self.list_n.append(tf.nn.relu)
         self.list_a.append([])
 

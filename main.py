@@ -11,6 +11,8 @@ sys.path.insert(0,'./')
 import cProfile
 import pprofile
 
+from datetime import datetime
+
 
 #en_gpu=False
 en_gpu=True
@@ -39,11 +41,14 @@ builder = option_builder.ProfileOptionBuilder
 import train
 import test
 
+import train_snn
+
 # models
 from models import models
 from models import mlp
 from models import cnn
 import model_cnn_mnist
+#import model_cnn_mnist_ori as model_cnn_mnist
 import resnet
 
 
@@ -75,7 +80,7 @@ import re
 
 import gc
 
-
+now = datetime.now()
 
 #
 
@@ -244,6 +249,15 @@ tf.app.flags.DEFINE_integer('n_tau_time_window',4,'n tau - time window')
 
 
 #
+tf.app.flags.DEFINE_enum('snn_output_type',"VMEM", ["SPIKE", "VMEM", "FIRST_SPIKE_TIME"], "snn output type")
+
+# SNN trianing w/ TTFS coding
+tf.app.flags.DEFINE_integer("init_first_spike_time_n",-1,"init_first_spike_time = init_first_spike_n x time_windw")
+
+# surrogate training model
+tf.app.flags.DEFINE_bool("f_surrogate_training_model", True, "flag - surrogate training model (DNN)")
+
+#
 conf = flags.FLAGS
 
 data_path_imagenet='/home/sspark/Datasets/ILSVRC2012'
@@ -323,23 +337,14 @@ def main(_):
 
 
 
-    #train_func_sel = {
-    #    'ANN': train.train_ann_one_epoch,
-    #    'SNN': train.train_snn_one_epoch
-    #}
-    #
-    #train_func = train_func_sel[conf.nn_mode]
-
-    train_func = train.train_one_epoch
-
     if conf.ann_model=='MLP':
         if conf.dataset=='MNIST':
             #model = models.MNISTModel_MLP(data_format,conf)
             model = mlp.mlp_mnist(data_format,conf)
-            if conf.nn_mode=='ANN':
-                train_func = train.train_ann_one_epoch_mnist
-            else:
-                train_func = train.train_snn_one_epoch_mnist
+            #if conf.nn_mode=='ANN':
+            #    train_func = train.train_ann_one_epoch_mnist
+            #else:
+            #    train_func = train.train_snn_one_epoch_mnist
     elif conf.ann_model=='CNN':
         if conf.dataset=='MNIST':
             #model = models.MNISTModel_CNN(data_format,conf)
@@ -369,6 +374,21 @@ def main(_):
 
 
 
+
+
+    if(conf.nn_mode=="ANN"):
+        if(conf.f_surrogate_training_model):
+            train_func = train_snn.train_one_epoch(conf.neural_coding)
+        else:
+            train_func = train.train_one_epoch(conf.nn_mode)
+    elif(conf.nn_mode=="SNN"):
+        train_func = train_snn.train_one_epoch(conf.neural_coding)
+    else:
+        print("error in nn_mode: %s"%(conf.nn_mode))
+        assert(False)
+
+
+
     en_train_sel = {
         'ANN': conf.en_train,
         'SNN': conf.en_train
@@ -386,9 +406,10 @@ def main(_):
 
     if conf.output_dir:
         output_dir = os.path.join(conf.output_dir,conf.model_name+'_'+conf.nn_mode)
+        output_dir = os.path.join(output_dir,now.strftime("%Y%m%d-%H%M"))
 
-        if conf.nn_mode == 'SNN':
-            output_dir = os.path.join(output_dir,conf.n_type+'_time_step_'+str(conf.time_step)+'_vth_'+str(conf.n_init_vth))
+        #if conf.nn_mode == 'SNN':
+        #    output_dir = os.path.join(output_dir,conf.n_type+'_time_step_'+str(conf.time_step)+'_vth_'+str(conf.n_init_vth))
 
         train_dir = os.path.join(output_dir,'train')
         val_dir = os.path.join(output_dir, 'val')
@@ -526,15 +547,34 @@ def main(_):
                     #    lr.assign(0.00001)
 
 
-                    loss_train, acc_train = train.train_one_epoch(model, optimizer, train_dataset_p)
+                    #loss_train, acc_train = train.train_one_epoch(model, optimizer, train_dataset_p)
                     #loss_train, acc_train = train.train_snn_one_epoch(model, optimizer, train_dataset_p, conf)
                     #loss_train, acc_train = train.train_ann_one_epoch_mnist(model, optimizer, train_dataset_p, conf)
                     #loss_train, acc_train = train_func(model, optimizer, train_dataset_p, conf)
+                    if conf.f_surrogate_training_model:
+                        loss_and_acc_train = train_func(model, optimizer, train_dataset_p)
+
+                        loss_train, loss_pred_train, loss_enc_st_train, loss_max_enc_st_train,\
+                        loss_min_enc_st_train, acc_train = loss_and_acc_train
+
+                        #
+                        with tf.contrib.summary.always_record_summaries():
+                            tf.contrib.summary.scalar('loss', loss_train, step=epoch)
+                            tf.contrib.summary.scalar('loss_pred', loss_pred_train, step=epoch)
+                            tf.contrib.summary.scalar('loss_enc_st', loss_enc_st_train, step=epoch)
+                            tf.contrib.summary.scalar('loss_max_enc_st', loss_max_enc_st_train, step=epoch)
+                            tf.contrib.summary.scalar('loss_min_enc_st', loss_min_enc_st_train, step=epoch)
+                            tf.contrib.summary.scalar('accuracy', acc_train, step=epoch)
+
+                    else:
+                        loss_train, acc_train = train_func(model, optimizer, train_dataset_p)
+
+                        #
+                        with tf.contrib.summary.always_record_summaries():
+                            tf.contrib.summary.scalar('loss', loss_train, step=epoch)
+                            tf.contrib.summary.scalar('accuracy', acc_train, step=epoch)
 
 
-                    with tf.contrib.summary.always_record_summaries():
-                        tf.contrib.summary.scalar('loss', loss_train, step=epoch)
-                        tf.contrib.summary.scalar('accuracy', acc_train, step=epoch)
 
                 #end = time.time()
                 #print('\nTrain time for epoch #%d (global step %d): %f' % (epoch, global_step.numpy(), end-start))
@@ -587,12 +627,11 @@ def main(_):
             model(images_0,False)
             #print('image 0 done')
 
-            restore_variables = [v for v in model.variables if 'neuron' not in v.name]
+            restore_variables = [v for v in model.variables if ('neuron' not in v.name) and ('dummy' not in v.name)]
             #restore_variables = model.trainable_weights
             #restore_variables = (model.trainable_weights + optimizer.variables() + [epoch])
             #restore_variables = (model.trainable_weights + optimizer.variables())
             #restore_variables = optimizer.variables()
-
 
 
             if conf.ann_model=='ResNet50':
