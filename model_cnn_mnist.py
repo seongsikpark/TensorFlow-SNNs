@@ -29,6 +29,7 @@ from scipy import stats
 
 #
 class MNISTModel_CNN(tfe.Network):
+#class MNISTModel_CNN(tf.layers.Layer):
     def __init__(self, data_format, conf):
         super(MNISTModel_CNN, self).__init__(name='')
 
@@ -44,6 +45,8 @@ class MNISTModel_CNN(tfe.Network):
             self.f_done_preproc = True
         else:
             self.f_done_preproc = False
+
+        self.f_done_postproc = False
 
 
         self.kernel_size = 5
@@ -64,6 +67,7 @@ class MNISTModel_CNN(tfe.Network):
         self.f_skip_bn = self.conf.f_fused_bn
 
         self.layer_name=[
+            'in',
             'conv1',
             'conv2',
             'fc1',
@@ -125,7 +129,8 @@ class MNISTModel_CNN(tfe.Network):
 
         regularizer_type = {
             'L1': regularizers.l1_regularizer(conf.lamb),
-            'L2': regularizers.l2_regularizer(conf.lamb)
+            'L2': regularizers.l2_regularizer(conf.lamb),
+            'L1_L2': regularizers.l1_l2_regularizer(conf.lamb,conf.lamb)
         }
         kernel_regularizer = regularizer_type[self.conf.regularizer]
         kernel_initializer = initializers.xavier_initializer(True)
@@ -168,10 +173,15 @@ class MNISTModel_CNN(tfe.Network):
         self.shape_out_conv2 = util.cal_output_shape_Conv2D_pad_val(self.data_format,self.shape_out_conv1_p,64,self.kernel_size,1)
         self.shape_out_conv2_p = util.cal_output_shape_Pooling2D(self.data_format,self.shape_out_conv2,2,2)
 
-        self.shape_out_fc1 = tensor_shape.TensorShape([self.conf.batch_size,self.num_class])
+        self.shape_out_fc1 = tensor_shape.TensorShape([self.conf.batch_size,self.num_class]).as_list()
 
 
         self.dict_shape=collections.OrderedDict()
+        #self.dict_shape['conv1']=self.shape_out_conv1
+        #self.dict_shape['conv1_p']=self.shape_out_conv1_p
+        #self.dict_shape['conv2']=self.shape_out_conv2
+        #self.dict_shape['conv2_p']=self.shape_out_conv2_p
+        #self.dict_shape['fc1']=self.shape_out_fc1
         self.dict_shape['conv1']=self.shape_out_conv1
         self.dict_shape['conv1_p']=self.shape_out_conv1_p
         self.dict_shape['conv2']=self.shape_out_conv2
@@ -180,11 +190,12 @@ class MNISTModel_CNN(tfe.Network):
 
 
         self.dict_shape_one_batch=collections.OrderedDict()
-        self.dict_shape_one_batch['conv1']=[1,]+self.shape_out_conv1.as_list()[1:]
-        self.dict_shape_one_batch['conv1_p']=[1,]+self.shape_out_conv1_p.as_list()[1:]
-        self.dict_shape_one_batch['conv2']=[1,]+self.shape_out_conv2.as_list()[1:]
-        self.dict_shape_one_batch['conv2_p']=[1,]+self.shape_out_conv2_p.as_list()[1:]
-        self.dict_shape_one_batch['fc1']=[1,]+self.shape_out_fc1.as_list()[1:]
+        self.dict_shape_one_batch['in']= [1,] + self._input_shape[1:]
+        self.dict_shape_one_batch['conv1']=[1,]+self.shape_out_conv1[1:]
+        self.dict_shape_one_batch['conv1_p']=[1,]+self.shape_out_conv1_p[1:]
+        self.dict_shape_one_batch['conv2']=[1,]+self.shape_out_conv2[1:]
+        self.dict_shape_one_batch['conv2_p']=[1,]+self.shape_out_conv2_p[1:]
+        self.dict_shape_one_batch['fc1']=[1,]+self.shape_out_fc1[1:]
 
         #
         self.dict_stat_r=collections.OrderedDict()  # read
@@ -192,15 +203,15 @@ class MNISTModel_CNN(tfe.Network):
 
 
         if self.conf.f_entropy:
-            self.dict_stat_w['conv1']=np.zeros([self.conf.time_step,]+self.shape_out_conv1.as_list()[1:])
-            self.dict_stat_w['conv2']=np.zeros([self.conf.time_step,]+self.shape_out_conv2.as_list()[1:])
-            self.dict_stat_w['fc1']=np.zeros([self.conf.time_step,]+self.shape_out_fc1.as_list()[1:])
+            self.dict_stat_w['conv1']=np.zeros([self.conf.time_step,]+self.shape_out_conv1[1:])
+            self.dict_stat_w['conv2']=np.zeros([self.conf.time_step,]+self.shape_out_conv2[1:])
+            self.dict_stat_w['fc1']=np.zeros([self.conf.time_step,]+self.shape_out_fc1[1:])
 
 
         if self.conf.f_write_stat or self.conf.f_comp_act:
-            self.dict_stat_w['conv1']=np.zeros([1,]+self.shape_out_conv1.as_list()[1:])
-            self.dict_stat_w['conv2']=np.zeros([1,]+self.shape_out_conv2.as_list()[1:])
-            self.dict_stat_w['fc1']=np.zeros([1,]+self.shape_out_fc1.as_list()[1:])
+            self.dict_stat_w['conv1']=np.zeros([1,]+self.shape_out_conv1[1:])
+            self.dict_stat_w['conv2']=np.zeros([1,]+self.shape_out_conv2[1:])
+            self.dict_stat_w['fc1']=np.zeros([1,]+self.shape_out_fc1[1:])
 
 
         self.conv_p=collections.OrderedDict()
@@ -217,12 +228,12 @@ class MNISTModel_CNN(tfe.Network):
             self.init_first_spike_time = self.conf.time_fire_duration*self.conf.init_first_spike_time_n
 
 
+        self.input_shape_snn = [self.conf.batch_size] + self._input_shape[1:]
         # SNN
-        if self.conf.nn_mode == 'SNN':
+        if self.conf.nn_mode == 'SNN' or self.conf.f_validation_snn:
 
             print('Neuron setup')
 
-            self.input_shape_snn = [self.conf.batch_size] + self._input_shape[1:]
 
             print('Input shape snn: '+str(self.input_shape_snn))
 
@@ -354,9 +365,80 @@ class MNISTModel_CNN(tfe.Network):
             # memebrane potential (encoding target)
             self.list_v=OrderedDict()
 
+            #
+            self.epoch = -1
+
+            #
+            self.list_tk=OrderedDict()
+
+            init_tc=self.conf.tc
+            #init_td=0.0
+            init_act_target_range=1.0
+            init_td=init_tc*np.log(init_act_target_range)
+
+            init_act_target_range_in=1.0
+            init_td_in=init_tc*np.log(init_act_target_range_in)
+
+            # TODO: removed
+            init_ta=10.0
 
 
-        #
+            # TODO: removed
+#            self.list_tc=OrderedDict()
+#            self.list_td=OrderedDict()
+#            self.list_ta=OrderedDict()
+
+#            self.list_tc['in'] = tf.Variable(initial_value=tf.constant(init_tc,shape=self.dict_shape_one_batch['in'],dtype=tf.float32),name="tc_in",trainable=True)
+#            self.list_tc['conv1'] = tf.Variable(initial_value=tf.constant(init_tc,shape=self.dict_shape_one_batch['conv1'],dtype=tf.float32),name="tc_conv1",trainable=True)
+#            self.list_tc['conv2'] = tf.Variable(initial_value=tf.constant(init_tc,shape=self.dict_shape_one_batch['conv2'],dtype=tf.float32),name="tc_conv2",trainable=True)
+#            self.list_tc['fc1'] = tf.Variable(initial_value=tf.constant(init_tc,shape=self.dict_shape_one_batch['fc1'],dtype=tf.float32),name="tc_fc1",trainable=True)
+#
+#            self.list_td['in'] = tf.Variable(initial_value=tf.constant(init_td,shape=self.dict_shape_one_batch['in'],dtype=tf.float32),name="td_in",trainable=True)
+#            self.list_td['conv1'] = tf.Variable(initial_value=tf.constant(init_td,shape=self.dict_shape_one_batch['conv1'],dtype=tf.float32),name="td_conv1",trainable=True)
+#            self.list_td['conv2'] = tf.Variable(initial_value=tf.constant(init_td,shape=self.dict_shape_one_batch['conv2'],dtype=tf.float32),name="td_conv2",trainable=True)
+#            self.list_td['fc1'] = tf.Variable(initial_value=tf.constant(init_td,shape=self.dict_shape_one_batch['fc1'],dtype=tf.float32),name="td_fc1",trainable=True)
+#
+#            self.list_ta['in'] = tf.Variable(initial_value=tf.constant(init_a,shape=self.dict_shape_one_batch['in'],dtype=tf.float32),name="ta_in",trainable=True)
+#            self.list_ta['conv1'] = tf.Variable(initial_value=tf.constant(init_a,shape=self.dict_shape_one_batch['conv1'],dtype=tf.float32),name="ta_conv1",trainable=True)
+#            self.list_ta['conv2'] = tf.Variable(initial_value=tf.constant(init_a,shape=self.dict_shape_one_batch['conv2'],dtype=tf.float32),name="ta_conv2",trainable=True)
+#            self.list_ta['fc1'] = tf.Variable(initial_value=tf.constant(init_a,shape=self.dict_shape_one_batch['fc1'],dtype=tf.float32),name="ta_fc1",trainable=True)
+
+
+            # neuron-wise
+#            self.list_tk['in'] = self.track_layer(lib_snn.Temporal_kernel(
+#                self.input_shape_snn, self.input_shape_snn, init_tc, init_td, init_ta,self.conf.time_window))
+#            self.list_tk['conv1'] = self.track_layer(lib_snn.Temporal_kernel(
+#                self.dict_shape['conv1'], self.dict_shape['conv1'], init_tc, init_td, init_ta,self.conf.time_window))
+#            self.list_tk['conv2'] = self.track_layer(lib_snn.Temporal_kernel(
+#                self.dict_shape['conv2'], self.dict_shape['conv2'], init_tc, init_td, init_ta,self.conf.time_window))
+#            self.list_tk['fc1'] = self.track_layer(lib_snn.Temporal_kernel(
+#                self.dict_shape['fc1'], self.dict_shape['fc1'], init_tc, init_td, init_ta,self.conf.time_window))
+
+            # neuron-wise
+            s = self.dict_shape['conv2_p']
+            shape_fc1_flat = [s[0],s[1]*s[2]*s[3]]
+
+            #self.list_tk['in'] = self.track_layer(lib_snn.Temporal_kernel(
+            #    self.input_shape_snn, self.dict_shape['conv1'], init_tc, init_td, init_ta,self.conf.time_window))
+            #self.list_tk['conv1'] = self.track_layer(lib_snn.Temporal_kernel(
+            #    self.dict_shape['conv1'], self.dict_shape['conv2'], init_tc, init_td, init_ta,self.conf.time_window))
+            #self.list_tk['conv2'] = self.track_layer(lib_snn.Temporal_kernel(
+            #    self.dict_shape['conv2'], shape_fc1_flat, init_tc, init_td, init_ta,self.conf.time_window))
+            #self.list_tk['fc1'] = self.track_layer(lib_snn.Temporal_kernel(
+            #    self.dict_shape['fc1'], self.dict_shape['fc1'], init_tc, init_td, init_ta,self.conf.time_window))
+
+
+            # layer-wise para
+            self.list_tk['in'] = self.track_layer(lib_snn.Temporal_kernel(
+                [], [], init_tc, init_td_in, init_ta,self.conf.time_window))
+            self.list_tk['conv1'] = self.track_layer(lib_snn.Temporal_kernel(
+                [], [], init_tc, init_td, init_ta,self.conf.time_window))
+            self.list_tk['conv2'] = self.track_layer(lib_snn.Temporal_kernel(
+                [], [], init_tc, init_td, init_ta,self.conf.time_window))
+            self.list_tk['fc1'] = self.track_layer(lib_snn.Temporal_kernel(
+                [], [], init_tc, init_td, init_ta,self.conf.time_window))
+
+#
         self.cmap=matplotlib.cm.get_cmap('viridis')
         #self.normalize=matplotlib.colors.Normalize(vmin=min(self.n_fc1.vmem),vmax=max(self.n_fc1.vmem))
 
@@ -364,12 +446,17 @@ class MNISTModel_CNN(tfe.Network):
     ## processing
     ###########################################################################
 
-    def reset_per_sample(self):
-        if self.conf.nn_mode=='SNN':
-            self.reset_neuron()
-            #self.snn_output = np.zeros((self.num_accuracy_time_point,)+self.n_fc1.get_spike_count().numpy().shape)
-            self.snn_output.assign(tf.zeros((self.num_accuracy_time_point,)+tuple(self.n_fc1.dim)))
-            self.count_accuracy_time_point=0
+    def reset_per_run_snn(self):
+        self.total_spike_count=np.zeros([self.num_accuracy_time_point,len(self.layer_name)+1])
+        self.total_spike_count_int=np.zeros([self.num_accuracy_time_point,len(self.layer_name)+1])
+
+
+    def reset_per_sample_snn(self):
+        self.reset_neuron()
+        #self.snn_output = np.zeros((self.num_accuracy_time_point,)+self.n_fc1.get_spike_count().numpy().shape)
+        self.snn_output.assign(tf.zeros((self.num_accuracy_time_point,)+tuple(self.n_fc1.dim)))
+        self.count_accuracy_time_point=0
+
 
     def reset_neuron(self):
         self.n_in.reset()
@@ -378,22 +465,30 @@ class MNISTModel_CNN(tfe.Network):
         self.n_fc1.reset()
 
 
-    def preproc(self):
+    def preproc(self, inputs, f_training, f_val_snn=False):
         preproc_sel= {
             'ANN': self.preproc_ann,
             'SNN': self.preproc_snn
         }
-        preproc_sel[self.conf.nn_mode]()
+
+        if f_val_snn:
+            self.preproc_snn(inputs,f_training)
+        else:
+            preproc_sel[self.conf.nn_mode](inputs, f_training)
 
 
-    def preproc_snn(self):
+    def preproc_snn(self,inputs,f_training):
         # reset for sample
-        self.reset_per_sample()
+        self.reset_per_sample_snn()
 
         if self.f_done_preproc == False:
             self.f_done_preproc = True
             #self.print_model_conf()
+            self.reset_per_run_snn()
             self.preproc_ann_to_snn()
+
+            if self.conf.f_surrogate_training_model:
+                self.load_temporal_kernel_para()
 
         if self.conf.f_comp_act:
             self.save_ann_act(inputs,f_training)
@@ -402,7 +497,7 @@ class MNISTModel_CNN(tfe.Network):
         if (self.conf.neural_coding=="TEMPORAL" and self.conf.f_train_time_const):
             self.call_ann(inputs,f_training)
 
-    def preproc_ann(self):
+    def preproc_ann(self, inputs, f_training):
         if self.f_done_preproc == False:
             self.f_done_preproc=True
             #self.print_model_conf()
@@ -412,9 +507,12 @@ class MNISTModel_CNN(tfe.Network):
 
 
     def preproc_ann_to_snn(self):
-        print('preprocessing: ANN to SNN')
-        if self.conf.f_fused_bn:
+        if self.conf.verbose:
+            print('preprocessing: ANN to SNN')
+
+        if self.conf.f_fused_bn or ((self.conf.nn_mode=='ANN')and(self.conf.f_validation_snn)):
             self.fused_bn()
+
 
         #print(np.max(self.list_layer.values()[0].kernel))
         #self.temporal_norm()
@@ -432,6 +530,29 @@ class MNISTModel_CNN(tfe.Network):
 
 
     #
+    # TODO: input neuron ?
+    def load_temporal_kernel_para(self):
+        for l_name in self.layer_name:
+
+            if l_name != self.layer_name[-1]:
+                self.list_neuron[l_name].set_time_const_fire(self.list_tk[l_name].tc)
+                self.list_neuron[l_name].set_time_delay_fire(self.list_tk[l_name].td)
+
+            if not ('in' in l_name):
+                #self.list_neuron[l_name].set_time_const_integ(self.list_tk[l_name_prev].tc_dec)
+                #self.list_neuron[l_name].set_time_delay_integ(self.list_tk[l_name_prev].td_dec)
+                self.list_neuron[l_name].set_time_const_integ(self.list_tk[l_name_prev].tc)
+                self.list_neuron[l_name].set_time_delay_integ(self.list_tk[l_name_prev].td)
+
+            l_name_prev = l_name
+
+        # encoding decoding kernerl seperate
+        #assert(False)
+
+
+
+
+    #
     def preproc_ann_norm(self):
         if self.conf.f_fused_bn:
             self.fused_bn()
@@ -441,16 +562,22 @@ class MNISTModel_CNN(tfe.Network):
             self.data_based_w_norm()
 
 
-    def postproc(self):
+
+    def postproc(self, f_val_snn):
         if self.conf.nn_mode=='SNN':
             # gradient-based optimization of TC and td in temporal coding (TTFS)
             if (self.conf.neural_coding=="TEMPORAL" and self.conf.f_train_time_const):
                 self.train_time_const()
 
+
+        #if self.conf.nn_mode=='ANN':
+        #    if f_val_snn:
+        #        self.defused_bn()
+
     ###########################################################
     ## call function
     ###########################################################
-    def call(self, inputs, f_training):
+    def call(self, inputs, f_training, f_val_snn=False):
 
         nn_mode = {
             'ANN': self.call_ann if not self.conf.f_surrogate_training_model else self.call_ann_surrogate_training,
@@ -459,18 +586,29 @@ class MNISTModel_CNN(tfe.Network):
 
         if self.f_1st_iter==False:
             # preprocessing
-            self.preproc()
+            self.preproc(inputs,f_training, f_val_snn)
 
             #
-            ret_val = nn_mode[self.conf.nn_mode](inputs,f_training)
+            if f_val_snn:
+                ret_val = self.call_snn(inputs,f_training)
+            else:
+                ret_val = nn_mode[self.conf.nn_mode](inputs,f_training)
 
             # post processing
-            self.postproc()
+            self.postproc(f_val_snn)
 
         else:
             self.f_skip_bn=False
 
             # dummy run for the eager mode in TF v1
+            if self.conf.nn_mode=='SNN' and self.conf.f_surrogate_training_model:
+                ret_val = self.call_ann_surrogate_training(inputs,f_training)
+
+            # validation on SNN
+            if self.conf.en_train and self.conf.f_validation_snn:
+                ret_val = self.call_snn(inputs,f_training)
+
+
             ret_val = nn_mode[self.conf.nn_mode](inputs,f_training)
 
             self.print_model_conf()
@@ -537,13 +675,33 @@ class MNISTModel_CNN(tfe.Network):
 
 
     #
+    def call_snn_validation(self,inputs,f_training):
+
+        #if self.conf.f_surrogate_training_model:
+        #    self.load_temporal_kernel_para()
+
+
+        return self.call_snn(inputs,f_training)
+
+
+   #
     def call_ann_surrogate_training(self,inputs,f_training):
+        #if not self.f_1st_iter:
+            #print(self.list_tk['fc1'].tc)
 
         x = tf.reshape(inputs,self._input_shape)
 
         #
-        t_in = self.temporal_encoding(x)
-        x = self.temporal_decoding(t_in)
+        #t_in = self.temporal_encoding(x,'in')
+        #x = self.temporal_decoding(t_in,'in')
+        v_in = x
+        t_in = self.list_tk['in'](v_in,'enc', self.epoch, f_training)
+
+        v_in_dec= self.list_tk['in'](t_in, 'dec', self.epoch, f_training)
+        x = v_in_dec
+        ##x = t_in
+        #x = t_in
+
 
         s_conv1 = self.conv1(x)
 
@@ -573,15 +731,29 @@ class MNISTModel_CNN(tfe.Network):
         #
         #a_conv1 = tf.nn.relu(s_conv1_bn)
         #
-        self.list_v['conv1'] = s_conv1_bn
-        self.list_st['conv1'] = self.temporal_encoding(self.list_v['conv1'])
-        a_conv1 = self.temporal_decoding(self.list_st['conv1'])
+        #self.list_v['conv1'] = s_conv1_bn
+        #self.list_st['conv1'] = self.temporal_encoding(self.list_v['conv1'],'conv1')
+        #a_conv1 = self.temporal_decoding(self.list_st['conv1'],'conv1')
+
+        #v_conv1 = self.list_tk['in'](s_conv1_bn, 'dec', self.epoch, f_training)
+        v_conv1 = s_conv1_bn
+
+        t_conv1 = self.list_tk['conv1'](v_conv1,'enc',self.epoch, f_training)
+
+        #
+        v_conv1_dec = self.list_tk['conv1'](t_conv1,'dec',self.epoch, f_training)
+        a_conv1 = v_conv1_dec
+        #a_conv1 = t_conv1
+
+        #print(a_conv1)
 
         if False:
             addr=0,10,10,0
             print("ori: {}, enc: {}, dec: {}".format(s_conv1_bn[addr].numpy(),t_conv1[addr].numpy(),a_conv1[addr].numpy()))
 
         p_conv1 = self.pool2d(a_conv1)
+
+
 
         s_conv2 = self.conv2(p_conv1)
         if self.f_skip_bn:
@@ -592,9 +764,20 @@ class MNISTModel_CNN(tfe.Network):
         #
         #a_conv2 = tf.nn.relu(s_conv2_bn)
         #
-        self.list_v['conv2'] = s_conv2_bn
-        self.list_st['conv2'] = self.temporal_encoding(self.list_v['conv2'])
-        a_conv2 = self.temporal_decoding(self.list_st['conv2'])
+        #self.list_v['conv2'] = s_conv2_bn
+        #self.list_st['conv2'] = self.temporal_encoding(self.list_v['conv2'],'conv2')
+        #a_conv2 = self.temporal_decoding(self.list_st['conv2'],'conv2')
+
+
+        #v_conv2 = self.list_tk['conv1'](s_conv2_bn,'dec',self.epoch, f_training)
+        v_conv2 = s_conv2_bn
+
+        t_conv2 = self.list_tk['conv2'](v_conv2,'enc',self.epoch, f_training)
+
+        #
+        v_conv2_dec = self.list_tk['conv2'](t_conv2,'dec',self.epoch, f_training)
+        a_conv2 = v_conv2_dec
+        #a_conv2 = t_conv2
 
         p_conv2 = self.pool2d(a_conv2)
 
@@ -605,24 +788,39 @@ class MNISTModel_CNN(tfe.Network):
             s_flat = self.dropout(s_flat,training=f_training)
 
         #
-        a_fc1 = self.fc1(s_flat)
+
+        #v_fc1 = self.list_tk['conv2'](s_flat,'dec',self.epoch, f_training)
+        v_fc1 = s_flat
+
+        a_fc1 = self.fc1(v_fc1)
         #
-        self.list_v['fc1'] = a_fc1
-        self.list_st['fc1'] = self.temporal_encoding(self.list_v['fc1'])
-        a_fc1 = self.temporal_decoding(self.list_st['fc1'])
+        #self.list_v['fc1'] = a_fc1
+        #self.list_st['fc1'] = self.temporal_encoding(self.list_v['fc1'],'fc1')
+        #a_fc1 = self.temporal_decoding(self.list_st['fc1'],'fc1')
+
+
+        #v_fc1 = a_fc1
+        #t_fc1 = self.list_tk['fc1'](v_fc1,'enc',self.epoch, f_training)
+        #v_fc1 = self.list_tk['fc1'](t_fc1,'dec',self.epoch, f_training)
+        #a_fc1 = v_fc1
+
         #print(a_fc1)
+
 
         a_out = a_fc1
         #a_out = t_fc1
 
+        #print(a_out)
+
 
 
 
         #
-        if self.f_1st_iter and self.conf.nn_mode=='ANN':
+        #if self.f_1st_iter and self.conf.nn_mode=='ANN':
+        if self.f_1st_iter:
             print('1st iter')
             self.f_1st_iter = False
-            self.f_skip_bn = (not self.f_1st_iter) and (self.conf.f_fused_bn)
+            #self.f_skip_bn = (not self.f_1st_iter) and (self.conf.f_fused_bn)
 
         #
         if not self.f_1st_iter and self.conf.f_train_time_const:
@@ -633,76 +831,306 @@ class MNISTModel_CNN(tfe.Network):
             self.dnn_act_list['conv2']   = a_conv2
             self.dnn_act_list['fc1'] = a_fc1
 
+        if self.conf.f_comp_act and (not self.f_1st_iter):
+            self.dict_stat_w['conv1']=a_conv1.numpy()
+            self.dict_stat_w['conv2']=a_conv2.numpy()
+            self.dict_stat_w['fc1']=a_fc1.numpy()
+
+        #print(self.list_tk['in'].tc)
+        #print(self.list_tk['in'].td)
+        #print(self.list_tk['conv1'].tc)
+        #print(self.list_tk['conv1'].td)
+        #print(self.list_tk['conv2'].tc)
+        #print(self.list_tk['conv2'].td)
+        return a_out
+
+
+
+
+    #
+    def call_ann_surrogate_training_one_para_per_layer(self,inputs,f_training):
+        #if not self.f_1st_iter:
+            #print(self.list_tk['fc1'].tc)
+
+        x = tf.reshape(inputs,self._input_shape)
+
+        #
+        #t_in = self.temporal_encoding(x,'in')
+        #x = self.temporal_decoding(t_in,'in')
+        v_in = x
+        t_in = self.list_tk['in'](v_in,'enc', self.epoch, f_training)
+        v_in_dec= self.list_tk['in'](t_in, 'dec', self.epoch, f_training)
+        x = v_in_dec
+        #x = t_in
+
+
+        #print(x)
+
+        s_conv1 = self.conv1(x)
+
+        # conv - deconv test
+        #s_conv1_tr = self.conv1_tr(x)
+        #s_conv1_tr_cv = self.conv1_tr_cv(s_conv1_tr)
+        #
+        #print(x.shape)
+        #print(s_conv1_tr.shape)
+        #print(s_conv1_tr_cv.shape)
+        #print(s_conv1.shape)
+        #
+        ##print('shape')
+        ##print(self.conv1_tr.kernel.shape)
+        ##print(self.conv1_tr_cv.kernel.shape)
+        #
+        #print(tf.equal(s_conv1,s_conv1_tr_cv))
+        #print(s_conv1[0,10,10,0])
+        #print(s_conv1_tr_cv[0,10,10,0])
+        #s_conv1 = s_conv1_tr_cv
+
+        if self.f_skip_bn:
+            s_conv1_bn = s_conv1
+        else:
+            s_conv1_bn = self.conv1_bn(s_conv1,training=f_training)
+
+        #
+        #a_conv1 = tf.nn.relu(s_conv1_bn)
+        #
+        #self.list_v['conv1'] = s_conv1_bn
+        #self.list_st['conv1'] = self.temporal_encoding(self.list_v['conv1'],'conv1')
+        #a_conv1 = self.temporal_decoding(self.list_st['conv1'],'conv1')
+
+        v_conv1 = s_conv1_bn
+        t_conv1 = self.list_tk['conv1'](v_conv1,'enc',self.epoch, f_training)
+        v_conv1_dec = self.list_tk['conv1'](t_conv1,'dec',self.epoch, f_training)
+        a_conv1 = v_conv1_dec
+
+        #print(a_conv1)
+
+        if False:
+            addr=0,10,10,0
+            print("ori: {}, enc: {}, dec: {}".format(s_conv1_bn[addr].numpy(),t_conv1[addr].numpy(),a_conv1[addr].numpy()))
+
+        p_conv1 = self.pool2d(a_conv1)
+
+
+
+        s_conv2 = self.conv2(p_conv1)
+        if self.f_skip_bn:
+            s_conv2_bn = s_conv2
+        else:
+            s_conv2_bn = self.conv2_bn(s_conv2,training=f_training)
+
+        #
+        #a_conv2 = tf.nn.relu(s_conv2_bn)
+        #
+        #self.list_v['conv2'] = s_conv2_bn
+        #self.list_st['conv2'] = self.temporal_encoding(self.list_v['conv2'],'conv2')
+        #a_conv2 = self.temporal_decoding(self.list_st['conv2'],'conv2')
+
+        v_conv2 = s_conv2_bn
+        t_conv2 = self.list_tk['conv2'](v_conv2,'enc',self.epoch, f_training)
+        v_conv2_dec = self.list_tk['conv2'](t_conv2,'dec',self.epoch, f_training)
+        a_conv2 = v_conv2_dec
+
+        p_conv2 = self.pool2d(a_conv2)
+
+
+        s_flat = tf.layers.flatten(p_conv2)
+
+        if f_training:
+            s_flat = self.dropout(s_flat,training=f_training)
+
+        #print(s_flat)
+        #
+        a_fc1 = self.fc1(s_flat)
+        #
+        #self.list_v['fc1'] = a_fc1
+        #self.list_st['fc1'] = self.temporal_encoding(self.list_v['fc1'],'fc1')
+        #a_fc1 = self.temporal_decoding(self.list_st['fc1'],'fc1')
+
+
+        #v_fc1 = a_fc1
+        #t_fc1 = self.list_tk['fc1'](v_fc1,'enc',self.epoch, f_training)
+        #v_fc1 = self.list_tk['fc1'](t_fc1,'dec',self.epoch, f_training)
+        #a_fc1 = v_fc1
+
+        #print(a_fc1)
+
+
+        a_out = a_fc1
+        #a_out = t_fc1
+
+        #print(a_out)
+
+
+
+
+        #
+        #if self.f_1st_iter and self.conf.nn_mode=='ANN':
+        if self.f_1st_iter:
+            print('1st iter')
+            self.f_1st_iter = False
+            #self.f_skip_bn = (not self.f_1st_iter) and (self.conf.f_fused_bn)
+
+        #
+        if not self.f_1st_iter and self.conf.f_train_time_const:
+            print("training time constant for temporal coding in SNN")
+
+            self.dnn_act_list['in'] = x
+            self.dnn_act_list['conv1']   = a_conv1
+            self.dnn_act_list['conv2']   = a_conv2
+            self.dnn_act_list['fc1'] = a_fc1
+
+        if self.conf.f_comp_act and (not self.f_1st_iter):
+            self.dict_stat_w['conv1']=a_conv1.numpy()
+            self.dict_stat_w['conv2']=a_conv2.numpy()
+            self.dict_stat_w['fc1']=a_fc1.numpy()
+
+        #print(self.list_tk['in'].tc)
+        #print(self.list_tk['in'].td)
+        #print(self.list_tk['conv1'].tc)
+        #print(self.list_tk['conv1'].td)
+        #print(self.list_tk['conv2'].tc)
+        #print(self.list_tk['conv2'].td)
         return a_out
 
 
     ###########################################################
     ## SNN training - temporal coding (TTFS), surrogate
-    ###########################################################
-
-    def temporal_encoding_kernel(self, x):
-        td = 0.0
-        a = 10.0
-        tc = 20.0
-        tw = self.conf.time_window
-        eps=1.0E-10
-
-
-        x=tf.nn.relu(x)
-
-        t = tf.subtract(td,tf.multiply(tf.math.log(tf.divide(x+eps,a)),tc))
-
-        return t
-
-    def temporal_encoding(self, x):
-        td = 0.0
-        a = 10.0
-        tc = 20.0
-        tw = self.conf.time_window
-
-        #eps=0.0000000001
-        eps=1.0E-10
-
-
-        #x=tf.nn.relu(x)
-        #ret = tf.math.ceil(tf.subtract(td,tf.multiply(tf.divide(x,a),tc)))
-
-        # kernel
-        #t = tf.subtract(td,tf.multiply(tf.math.log(tf.divide(x+eps,a)),tc))
-        t = self.temporal_encoding_kernel(x)
-
-        # time window
-        #t=tf.math.minimum(t, tw*10)
-        t=tf.math.minimum(t, tw*8)
-        #t=tf.math.minimum(t, tw*6)
-        #t=tf.math.minimum(t, tw*4)
-        #t=tf.math.minimum(t, tw*2)
-        #t=tf.math.minimum(t, tw)
-
-        #t = tf.math.minimum(tf.math.maximum(0,t),tw)
-
-        # TODO: apply time window, if T is larger than certain time window, it goes to zero
-
-        #tf.where(ret>tw,tf.constant(0.0,shape=ret.shape,dtype=tf.float32),ret)
-
-        #print(x)
-        #print(ret)
-
-        #print(tf.math.log(tf.divide(eps,a)))
-
-        #assert(False)
-
-        return t
-
-
-    def temporal_decoding(self, t):
-        td = 0.0
-        a = 10.0
-        tc = 20.0
-
-        ret = tf.multiply(a,tf.exp(tf.divide(tf.subtract(td,t),tc)))
-
-        return ret
+#    ###########################################################
+#    # TODO: Remove
+#    def temporal_encoding_kernel(self, x, l_name):
+#        #td = 0.0
+#        #a = 10.0
+#        #tc = 20.0
+#        #tw = self.conf.time_window
+#
+#        tc=self.list_tc[l_name]
+#        td=self.list_td[l_name]
+#        a=self.list_ta[l_name]
+#
+#        eps=1.0E-10
+#
+#        x=tf.nn.relu(x)
+#        #x=tf.add(x,eps)
+#        x=tf.divide(x,a)
+#        x=tf.nn.relu(x)
+#        x=tf.add(x,eps)
+#
+#
+#        #print(x.shape)
+#        #print(tf.add(x,eps).shape)
+#        #print(a.shape)
+#
+#        t_float = tf.subtract(td,tf.multiply(tf.math.log(x),tc))
+#
+#        #t = tf.quantization.fake_quant_with_min_max_vars(t_float,0,tf.pow(tf.constant(2.0),tf.constant(16.0))-1,16)
+#        if self.epoch > 100:
+#            t = tf.quantization.fake_quant_with_min_max_vars(t_float,0,tf.pow(2.0,16.0)-1,16)
+#        else :
+#            t = t_float
+#
+#        #print(t_float)
+#        #print(t)
+#
+#
+#        #idx=np.where(tf.is_nan(t).numpy())[1:]
+#        #idx=np.where(t.numpy()<3)
+#        #idx=np.where(t.numpy()<3)
+#
+#        #print('idx')
+#        #print(idx[0])
+#
+#        #idx_ori = np.where(t.numpy()>0.5)
+#        #print(idx_ori)
+#        #print(idx_ori[1])
+#        #idx=[zip(np.zeros(shape=idx_ori[1].shape,dtype=np.int32),idx_ori[1],idx_ori[2],idx_ori[3])]
+#        #idx=[0,idx_ori[1][0],idx_ori[2][0],idx_ori[3][0]]
+#        #print(idx)
+#        #print(a[idx])
+#
+#
+#
+#        #if tf.is_nan(tf.reduce_mean(t)):
+#        #    #print(t)
+#        #    #print(a)
+#        #    #idx=[1,]+np.where(tf.is_nan(t).numpy())[1:]
+#        #    #print(a[idx])
+#        #    idx_ori = np.where(tf.is_nan(t).numpy())
+#        #    #print(idx_ori)
+#        #    #idx=[0,idx_ori[1],idx_ori[2],idx_ori[3]]
+#        #    idx=[0,idx_ori[1][0],idx_ori[2][0],idx_ori[3][0]]
+#        #    print(a[idx])
+#        #    print('encoding')
+#        #    assert(False)
+#
+#        return t
+#
+#    def temporal_encoding(self, x, l_name):
+#        #td = 0.0
+#        #a = 10.0
+#        #tc = 20.0
+#        tw = self.conf.time_window
+#
+#        tc=self.list_tc[l_name]
+#        td=self.list_td[l_name]
+#        a=self.list_ta[l_name]
+#
+#
+#        #eps=0.0000000001
+#        eps=1.0E-10
+#
+#
+#        #x=tf.nn.relu(x)
+#        #ret = tf.math.ceil(tf.subtract(td,tf.multiply(tf.divide(x,a),tc)))
+#
+#        # kernel
+#        #t = tf.subtract(td,tf.multiply(tf.math.log(tf.divide(x+eps,a)),tc))
+#        t = self.temporal_encoding_kernel(x,l_name)
+#
+#        # time window
+#        #t=tf.math.minimum(t, tw*10)
+#        #t=tf.math.minimum(t, tw*8)
+#        #t=tf.math.minimum(t, tw*6)
+#        #t=tf.math.minimum(t, tw*4)
+#        #t=tf.math.minimum(t, tw*2)
+#
+#        if self.epoch > 100:
+#            t=tf.math.minimum(t, tw)
+#
+#        #t = tf.math.minimum(tf.math.maximum(0,t),tw)
+#
+#        # TODO: apply time window, if T is larger than certain time window, it goes to zero
+#
+#        #tf.where(ret>tw,tf.constant(0.0,shape=ret.shape,dtype=tf.float32),ret)
+#
+#        #print(x)
+#        #print(ret)
+#
+#        #print(tf.math.log(tf.divide(eps,a)))
+#
+#        #assert(False)
+#
+#        return t
+#
+#
+#    def temporal_decoding(self, t, l_name):
+#        #td = 0.0
+#        #a = 10.0
+#        #tc = 20.0
+#
+#        tc=self.list_tc[l_name]
+#        td=self.list_td[l_name]
+#        a=self.list_ta[l_name]
+#
+#        x = tf.multiply(a,tf.exp(tf.divide(tf.subtract(td,t),tc)))
+#
+#        #
+#        #if tf.is_nan(tf.reduce_mean(x)):
+#        #    print(x)
+#        #    print('decoding')
+#        #    assert(False)
+#
+#        return x
 
 
 
@@ -710,6 +1138,7 @@ class MNISTModel_CNN(tfe.Network):
 
     #
     def call_snn(self,inputs,f_training):
+
         #
         plt.clf()
 
@@ -750,6 +1179,7 @@ class MNISTModel_CNN(tfe.Network):
 
             #
             if self.f_1st_iter == False:
+                #print(self.count_accuracy_time_point)
                 if t==self.accuracy_time_point[self.count_accuracy_time_point]-1:
                     #output=self.n_fc1.vmem
                     #self.recoding_ret_val(output)
@@ -779,6 +1209,49 @@ class MNISTModel_CNN(tfe.Network):
                 #os.system("Pause")
                 #raw_input("Press any key to exit")
                 #sys.exit(0)
+
+
+        #print(self.list_neuron['in'].time_const_integ)
+        #print(self.list_neuron['in'].time_delay_integ)
+#        print('')
+#        print(self.list_neuron['in'].time_const_fire)
+#        print(self.list_neuron['in'].time_delay_fire)
+#
+#        print(self.list_neuron['conv1'].time_const_integ)
+#        print(self.list_neuron['conv1'].time_delay_integ)
+#        print(self.list_neuron['conv1'].time_const_fire)
+#        print(self.list_neuron['conv1'].time_delay_fire)
+#
+#        print(self.list_neuron['conv2'].time_const_integ)
+#        print(self.list_neuron['conv2'].time_delay_integ)
+#        print(self.list_neuron['conv2'].time_const_fire)
+#        print(self.list_neuron['conv2'].time_delay_fire)
+#
+#        print(self.list_neuron['fc1'].time_const_integ)
+#        print(self.list_neuron['fc1'].time_delay_integ)
+        #print(self.list_neuron['fc1'].time_const_fire)
+        #print(self.list_neuron['fc1'].time_delay_fire)
+
+        #print(self.list_neuron['conv1'].time_const_fire)
+        #print('time_const_check')
+
+        # TODO: analysis
+        #if False:
+        if self.conf.f_comp_act and (not self.f_1st_iter):
+            print('compare activation')
+            print(self.list_tk['conv1'].in_enc[0,:,1,2])
+            print(self.list_tk['conv1'].out_enc[0,:,1,2])
+            print(self.list_tk['conv1'].out_dec[0,:,1,2])
+            print(self.dict_stat_w['conv1'][0,:,1,2])
+            print(self.list_layer['conv1'].bias)
+            print(self.list_neuron['conv1'].vmem[0,:,1,2])
+            #print(self.list_neuron['conv1'].spike_counter[0,:,1,2])
+            print(self.list_neuron['conv1'].first_spike_time[0,:,1,2])
+            #self.dict_stat_w['conv1']=a_conv1.numpy()
+            #self.dict_stat_w['conv2']=a_conv2.numpy()
+            #self.dict_stat_w['fc1']=a_fc1.numpy()
+
+
 
         #plt.hist(self.n_conv1.vmem.numpy().flatten())
         #plt.show()
@@ -865,6 +1338,9 @@ class MNISTModel_CNN(tfe.Network):
                 #os.system("Pause")
                 #raw_input("Press any key to exit")
                 #sys.exit(0)
+
+
+
 
         #plt.hist(self.n_conv1.vmem.numpy().flatten())
         #plt.show()
@@ -1079,9 +1555,19 @@ class MNISTModel_CNN(tfe.Network):
         return pool
 
     def fused_bn(self):
-        print('fused_bn')
+        if self.conf.verbose:
+            print('fused_bn')
+
         self.conv_bn_fused(self.conv1, self.conv1_bn, 1.0)
         self.conv_bn_fused(self.conv2, self.conv2_bn, 1.0)
+
+    #
+    def defused_bn(self):
+        if self.conf.verbose:
+            print('defused_bn')
+
+        self.conv_bn_defused(self.conv1, self.conv1_bn)
+        self.conv_bn_defused(self.conv2, self.conv2_bn)
 
     def conv_bn_fused(self, conv, bn, time_step):
         gamma=bn.gamma
@@ -1092,16 +1578,29 @@ class MNISTModel_CNN(tfe.Network):
         inv=math_ops.rsqrt(var+ep)
         inv*=gamma
 
-        #conv.kernel = conv.kernel*math_ops.cast(inv,conv.kernel.dtype)/time_step
         conv.kernel = conv.kernel*math_ops.cast(inv,conv.kernel.dtype)
-        #conv.bias = (conv.bias*gamma/var_e+beta-gamma*mean/var_e)/time_step
-        #conv.bias = ((conv.bias-mean)*inv+beta)/time_step
         conv.bias = ((conv.bias-mean)*inv+beta)
 
         #print(gamma)
         #print(beta)
 
         #return kernel, bias
+
+
+    #
+    def conv_bn_defused(self, conv, bn):
+        gamma=bn.gamma
+        beta=bn.beta
+        mean=bn.moving_mean
+        var=bn.moving_variance
+        ep=bn.epsilon
+        inv=math_ops.rsqrt(var+ep)
+        inv*=gamma
+
+        conv.kernel = conv.kernel/inv
+        conv.bias = (conv.bias-beta)/inv+mean
+
+
 
     def fc_bn_fused(self, conv, bn, time_step):
         gamma=bn.gamma
@@ -1216,7 +1715,7 @@ class MNISTModel_CNN(tfe.Network):
 
         for idx_n, (nn, n) in enumerate(self.list_neuron.items()):
             idx=idx_n-1
-            if nn!='in':
+            if nn!='in' and nn!=self.layer_name[-1]:
                 spike_count_int[idx]=tf.reduce_sum(n.get_spike_count_int())
                 spike_count_int[len-1]+=spike_count_int[idx]
                 spike_count[idx]=tf.reduce_sum(n.get_spike_count())
@@ -1246,7 +1745,10 @@ class MNISTModel_CNN(tfe.Network):
         self.comp_act_ws(t)
 
     def save_ann_act(self,inputs,f_training):
-        self.call_ann(inputs,f_training)
+        if self.conf.f_surrogate_training_model:
+            self.call_ann_surrogate_training(inputs,f_training)
+        else:
+            self.call_ann(inputs,f_training)
 
 
     #

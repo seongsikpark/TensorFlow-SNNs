@@ -125,11 +125,14 @@ def train_one_epoch_ttfs_test(model, optimizer, dataset):
 
 
 
-def train_one_epoch_ttfs(model, optimizer, dataset):
+def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
     #print("train_snn.py - train_one_epoch_ttfs > not yet implemented")
     #assert(False)
 
-    tf.train.get_or_create_global_step()
+    #global_step = tf.train.get_or_create_global_step()
+
+    #print("epoch: {}".format(global_step))
+
     avg_loss = tfe.metrics.Mean('loss_total')
     avg_loss_pred = tfe.metrics.Mean('loss_pred')
     avg_loss_enc_st = tfe.metrics.Mean('loss_enc_st')
@@ -164,84 +167,191 @@ def train_one_epoch_ttfs(model, optimizer, dataset):
             loss_list=OrderedDict()
             avg_loss_list=OrderedDict()
             loss_weight=OrderedDict()
-            loss_name=['prediction','enc_st','max_enc_st','min_enc_st']
+            #loss_name=['prediction','enc_st','max_enc_st','min_enc_st', 'max_tk_rep']
+            #loss_name=['prediction','enc_st','max_enc_st','min_enc_st']
+            loss_name=['prediction']
 
             #
             # loss - prediction
             loss_list['prediction'] = loss(predictions, labels)
 
+#            #
+#            # loss - encoded spike time
+#            #print(model.t_conv1)
+#            #print(tf.round(model.t_conv1))
+#
+#            #enc_st = model.t_conv1
+#
+#            loss_tmp=0
+#            #for _, (name, enc_st) in enumerate(model.list_st.items()):
+#            #for name in model.layer_name:
+#
+#                #enc_st=model.list_st[name]
+#
+#
+#                #print(name)
+#                #print(enc_st)
+#
+#                #enc_st = model.list_v[name]
+#
+#            #enc_st = model.list_st['conv1']
+#            enc_st = model.list_tk['conv1'].out_enc
+#            round_enc_st = tf.constant(tf.round(enc_st),shape=enc_st.shape)
+#            loss_tmp += loss_mse(enc_st,round_enc_st)
+#
+#            #enc_st = model.list_st['conv2']
+#            enc_st = model.list_tk['conv2'].out_enc
+#            round_enc_st = tf.constant(tf.round(enc_st),shape=enc_st.shape)
+#            loss_tmp += loss_mse(enc_st,round_enc_st)
+##
+##            #enc_st = model.list_st['fc1']
+##            enc_st = model.list_tk['fc1'].out_enc
+##            round_enc_st = tf.constant(tf.round(enc_st),shape=enc_st.shape)
+##            loss_tmp += loss_mse(enc_st,round_enc_st)
+#
+#            loss_list['enc_st'] = loss_tmp
+#            #loss_list['enc_st'] += loss_mse(enc_st,round_enc_st)
+#
+#
+#            # TODO: Is it really needed?
+#            # loss - maximum encoded spike time
+#
+#            loss_tmp=0
+#            #for _, (name, enc_st) in enumerate(model.list_st.items()):
+#                #v = model.list_v[name]
+#            #min_val = model.temporal_encoding(model.v_conv1)
+#
+#            #
+#            loss_tmp=0
+#            max_border = 4.0/5.0
+#
+#            #v=model.list_v['conv1']
+#            #t=model.list_st['conv1']
+#            v=model.list_tk['conv1'].in_enc
+#            t=model.list_tk['conv1'].out_enc
+#            max_enc_st = tf.constant(model.conf.time_window,dtype=tf.float32,shape=v.shape)
+#            #non_bounded_enc_st = model.list_tk['conv1'].call_encoding_kernel(v)
+#            max_enc_target = tf.where(t > max_enc_st*max_border,\
+#                                      max_enc_st,\
+#                                      t)
+#            #loss_tmp += loss_mse(non_bounded_enc_st, max_enc_target)
+#            loss_tmp += loss_mse(t, max_enc_target)
+#
+#            #v=model.list_v['conv2']
+#            #t=model.list_st['conv2']
+#            v=model.list_tk['conv2'].in_enc
+#            t=model.list_tk['conv2'].out_enc
+#            max_enc_st = tf.constant(model.conf.time_window,dtype=tf.float32,shape=v.shape)
+#            #non_bounded_enc_st = model.list_tk['conv2'].call_encoding_kernel(v)
+#            #max_enc_target = tf.where(max_enc_st < non_bounded_enc_st, \
+#            max_enc_target = tf.where(t > max_enc_st*max_border,\
+#                                      max_enc_st,\
+#                                      t)
+#            #loss_tmp += loss_mse(non_bounded_enc_st, max_enc_target)
+#            loss_tmp += loss_mse(t, max_enc_target)
+#
+##            #v=model.list_v['fc1']
+##            #t=model.list_st['fc1']
+##            v=model.list_tk['fc1'].in_enc
+##            t=model.list_tk['fc1'].out_enc
+##            max_enc_st = tf.constant(model.conf.time_window,dtype=tf.float32,shape=v.shape)
+##            non_bounded_enc_st = model.list_tk['fc1'].call_encoding_kernel(v)
+##            max_enc_target = tf.where(max_enc_st < non_bounded_enc_st,\
+##                                      max_enc_st,\
+##                                      t)
+##            loss_tmp += loss_mse(non_bounded_enc_st, max_enc_target)
+#            loss_list['max_enc_st'] = loss_tmp
+#
+#
+#            #
+#            # loss - minimum encoded spike time
+#            #enc_st = model.t_conv1
+#            loss_tmp=0
+#
+#            #t = model.list_st['conv1']
+#            t=model.list_tk['conv1'].out_enc
+#            min_target_value = model.conf.tc        # 1 tau target
+#            min_enc_st_target = tf.constant(min_target_value,dtype=tf.float32,shape=t.shape)
+#            min_enc_target = tf.where(min_enc_st_target < t,\
+#                                      min_enc_st_target,\
+#                                      t)
+#            loss_tmp += loss_mse(t, min_enc_target)
+#
+#
+#            #t = model.list_st['conv2']
+#            t=model.list_tk['conv2'].out_enc
+#            min_target_value = model.conf.tc        # 1 tau target
+#            min_enc_st_target = tf.constant(min_target_value,dtype=tf.float32,shape=t.shape)
+#            min_enc_target = tf.where(min_enc_st_target < t, \
+#                                      min_enc_st_target, \
+#                                      t)
+#            loss_tmp += loss_mse(t, min_enc_target)
+#            #print(t)
+#            #print(min_target_value)
+
+
+#            #t = model.list_st['fc1']
+#            t=model.list_tk['fc1'].out_enc
+#            min_target_value = model.conf.tc        # 1 tau target
+#            min_enc_st_target = tf.constant(min_target_value,dtype=tf.float32,shape=t.shape)
+#            min_enc_target = tf.where(min_enc_st_target < t, \
+#                                      min_enc_st_target, \
+#                                      t)
+#            loss_tmp += loss_mse(t, min_enc_target)
+#
+#            loss_list['min_enc_st'] = loss_tmp
+
+            # TODO: modifiy decoding dim
+            # max_tk_rep
+            #loss_tmp=[0]
+            #v = model.list_tk['in'].in_enc
+            #max_tk_rep = model.list_tk['in'].call_decoding(tf.constant(0.0,shape=v.shape,dtype=tf.float32),0,True)
+            #max_tk_rep_target = tf.where(v > max_tk_rep,max_tk_rep,v)
+            #loss_tmp += loss_mse(v,max_tk_rep_target)
             #
-            # loss - encoded spike time
-            #print(model.t_conv1)
-            #print(tf.round(model.t_conv1))
-
-            #enc_st = model.t_conv1
-
-            loss_tmp=0
-            #for _, (name, enc_st) in enumerate(model.list_st.items()):
-            #for name in model.layer_name:
-
-                #enc_st=model.list_st[name]
-
-
-                #print(name)
-                #print(enc_st)
-
-                #enc_st = model.list_v[name]
-
-            enc_st = model.list_st['conv1']
-            round_enc_st = tf.constant(tf.round(enc_st),shape=enc_st.shape)
-            loss_tmp += loss_mse(enc_st,round_enc_st)
-
-            enc_st = model.list_st['conv2']
-            round_enc_st = tf.constant(tf.round(enc_st),shape=enc_st.shape)
-            loss_tmp += loss_mse(enc_st,round_enc_st)
-
-            enc_st = model.list_st['fc1']
-            round_enc_st = tf.constant(tf.round(enc_st),shape=enc_st.shape)
-            loss_tmp += loss_mse(enc_st,round_enc_st)
-
-            loss_list['enc_st'] = loss_tmp
-            #loss_list['enc_st'] += loss_mse(enc_st,round_enc_st)
-
+            #v = model.list_tk['conv1'].in_enc
+            #max_tk_rep = model.list_tk['conv1'].call_decoding(tf.constant(0.0,shape=v.shape,dtype=tf.float32),0,True)
+            #max_tk_rep_target = tf.where(v > max_tk_rep,max_tk_rep,v)
+            #loss_tmp += loss_mse(v,max_tk_rep_target)
             #
-            # loss - maximum encoded spike time
-
-            loss_tmp=0
-            #for _, (name, enc_st) in enumerate(model.list_st.items()):
-                #v = model.list_v[name]
-            #min_val = model.temporal_encoding(model.v_conv1)
-            v_conv1=model.list_v['conv1']
-            t_conv1=model.list_st['conv1']
+            #v = model.list_tk['conv2'].in_enc
+            #max_tk_rep = model.list_tk['conv2'].call_decoding(tf.constant(0.0,shape=v.shape,dtype=tf.float32),0,True)
+            #max_tk_rep_target = tf.where(v > max_tk_rep,max_tk_rep,v)
+            #loss_tmp += loss_mse(v,max_tk_rep_target)
 
 
-            max_enc_st = tf.constant(model.conf.time_window,dtype=tf.float32,shape=v_conv1.shape)
-            non_bounded_enc_st = model.temporal_encoding_kernel(v_conv1)
-            max_enc_target = tf.where(max_enc_st < non_bounded_enc_st,\
-                                      max_enc_st,\
-                                      t_conv1)
-            loss_list['max_enc_st'] = loss_mse(non_bounded_enc_st, max_enc_target)
+            #print(v>max_tk_rep)
+            #print(max_tk_rep)
 
-            #
-            # loss - minimum encoded spike time
-            #enc_st = model.t_conv1
-            enc_st = model.list_st['conv1']
-            v_conv1=model.list_v['conv1']
+            #loss_list['max_tk_rep'] = loss_tmp
 
-            min_target_value = model.conf.tc
-            min_enc_st_target = tf.constant(min_target_value,dtype=tf.float32,shape=v_conv1.shape)
-            min_enc_target = tf.where(min_enc_st_target < enc_st,\
-                                      min_enc_st_target,\
-                                      enc_st)
-            loss_list['min_enc_st'] = loss_mse(enc_st, min_enc_target)
 
             #
             #
             loss_weight['prediction']=1.0
-            loss_weight['enc_st']=0.0
-            loss_weight['max_enc_st']=0.0
-            #loss_weight['min_enc_st']=0.1
-            loss_weight['min_enc_st']=0.0
+            #loss_weight['enc_st']=0.0
+            #loss_weight['max_enc_st']=0.0
+            ##loss_weight['min_enc_st']=0.1
+            #loss_weight['min_enc_st']=0.0
+            #loss_weight['max_tk_rep']=0.0
+
+
+            #
+            #if epoch > 100:
+            #if True:
+                #loss_weight['enc_st']=0.01
+                #loss_weight['max_enc_st']=0.00001
+
+            #if epoch > 100:
+            #    #loss_weight['enc_st']=0.1
+            #    loss_weight['min_enc_st']=0.00001
+
+            #
+            #if epoch > model.list_tk['in'].epoch_start_train_tk:
+            #    #loss_weight['min_enc_st']=0.0000001
+            #    loss_weight['max_enc_st']=0.000001
+            #    #loss_weight['max_tk_rep']=0.01
+            #    #loss_weight['max_tk_rep']=1.0
 
             #
             #loss_total = loss_pred
@@ -257,9 +367,15 @@ def train_one_epoch_ttfs(model, optimizer, dataset):
             avg_loss(loss_total)
             avg_loss_pred(loss_list['prediction'])
             #avg_loss_enc_st(loss_enc_st)
-            avg_loss_enc_st=loss_list['enc_st'].numpy()
-            avg_loss_max_enc_st=loss_list['max_enc_st'].numpy()
-            avg_loss_min_enc_st=loss_list['min_enc_st'].numpy()
+            #avg_loss_enc_st=loss_list['enc_st'].numpy()
+            #avg_loss_max_enc_st=loss_list['max_enc_st'].numpy()
+            #avg_loss_min_enc_st=loss_list['min_enc_st'].numpy()
+            #avg_loss_max_tk_rep=loss_list['max_tk_rep'].numpy()
+
+            avg_loss_enc_st=0.0
+            avg_loss_max_enc_st=0.0
+            avg_loss_min_enc_st=0.0
+            avg_loss_max_tk_rep=0.0
 
             #print(loss_enc_st)
 
@@ -290,13 +406,49 @@ def train_one_epoch_ttfs(model, optimizer, dataset):
 
 
         #
-        trainable_vars = model.trainable_variables
-        grads = tape.gradient(loss_total, trainable_vars)
+        # weight
+
+        #trainable_vars = model.trainable_variables
+        train_vars_w = [v for v in model.trainable_variables if ('neuron' not in v.name) and ('temporal_kernel' not in v.name)]
+
+        #trainable_vars_tmporal_kernel=[]
+        #for l_name in model.layer_name:
+            #trainable_vars_tmporal_kernel.append(model.list_tc[l_name])
+            #trainable_vars_tmporal_kernel.append(model.list_td[l_name])
+            #trainable_vars_tmporal_kernel.append(model.list_ta[l_name])
+
         #print(trainable_vars)
 
-        grads_and_vars = zip(grads,trainable_vars)
+        #print(tf.reduce_mean(model.list_ta['conv1']))
+        #assert(False)
 
-        optimizer.apply_gradients(grads_and_vars)
+
+        #for v in train_vars_tk:
+            #print(v.name)
+
+        #
+        #grads = tape.gradient(loss_total, trainable_vars)
+
+        #
+        if epoch < model.list_tk['in'].epoch_start_train_tk:
+            grads = tape.gradient(loss_list['prediction'], train_vars_w)
+            grads_and_vars = zip(grads,train_vars_w)
+            optimizer.apply_gradients(grads_and_vars)
+        else:
+
+            # temporal kernel
+            train_vars_tk = [v for v in model.trainable_variables if ('temporal_kernel' in v.name)]
+            train_vars = train_vars_w + train_vars_tk
+
+            grads = tape.gradient(loss_total, train_vars)
+            grads_and_vars = zip(grads,train_vars)
+            optimizer.apply_gradients(grads_and_vars)
+
+            # train_vars_tk
+            #
+            grads_t_kernel = tape.gradient(loss_total,train_vars_tk)
+            grads_and_vars_tk = zip(grads_t_kernel,train_vars_tk)
+            optimizer.apply_gradients(grads_and_vars_tk)
 
 
         #
@@ -309,7 +461,7 @@ def train_one_epoch_ttfs(model, optimizer, dataset):
 
     #return avg_loss.result(), 100*accuracy.result()
     return avg_loss.result(), avg_loss_pred.result(),avg_loss_enc_st,\
-           avg_loss_max_enc_st,avg_loss_min_enc_st,100*accuracy.result()
+           avg_loss_max_enc_st,avg_loss_min_enc_st,avg_loss_max_tk_rep,100*accuracy.result()
 
 
 

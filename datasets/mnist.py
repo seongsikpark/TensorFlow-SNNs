@@ -20,7 +20,13 @@ def load(conf):
 
     #print(data.test.images.shape)
 
+    num_train_dataset = len(data.train.images)
+    num_val_dataset = len(data.validation.images)
+    num_test_dataset = conf.num_test_dataset
+
+
     print(train_dataset)
+    print('# of dataset: train ({}), val ({}), test ({})'.format(num_train_dataset,num_val_dataset,num_test_dataset))
 
 
     if conf.f_train_time_const:
@@ -30,7 +36,7 @@ def load(conf):
     val_dataset = val_dataset.batch(conf.batch_size)
     test_dataset = test_dataset.batch(conf.batch_size)
 
-    return train_dataset, val_dataset, test_dataset
+    return train_dataset, val_dataset, test_dataset, num_train_dataset, num_val_dataset, num_test_dataset
 
-def train_data_augmentation(train_dataset, batch_sizu):
+def train_data_augmentation(train_dataset, batch_size):
     return train_dataset

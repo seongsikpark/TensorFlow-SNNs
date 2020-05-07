@@ -15,6 +15,8 @@ class Neuron(tf.layers.Layer):
         super(Neuron, self).__init__()
 
         self.dim = dim
+        self.dim_one_batch = [1,]+dim[1:]
+
         self.n_type = n_type
         self.fan_in = fan_in
 
@@ -112,16 +114,27 @@ class Neuron(tf.layers.Layer):
 
 
             #self.time_const=self.add_variable("time_const",shape=self.dim,dtype=tf.float32,initializer=tf.constant_initializer(self.conf.tc),trainable=False)
+
+            # TODO: old - scalar version
             self.time_const_integ=self.add_variable("time_const_integ",shape=[],dtype=tf.float32,initializer=tf.constant_initializer(self.time_const_init_integ),trainable=False)
             self.time_const_fire=self.add_variable("time_const_fire",shape=[],dtype=tf.float32,initializer=tf.constant_initializer(self.time_const_init_fire),trainable=False)
             self.time_delay_integ=self.add_variable("time_delay_integ",shape=[],dtype=tf.float32,initializer=tf.constant_initializer(self.time_delay_init_integ),trainable=False)
             self.time_delay_fire=self.add_variable("time_delay_fire",shape=[],dtype=tf.float32,initializer=tf.constant_initializer(self.time_delay_init_fire),trainable=False)
 
-
             self.time_start_integ=self.add_variable("time_start_integ",shape=[],dtype=tf.float32,initializer=tf.constant_initializer(self.time_start_integ_init),trainable=False)
             self.time_end_integ=self.add_variable("time_end_integ",shape=[],dtype=tf.float32,initializer=tf.constant_initializer(self.time_end_integ_init),trainable=False)
             self.time_start_fire=self.add_variable("time_start_fire",shape=[],dtype=tf.float32,initializer=tf.constant_initializer(self.time_start_fire_init),trainable=False)
             self.time_end_fire=self.add_variable("time_end_fire",shape=[],dtype=tf.float32,initializer=tf.constant_initializer(self.time_end_fire_init),trainable=False)
+
+#            self.time_const_integ=self.add_variable("time_const_integ",shape=self.dim_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(self.time_const_init_integ),trainable=False)
+#            self.time_const_fire=self.add_variable("time_const_fire",shape=self.dim_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(self.time_const_init_fire),trainable=False)
+#            self.time_delay_integ=self.add_variable("time_delay_integ",shape=self.dim_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(self.time_delay_init_integ),trainable=False)
+#            self.time_delay_fire=self.add_variable("time_delay_fire",shape=self.dim_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(self.time_delay_init_fire),trainable=False)
+#
+#            self.time_start_integ=self.add_variable("time_start_integ",shape=self.dim_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(self.time_start_integ_init),trainable=False)
+#            self.time_end_integ=self.add_variable("time_end_integ",shape=self.dim_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(self.time_end_integ_init),trainable=False)
+#            self.time_start_fire=self.add_variable("time_start_fire",shape=self.dim_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(self.time_start_fire_init),trainable=False)
+#            self.time_end_fire=self.add_variable("time_end_fire",shape=self.dim_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(self.time_end_fire_init),trainable=False)
 
 
             print_loss=True
@@ -224,7 +237,11 @@ class Neuron(tf.layers.Layer):
         #self.vth = tf.constant(tf.exp(-float(t)/self.conf.tc),tf.float32,self.out.shape)
         #self.vth = tf.constant(tf.exp(-t/self.conf.tc),tf.float32,self.out.shape)
         time = tf.subtract(t,self.time_delay_fire)
-        self.vth = tf.constant(tf.exp(-time/self.time_const_fire),tf.float32,self.out.shape)
+
+        #print(self.vth.shape)
+        #print(self.time_const_fire.shape)
+        #self.vth = tf.constant(tf.exp(tf.divide(-time,self.time_const_fire)),tf.float32,self.out.shape)
+        self.vth = tf.exp(tf.divide(-time,self.time_const_fire))
 
         # polynomial
         #self.vth = tf.constant(tf.add(-tf.pow(t/self.conf.tc,2),1.0),tf.float32,self.out.shape)
@@ -420,11 +437,13 @@ class Neuron(tf.layers.Layer):
 
         #receptive_kernel = tf.constant(tf.exp(-time/self.conf.tc),tf.float32,self.vmem.shape)
 
-        receptive_kernel = tf.constant(tf.exp(-time/self.time_const_integ),tf.float32,self.vmem.shape)
+        #receptive_kernel = tf.constant(tf.exp(-time/self.time_const_integ),tf.float32,self.vmem.shape)
+        receptive_kernel = tf.exp(tf.divide(-time,self.time_const_integ))
 
         #print("integration_temporal: depth: "+str(self.depth)+", t_glb: "+str(t)+", t_loc: "+str(time)+", kernel: "+str(receptive_kernel[0,0,0,0].numpy()))
 
         #
+        #print('test')
         #print(inputs.shape)
         #print(receptive_kernel.shape)
 
@@ -795,12 +814,27 @@ class Neuron(tf.layers.Layer):
         self.time_delay_init_fire = time_delay_init_fire
 
 
-
+    #
     def set_time_const_integ(self, time_const_integ):
         self.time_const_integ = time_const_integ
 
+    def set_time_const_fire(self, time_const_fire):
+        self.time_const_fire = time_const_fire
+
     def set_time_delay_integ(self, time_delay_integ):
         self.time_delay_integ = time_delay_integ
+
+    def set_time_delay_fire(self, time_delay_fire):
+        self.time_delay_fire = time_delay_fire
+
+
+
+
+    #def set_time_const_integ(self, time_const_integ):
+    #    self.time_const_integ = time_const_integ
+
+    #def set_time_delay_integ(self, time_delay_integ):
+    #    self.time_delay_integ = time_delay_integ
 
 
     def set_time_integ(self, time_start_integ):
@@ -1070,7 +1104,214 @@ class Neuron(tf.layers.Layer):
 
 
 
+###############################################################################
+## Temporal kernel for surrogate model training
+## enc(t)=ta*exp(-(t-td)/tc)
+###############################################################################
+class Temporal_kernel(tf.layers.Layer):
+    def __init__(self,dim_in,dim_out,init_tc,init_td,init_ta,init_tw):
+        super(Temporal_kernel, self).__init__()
+        #
+        self.dim_in = dim_in
+        self.dim_out = dim_out
 
+        self.dim_in_one_batch = [1,]+dim_in[1:]
+        self.dim_out_one_batch = [1,]+dim_out[1:]
+
+
+        #
+        self.init_tc = init_tc
+        self.init_td = init_td
+        #self.init_ta = init_ta
+        self.init_tw = init_tw
+
+        #
+        # TODO: parameterize these variables depending on strategies, model, and dataset
+        self.epoch_start_t_int = 1
+        self.epoch_start_clip_tw = 1
+        self.epoch_start_train_tk = 1
+
+
+        # encoding decoding para couple
+        self.f_enc_dec_couple = True
+        #self.f_enc_dec_couple = False
+
+    def build(self, _):
+
+        # TODO: parameterize
+        # which one ?
+        # a para per layer
+        # neuron-wise para
+        self.tc = self.add_variable("tc",shape=self.dim_in_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(self.init_tc),trainable=True)
+        self.td = self.add_variable("td",shape=self.dim_in_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(self.init_td),trainable=True)
+        #self.ta = self.add_variable("ta",shape=self.dim_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(self.init_ta),trainable=True)
+        self.tw = self.add_variable("tw",shape=self.dim_in_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(self.init_tw),trainable=False)
+
+
+
+        #
+        # decoding para
+        #self.tc_dec = self.add_variable("tc_dec",shape=self.dim_in_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(self.init_tc),trainable=True)
+        #self.td_dec = self.add_variable("td_dec",shape=self.dim_in_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(self.init_td),trainable=True)
+        ##self.ta = self.add_variable("ta",shape=self.dim_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(self.init_ta),trainable=True)
+        ##self.tw_dec = self.add_variable("tw_dec",shape=self.dim_in_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(self.init_tw),trainable=False)
+
+        #
+        # decoding para
+
+        if not self.f_enc_dec_couple:
+            self.tc_dec = self.add_variable("tc_dec",shape=self.dim_out_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(self.init_tc),trainable=True)
+            self.td_dec = self.add_variable("td_dec",shape=self.dim_out_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(self.init_td),trainable=True)
+            #self.ta = self.add_variable("ta",shape=self.dim_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(self.init_ta),trainable=True)
+            self.tw_dec = self.add_variable("tw_dec",shape=self.dim_out_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(self.init_tw),trainable=False)
+
+
+
+        # input - encoding target
+        self.in_enc = self.add_variable("in_enc",shape=self.dim_out,dtype=tf.float32,initializer=tf.zeros_initializer(),trainable=False)
+        # output of encoding - spike time
+        self.out_enc = self.add_variable("out_enc",shape=self.dim_out,dtype=tf.float32,initializer=tf.zeros_initializer(),trainable=False)
+        # output of decoding
+        self.out_dec = self.add_variable("out_dec",shape=self.dim_in,dtype=tf.float32,initializer=tf.zeros_initializer(),trainable=False)
+
+
+    def call(self, input, mode, epoch, f_training):
+        mode_sel={
+            'enc': self.call_encoding,
+            'dec': self.call_decoding
+        }
+
+        ret = mode_sel[mode](input, epoch, f_training)
+
+        return ret
+
+    def call_encoding(self, input, epoch, f_training):
+        #
+        self.in_enc = input
+
+        #
+        t_float = self.call_encoding_kernel(input)
+
+        #
+        #if False:
+        #if ((f_training==False) and (epoch==-1)) or ((f_training == True) and (epoch > self.epoch_start_t_int)):
+        if (f_training==True)and(epoch > self.epoch_start_t_int) or (f_training==False)and(epoch<0):
+            # TODO: parameterize
+            #if epoch > self.epoch_start_t_int+100:
+            #if epoch > self.epoch_start_t_int:
+            #    t = tf.ceil(t_float)
+            #else:
+            #    t = tf.quantization.fake_quant_with_min_max_vars(t_float,0,tf.pow(2.0,16.0)-1,16)
+            #   #` t=tf.round(t_float)
+
+            t = tf.quantization.fake_quant_with_min_max_vars(t_float,0,tf.pow(2.0,16.0)-1,16)
+
+        else :
+            t = t_float
+
+
+
+#        #
+#        if (f_training == False) or ((f_training==True) and (epoch > self.epoch_start_clip_tw)):
+#        #if False:
+#        #if True:
+#            #print(t)
+#            t=tf.math.minimum(t, self.tw)
+#            #print(self.tw)
+
+
+
+
+        #
+        self.out_enc = t
+
+        #print(tf.reduce_mean(self.tc))
+        #print(tf.reduce_mean(self.td))
+        #print(tf.reduce_mean(self.ta))
+
+        return t
+
+
+    def call_encoding_kernel(self, input):
+
+        eps = 1.0E-20
+
+        #x = tf.nn.relu(input)
+        #x = tf.divide(x,self.ta)
+        x = tf.nn.relu(input)
+        x = tf.add(x,eps)
+        x = tf.math.log(x)
+
+        t = tf.subtract(self.td, tf.multiply(x,self.tc))
+
+        t = tf.nn.relu(t)
+
+        #print(t)
+        #print(self.td)
+
+        return t
+
+
+    def call_decoding(self, t, epoch, f_training):
+
+
+        #x = tf.multiply(self.ta,tf.exp(tf.divide(tf.subtract(self.td,t),self.tc)))
+
+        if self.f_enc_dec_couple:
+            x = tf.exp(tf.divide(tf.subtract(self.td,t),self.tc))
+        else:
+            x = tf.exp(tf.divide(tf.subtract(self.td_dec,t),self.tc_dec))
+
+
+
+        #if False:
+        #if (f_training == False) or ((f_training==True) and (epoch > self.epoch_start_clip_tw)):
+        if (f_training==True)and(epoch > self.epoch_start_clip_tw) or (f_training==False)and(epoch<0):
+
+
+
+            if self.f_enc_dec_couple:
+                tw_target = self.tw
+
+                #if epoch > 500:
+                #    tw_target = 1.5*self.tw - self.tw/1000*epoch
+
+            else:
+                tw_target = self.tw_dec
+
+            #if epoch > 300:
+            #    tw_target = self.tw/2
+            #else:
+            #    tw_target = self.tw
+
+            if (f_training==False) and (epoch<0):
+                if self.f_enc_dec_couple:
+                    tw_target = self.tw
+                else:
+                    tw_target = self.tw_dec
+
+            if self.f_enc_dec_couple:
+                tk_min = tf.exp(tf.divide(tf.subtract(self.td,tw_target),self.tc))
+            else:
+                tk_min = tf.exp(tf.divide(tf.subtract(self.td_dec,tw_target),self.tc_dec))
+            #print('')
+            #print(tw_target)
+            #print(tk_min)
+
+            x_clipped = tf.where(x>=tf.broadcast_to(tk_min,shape=x.shape),\
+                                 x,tf.constant(0.0,shape=x.shape,dtype=tf.float32))
+
+            #x_clipped = x-tk_min
+            #x_clipped = tf.nn.relu(x_clipped)
+            #x_clipped = x_clipped+tk_min
+
+            x = x_clipped
+
+        self.out_dec = x
+
+
+
+        return x
 
 
 

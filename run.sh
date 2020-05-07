@@ -33,6 +33,19 @@ verbose=False
 verbose_visual=False
 
 
+###############################################################################
+## Model & Dataset
+###############################################################################
+nn_mode='ANN'
+#nn_mode='SNN'
+
+
+exp_case='CNN_MNIST'
+#exp_case='VGG16_CIFAR-10'
+#exp_case='VGG16_CIFAR-100'
+#exp_case='ResNet50_ImageNet'
+
+
 
 ###############################################################################
 ## Model & Dataset
@@ -58,6 +71,25 @@ training_mode=False
 #
 #load_and_train=False
 load_and_train=True
+
+#
+# If this flag is False, then the trained model is overwritten
+load_and_train=False
+#load_and_train=True
+
+#
+#f_validation_snn=False
+f_validation_snn=True
+
+#
+regularizer='L2'
+#regularizer='L1'
+#regularizer='L1_L2'
+
+#
+# TODO: depreicated - remove
+#f_overwrite_train_model=True
+f_overwrite_train_model=False
 
 
 # full test
@@ -95,6 +127,9 @@ time_step_save_interval=2
 # SNN training
 #time_step=200
 #time_step_save_interval=40
+#time_step_save_interval=10
+time_step_save_interval=20
+#time_step_save_interval=40
 
 
 ###############################################################
@@ -109,6 +144,7 @@ num_test_dataset=2
 #num_test_dataset=50000
 #num_test_dataset=10000
 #num_test_dataset=250
+
 
 
 
@@ -321,7 +357,7 @@ epoch_train_time_const=1
 
 # TTFS - MNIST default setting
 tc=5
-time_fire_start=10    # integration duration - n x tc
+time_fire_start=20    # integration duration - n x tc
 time_fire_duration=20   # time window - n x tc
 time_window=${time_fire_duration}
 
@@ -362,6 +398,16 @@ init_first_spike_time_n=1
 
 
 
+
+
+#
+# TODO: move these code below later to "TO NOT TOUCH"
+
+if [ ${f_surrogate_training_model} = True ]
+then
+    f_w_norm_data=False
+
+fi
 
 
 
@@ -428,9 +474,42 @@ if [ ${training_mode} = True ]
 then
     _exp_case=TRAIN_${exp_case}
 else
-    _exp_case=INFER_${exp_case}
+    if [ ${f_surrogate_training_model} = True ]
+    then
+        _exp_case=INFER_${exp_case}_SUR
+    else
+        _exp_case=INFER_${exp_case}
+    fi
 fi
 
+
+
+
+if [ ${training_mode} = True ]
+then
+
+    if [ ${load_and_train} = True ]
+    then
+        en_load_model=True
+    else
+        en_load_model=False
+    fi
+
+
+    en_train=True
+
+    #nn_mode='ANN'
+    f_fused_bn=False
+    f_stat_train_mode=False
+    f_w_norm_data=False
+    # TODO: training and inference bach size seperate (training / validation)
+    batch_size=${batch_size_training}
+    f_full_test=True
+
+else
+    en_train=False
+    en_load_model=True
+fi
 
 
 case ${_exp_case} in
@@ -441,7 +520,9 @@ INFER_CNN_MNIST)
     echo "Inference mode - "${nn_mode}", Model: CNN, Dataset: MNIST"
     dataset='MNIST'
     ann_model='CNN'
-    model_name='cnn_mnist_ro_0'
+    # TODO: model name parameterize
+    #model_name='cnn_mnist_ro_0'
+    model_name='cnn_mnist_train_ANN'
 
     if [ ${f_full_test} = True ]
     then
@@ -497,6 +578,7 @@ INFER_VGG16_CIFAR-100)
     #model_name='vgg_cifar100_ro_0'
     model_name='vgg16_cifar100_train_ANN'
 
+
     if [ ${f_full_test} = True ]
     then
         batch_size=400
@@ -531,6 +613,51 @@ INFER_ResNet50_ImageNet)
         num_test_dataset=50000
     fi
     ;;
+
+
+###############################################################
+## Inference - surrogate DNN model
+###############################################################
+INFER_CNN_MNIST_SUR)
+    echo "Inference mode - "${nn_mode}", Model: CNN (surrogate), Dataset: MNIST"
+    dataset='MNIST'
+    ann_model='CNN'
+
+    # SNN, 5, 10, 20 - 99.31%
+    # TensorBoard log - 20200504-1107
+    #model_name='cnn_mnist_train_ANN_surrogate_0'
+
+
+    # SNN, 5, 20, 20 - 99.3%, # spikes - 2506
+    # TensorBoard log - 20200504-1427
+    #model_name='cnn_mnist_train_ANN_surrogate_1'
+
+
+    # SNN, 5, 20, 20 - 99.33%, # spikes - 1463, epoch - 608
+    # TensorBoard log - 20200506-1445
+    #model_name='cnn_mnist_train_ANN_surrogate_2'
+
+
+    model_name='cnn_mnist_train_ANN_surrogate'
+
+    if [ ${f_full_test} = True ]
+    then
+        batch_size=400
+        idx_test_dataset_s=0
+        num_test_dataset=10000
+    fi
+
+    if [ ${neural_coding} = "TEMPORAL" ]
+    then
+        if [ ${f_tc_based} = True ]
+        then
+            time_step="$((5*${n_tau_fire_start}*${tc} + ${n_tau_fire_duration}*${tc}))"
+        else
+            time_step="$((4*${time_fire_start} + ${time_fire_duration}))"
+        fi
+    fi
+    ;;
+
 
 ###############################################################
 ## Training setup
@@ -634,6 +761,7 @@ TRAIN_VGG16_CIFAR-100)
     ;;
 
 
+
 *)
     echo "not supported experiment case:" ${_exp_case}
     exit 1
@@ -704,29 +832,6 @@ fi
 #
 echo "time_step: " ${time_step}
 
-if [ ${training_mode} = True ]
-then
-
-    if [ ${load_and_train} = True ]
-    then
-        en_load_model=True
-    else
-        en_load_model=False
-    fi
-
-    en_train=True
-
-    #nn_mode='ANN'
-    f_fused_bn=False
-    f_stat_train_mode=False
-    f_w_norm_data=False
-    batch_size=${batch_size_training}
-    f_full_test=True
-
-else
-    en_train=False
-    en_load_model=True
-fi
 
 case ${dataset} in
 MNIST)
@@ -799,7 +904,7 @@ log_file=${path_log_root}/${date}.log
 	-save_interval=${save_interval}\
 	-nn_mode=${nn_mode}\
 	-use_bias=True\
-	-regularizer='L2'\
+	-regularizer=${regularizer}\
 	-pooling=${pooling}\
 	-epoch=${num_epoch}\
 	-idx_test_dataset_s=${idx_test_dataset_s}\
@@ -860,6 +965,8 @@ log_file=${path_log_root}/${date}.log
     -batch_size=${batch_size}\
     -init_first_spike_time_n=${init_first_spike_time_n}\
     -f_surrogate_training_model=${f_surrogate_training_model}\
+    -f_overwrite_train_model=${f_overwrite_train_model}\
+    -f_validation_snn=${f_validation_snn}\
     ; } 2>&1 | tee ${log_file}
 
 echo 'log_file: '${log_file}
