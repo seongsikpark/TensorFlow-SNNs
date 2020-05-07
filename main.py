@@ -258,6 +258,14 @@ tf.app.flags.DEFINE_integer("init_first_spike_time_n",-1,"init_first_spike_time 
 tf.app.flags.DEFINE_bool("f_surrogate_training_model", True, "flag - surrogate training model (DNN)")
 
 #
+tf.app.flags.DEFINE_bool("f_overwrite_train_model", False, "overwrite trained model")
+
+#
+tf.app.flags.DEFINE_bool("f_validation_snn", False, "validation on SNN")
+
+
+
+#
 conf = flags.FLAGS
 
 data_path_imagenet='/home/sspark/Datasets/ILSVRC2012'
@@ -329,7 +337,8 @@ def main(_):
         }
         dataset = dataset_type[conf.dataset]
 
-        (train_dataset, val_dataset, test_dataset) = dataset.load(conf)
+        (train_dataset, val_dataset, test_dataset, num_train_dataset, num_val_dataset, num_test_dataset) = dataset.load(conf)
+
 
     #print('> Dataset info.')
     #print(train_dataset)
@@ -413,6 +422,8 @@ def main(_):
 
         train_dir = os.path.join(output_dir,'train')
         val_dir = os.path.join(output_dir, 'val')
+        if conf.f_validation_snn:
+            val_snn_dir = os.path.join(output_dir, 'val_snn')
         test_dir = os.path.join(output_dir, 'test')
 
         if not os.path.isdir(output_dir):
@@ -420,10 +431,15 @@ def main(_):
     else:
         train_dir = None
         val_dir = None
+        val_snn_dir = None
         test_dir = None
 
     summary_writer = tf.contrib.summary.create_file_writer(train_dir,flush_millis=100)
     val_summary_writer = tf.contrib.summary.create_file_writer(val_dir,flush_millis=100,name='val')
+
+    if conf.f_validation_snn:
+        val_snn_summary_writer = tf.contrib.summary.create_file_writer(val_snn_dir,flush_millis=100,name='val_snn')
+
     test_summary_writer = tf.contrib.summary.create_file_writer(test_dir,flush_millis=100,name='test')
     checkpoint_dir = os.path.join(conf.checkpoint_dir,conf.model_name)
     checkpoint_load_dir = os.path.join(conf.checkpoint_load_dir,conf.model_name)
@@ -431,9 +447,22 @@ def main(_):
     print('model load path: %s' % checkpoint_load_dir)
     print('model save path: %s' % checkpoint_dir)
 
-    if not os.path.isdir(checkpoint_dir):
-        #os.mkdir(checkpoint_dir)
-        tf.gfile.MakeDirs(checkpoint_dir)
+    if en_train:
+        if not os.path.isdir(checkpoint_dir):
+            #os.mkdir(checkpoint_dir)
+            tf.gfile.MakeDirs(checkpoint_dir)
+
+            # TODO: overwrite train model - efficient?
+        #else:
+
+            #if conf.f_overwrite_train_model:
+            #    print('remove pre-trained model: {}'.format(checkpoint_dir))
+            #    shutil.rmtree(checkpoint_dir,ignore_errors=True)
+            #    tf.gfile.MakeDirs(checkpoint_dir)
+            #else:
+            #    print('There is a trained model in the training path. If you overwirte it, make f_overwrite_train_model True')
+            #    assert(False)
+
 
     if not os.path.isdir(checkpoint_load_dir):
         print('there is no load dir: %s' % checkpoint_load_dir)
@@ -443,12 +472,18 @@ def main(_):
 
 
 
+    # epoch
+    global_step = tf.Variable(name='global_step', initial_value=tf.zeros(shape=[]),dtype=tf.int32,trainable=False)
+
     with tf.device(device):
         #if conf.en_train:
         if en_train:
             print('Train Phase >')
 
+            acc_val_target_best = 0.0
             acc_val_best = 0.0
+            acc_val_snn_best = 0.0
+
             #with tfe.restore_variables_on_create(tf.train.latest_checkpoint(FLAGS.checkpoint_dir)):
 
             if conf.dataset!='ImageNet':
@@ -463,10 +498,8 @@ def main(_):
                 #tfe.restore_variables_on_create(tf.train.latest_checkpoint(checkpoint_load_dir))
 
                 #restore_variables = (model.trainable_weights + optimizer.variables() + [epoch])
-                restore_variables = (model.trainable_weights + optimizer.variables())
+                restore_variables = (model.trainable_weights + optimizer.variables() + [global_step])
                 #restore_variables = (model.trainable_weights)
-
-                print(restore_variables)
 
                 print('load model')
                 print(tf.train.latest_checkpoint(checkpoint_load_dir))
@@ -475,15 +508,21 @@ def main(_):
                 saver.restore(tf.train.latest_checkpoint(checkpoint_load_dir))
 
 
-            epoch_start = 0
+                epoch_start=int(global_step.numpy())
+
+                #
+                #loss_val, acc_val, _ = test.test(model, val_dataset, conf, f_val=True)
+                #acc_val_best = acc_val
+            else:
+                epoch_start = 0
 
 
             #
 
             #with tfe.restore_variables_on_create(tf.train.latest_checkpoint(checkpoint_load_dir)):
             #for epoch in range(1,11):
-            for epoch in range(epoch_start,conf.epoch+1):
-                global_step = tf.train.get_or_create_global_step()
+            for epoch in range(epoch_start,epoch_start+conf.epoch+1):
+                #global_step = tf.train.get_or_create_global_step()
                 #start = time.time()
 
                 #if conf.dataset=='CIFAR-10' or conf.dataset=='CIFAR-100':
@@ -552,10 +591,29 @@ def main(_):
                     #loss_train, acc_train = train.train_ann_one_epoch_mnist(model, optimizer, train_dataset_p, conf)
                     #loss_train, acc_train = train_func(model, optimizer, train_dataset_p, conf)
                     if conf.f_surrogate_training_model:
-                        loss_and_acc_train = train_func(model, optimizer, train_dataset_p)
+                        model.epoch = epoch
+                        loss_and_acc_train = train_func(model, optimizer, train_dataset_p, epoch)
 
                         loss_train, loss_pred_train, loss_enc_st_train, loss_max_enc_st_train,\
-                        loss_min_enc_st_train, acc_train = loss_and_acc_train
+                        loss_min_enc_st_train, loss_max_tk_rep, acc_train = loss_and_acc_train
+
+
+                        #all_variables = (model.trainable_variables + optimizer.variables() + [global_step])
+
+                        #for v in all_variables:
+                        #    print(v.name)
+
+                        #print('trainable')
+                        #for v in model.trainable_variables:
+                        #    print(v.name)
+
+
+                        # TODO: parameterize
+                        if conf.f_surrogate_training_model:
+                            save_epoch=model.list_tk['in'].epoch_start_train_tk
+                        else:
+                            save_epoch=100
+                        #save_epoch=0
 
                         #
                         with tf.contrib.summary.always_record_summaries():
@@ -564,48 +622,140 @@ def main(_):
                             tf.contrib.summary.scalar('loss_enc_st', loss_enc_st_train, step=epoch)
                             tf.contrib.summary.scalar('loss_max_enc_st', loss_max_enc_st_train, step=epoch)
                             tf.contrib.summary.scalar('loss_min_enc_st', loss_min_enc_st_train, step=epoch)
+                            tf.contrib.summary.scalar('loss_max_tk_rep', loss_max_tk_rep, step=epoch)
                             tf.contrib.summary.scalar('accuracy', acc_train, step=epoch)
+
+                            for l_name in model.layer_name[:-1]:
+                                #scalar_name = 'tc_dec_avg_'+l_name
+                                #tf.contrib.summary.scalar(scalar_name, tf.reduce_mean(model.list_tk[l_name].tc_dec), step=epoch)
+                                #scalar_name = 'td_dec_avg_'+l_name
+                                #tf.contrib.summary.scalar(scalar_name, tf.reduce_mean(model.list_tk[l_name].td_dec), step=epoch)
+
+                                scalar_name = 'tc_avg_'+l_name
+                                tf.contrib.summary.scalar(scalar_name, tf.reduce_mean(model.list_tk[l_name].tc), step=epoch)
+                                scalar_name = 'td_avg_'+l_name
+                                tf.contrib.summary.scalar(scalar_name, tf.reduce_mean(model.list_tk[l_name].td), step=epoch)
+
+                                #scalar_name = 'ta_avg_'+l_name
+                                #tf.contrib.summary.scalar(scalar_name, tf.reduce_mean(model.list_tk[l_name].ta), step=epoch)
 
                     else:
                         loss_train, acc_train = train_func(model, optimizer, train_dataset_p)
+
+                        save_epoch=1
 
                         #
                         with tf.contrib.summary.always_record_summaries():
                             tf.contrib.summary.scalar('loss', loss_train, step=epoch)
                             tf.contrib.summary.scalar('accuracy', acc_train, step=epoch)
 
-
-
                 #end = time.time()
                 #print('\nTrain time for epoch #%d (global step %d): %f' % (epoch, global_step.numpy(), end-start))
 
+
                 #
+                f_save_model = False
                 with val_summary_writer.as_default():
-                    loss_val, acc_val, _ = test.test(model, val_dataset, conf, f_val=True)
+                    loss_val, acc_val, _ = test.test(model, val_dataset, num_val_dataset, conf, f_val=True)
+                    #loss_val, acc_val, _ = test.test(model, test_dataset, conf, f_val=True)
+
+
+
 
                     with tf.contrib.summary.always_record_summaries():
                         tf.contrib.summary.scalar('loss', loss_val, step=epoch)
                         tf.contrib.summary.scalar('accuracy', acc_val, step=epoch)
 
-                    #if acc_val_best < acc_val and epoch > 50:
+
+
                     if acc_val_best < acc_val:
                         acc_val_best = acc_val
+                        f_save_model = True
 
-                        if acc_val_best > 90.0:
-                            print('save model')
+                    #
+                    acc_val_target = acc_val
+                    acc_val_target_best = acc_val_best
 
-                            # save model
-                            #if epoch%conf.save_interval==0:
-                            all_variables = (model.variables + optimizer.variables() + [global_step])
-                            #print([v.name for v in all_variables])
-                            #tfe.Saver(all_variables).save(checkpoint_prefix, global_step=global_step)
-                            tfe.Saver(all_variables).save(checkpoint_prefix, global_step=epoch)
-                            #print(all_variables)
-                           #print('save model > global_step: %d'%(global_step.numpy()))
+
+                    #
+                    f_val_snn_start = acc_val_best > 99.4
+                    #f_val_snn_start = acc_val_best > 99.0
+                    if conf.f_validation_snn and f_val_snn_start:
+
+                        with val_snn_summary_writer.as_default():
+                            #loss_val_snn, acc_val_snn, _ = test.test(model, val_dataset, conf, f_val=False, f_val_snn=True)
+                            loss_val_snn, acc_val_snn, _ = test.test(model, val_dataset, num_val_dataset, conf, f_val=True, f_val_snn=True)
+
+                            with tf.contrib.summary.always_record_summaries():
+                                tf.contrib.summary.scalar('loss', loss_val_snn, step=epoch)
+                                tf.contrib.summary.scalar('accuracy', acc_val_snn, step=epoch)
+                                tf.contrib.summary.scalar('spikes', model.total_spike_count_int[-1,-1]/num_val_dataset, step=epoch)
+
+
+                        acc_val_target = acc_val_snn
+
+                        f_save_model = False
+                        if acc_val_snn_best < acc_val_snn:
+                            acc_val_snn_best = acc_val_snn
+                            spikes_best = model.total_spike_count_int[-1,-1]/num_val_dataset
+                            f_save_model = True
+
+                        acc_val_target_best=acc_val_snn_best
+                    #
+                    #if acc_val_target_best < acc_val_target:
+                    #    acc_val_target_best = acc_val_target
+                    if f_save_model:
+
+                        if epoch > epoch_start+save_epoch:
+                            # TODO: parameterize
+                            #f_save_model = acc_val_target_best > 99.0
+                            f_save_model = acc_val_target_best > 99.0
+                            #f_save_model = acc_val_best > 10.0
+
+
+                            #if acc_val_best > 90.0:
+                            if f_save_model:
+                                print('save model')
+
+                                #if conf.f_surrogate_training_model:
+                                #    for l_name in model.layer_name:
+                                #        s_name_tc = 'tc_avg_'+l_name
+                                #        s_name_td = 'td_avg_'+l_name
+                                #        s_name_ta = 'ta_avg_'+l_name
+                                #
+                                #        s_tc = tf.reduce_mean(model.list_tk[l_name].tc)
+                                #        s_td = tf.reduce_mean(model.list_tk[l_name].td)
+                                #        s_ta = tf.reduce_mean(model.list_tk[l_name].ta)
+                                #
+                                #        print('{}: {}, {}: {}, {}: {}'.format(s_name_tc,s_tc,s_name_td,s_td,s_name_ta,s_ta))
+
+                                global_step.assign(epoch)
+
+                                # save model
+                                #if epoch%conf.save_interval==0:
+                                all_variables = (model.variables + optimizer.variables() + [global_step])
+                                #all_variables = (model.trainable_variables + optimizer.variables() + [global_step])
+
+                                #print(all_variables)
+
+                                #print([v.name for v in all_variables])
+                                tfe.Saver(all_variables).save(checkpoint_prefix, global_step=global_step)
+                                #tfe.Saver(all_variables).save(checkpoint_prefix, global_step=epoch)
+                                #print(all_variables)
+                               #print('save model > global_step: %d'%(global_step.numpy()))
 
 
 
                 print('[%3d] train(loss: %.3f, acc: %.3f), valid(loss: %.3f, acc: %.3f, best: %.3f)'%(epoch,loss_train,acc_train,loss_val,acc_val,acc_val_best))
+
+                if conf.f_validation_snn and f_val_snn_start:
+                    print('valid_snn(loss: %.3f, acc: %.3f, best: %.3f, spikes: t %e, c1 %e, c2 %e spikes_best: %e)'%(loss_val_snn,acc_val_snn,acc_val_snn_best,model.total_spike_count_int[-1,-1]/num_val_dataset,model.total_spike_count_int[-1,0]/num_val_dataset,model.total_spike_count_int[-1,1]/num_val_dataset,spikes_best))
+
+
+                # test test
+                #loss_test, acc_test, _ = test.test(model, test_dataset, conf, f_val=False)
+                #print('[%3d] test(loss: %.3f, acc: %.3f)'%(epoch,loss_test,acc_test))
+
 
                 #gc.collect()
 
@@ -627,11 +777,18 @@ def main(_):
             model(images_0,False)
             #print('image 0 done')
 
+            #restore_variables = [v for v in model.trainable_variables if ('neuron' not in v.name) and ('dummy' not in v.name)]
             restore_variables = [v for v in model.variables if ('neuron' not in v.name) and ('dummy' not in v.name)]
+
+
             #restore_variables = model.trainable_weights
             #restore_variables = (model.trainable_weights + optimizer.variables() + [epoch])
             #restore_variables = (model.trainable_weights + optimizer.variables())
             #restore_variables = optimizer.variables()
+
+
+            #
+            #print([v.name for v in restore_variables])
 
 
             if conf.ann_model=='ResNet50':
@@ -761,11 +918,30 @@ def main(_):
             else:
                 #
                 with test_summary_writer.as_default():
-                    loss_test, acc_test, acc_test_top5 = test.test(model, test_dataset, conf)
+                    loss_test, acc_test, acc_test_top5 = test.test(model, test_dataset, num_test_dataset, conf)
+                    #loss_test, acc_test, acc_test_top5 = test.test(model, val_dataset, num_val_dataset, conf)
                     if conf.dataset == 'ImageNet':
                         print('loss_test: %f, acc_test: %f, acc_test_top5: %f'%(loss_test,acc_test,acc_test_top5))
                     else:
                         print('loss_test: %f, acc_test: %f'%(loss_test,acc_test))
+
+
+
+                    #loss_val_snn, acc_val_snn, _ = test.test(model, val_dataset, conf, f_val=True, f_val_snn=True)
+                    #print('valid_snn(loss: %.3f, acc: %.3f, best: %.3f, spikes: t %e, c1 %e, c2 %e spikes_best: %e)'%(loss_val_snn,acc_val_snn,acc_val_snn_best,model.total_spike_count_int[-1,-1],model.total_spike_count_int[-1,0],model.total_spike_count_int[-1,1],spikes_best))
+
+
+                    #if conf.f_surrogate_training_model:
+                    #    for l_name in model.layer_name:
+                    #        s_name_tc = 'tc_avg_'+l_name
+                    #        s_name_td = 'td_avg_'+l_name
+                    #        s_name_ta = 'ta_avg_'+l_name
+                    #
+                    #        s_tc = tf.reduce_mean(model.list_tk[l_name].tc)
+                    #        s_td = tf.reduce_mean(model.list_tk[l_name].td)
+                    #        s_ta = tf.reduce_mean(model.list_tk[l_name].ta)
+                    #
+                    #        print('{}: {}, {}: {}, {}: {}'.format(s_name_tc,s_tc,s_name_td,s_td,s_name_ta,s_ta))
 
         print('end')
 

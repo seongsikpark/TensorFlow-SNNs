@@ -3,4 +3,4 @@
 #tensorboard --logdir=./tensorboard_cnn_model_2/
 #tensorboard --logdir=$1
 
-tensorboard --logdir=./tensorboard/
+tensorboard --logdir=./tensorboard/cnn_mnist_train_ANN_surrogate_ANN/

@@ -63,7 +63,7 @@ def cal_output_shape_Conv2D_pad_val(data_format,input_shape,filters,kernel_size,
                 dilation=dilation_rate[i]
             )
             new_space.append(new_dim)
-        return tensor_shape.TensorShape([input_shape[0]] + new_space + [filters])
+        return tensor_shape.TensorShape([input_shape[0]] + new_space + [filters]).as_list()
     else:
         space = input_shape[2:]
         new_space = []
@@ -76,7 +76,7 @@ def cal_output_shape_Conv2D_pad_val(data_format,input_shape,filters,kernel_size,
                 dilation=dilation_rate[i]
             )
             new_space.append(new_dim)
-        return tensor_shape.TensorShape([input_shape[0], filters] + new_space)
+        return tensor_shape.TensorShape([input_shape[0], filters] + new_space).as_list()
 
 
 
@@ -111,9 +111,9 @@ def cal_output_shape_Pooling2D(data_format,input_shape,pool_size,strides):
         )
 
     if data_format == 'channels_first':
-        return tensor_shape.TensorShape([input_shape[0], input_shape[1], rows, cols])
+        return tensor_shape.TensorShape([input_shape[0], input_shape[1], rows, cols]).as_list()
     else:
-        return tensor_shape.TensorShape([input_shape[0], rows, cols, input_shape[3]])
+        return tensor_shape.TensorShape([input_shape[0], rows, cols, input_shape[3]]).as_list()
 
 
 
