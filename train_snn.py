@@ -144,7 +144,7 @@ def train_one_epoch_ttfs(model, optimizer, dataset):
 
             # labels_st: labels (first spike time) for TTFS coding
             #labels_st = lib_snn.ground_truth_in_spike_time(labels,1,model.list_neuron['in'].init_first_spike_time)
-            labels_st = lib_snn.ground_truth_in_spike_time(labels,1,model.init_first_spike_time)
+            #labels_st = lib_snn.ground_truth_in_spike_time(labels,1,model.init_first_spike_time)
 
             #
             # label - decoding value
@@ -238,8 +238,8 @@ def train_one_epoch_ttfs(model, optimizer, dataset):
             #
             #
             loss_weight['prediction']=1.0
-            loss_weight['enc_st']=0.05
-            loss_weight['max_enc_st']=0.1
+            loss_weight['enc_st']=0.0
+            loss_weight['max_enc_st']=0.0
             #loss_weight['min_enc_st']=0.1
             loss_weight['min_enc_st']=0.0
 

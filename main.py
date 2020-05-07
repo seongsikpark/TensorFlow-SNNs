@@ -17,7 +17,7 @@ from datetime import datetime
 #en_gpu=False
 en_gpu=True
 
-gpu_number=0
+gpu_number=1
 os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
 
 if en_gpu==False:
@@ -362,6 +362,11 @@ def main(_):
             model = models.CIFARModel_CNN(data_format,conf)
         elif conf.dataset=='CIFAR-100':
             model = models.CIFARModel_CNN(data_format,conf)
+    elif conf.ann_model=='VGG16':
+        if conf.dataset=='CIFAR-10':
+            model = models.CIFARModel_CNN(data_format,conf)
+        elif conf.dataset=='CIFAR-100':
+            model = models.CIFARModel_CNN(data_format,conf)
     elif conf.ann_model=='ResNet18':
         if conf.dataset=='CIFAR-10' or conf.dataset=='CIFAR-100':
             model = resnet.Resnet18(data_format,conf)
@@ -369,8 +374,18 @@ def main(_):
         if conf.dataset=='ImageNet':
             model = resnet.Resnet50(data_format,conf)
     else:
-        print('not supported model name: '+self.ann_model)
+        print('not supported model name: '+conf.ann_model)
         os._exit(0)
+
+
+    #
+    save_target_acc_sel = {
+        'MNIST': 99.0,
+        'CIFAR-10': 92.0,
+        'CIFAR-100': 68.0
+    }
+    save_target_acc = save_target_acc_sel[conf.dataset]
+
 
 
 
@@ -442,6 +457,8 @@ def main(_):
     checkpoint_prefix = os.path.join(checkpoint_dir, 'ckpt')
 
 
+    # epoch
+    global_step = tf.Variable(name='global_step', initial_value=tf.zeros(shape=[]),dtype=tf.int32,trainable=False)
 
     with tf.device(device):
         #if conf.en_train:
@@ -462,11 +479,14 @@ def main(_):
             if conf.en_load_model:
                 #tfe.restore_variables_on_create(tf.train.latest_checkpoint(checkpoint_load_dir))
 
-                #restore_variables = (model.trainable_weights + optimizer.variables() + [epoch])
-                restore_variables = (model.trainable_weights + optimizer.variables())
+                #restore_variables = (model.trainable_weights + optimizer.variables())
+                restore_variables = (model.trainable_weights + optimizer.variables() + [global_step])
                 #restore_variables = (model.trainable_weights)
 
-                print(restore_variables)
+                #print(restore_variables)
+
+                #for v in restore_variables:
+                #    print(v.name)
 
                 print('load model')
                 print(tf.train.latest_checkpoint(checkpoint_load_dir))
@@ -475,15 +495,30 @@ def main(_):
                 saver.restore(tf.train.latest_checkpoint(checkpoint_load_dir))
 
 
-            epoch_start = 0
+                #epoch_start=epoch_train
+                epoch_start=int(global_step.numpy())
 
+
+                #
+                #loss_val, acc_val, _ = test.test(model, val_dataset, conf, f_val=True)
+                #acc_val_best = acc_val
+                #print('loaded validation accuracy: {}'.format(acc_val_best))
+            else:
+                epoch_start = 0
+
+            #global_step = tf.train.get_or_create_global_step()
 
             #
 
             #with tfe.restore_variables_on_create(tf.train.latest_checkpoint(checkpoint_load_dir)):
             #for epoch in range(1,11):
-            for epoch in range(epoch_start,conf.epoch+1):
-                global_step = tf.train.get_or_create_global_step()
+            for epoch in range(epoch_start,epoch_start+conf.epoch+1):
+
+
+
+
+
+
                 #start = time.time()
 
                 #if conf.dataset=='CIFAR-10' or conf.dataset=='CIFAR-100':
@@ -575,7 +610,6 @@ def main(_):
                             tf.contrib.summary.scalar('accuracy', acc_train, step=epoch)
 
 
-
                 #end = time.time()
                 #print('\nTrain time for epoch #%d (global step %d): %f' % (epoch, global_step.numpy(), end-start))
 
@@ -587,21 +621,28 @@ def main(_):
                         tf.contrib.summary.scalar('loss', loss_val, step=epoch)
                         tf.contrib.summary.scalar('accuracy', acc_val, step=epoch)
 
-                    #if acc_val_best < acc_val and epoch > 50:
                     if acc_val_best < acc_val:
                         acc_val_best = acc_val
 
-                        if acc_val_best > 90.0:
-                            print('save model')
 
-                            # save model
-                            #if epoch%conf.save_interval==0:
-                            all_variables = (model.variables + optimizer.variables() + [global_step])
-                            #print([v.name for v in all_variables])
-                            #tfe.Saver(all_variables).save(checkpoint_prefix, global_step=global_step)
-                            tfe.Saver(all_variables).save(checkpoint_prefix, global_step=epoch)
-                            #print(all_variables)
-                           #print('save model > global_step: %d'%(global_step.numpy()))
+                        #if acc_val_best < acc_val and epoch > 50 + epoch_start:
+                        #if acc_val_best < acc_val:
+                        if epoch > 50 + epoch_start:
+
+                            if acc_val_best > save_target_acc:
+                                print('save model')
+
+                                global_step.assign(epoch)
+                                # save model
+                                #if epoch%conf.save_interval==0:
+                                all_variables = (model.variables + optimizer.variables() + [global_step])
+                                #all_variables = (model.variables + optimizer.variables() + [epoch_train])
+                                #print([v.name for v in all_variables])
+                                #tfe.Saver(all_variables).save(checkpoint_prefix, global_step=global_step)
+                                #tfe.Saver(all_variables).save(checkpoint_prefix, global_step=epoch)
+                                tfe.Saver(all_variables).save(checkpoint_prefix, global_step=global_step)
+                                #print(all_variables)
+                               #print('save model > global_step: %d'%(global_step.numpy()))
 
 
 

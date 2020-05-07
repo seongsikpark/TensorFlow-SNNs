@@ -10,22 +10,65 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a59cc8b6-9dbe-41c8-8d2e-009d3879113f" name="Default" comment="merge temporal coding branch">
-      <change afterPath="$PROJECT_DIR$/scripts/models_descript.conf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/scripts/path.conf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/scripts/utils.conf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/scripts/weight_norm.conf" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/train_snn.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib_snn.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib_snn.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model_cnn_mnist.py" beforeDir="false" afterPath="$PROJECT_DIR$/model_cnn_mnist.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/mlp.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/mlp.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/run.sh" beforeDir="false" afterPath="$PROJECT_DIR$/run.sh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tensorboard.sh" beforeDir="false" afterPath="$PROJECT_DIR$/tensorboard.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1519635095.canyon" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1519635114.canyon" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1528615743.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1528630246.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1528630270.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1528630279.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1528636653.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1528637329.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1528637336.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1528637368.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1542117764.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1548055774.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1548055874.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1548055956.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1519635095.canyon" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1519635114.canyon" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1528615743.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1528630246.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1528630270.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1528630279.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1528636653.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1528637329.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1528637336.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1528637368.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1542117764.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1548055774.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1548055874.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1548055956.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1519635095.canyon" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1519635114.canyon" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1528615743.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1528630246.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1528630270.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1528630279.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1528636653.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1528637329.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1528637336.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1528637368.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1542117764.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1548055774.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1548055874.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1548055956.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_ANN/test/events.out.tfevents.1548055993.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_ANN/test/events.out.tfevents.1548056035.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_ANN/test/events.out.tfevents.1548056068.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_ANN/train/events.out.tfevents.1548055993.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_ANN/train/events.out.tfevents.1548056035.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_ANN/train/events.out.tfevents.1548056068.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_ANN/val/events.out.tfevents.1548055993.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_ANN/val/events.out.tfevents.1548056035.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_ANN/val/events.out.tfevents.1548056068.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_SNN/LIF_time_step_10_vth_0.7/test/events.out.tfevents.1548056090.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_SNN/LIF_time_step_10_vth_0.7/train/events.out.tfevents.1548056090.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_SNN/LIF_time_step_10_vth_0.7/val/events.out.tfevents.1548056090.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/train_snn.py" beforeDir="false" afterPath="$PROJECT_DIR$/train_snn.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -138,45 +181,52 @@
         </counts>
       </usages-collector>
     </session>
+    <session id="349724814">
+      <usages-collector id="statistics.file.extensions.open">
+        <counts>
+          <entry key="conf" value="2" />
+          <entry key="py" value="2" />
+          <entry key="sh" value="1" />
+        </counts>
+      </usages-collector>
+      <usages-collector id="statistics.file.types.open">
+        <counts>
+          <entry key="Bash" value="1" />
+          <entry key="PLAIN_TEXT" value="2" />
+          <entry key="Python" value="2" />
+        </counts>
+      </usages-collector>
+      <usages-collector id="statistics.file.extensions.edit">
+        <counts>
+          <entry key="Python Console" value="19" />
+          <entry key="conf" value="5" />
+          <entry key="py" value="1421" />
+          <entry key="sh" value="876" />
+        </counts>
+      </usages-collector>
+      <usages-collector id="statistics.file.types.edit">
+        <counts>
+          <entry key="Bash" value="876" />
+          <entry key="PLAIN_TEXT" value="5" />
+          <entry key="Python" value="1440" />
+        </counts>
+      </usages-collector>
+    </session>
   </component>
   <component name="FavoritesManager">
     <favorites_list name="05_SNN" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.48534384">
+    <splitter split-orientation="horizontal" split-proportion="0.57978725">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file pinned="false" current-in-tab="false">
+          <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/main.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="570">
-                  <caret line="560" column="49" selection-start-line="560" selection-start-column="49" selection-end-line="560" selection-end-column="49" />
+                <state relative-caret-position="810">
+                  <caret line="636" column="60" selection-start-line="636" selection-start-column="60" selection-end-line="636" selection-end-column="60" />
                   <folding>
                     <element signature="e#0#38#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/model_cnn_mnist.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="45">
-                  <caret line="566" lean-forward="true" selection-start-line="566" selection-end-line="566" />
-                  <folding>
-                    <element signature="e#0#23#0" expanded="true" />
-                    <marker date="1587449981287" expanded="true" signature="14592:14601" ph="..." />
-                    <marker date="1587449981287" expanded="true" signature="14729:14882" ph="..." />
-                    <marker date="1587449981287" expanded="true" signature="15436:16383" ph="..." />
-                    <marker date="1587449981287" expanded="true" signature="16439:16802" ph="..." />
-                    <marker date="1587449981287" expanded="true" signature="22589:22732" ph="..." />
-                    <marker date="1587449981287" expanded="true" signature="22589:22823" ph="..." />
-                    <marker date="1587449981287" expanded="true" signature="24794:24795" ph="..." />
-                    <marker date="1587449981287" expanded="true" signature="26247:26252" ph="..." />
-                    <marker date="1587449981287" expanded="true" signature="26304:26306" ph="..." />
-                    <marker date="1587449981287" expanded="true" signature="26658:26663" ph="..." />
-                    <marker date="1587449981287" expanded="true" signature="35702:35710" ph="..." />
-                    <marker date="1587449981287" expanded="true" signature="44657:44728" ph="..." />
                   </folding>
                 </state>
               </provider>
@@ -185,8 +235,43 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/train.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="720">
-                  <caret line="72" column="37" selection-start-line="72" selection-start-column="37" selection-end-line="72" selection-end-column="37" />
+                <state relative-caret-position="2526">
+                  <caret line="364" column="27" selection-start-line="364" selection-start-column="27" selection-end-line="364" selection-end-column="27" />
+                  <folding>
+                    <element signature="e#0#38#0" expanded="true" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/model_cnn_mnist.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="435">
+                  <caret line="151" selection-start-line="151" selection-end-line="151" />
+                  <folding>
+                    <element signature="e#0#23#0" expanded="true" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/datasets/cifar10.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state>
+                  <folding>
+                    <element signature="e#0#38#0" expanded="true" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/test.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="1875">
+                  <caret line="140" selection-start-line="140" selection-end-line="140" />
                   <folding>
                     <element signature="e#0#38#0" expanded="true" />
                   </folding>
@@ -197,8 +282,8 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/models/mlp.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="135">
-                  <caret line="172" selection-start-line="172" selection-end-line="172" />
+                <state relative-caret-position="1470">
+                  <caret line="128" column="21" selection-start-line="128" selection-start-column="21" selection-end-line="128" selection-end-column="21" />
                   <folding>
                     <element signature="e#0#23#0" expanded="true" />
                   </folding>
@@ -207,12 +292,12 @@
             </entry>
           </file>
           <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/test.py">
+            <entry file="file://$PROJECT_DIR$/models/models.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="-540">
-                  <caret line="39" column="46" selection-start-line="39" selection-start-column="46" selection-end-line="39" selection-end-column="46" />
+                <state relative-caret-position="156">
+                  <caret line="2747" column="15" selection-start-line="2747" selection-start-column="15" selection-end-line="2747" selection-end-column="15" />
                   <folding>
-                    <element signature="e#0#38#0" expanded="true" />
+                    <element signature="e#0#23#0" expanded="true" />
                   </folding>
                 </state>
               </provider>
@@ -222,38 +307,25 @@
       </split-first>
       <split-second>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/models/models.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="405">
-                  <caret line="708" column="49" selection-start-line="708" selection-start-column="49" selection-end-line="708" selection-end-column="49" />
-                  <folding>
-                    <element signature="e#0#23#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
           <file pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/train_snn.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="690">
-                  <caret line="271" column="86" lean-forward="true" selection-start-line="271" selection-start-column="86" selection-end-line="271" selection-end-column="86" />
-                  <folding>
-                    <element signature="e#0#38#0" expanded="true" />
-                    <marker date="1587455147276" expanded="true" signature="1350:10106" ph="..." />
-                    <marker date="1587455147276" expanded="true" signature="1894:9918" ph="..." />
-                    <marker date="1587455147276" expanded="true" signature="4387:4723" ph="..." />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/run.sh">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="360">
-                  <caret line="310" selection-start-line="310" selection-end-line="310" />
+                <state relative-caret-position="390">
+                  <caret line="260" selection-start-line="260" selection-end-line="260" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/scripts/utils.conf">
+              <provider selected="true" editor-type-id="text-editor" />
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/scripts/weight_norm.conf">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="570">
+                  <caret line="38" selection-start-line="38" selection-end-line="38" />
                 </state>
               </provider>
             </entry>
@@ -261,23 +333,23 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/lib_snn.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="7050">
-                  <caret line="436" column="79" selection-start-line="436" selection-start-column="79" selection-end-line="436" selection-end-column="79" />
+                <state relative-caret-position="689">
+                  <caret line="1090" column="28" selection-start-line="1090" selection-start-column="28" selection-end-line="1090" selection-end-column="28" />
                   <folding>
                     <element signature="e#0#23#0" expanded="true" />
-                    <marker date="1587316323154" expanded="true" signature="16356:16361" ph="..." />
-                    <marker date="1587316323154" expanded="true" signature="27340:27344" ph="..." />
-                    <marker date="1587316323154" expanded="true" signature="29871:29881" ph="..." />
                   </folding>
                 </state>
               </provider>
             </entry>
           </file>
           <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/scripts/models_descript.conf">
+            <entry file="file://$PROJECT_DIR$/train_snn.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="720">
-                  <caret line="48" selection-start-line="48" selection-end-line="48" />
+                <state relative-caret-position="195">
+                  <caret line="127" column="9" selection-start-line="127" selection-start-column="9" selection-end-line="127" selection-end-column="9" />
+                  <folding>
+                    <element signature="e#0#38#0" expanded="true" />
+                  </folding>
                 </state>
               </provider>
             </entry>
@@ -339,16 +411,16 @@
         <option value="$PROJECT_DIR$/test.py" />
         <option value="$PROJECT_DIR$/models/models.py" />
         <option value="$PROJECT_DIR$/scripts/weight_norm.sh" />
-        <option value="$PROJECT_DIR$/scripts/weight_norm.conf" />
         <option value="$PROJECT_DIR$/scripts/utils.conf" />
         <option value="$PROJECT_DIR$/scripts/path.conf" />
         <option value="$PROJECT_DIR$/lib_snn.py" />
         <option value="$PROJECT_DIR$/scripts/models_descript.conf" />
         <option value="$PROJECT_DIR$/tensorboard.sh" />
-        <option value="$PROJECT_DIR$/main.py" />
-        <option value="$PROJECT_DIR$/run.sh" />
         <option value="$PROJECT_DIR$/model_cnn_mnist.py" />
         <option value="$PROJECT_DIR$/train_snn.py" />
+        <option value="$PROJECT_DIR$/main.py" />
+        <option value="$PROJECT_DIR$/scripts/weight_norm.conf" />
+        <option value="$PROJECT_DIR$/run.sh" />
       </list>
     </option>
   </component>
@@ -381,13 +453,17 @@
         <subPane>
           <expand>
             <path>
-              <item name="05_SNN_temporal" type="b2602c69:ProjectViewProjectNode" />
-              <item name="05_SNN_temporal" type="462c0819:PsiDirectoryNode" />
+              <item name="05_SNN_temporal_1" type="b2602c69:ProjectViewProjectNode" />
+              <item name="05_SNN_temporal_1" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
-              <item name="05_SNN_temporal" type="b2602c69:ProjectViewProjectNode" />
-              <item name="05_SNN_temporal" type="462c0819:PsiDirectoryNode" />
+              <item name="05_SNN_temporal_1" type="b2602c69:ProjectViewProjectNode" />
+              <item name="05_SNN_temporal_1" type="462c0819:PsiDirectoryNode" />
               <item name="scripts" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="05_SNN_temporal_1" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
             </path>
           </expand>
           <select />
@@ -688,7 +764,7 @@
       <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Version Control" order="8" weight="0.3293745" />
       <window_info anchor="bottom" id="Python Console" order="9" weight="0.20527157" />
-      <window_info anchor="bottom" id="Terminal" order="10" sideWeight="0.4984089" visible="true" weight="0.32747602" />
+      <window_info anchor="bottom" id="Terminal" order="10" sideWeight="0.4984089" weight="0.18610224" />
       <window_info anchor="bottom" id="Docker" order="11" show_stripe_button="false" />
       <window_info anchor="bottom" id="Inspection Results" order="12" weight="0.32937366" />
       <window_info anchor="right" id="Coverage" order="0" side_tool="true" />
@@ -880,27 +956,11 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/datasets/cifar10.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <folding>
-            <element signature="e#0#38#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/models/cnn.py">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
     <entry file="file://$PROJECT_DIR$/run_train_tc_batch.sh">
       <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/scripts/weight_norm.conf">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="90">
-          <caret line="6" selection-start-line="6" selection-end-line="6" />
-        </state>
-      </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/scripts/path.conf">
       <provider selected="true" editor-type-id="text-editor">
@@ -909,70 +969,21 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/scripts/utils.conf">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/test.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-540">
-          <caret line="39" column="46" selection-start-line="39" selection-start-column="46" selection-end-line="39" selection-end-column="46" />
+        <state relative-caret-position="1875">
+          <caret line="140" selection-start-line="140" selection-end-line="140" />
           <folding>
             <element signature="e#0#38#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/model_cnn_mnist_ori.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2115">
-          <caret line="999" selection-start-line="999" selection-end-line="999" />
-          <folding>
-            <element signature="e#0#23#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/model_cnn_mnist_ori.py" />
     <entry file="file://$PROJECT_DIR$/models/mlp.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="135">
-          <caret line="172" selection-start-line="172" selection-end-line="172" />
-          <folding>
-            <element signature="e#0#23#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/tensorboard.sh">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="90">
-          <caret line="6" selection-start-line="6" selection-end-line="6" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/main.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="570">
-          <caret line="560" column="49" selection-start-line="560" selection-start-column="49" selection-end-line="560" selection-end-column="49" />
-          <folding>
-            <element signature="e#0#38#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/train.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="720">
-          <caret line="72" column="37" selection-start-line="72" selection-start-column="37" selection-end-line="72" selection-end-column="37" />
-          <folding>
-            <element signature="e#0#38#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/models/models.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="405">
-          <caret line="708" column="49" selection-start-line="708" selection-start-column="49" selection-end-line="708" selection-end-column="49" />
+        <state relative-caret-position="1470">
+          <caret line="128" column="21" selection-start-line="128" selection-start-column="21" selection-end-line="128" selection-end-column="21" />
           <folding>
             <element signature="e#0#23#0" expanded="true" />
           </folding>
@@ -986,58 +997,96 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/lib_snn.py">
+    <entry file="file://$PROJECT_DIR$/tensorboard.sh">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="7050">
-          <caret line="436" column="79" selection-start-line="436" selection-start-column="79" selection-end-line="436" selection-end-column="79" />
+        <state relative-caret-position="90">
+          <caret line="6" lean-forward="true" selection-start-line="6" selection-end-line="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/datasets/cifar10.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
           <folding>
-            <element signature="e#0#23#0" expanded="true" />
-            <marker date="1587316323154" expanded="true" signature="16356:16361" ph="..." />
-            <marker date="1587316323154" expanded="true" signature="27340:27344" ph="..." />
-            <marker date="1587316323154" expanded="true" signature="29871:29881" ph="..." />
+            <element signature="e#0#38#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/run.sh">
+    <entry file="file://$PROJECT_DIR$/models/models.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="360">
-          <caret line="310" selection-start-line="310" selection-end-line="310" />
+        <state relative-caret-position="156">
+          <caret line="2747" column="15" selection-start-line="2747" selection-start-column="15" selection-end-line="2747" selection-end-column="15" />
+          <folding>
+            <element signature="e#0#23#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/train_snn.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="690">
-          <caret line="271" column="86" lean-forward="true" selection-start-line="271" selection-start-column="86" selection-end-line="271" selection-end-column="86" />
+        <state relative-caret-position="195">
+          <caret line="127" column="9" selection-start-line="127" selection-start-column="9" selection-end-line="127" selection-end-column="9" />
           <folding>
             <element signature="e#0#38#0" expanded="true" />
-            <marker date="1587455147276" expanded="true" signature="1350:10106" ph="..." />
-            <marker date="1587455147276" expanded="true" signature="1894:9918" ph="..." />
-            <marker date="1587455147276" expanded="true" signature="4387:4723" ph="..." />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/model_cnn_mnist.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="45">
-          <caret line="566" lean-forward="true" selection-start-line="566" selection-end-line="566" />
+        <state relative-caret-position="435">
+          <caret line="151" selection-start-line="151" selection-end-line="151" />
           <folding>
             <element signature="e#0#23#0" expanded="true" />
-            <marker date="1587449981287" expanded="true" signature="14592:14601" ph="..." />
-            <marker date="1587449981287" expanded="true" signature="14729:14882" ph="..." />
-            <marker date="1587449981287" expanded="true" signature="15436:16383" ph="..." />
-            <marker date="1587449981287" expanded="true" signature="16439:16802" ph="..." />
-            <marker date="1587449981287" expanded="true" signature="22589:22732" ph="..." />
-            <marker date="1587449981287" expanded="true" signature="22589:22823" ph="..." />
-            <marker date="1587449981287" expanded="true" signature="24794:24795" ph="..." />
-            <marker date="1587449981287" expanded="true" signature="26247:26252" ph="..." />
-            <marker date="1587449981287" expanded="true" signature="26304:26306" ph="..." />
-            <marker date="1587449981287" expanded="true" signature="26658:26663" ph="..." />
-            <marker date="1587449981287" expanded="true" signature="35702:35710" ph="..." />
-            <marker date="1587449981287" expanded="true" signature="44657:44728" ph="..." />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/train.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2526">
+          <caret line="364" column="27" selection-start-line="364" selection-start-column="27" selection-end-line="364" selection-end-column="27" />
+          <folding>
+            <element signature="e#0#38#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scripts/utils.conf">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib_snn.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="689">
+          <caret line="1090" column="28" selection-start-line="1090" selection-start-column="28" selection-end-line="1090" selection-end-column="28" />
+          <folding>
+            <element signature="e#0#23#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scripts/weight_norm.conf">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="570">
+          <caret line="38" selection-start-line="38" selection-end-line="38" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="810">
+          <caret line="636" column="60" selection-start-line="636" selection-start-column="60" selection-end-line="636" selection-end-column="60" />
+          <folding>
+            <element signature="e#0#38#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/run.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="390">
+          <caret line="260" selection-start-line="260" selection-end-line="260" />
         </state>
       </provider>
     </entry>

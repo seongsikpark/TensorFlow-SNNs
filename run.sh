@@ -33,12 +33,31 @@ verbose=False
 verbose_visual=False
 
 
+
+###############################################################################
+## Model & Dataset
+###############################################################################
+#nn_mode='ANN'
+nn_mode='SNN'
+
+
+exp_case='CNN_MNIST'
+#exp_case='VGG16_CIFAR-10'
+#exp_case='VGG16_CIFAR-100'
+#exp_case='ResNet50_ImageNet'
+
+
+
 ###############################################################################
 ## Run
 ###############################################################################
 
-training_mode=True
-#training_mode=False
+#training_mode=True
+training_mode=False
+
+#
+#load_and_train=False
+load_and_train=True
 
 
 # full test
@@ -65,9 +84,17 @@ f_full_test=True
 
 
 # for MNIST, CNN
-# SNN training
+# DNN-to-SNN, inference
 time_step=200
-time_step_save_interval=40
+#time_step_save_interval=10
+time_step_save_interval=2
+
+
+
+# for MNIST, CNN
+# SNN training
+#time_step=200
+#time_step_save_interval=40
 
 
 ###############################################################
@@ -87,18 +114,6 @@ num_test_dataset=2
 
 
 
-
-###############################################################################
-## Model & Dataset
-###############################################################################
-nn_mode='ANN'
-#nn_mode='SNN'
-
-
-exp_case='CNN_MNIST'
-#exp_case='VGG16_CIFAR-10'
-#exp_case='VGG16_CIFAR-100'
-#exp_case='ResNet50_ImageNet'
 
 
 
@@ -204,10 +219,10 @@ snn_output_type='VMEM'
 #snn_output_type='FIRST_SPIKE_TIME'       # for TTFS coding
 
 
-if [ ${training_mode} = True ] && [ ${neural_coding} = "TEMPORAL" ]
-then
-    snn_output_type='FIRST_SPIKE_TIME'
-fi
+#if [ ${training_mode} = True ] && [ ${neural_coding} = "TEMPORAL" ]
+#then
+#    snn_output_type='FIRST_SPIKE_TIME'
+#fi
 
 
 
@@ -250,11 +265,11 @@ time_const_init_file_name='./temporal_coding'
 
 #
 #time_const_num_trained_data=50000
-#time_const_num_trained_data=40000
+time_const_num_trained_data=40000
 #time_const_num_trained_data=30000
 #time_const_num_trained_data=20000
 #time_const_num_trained_data=10000
-time_const_num_trained_data=0
+#time_const_num_trained_data=0
 
 #
 time_const_save_interval=1000
@@ -303,11 +318,18 @@ epoch_train_time_const=1
 #tc=25
 #time_window=100
 
-tc=20
 
-time_fire_start=80    # integration duration - n x tc
-time_fire_duration=80   # time window - n x tc
+# TTFS - MNIST default setting
+tc=5
+time_fire_start=10    # integration duration - n x tc
+time_fire_duration=20   # time window - n x tc
 time_window=${time_fire_duration}
+
+# TTFS - CIFAR-10 default setting
+#tc=20
+#time_fire_start=80    # integration duration - n x tc
+#time_fire_duration=80   # time window - n x tc
+#time_window=${time_fire_duration}
 
 
 #f_tc_based=True
@@ -327,8 +349,8 @@ n_tau_time_window=${n_tau_fire_duration}
 #
 # training SNN w/ surrogate model (DNN)
 # actual training is performed in the surrogate DNN model
-f_surrogate_training_model=True
-#f_surrogate_training_model=False
+#f_surrogate_training_model=True
+f_surrogate_training_model=False
 
 
 #
@@ -472,7 +494,8 @@ INFER_VGG16_CIFAR-100)
     echo "Inference mode - "${nn_mode}", Model: VGG16, Dataset: CIFAR-100"
     ann_model='CNN'         # CNN-CIFAR: VGG16
     dataset='CIFAR-100'
-    model_name='vgg_cifar100_ro_0'
+    #model_name='vgg_cifar100_ro_0'
+    model_name='vgg16_cifar100_train_ANN'
 
     if [ ${f_full_test} = True ]
     then
@@ -517,6 +540,7 @@ TRAIN_CNN_MNIST)
     dataset='MNIST'
     ann_model='CNN'
 
+    num_epoch=1000
 
 
     if [ ${f_surrogate_training_model} = True ]
@@ -524,6 +548,71 @@ TRAIN_CNN_MNIST)
         model_name='cnn_mnist_train_'${nn_mode}_'surrogate'
     else
         model_name='cnn_mnist_train_'${nn_mode}
+    fi
+
+    if [ ${f_full_test} = True ]
+    then
+        batch_size=400
+        idx_test_dataset_s=0
+        num_test_dataset=10000
+    fi
+
+    if [ ${neural_coding} = "TEMPORAL" ]
+    then
+        if [ ${f_tc_based} = True ]
+        then
+            time_step="$((5*${n_tau_fire_start}*${tc} + ${n_tau_fire_duration}*${tc}))"
+        else
+            time_step="$((4*${time_fire_start} + ${time_fire_duration}))"
+        fi
+    fi
+    ;;
+
+TRAIN_VGG16_CIFAR-10)
+    echo "Training mode - "${nn_mode}", Model: VGG16, Dataset: CIFAR-10"
+    dataset='CIFAR-10'
+    ann_model='VGG16'
+
+    num_epoch=1500
+
+    if [ ${f_surrogate_training_model} = True ]
+    then
+        model_name='vgg16_cifar10_train_'${nn_mode}_'surrogate'
+    else
+        model_name='vgg16_cifar10_train_'${nn_mode}
+    fi
+
+    if [ ${f_full_test} = True ]
+    then
+        batch_size=400
+        idx_test_dataset_s=0
+        num_test_dataset=10000
+    fi
+
+    if [ ${neural_coding} = "TEMPORAL" ]
+    then
+        if [ ${f_tc_based} = True ]
+        then
+            time_step="$((5*${n_tau_fire_start}*${tc} + ${n_tau_fire_duration}*${tc}))"
+        else
+            time_step="$((4*${time_fire_start} + ${time_fire_duration}))"
+        fi
+    fi
+    ;;
+
+TRAIN_VGG16_CIFAR-100)
+    echo "Training mode - "${nn_mode}", Model: VGG16, Dataset: CIFAR-100"
+    dataset='CIFAR-100'
+    ann_model='VGG16'
+
+    #num_epoch=2000
+    num_epoch=4000
+
+    if [ ${f_surrogate_training_model} = True ]
+    then
+        model_name='vgg16_cifar100_train_'${nn_mode}_'surrogate'
+    else
+        model_name='vgg16_cifar100_train_'${nn_mode}
     fi
 
     if [ ${f_full_test} = True ]
@@ -617,8 +706,15 @@ echo "time_step: " ${time_step}
 
 if [ ${training_mode} = True ]
 then
+
+    if [ ${load_and_train} = True ]
+    then
+        en_load_model=True
+    else
+        en_load_model=False
+    fi
+
     en_train=True
-    en_load_model=False
 
     #nn_mode='ANN'
     f_fused_bn=False
