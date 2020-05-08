@@ -40,22 +40,8 @@ nn_mode='ANN'
 #nn_mode='SNN'
 
 
-exp_case='CNN_MNIST'
-#exp_case='VGG16_CIFAR-10'
-#exp_case='VGG16_CIFAR-100'
-#exp_case='ResNet50_ImageNet'
-
-
-
-###############################################################################
-## Model & Dataset
-###############################################################################
-#nn_mode='ANN'
-nn_mode='SNN'
-
-
-exp_case='CNN_MNIST'
-#exp_case='VGG16_CIFAR-10'
+#exp_case='CNN_MNIST'
+exp_case='VGG16_CIFAR-10'
 #exp_case='VGG16_CIFAR-100'
 #exp_case='ResNet50_ImageNet'
 
@@ -65,12 +51,8 @@ exp_case='CNN_MNIST'
 ## Run
 ###############################################################################
 
-#training_mode=True
-training_mode=False
-
-#
-#load_and_train=False
-load_and_train=True
+training_mode=True
+#training_mode=False
 
 #
 # If this flag is False, then the trained model is overwritten
@@ -521,8 +503,8 @@ INFER_CNN_MNIST)
     dataset='MNIST'
     ann_model='CNN'
     # TODO: model name parameterize
-    #model_name='cnn_mnist_ro_0'
-    model_name='cnn_mnist_train_ANN'
+    model_name='cnn_mnist_ro_0'
+    #model_name='cnn_mnist_train_ANN'
 
     if [ ${f_full_test} = True ]
     then
@@ -700,7 +682,7 @@ TRAIN_VGG16_CIFAR-10)
     dataset='CIFAR-10'
     ann_model='VGG16'
 
-    num_epoch=1500
+    num_epoch=2000
 
     if [ ${f_surrogate_training_model} = True ]
     then

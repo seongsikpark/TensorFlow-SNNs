@@ -71,6 +71,7 @@ class CIFARModel_CNN(tfe.Network):
         self.f_skip_bn = self.conf.f_fused_bn
 
         self.layer_name=[
+            'in',
             'conv1',
             'conv1_1',
             'conv2',
@@ -296,9 +297,9 @@ class CIFARModel_CNN(tfe.Network):
         self.shape_out_conv5_2 = util.cal_output_shape_Conv2D(self.data_format,self.shape_out_conv5_1,512,self.kernel_size,1)
         self.shape_out_conv5_p = util.cal_output_shape_Pooling2D(self.data_format,self.shape_out_conv5_2,2,2)
 
-        self.shape_out_fc1 = tensor_shape.TensorShape([self.conf.batch_size,512])
-        self.shape_out_fc2 = tensor_shape.TensorShape([self.conf.batch_size,512])
-        self.shape_out_fc3 = tensor_shape.TensorShape([self.conf.batch_size,self.num_class])
+        self.shape_out_fc1 = tensor_shape.TensorShape([self.conf.batch_size,512]).as_list()
+        self.shape_out_fc2 = tensor_shape.TensorShape([self.conf.batch_size,512]).as_list()
+        self.shape_out_fc3 = tensor_shape.TensorShape([self.conf.batch_size,self.num_class]).as_list()
 
 
         self.dict_shape=collections.OrderedDict()
@@ -326,27 +327,27 @@ class CIFARModel_CNN(tfe.Network):
 
 
         self.dict_shape_one_batch=collections.OrderedDict()
-        self.dict_shape_one_batch['conv1']=[1,]+self.shape_out_conv1.as_list()[1:]
-        self.dict_shape_one_batch['conv1_1']=[1,]+self.shape_out_conv1_1.as_list()[1:]
-        self.dict_shape_one_batch['conv1_p']=[1,]+self.shape_out_conv1_p.as_list()[1:]
-        self.dict_shape_one_batch['conv2']=[1,]+self.shape_out_conv2.as_list()[1:]
-        self.dict_shape_one_batch['conv2_1']=[1,]+self.shape_out_conv2_1.as_list()[1:]
-        self.dict_shape_one_batch['conv2_p']=[1,]+self.shape_out_conv2_p.as_list()[1:]
-        self.dict_shape_one_batch['conv3']=[1,]+self.shape_out_conv3.as_list()[1:]
-        self.dict_shape_one_batch['conv3_1']=[1,]+self.shape_out_conv3_1.as_list()[1:]
-        self.dict_shape_one_batch['conv3_2']=[1,]+self.shape_out_conv3_2.as_list()[1:]
-        self.dict_shape_one_batch['conv3_p']=[1,]+self.shape_out_conv3_p.as_list()[1:]
-        self.dict_shape_one_batch['conv4']=[1,]+self.shape_out_conv4.as_list()[1:]
-        self.dict_shape_one_batch['conv4_1']=[1,]+self.shape_out_conv4_1.as_list()[1:]
-        self.dict_shape_one_batch['conv4_2']=[1,]+self.shape_out_conv4_2.as_list()[1:]
-        self.dict_shape_one_batch['conv4_p']=[1,]+self.shape_out_conv4_p.as_list()[1:]
-        self.dict_shape_one_batch['conv5']=[1,]+self.shape_out_conv5.as_list()[1:]
-        self.dict_shape_one_batch['conv5_1']=[1,]+self.shape_out_conv5_1.as_list()[1:]
-        self.dict_shape_one_batch['conv5_2']=[1,]+self.shape_out_conv5_2.as_list()[1:]
-        self.dict_shape_one_batch['conv5_p']=[1,]+self.shape_out_conv5_p.as_list()[1:]
-        self.dict_shape_one_batch['fc1']=[1,]+self.shape_out_fc1.as_list()[1:]
-        self.dict_shape_one_batch['fc2']=[1,]+self.shape_out_fc2.as_list()[1:]
-        self.dict_shape_one_batch['fc3']=[1,]+self.shape_out_fc3.as_list()[1:]
+        self.dict_shape_one_batch['conv1']=[1,]+self.shape_out_conv1[1:]
+        self.dict_shape_one_batch['conv1_1']=[1,]+self.shape_out_conv1_1[1:]
+        self.dict_shape_one_batch['conv1_p']=[1,]+self.shape_out_conv1_p[1:]
+        self.dict_shape_one_batch['conv2']=[1,]+self.shape_out_conv2[1:]
+        self.dict_shape_one_batch['conv2_1']=[1,]+self.shape_out_conv2_1[1:]
+        self.dict_shape_one_batch['conv2_p']=[1,]+self.shape_out_conv2_p[1:]
+        self.dict_shape_one_batch['conv3']=[1,]+self.shape_out_conv3[1:]
+        self.dict_shape_one_batch['conv3_1']=[1,]+self.shape_out_conv3_1[1:]
+        self.dict_shape_one_batch['conv3_2']=[1,]+self.shape_out_conv3_2[1:]
+        self.dict_shape_one_batch['conv3_p']=[1,]+self.shape_out_conv3_p[1:]
+        self.dict_shape_one_batch['conv4']=[1,]+self.shape_out_conv4[1:]
+        self.dict_shape_one_batch['conv4_1']=[1,]+self.shape_out_conv4_1[1:]
+        self.dict_shape_one_batch['conv4_2']=[1,]+self.shape_out_conv4_2[1:]
+        self.dict_shape_one_batch['conv4_p']=[1,]+self.shape_out_conv4_p[1:]
+        self.dict_shape_one_batch['conv5']=[1,]+self.shape_out_conv5[1:]
+        self.dict_shape_one_batch['conv5_1']=[1,]+self.shape_out_conv5_1[1:]
+        self.dict_shape_one_batch['conv5_2']=[1,]+self.shape_out_conv5_2[1:]
+        self.dict_shape_one_batch['conv5_p']=[1,]+self.shape_out_conv5_p[1:]
+        self.dict_shape_one_batch['fc1']=[1,]+self.shape_out_fc1[1:]
+        self.dict_shape_one_batch['fc2']=[1,]+self.shape_out_fc2[1:]
+        self.dict_shape_one_batch['fc3']=[1,]+self.shape_out_fc3[1:]
 
         #
         self.dict_stat_r=collections.OrderedDict()  # read
@@ -354,44 +355,44 @@ class CIFARModel_CNN(tfe.Network):
 
 
         if self.conf.f_entropy:
-            self.dict_stat_w['conv1']=np.zeros([self.conf.time_step,]+self.shape_out_conv1.as_list()[1:])
-            self.dict_stat_w['conv1_1']=np.zeros([self.conf.time_step,]+self.shape_out_conv1_1.as_list()[1:])
-            self.dict_stat_w['conv2']=np.zeros([self.conf.time_step,]+self.shape_out_conv2.as_list()[1:])
-            self.dict_stat_w['conv2_1']=np.zeros([self.conf.time_step,]+self.shape_out_conv2_1.as_list()[1:])
-            self.dict_stat_w['conv3']=np.zeros([self.conf.time_step,]+self.shape_out_conv3.as_list()[1:])
-            self.dict_stat_w['conv3_1']=np.zeros([self.conf.time_step,]+self.shape_out_conv3_1.as_list()[1:])
-            self.dict_stat_w['conv3_2']=np.zeros([self.conf.time_step,]+self.shape_out_conv3_2.as_list()[1:])
-            self.dict_stat_w['conv4']=np.zeros([self.conf.time_step,]+self.shape_out_conv4.as_list()[1:])
-            self.dict_stat_w['conv4_1']=np.zeros([self.conf.time_step,]+self.shape_out_conv4_1.as_list()[1:])
-            self.dict_stat_w['conv4_2']=np.zeros([self.conf.time_step,]+self.shape_out_conv4_2.as_list()[1:])
-            self.dict_stat_w['conv5']=np.zeros([self.conf.time_step,]+self.shape_out_conv5.as_list()[1:])
-            self.dict_stat_w['conv5_1']=np.zeros([self.conf.time_step,]+self.shape_out_conv5_1.as_list()[1:])
-            self.dict_stat_w['conv5_2']=np.zeros([self.conf.time_step,]+self.shape_out_conv5_2.as_list()[1:])
-            self.dict_stat_w['fc1']=np.zeros([self.conf.time_step,]+self.shape_out_fc1.as_list()[1:])
-            self.dict_stat_w['fc2']=np.zeros([self.conf.time_step,]+self.shape_out_fc2.as_list()[1:])
-            self.dict_stat_w['fc3']=np.zeros([self.conf.time_step,]+self.shape_out_fc3.as_list()[1:])
+            self.dict_stat_w['conv1']=np.zeros([self.conf.time_step,]+self.shape_out_conv1[1:])
+            self.dict_stat_w['conv1_1']=np.zeros([self.conf.time_step,]+self.shape_out_conv1_1[1:])
+            self.dict_stat_w['conv2']=np.zeros([self.conf.time_step,]+self.shape_out_conv2[1:])
+            self.dict_stat_w['conv2_1']=np.zeros([self.conf.time_step,]+self.shape_out_conv2_1[1:])
+            self.dict_stat_w['conv3']=np.zeros([self.conf.time_step,]+self.shape_out_conv3[1:])
+            self.dict_stat_w['conv3_1']=np.zeros([self.conf.time_step,]+self.shape_out_conv3_1[1:])
+            self.dict_stat_w['conv3_2']=np.zeros([self.conf.time_step,]+self.shape_out_conv3_2[1:])
+            self.dict_stat_w['conv4']=np.zeros([self.conf.time_step,]+self.shape_out_conv4[1:])
+            self.dict_stat_w['conv4_1']=np.zeros([self.conf.time_step,]+self.shape_out_conv4_1[1:])
+            self.dict_stat_w['conv4_2']=np.zeros([self.conf.time_step,]+self.shape_out_conv4_2[1:])
+            self.dict_stat_w['conv5']=np.zeros([self.conf.time_step,]+self.shape_out_conv5[1:])
+            self.dict_stat_w['conv5_1']=np.zeros([self.conf.time_step,]+self.shape_out_conv5_1[1:])
+            self.dict_stat_w['conv5_2']=np.zeros([self.conf.time_step,]+self.shape_out_conv5_2[1:])
+            self.dict_stat_w['fc1']=np.zeros([self.conf.time_step,]+self.shape_out_fc1[1:])
+            self.dict_stat_w['fc2']=np.zeros([self.conf.time_step,]+self.shape_out_fc2[1:])
+            self.dict_stat_w['fc3']=np.zeros([self.conf.time_step,]+self.shape_out_fc3[1:])
 
 
             self.arr_length = [2,3,4,5,8,10]
             self.total_entropy=np.zeros([len(self.arr_length),len(self.layer_name)+1])
 
         if self.conf.f_write_stat or self.conf.f_comp_act:
-            self.dict_stat_w['conv1']=np.zeros([1,]+self.shape_out_conv1.as_list()[1:])
-            self.dict_stat_w['conv1_1']=np.zeros([1,]+self.shape_out_conv1_1.as_list()[1:])
-            self.dict_stat_w['conv2']=np.zeros([1,]+self.shape_out_conv2.as_list()[1:])
-            self.dict_stat_w['conv2_1']=np.zeros([1,]+self.shape_out_conv2_1.as_list()[1:])
-            self.dict_stat_w['conv3']=np.zeros([1,]+self.shape_out_conv3.as_list()[1:])
-            self.dict_stat_w['conv3_1']=np.zeros([1,]+self.shape_out_conv3_1.as_list()[1:])
-            self.dict_stat_w['conv3_2']=np.zeros([1,]+self.shape_out_conv3_2.as_list()[1:])
-            self.dict_stat_w['conv4']=np.zeros([1,]+self.shape_out_conv4.as_list()[1:])
-            self.dict_stat_w['conv4_1']=np.zeros([1,]+self.shape_out_conv4_1.as_list()[1:])
-            self.dict_stat_w['conv4_2']=np.zeros([1,]+self.shape_out_conv4_2.as_list()[1:])
-            self.dict_stat_w['conv5']=np.zeros([1,]+self.shape_out_conv5.as_list()[1:])
-            self.dict_stat_w['conv5_1']=np.zeros([1,]+self.shape_out_conv5_1.as_list()[1:])
-            self.dict_stat_w['conv5_2']=np.zeros([1,]+self.shape_out_conv5_2.as_list()[1:])
-            self.dict_stat_w['fc1']=np.zeros([1,]+self.shape_out_fc1.as_list()[1:])
-            self.dict_stat_w['fc2']=np.zeros([1,]+self.shape_out_fc2.as_list()[1:])
-            self.dict_stat_w['fc3']=np.zeros([1,]+self.shape_out_fc3.as_list()[1:])
+            self.dict_stat_w['conv1']=np.zeros([1,]+self.shape_out_conv1[1:])
+            self.dict_stat_w['conv1_1']=np.zeros([1,]+self.shape_out_conv1_1[1:])
+            self.dict_stat_w['conv2']=np.zeros([1,]+self.shape_out_conv2[1:])
+            self.dict_stat_w['conv2_1']=np.zeros([1,]+self.shape_out_conv2_1[1:])
+            self.dict_stat_w['conv3']=np.zeros([1,]+self.shape_out_conv3[1:])
+            self.dict_stat_w['conv3_1']=np.zeros([1,]+self.shape_out_conv3_1[1:])
+            self.dict_stat_w['conv3_2']=np.zeros([1,]+self.shape_out_conv3_2[1:])
+            self.dict_stat_w['conv4']=np.zeros([1,]+self.shape_out_conv4[1:])
+            self.dict_stat_w['conv4_1']=np.zeros([1,]+self.shape_out_conv4_1[1:])
+            self.dict_stat_w['conv4_2']=np.zeros([1,]+self.shape_out_conv4_2[1:])
+            self.dict_stat_w['conv5']=np.zeros([1,]+self.shape_out_conv5[1:])
+            self.dict_stat_w['conv5_1']=np.zeros([1,]+self.shape_out_conv5_1[1:])
+            self.dict_stat_w['conv5_2']=np.zeros([1,]+self.shape_out_conv5_2[1:])
+            self.dict_stat_w['fc1']=np.zeros([1,]+self.shape_out_fc1[1:])
+            self.dict_stat_w['fc2']=np.zeros([1,]+self.shape_out_fc2[1:])
+            self.dict_stat_w['fc3']=np.zeros([1,]+self.shape_out_fc3[1:])
 
 
         self.conv_p=collections.OrderedDict()

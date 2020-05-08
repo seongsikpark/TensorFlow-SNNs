@@ -29,7 +29,7 @@ def cal_output_shape_Conv2D(data_format,input_shape,filters,kernel_size,strides)
                 dilation=dilation_rate[i]
             )
             new_space.append(new_dim)
-        return tensor_shape.TensorShape([input_shape[0]] + new_space + [filters])
+        return tensor_shape.TensorShape([input_shape[0]] + new_space + [filters]).as_list()
     else:
         space = input_shape[2:]
         new_space = []
@@ -43,7 +43,7 @@ def cal_output_shape_Conv2D(data_format,input_shape,filters,kernel_size,strides)
                 dilation=dilation_rate[i]
             )
             new_space.append(new_dim)
-        return tensor_shape.TensorShape([input_shape[0], filters] + new_space)
+        return tensor_shape.TensorShape([input_shape[0], filters] + new_space).as_list()
 
 def cal_output_shape_Conv2D_pad_val(data_format,input_shape,filters,kernel_size,strides):
     input_shape = tensor_shape.TensorShape(input_shape).as_list()

@@ -17,7 +17,7 @@ from datetime import datetime
 #en_gpu=False
 en_gpu=True
 
-gpu_number=0
+gpu_number=1
 os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
 
 if en_gpu==False:
@@ -489,6 +489,7 @@ def main(_):
 
     # epoch
     global_step = tf.Variable(name='global_step', initial_value=tf.zeros(shape=[]),dtype=tf.int32,trainable=False)
+    #global_step = tf.Variable(name='global_step', initial_value=tf.zeros(shape=[]),dtype=tf.float32,trainable=False)
 
     with tf.device(device):
         #if conf.en_train:
@@ -724,7 +725,7 @@ def main(_):
                         if epoch > epoch_start+save_epoch:
                             # TODO: parameterize
                             #f_save_model = acc_val_target_best > 99.0
-                            f_save_model = acc_val_target_best > 99.0
+                            f_save_model = acc_val_target_best > save_target_acc
                             #f_save_model = acc_val_best > 10.0
 
 
@@ -745,6 +746,8 @@ def main(_):
                                 #        print('{}: {}, {}: {}, {}: {}'.format(s_name_tc,s_tc,s_name_td,s_td,s_name_ta,s_ta))
 
                                 global_step.assign(epoch)
+
+                                #print(type(global_step))
 
                                 # save model
                                 #if epoch%conf.save_interval==0:
