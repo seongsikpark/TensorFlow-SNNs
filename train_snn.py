@@ -4,9 +4,15 @@ from __future__ import print_function
 
 import numpy as np
 import tensorflow as tf
-import tensorflow.contrib.eager as tfe
+#import tensorflow.contrib.eager as tfe
 
 from tensorflow.python.framework import ops
+
+#
+import tensorflow_probability as tfp
+tfd = tfp.distributions
+
+import matplotlib.pyplot as plt
 
 from collections import OrderedDict
 
@@ -14,23 +20,32 @@ from collections import OrderedDict
 import functools
 import itertools
 
-import backprop as bp_sspark
+#import backprop as bp_sspark
 
 #
 import lib_snn
 
 
-
 #
+cce = tf.keras.losses.CategoricalCrossentropy()
+kl = tf.keras.losses.KLDivergence()
+
+# TODO: remove
 def loss(predictions, labels):
-    return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=predictions,labels=labels))
+
+    return tf.reduce_mean(tf.compat.v1.nn.softmax_cross_entropy_with_logits_v2(logits=predictions,labels=labels,axis=1))
 
 
 def loss_cross_entoropy(predictions, labels):
-    loss_value = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=predictions,labels=labels))
-    delta = tf.softmax(predictions) - labels
 
-    return loss_value, delta
+    logits = tf.nn.softmax(predictions)
+    loss_value = cce(labels,logits)
+
+    return loss_value
+
+
+def loss_kl(predictions, labels):
+    return kl(labels,predictions)
 
 
 
@@ -41,7 +56,10 @@ def loss_mse(predictions, labels):
     #return loss_value, delta
     return loss_value
 
-
+def loss_kld(predictions, labels):
+    return kl(labels,predictions)
+    #loss_value = tf.losses.KLDivergence(labels, predictions)
+    #return loss_value
 
 #
 def compute_accuracy(predictions, labels):
@@ -93,10 +111,14 @@ def train_one_epoch_ttfs_test(model, optimizer, dataset):
 
 
     tf.train.get_or_create_global_step()
-    avg_loss = tfe.metrics.Mean('loss')
-    accuracy = tfe.metrics.Accuracy('accuracy')
+    #avg_loss = tfe.metrics.Mean('loss')
+    #accuracy = tfe.metrics.Accuracy('accuracy')
 
-    for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
+    avg_loss = tf.keras.metrics.Mean('loss')
+    accuracy = tf.keras.metrics.Accuracy('accuracy')
+
+    #for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
+    for (batch, (images, labels)) in enumerate(tf.Iterator(dataset)):
         grads_and_vars = []
 
         with tf.GradientTape(persistent=True) as tape:
@@ -123,8 +145,22 @@ def train_one_epoch_ttfs_test(model, optimizer, dataset):
 
 
 
+#fig_tmp, axs_tmp = plt.subplots(1,2)
+
+#
+def reg_tc_para(model):
 
 
+    train_vars_tk = [v for v in model.trainable_variables if ('temporal_kernel' in v.name)]
+    #print(train_vars_tk)
+
+    # l2 norm
+    ret = tf.reduce_sum(tf.math.square(train_vars_tk))
+
+    return ret
+
+
+#
 def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
     #print("train_snn.py - train_one_epoch_ttfs > not yet implemented")
     #assert(False)
@@ -133,13 +169,25 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
 
     #print("epoch: {}".format(global_step))
 
-    avg_loss = tfe.metrics.Mean('loss_total')
-    avg_loss_pred = tfe.metrics.Mean('loss_pred')
-    avg_loss_enc_st = tfe.metrics.Mean('loss_enc_st')
+    #avg_loss = tfe.metrics.Mean('loss_total')
+    #avg_loss_pred = tfe.metrics.Mean('loss_pred')
+    #avg_loss_enc_st = tfe.metrics.Mean('loss_enc_st')
 
-    accuracy = tfe.metrics.Accuracy('accuracy')
+    #accuracy = tfe.metrics.Accuracy('accuracy')
 
-    for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
+    avg_loss = tf.keras.metrics.Mean('loss_total')
+    avg_loss_pred = tf.keras.metrics.Mean('loss_pred')
+    avg_loss_enc_st = tf.keras.metrics.Mean('loss_enc_st')
+
+    accuracy = tf.keras.metrics.Accuracy('accuracy')
+
+
+
+
+    #for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
+    #for (batch, (images, labels)) in enumerate(tf.Iterator(dataset)):
+    for (images, labels) in dataset:
+
 
         with tf.GradientTape(persistent=True) as tape:
             predictions = model(images, f_training=True)
@@ -169,11 +217,32 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
             loss_weight=OrderedDict()
             #loss_name=['prediction','enc_st','max_enc_st','min_enc_st', 'max_tk_rep']
             #loss_name=['prediction','enc_st','max_enc_st','min_enc_st']
-            loss_name=['prediction']
+            #loss_name=['prediction', 'max_enc_st']
+
+
+            # TODO: parametrize
+
+            f_loss_dist = False
+            if f_loss_dist:
+                loss_name=['prediction', 'enc_st']
+            else:
+                loss_name=['prediction']
+
+            # regularizer - temporal kernel paras.
+            f_reg_tc_para = True
+            #f_reg_tc_para = False
+            if f_reg_tc_para:
+                loss_name.append('reg_tc_para')
 
             #
             # loss - prediction
-            loss_list['prediction'] = loss(predictions, labels)
+            #loss_list['prediction'] = loss(predictions, labels)
+            loss_list['prediction'] = loss_cross_entoropy(predictions, labels)
+
+            # regularizer temporal kernel paras - reg_tc_para
+            if f_reg_tc_para:
+                loss_list['reg_tc_para'] = reg_tc_para(model)
+
 
 #            #
 #            # loss - encoded spike time
@@ -211,19 +280,94 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
 #
 #            loss_list['enc_st'] = loss_tmp
 #            #loss_list['enc_st'] += loss_mse(enc_st,round_enc_st)
+
+
+            # TODO: here - KL divergence loss
+            if f_loss_dist:
+
+                # loss - encoded spike time (KL-divergence)
+                loss_tmp = 0
+                enc_st = model.list_tk['conv1'].out_enc
+                enc_st_target_end = 200
+
+                #enc_st = tf.where(enc_st>enc_st_target_end,enc_st_target_end)
+                enc_st = tf.clip_by_value(enc_st,0,enc_st_target_end)
+                #tmp = tf.where(tf.equal(enc_st,0),100,enc_st)
+                #print(tf.reduce_min(tmp))
+                enc_st = tf.round(enc_st)
+                #enc_st = tf.histogram_fixed_width(enc_st, [0,model.list_tk['conv1'].tw])
+                #enc_st = tf.histogram_fixed_width(enc_st, [0,enc_st_target_end], dtype=tf.float32)
+                #enc_st = tf.histogram_fixed_width(enc_st, [0,enc_st_target_end])
+                enc_st = tf.cast(enc_st,tf.float32)
+                #max_enc_target = tf.where(t > max_enc_st*max_border,\
+                #dist = tfd.Beta(1,3)
+                dist = tfd.Beta(0.9,0.1)
+                dist_sample = dist.sample(enc_st.shape)
+                #dist_sample = tf.multiply(dist_sample,model.conf.time_window)
+                dist_sample = tf.multiply(dist_sample,enc_st_target_end)
+                dist_sample = tf.round(dist_sample)
+                loss_tmp += loss_kld(enc_st,dist_sample)
+
+                #
+                #print(enc_st)
+                #plt.figure()
+                #plt.hist(tf.reshape(dist_sample,[-1]))
+                #plt.figure()
+                #plt.hist(tf.reshape(enc_st,[-1]))
+                #plt.show()
+                #assert(False)
+
+
+                enc_st = model.list_tk['conv2'].out_enc
+                enc_st = tf.clip_by_value(enc_st,0,enc_st_target_end)
+                enc_st = tf.round(enc_st)
+                #enc_st = tf.histogram_fixed_width(enc_st, [0,model.list_tk['conv2'].tw])
+                #enc_st = tf.histogram_fixed_width(enc_st, [0,200])
+                #enc_st = tf.histogram_fixed_width(enc_st, [0,enc_st_target_end], dtype=tf.float32)
+                enc_st = tf.histogram_fixed_width(enc_st, [0,enc_st_target_end])
+                enc_st = tf.cast(enc_st,tf.float32)
+                #max_enc_target = tf.where(t > max_enc_st*max_border,\
+                #dist = tfd.Beta(1,3)
+                dist = tfd.Beta(0.9,0.1)
+                dist_sample = dist.sample(enc_st.shape)
+                #dist_sample = tf.multiply(dist_sample,model.conf.time_window)
+                dist_sample = tf.multiply(dist_sample,enc_st_target_end)
+                dist_sample = tf.round(dist_sample)
+                loss_tmp += loss_kld(enc_st,dist_sample)
+
+                loss_list['enc_st'] = loss_tmp
+
+#            #print(type(dist_sample))
+#            #fig, axs = plt.subplots(1,2)
+#
+#            #axs_tmp[0].hist(tf.reshape(dist_sample[0,:,:,:],shape=-1))
+#            #axs_tmp[1].hist(tf.reshape(enc_st[0,:,:,:],shape=-1))
+#            #plt.hist(tf.reshape(dist_sample[0,:,:,:],shape=-1))
+#            plt.hist(tf.reshape(enc_st[0,:,:,:],shape=-1),bins=100)
+#
+#            plt.draw()
+#            plt.pause(0.0000000000000001)
+#
+
+
+
+
+
+
 #
 #
-#            # TODO: Is it really needed?
+#            # TODO: Is it really needed? -> regularizer
 #            # loss - maximum encoded spike time
 #
-#            loss_tmp=0
+#            #loss_tmp=0
 #            #for _, (name, enc_st) in enumerate(model.list_st.items()):
 #                #v = model.list_v[name]
 #            #min_val = model.temporal_encoding(model.v_conv1)
 #
 #            #
 #            loss_tmp=0
-#            max_border = 4.0/5.0
+#            #max_border = 4.0/5.0
+#            max_border = 1.0
 #
 #            #v=model.list_v['conv1']
 #            #t=model.list_st['conv1']
@@ -249,18 +393,10 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
 #                                      t)
 #            #loss_tmp += loss_mse(non_bounded_enc_st, max_enc_target)
 #            loss_tmp += loss_mse(t, max_enc_target)
-#
-##            #v=model.list_v['fc1']
-##            #t=model.list_st['fc1']
-##            v=model.list_tk['fc1'].in_enc
-##            t=model.list_tk['fc1'].out_enc
-##            max_enc_st = tf.constant(model.conf.time_window,dtype=tf.float32,shape=v.shape)
-##            non_bounded_enc_st = model.list_tk['fc1'].call_encoding_kernel(v)
-##            max_enc_target = tf.where(max_enc_st < non_bounded_enc_st,\
-##                                      max_enc_st,\
-##                                      t)
-##            loss_tmp += loss_mse(non_bounded_enc_st, max_enc_target)
-#            loss_list['max_enc_st'] = loss_tmp
+
+            #loss_list['max_enc_st'] = loss_tmp
+
+
 #
 #
 #            #
@@ -326,10 +462,21 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
             #loss_list['max_tk_rep'] = loss_tmp
 
 
+
+
+
+
+
             #
             #
             loss_weight['prediction']=1.0
-            #loss_weight['enc_st']=0.0
+
+            if f_loss_dist:
+                loss_weight['enc_st']=0.01
+
+            if f_reg_tc_para:
+                loss_weight['reg_tc_para']=0.01
+
             #loss_weight['max_enc_st']=0.0
             ##loss_weight['min_enc_st']=0.1
             #loss_weight['min_enc_st']=0.0
@@ -348,10 +495,10 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
 
             #
             #if epoch > model.list_tk['in'].epoch_start_train_tk:
-            #    #loss_weight['min_enc_st']=0.0000001
-            #    loss_weight['max_enc_st']=0.000001
-            #    #loss_weight['max_tk_rep']=0.01
-            #    #loss_weight['max_tk_rep']=1.0
+                #loss_weight['min_enc_st']=0.0000001
+                #loss_weight['max_enc_st']=0.00000001
+                #loss_weight['max_tk_rep']=0.01
+                #loss_weight['max_tk_rep']=1.0
 
             #
             #loss_total = loss_pred
@@ -364,18 +511,31 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
                 loss_total = loss_total + loss_weight[l_name]*loss_list[l_name]
 
             #
-            avg_loss(loss_total)
-            avg_loss_pred(loss_list['prediction'])
-            #avg_loss_enc_st(loss_enc_st)
-            #avg_loss_enc_st=loss_list['enc_st'].numpy()
-            #avg_loss_max_enc_st=loss_list['max_enc_st'].numpy()
-            #avg_loss_min_enc_st=loss_list['min_enc_st'].numpy()
-            #avg_loss_max_tk_rep=loss_list['max_tk_rep'].numpy()
+            #avg_loss(loss_total)
+            #avg_loss_pred(loss_list['prediction'])
+
+
+
+            avg_loss = loss_total
+            avg_loss_pred = loss_list['prediction']
 
             avg_loss_enc_st=0.0
             avg_loss_max_enc_st=0.0
             avg_loss_min_enc_st=0.0
             avg_loss_max_tk_rep=0.0
+
+
+
+            if f_loss_dist:
+                if isinstance(loss_list['enc_st'],int):
+                    avg_loss_enc_st=0.0
+                else:
+                    avg_loss_enc_st=loss_list['enc_st'].numpy()
+
+            #avg_loss_max_enc_st=loss_list['max_enc_st'].numpy()
+            #avg_loss_min_enc_st=loss_list['min_enc_st'].numpy()
+            #avg_loss_max_tk_rep=loss_list['max_tk_rep'].numpy()
+
 
             #print(loss_enc_st)
 
@@ -411,6 +571,9 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
         #trainable_vars = model.trainable_variables
         train_vars_w = [v for v in model.trainable_variables if ('neuron' not in v.name) and ('temporal_kernel' not in v.name)]
 
+        #for vars in train_vars_w:
+            #print(vars.name)
+
         #trainable_vars_tmporal_kernel=[]
         #for l_name in model.layer_name:
             #trainable_vars_tmporal_kernel.append(model.list_tc[l_name])
@@ -441,14 +604,16 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
             train_vars = train_vars_w + train_vars_tk
 
             grads = tape.gradient(loss_total, train_vars)
+            #grads = tape.gradient(loss_total, train_vars_w)
             grads_and_vars = zip(grads,train_vars)
             optimizer.apply_gradients(grads_and_vars)
 
+
             # train_vars_tk
             #
-            grads_t_kernel = tape.gradient(loss_total,train_vars_tk)
-            grads_and_vars_tk = zip(grads_t_kernel,train_vars_tk)
-            optimizer.apply_gradients(grads_and_vars_tk)
+            #grads_t_kernel = tape.gradient(loss_total,train_vars_tk)
+            #grads_and_vars_tk = zip(grads_t_kernel,train_vars_tk)
+            #optimizer.apply_gradients(grads_and_vars_tk)
 
 
         #
@@ -460,7 +625,9 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
 
 
     #return avg_loss.result(), 100*accuracy.result()
-    return avg_loss.result(), avg_loss_pred.result(),avg_loss_enc_st,\
+    #return avg_loss.result(), avg_loss_pred.result(),avg_loss_enc_st,\
+    #       avg_loss_max_enc_st,avg_loss_min_enc_st,avg_loss_max_tk_rep,100*accuracy.result()
+    return avg_loss, avg_loss_pred, avg_loss_enc_st,\
            avg_loss_max_enc_st,avg_loss_min_enc_st,avg_loss_max_tk_rep,100*accuracy.result()
 
 
@@ -508,10 +675,15 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
 
 def train_ann_one_epoch_mnist_cnn(model, optimizer, dataset, conf):
     tf.train.get_or_create_global_step()
-    avg_loss = tfe.metrics.Mean('loss')
-    accuracy = tfe.metrics.Accuracy('accuracy')
+    #avg_loss = tfe.metrics.Mean('loss')
+    #accuracy = tfe.metrics.Accuracy('accuracy')
 
-    for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
+    avg_loss = tf.keras.metrics.Mean('loss')
+    accuracy = tf.keras.metrics.Accuracy('accuracy')
+
+
+    #for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
+    for (batch, (images, labels)) in enumerate(tf.Iterator(dataset)):
         grads_and_vars = []
 
         with tf.GradientTape(persistent=True) as tape:
@@ -564,8 +736,8 @@ def train_ann_one_epoch_mnist_cnn(model, optimizer, dataset, conf):
         #3print(grad_b)
 
         #diff = grad_t - grad
-        diff = grad_b_t - grad_t
-        print('max: %.3f, sum: %.3f'%(tf.reduce_max(diff),tf.reduce_sum(diff)))
+        #diff = grad_b_t - grad_t
+        #print('max: %.3f, sum: %.3f'%(tf.reduce_max(diff),tf.reduce_sum(diff)))
 
 
 
@@ -611,10 +783,16 @@ def train_snn_one_epoch_mnist_cnn(model, optimizer, dataset, conf):
 
 def train_ann_one_epoch_mnist(model, optimizer, dataset, conf):
     tf.train.get_or_create_global_step()
-    avg_loss = tfe.metrics.Mean('loss')
-    accuracy = tfe.metrics.Accuracy('accuracy')
+    #avg_loss = tfe.metrics.Mean('loss')
+    #accuracy = tfe.metrics.Accuracy('accuracy')
 
-    for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
+
+    avg_loss = tf.keras.metrics.Mean('loss')
+    accuracy = tf.keras.metrics.Accuracy('accuracy')
+
+
+    #for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
+    for (batch, (images, labels)) in enumerate(tf.Iterator(dataset)):
         grads_and_vars = []
 
         with tf.GradientTape(persistent=True) as tape:
@@ -685,10 +863,16 @@ def train_ann_one_epoch_mnist(model, optimizer, dataset, conf):
 
 def train_snn_one_epoch_mnist_psp_ver(model, optimizer, dataset, conf):
     tf.train.get_or_create_global_step()
-    avg_loss = tfe.metrics.Mean('loss')
-    accuracy = tfe.metrics.Accuracy('accuracy')
+    #avg_loss = tfe.metrics.Mean('loss')
+    #accuracy = tfe.metrics.Accuracy('accuracy')
 
-    for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
+
+    avg_loss = tf.keras.metrics.Mean('loss')
+    accuracy = tf.keras.metrics.Accuracy('accuracy')
+
+
+    #for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
+    for (batch, (images, labels)) in enumerate(tf.Iterator(dataset)):
         grads_and_vars = []
 
         #with tf.GradientTape(persistent=True) as tape:
@@ -787,10 +971,16 @@ def train_snn_one_epoch_mnist_psp_ver(model, optimizer, dataset, conf):
 
 def train_snn_one_epoch_mnist(model, optimizer, dataset, conf):
     tf.train.get_or_create_global_step()
-    avg_loss = tfe.metrics.Mean('loss')
-    accuracy = tfe.metrics.Accuracy('accuracy')
+    #avg_loss = tfe.metrics.Mean('loss')
+    #accuracy = tfe.metrics.Accuracy('accuracy')
 
-    for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
+
+    avg_loss = tf.keras.metrics.Mean('loss')
+    accuracy = tf.keras.metrics.Accuracy('accuracy')
+
+
+    #for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
+    for (batch, (images, labels)) in enumerate(tf.Iterator(dataset)):
         grads_and_vars = []
 
         with tf.GradientTape(persistent=True) as tape:
@@ -894,10 +1084,15 @@ def grad_Dense(layer, delta, d_local):
 # temporal coding - trainting time_const, time_delay
 def train_time_const_delay_tmeporal_coding(model, dataset, conf):
     tf.train.get_or_create_global_step()
-    avg_loss = tfe.metrics.Mean('loss')
-    accuracy = tfe.metrics.Accuracy('accuracy')
+    #avg_loss = tfe.metrics.Mean('loss')
+    #accuracy = tfe.metrics.Accuracy('accuracy')
 
-    for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
+
+    avg_loss = tf.keras.metrics.Mean('loss')
+    accuracy = tf.keras.metrics.Accuracy('accuracy')
+
+    #for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
+    for (batch, (images, labels)) in enumerate(tf.Iterator(dataset)):
 
         #with tf.GradientTape(persistent=True) as tape:
         predictions_times = model(images, f_training=True)

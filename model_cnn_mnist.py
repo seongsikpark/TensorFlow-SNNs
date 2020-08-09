@@ -1,8 +1,11 @@
 import tensorflow as tf
-import tensorflow.contrib.eager as tfe
+#import tensorflow.contrib.eager as tfe
 
-from tensorflow.contrib.layers.python.layers import initializers
-from tensorflow.contrib.layers.python.layers import regularizers
+#from tensorflow.contrib.layers.python.layers import initializers
+#from tensorflow.contrib.layers.python.layers import regularizers
+
+import tensorflow.keras.initializers as initializers
+import tensorflow.keras.regularizers as regularizers
 
 from tensorflow.python.framework import tensor_shape
 from tensorflow.python.ops import math_ops
@@ -28,8 +31,9 @@ from collections import OrderedDict
 from scipy import stats
 
 #
-class MNISTModel_CNN(tfe.Network):
-#class MNISTModel_CNN(tf.layers.Layer):
+#class MNISTModel_CNN(tfe.Network):
+#class MNISTModel_CNN(tf.keras.layers):
+class MNISTModel_CNN(tf.keras.layers.Layer):
     def __init__(self, data_format, conf):
         super(MNISTModel_CNN, self).__init__(name='')
 
@@ -40,6 +44,9 @@ class MNISTModel_CNN(tfe.Network):
         self.f_1st_iter = True
         self.verbose = conf.verbose
         self.f_debug_visual = conf.verbose_visual
+
+        #
+        self.epoch = -1
 
         if self.conf.en_train:
             self.f_done_preproc = True
@@ -52,6 +59,7 @@ class MNISTModel_CNN(tfe.Network):
         self.kernel_size = 5
         self.fanin_conv = self.kernel_size*self.kernel_size
         #self.fanin_conv = self.kernel_size*self.kernel_size/9
+
 
         self.tw=conf.time_step
 
@@ -119,31 +127,51 @@ class MNISTModel_CNN(tfe.Network):
             self._input_shape = [-1,28,28,1]
 
 
-        if conf.nn_mode == 'ANN':
-            use_bias = conf.use_bias
-        else :
-            use_bias = conf.use_bias
+        #
+        use_bias = conf.use_bias
+
 
         activation = None
         padding = 'same'
 
+# TODO: TF-V1
+#        regularizer_type = {
+#            'L1': regularizers.l1_regularizer(conf.lamb),
+#            'L2': regularizers.l2_regularizer(conf.lamb),
+#            'L1_L2': regularizers.l1_l2_regularizer(conf.lamb,conf.lamb)
+#        }
+
         regularizer_type = {
-            'L1': regularizers.l1_regularizer(conf.lamb),
-            'L2': regularizers.l2_regularizer(conf.lamb),
-            'L1_L2': regularizers.l1_l2_regularizer(conf.lamb,conf.lamb)
+            'L1': regularizers.l1(conf.lamb),
+            'L2': regularizers.l2(conf.lamb),
+            'L1_L2': regularizers.l1_l2(conf.lamb,conf.lamb)
         }
+
+
+
         kernel_regularizer = regularizer_type[self.conf.regularizer]
-        kernel_initializer = initializers.xavier_initializer(True)
+        #kernel_initializer = initializers.xavier_initializer(True)
+        #kernel_initializer = initializers.GlorotNormal()
+        kernel_initializer = initializers.GlorotUniform()
         #kernel_initializer = initializers.variance_scaling_initializer(factor=2.0,mode='FAN_IN')    # MSRA init. = He init
 
-        self.list_layer=collections.OrderedDict()
-        self.list_layer['conv1'] = self.track_layer(tf.layers.Conv2D(12,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='valid'))
-        self.list_layer['conv1_bn'] = self.track_layer(tf.layers.BatchNormalization())
-        self.list_layer['conv2'] = self.track_layer(tf.layers.Conv2D(64,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='valid'))
-        self.list_layer['conv2_bn'] = self.track_layer(tf.layers.BatchNormalization())
-        self.list_layer['fc1'] = self.track_layer(tf.layers.Dense(self.num_class,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer))
 
-        self.dropout = self.track_layer(tf.layers.Dropout(0.5))
+        self.list_layer=collections.OrderedDict()
+        # TODO: TF-V1
+        #self.list_layer['conv1'] = self.track_layer(tf.layers.Conv2D(12,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='valid'))
+        #self.list_layer['conv1_bn'] = self.track_layer(tf.layers.BatchNormalization())
+        #self.list_layer['conv2'] = self.track_layer(tf.layers.Conv2D(64,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='valid'))
+        #self.list_layer['conv2_bn'] = self.track_layer(tf.layers.BatchNormalization())
+        #self.list_layer['fc1'] = self.track_layer(tf.layers.Dense(self.num_class,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer))
+        #self.dropout = self.track_layer(tf.layers.Dropout(0.5))
+
+        self.list_layer['conv1'] = tf.keras.layers.Conv2D(12,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='valid')
+        self.list_layer['conv1_bn'] = tf.keras.layers.BatchNormalization()
+        self.list_layer['conv2'] = tf.keras.layers.Conv2D(64,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='valid')
+        self.list_layer['conv2_bn'] = tf.keras.layers.BatchNormalization()
+        self.list_layer['fc1'] = tf.keras.layers.Dense(self.num_class,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer)
+        self.dropout = tf.keras.layers.Dropout(0.5)
+
 
         # remove later
         self.conv1=self.list_layer['conv1']
@@ -153,12 +181,9 @@ class MNISTModel_CNN(tfe.Network):
         self.fc1=self.list_layer['fc1']
 
 
-
-
-
         pooling_type= {
-            'max': self.track_layer(tf.layers.MaxPooling2D((2,2),(2,2),padding='SAME',data_format=data_format)),
-            'avg': self.track_layer(tf.layers.AveragePooling2D((2,2),(2,2),padding='SAME',data_format=data_format))
+            'max': tf.keras.layers.MaxPooling2D((2,2),(2,2),padding='SAME',data_format=data_format),
+            'avg': tf.keras.layers.AveragePooling2D((2,2),(2,2),padding='SAME',data_format=data_format)
         }
 
         self.pool2d = pooling_type[self.conf.pooling]
@@ -242,11 +267,17 @@ class MNISTModel_CNN(tfe.Network):
 
             self.list_neuron=collections.OrderedDict()
 
-            self.list_neuron['in'] = self.track_layer(lib_snn.Neuron(self.input_shape_snn,'IN',1,self.conf,nc,0,'in'))
-            self.list_neuron['conv1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv1,n_type,self.fanin_conv,self.conf,nc,1,'conv1'))
-            self.list_neuron['conv2'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv2,n_type,self.fanin_conv,self.conf,nc,2,'conv2'))
-            self.list_neuron['fc1'] = self.track_layer(lib_snn.Neuron(self.shape_out_fc1,'OUT',512,self.conf,nc,3,'fc1'))
+            # TODO: TF-V1
+            #self.list_neuron['in'] = self.track_layer(lib_snn.Neuron(self.input_shape_snn,'IN',1,self.conf,nc,0,'in'))
+            #self.list_neuron['conv1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv1,n_type,self.fanin_conv,self.conf,nc,1,'conv1'))
+            #self.list_neuron['conv2'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv2,n_type,self.fanin_conv,self.conf,nc,2,'conv2'))
+            #self.list_neuron['fc1'] = self.track_layer(lib_snn.Neuron(self.shape_out_fc1,'OUT',512,self.conf,nc,3,'fc1'))
 
+
+            self.list_neuron['in'] = lib_snn.Neuron(self.input_shape_snn,'IN',1,self.conf,nc,0,'in')
+            self.list_neuron['conv1'] = lib_snn.Neuron(self.shape_out_conv1,n_type,self.fanin_conv,self.conf,nc,1,'conv1')
+            self.list_neuron['conv2'] = lib_snn.Neuron(self.shape_out_conv2,n_type,self.fanin_conv,self.conf,nc,2,'conv2')
+            self.list_neuron['fc1'] = lib_snn.Neuron(self.shape_out_fc1,'OUT',512,self.conf,nc,3,'fc1')
 
             # modify later
             self.n_in = self.list_neuron['in']
@@ -319,54 +350,46 @@ class MNISTModel_CNN(tfe.Network):
 
                 file.close()
 
-        # TODO: It should be conditional execution in SNN mode
+        # TODO: It should be conditional execution in SNN mode - check the condition (surrogate trained model?)
         #
         # SNN trianing - temporal coding (TTFS)
         #
         #if self.conf.neural_coding=='TEMPORAL' and self.conf.en_train:
-        if True:
+        #if True:
+        if self.conf.f_surrogate_training_model:
 
-            kernel_initializer_conv_tr=tf.ones_initializer()
+            # TODO: to be removed
+#            kernel_initializer_conv_tr=tf.ones_initializer()
+#
+#            self.list_layer['conv1_tr'] = self.track_layer(tf.layers.Conv2DTranspose(
+#                12,
+#                self.kernel_size,
+#                strides=self.kernel_size,
+#                data_format=data_format,
+#                activation=activation,
+#                use_bias=False,
+#                kernel_regularizer=kernel_regularizer,
+#                kernel_initializer=kernel_initializer_conv_tr,
+#                padding='valid',
+#                trainable=False,
+#                name="conv1_tr_dummy"))
+#
+#            self.list_layer['conv1_tr_cv'] = self.track_layer(tf.layers.Conv2D(
+#                12,
+#                self.kernel_size,
+#                strides=self.kernel_size,
+#                data_format=data_format,
+#                activation=activation,
+#                use_bias=False,
+#                kernel_regularizer=kernel_regularizer,
+#                kernel_initializer=kernel_initializer_conv_tr,
+#                padding='valid',
+#                trainable=False,
+#                name='conv1_tr_cv_dummy'))
+#
+#            self.conv1_tr = self.list_layer['conv1_tr']
+#            self.conv1_tr_cv = self.list_layer['conv1_tr_cv']
 
-            self.list_layer['conv1_tr'] = self.track_layer(tf.layers.Conv2DTranspose(
-                12,
-                self.kernel_size,
-                strides=self.kernel_size,
-                data_format=data_format,
-                activation=activation,
-                use_bias=False,
-                kernel_regularizer=kernel_regularizer,
-                kernel_initializer=kernel_initializer_conv_tr,
-                padding='valid',
-                trainable=False,
-                name="conv1_tr_dummy"))
-
-            self.list_layer['conv1_tr_cv'] = self.track_layer(tf.layers.Conv2D(
-                12,
-                self.kernel_size,
-                strides=self.kernel_size,
-                data_format=data_format,
-                activation=activation,
-                use_bias=False,
-                kernel_regularizer=kernel_regularizer,
-                kernel_initializer=kernel_initializer_conv_tr,
-                padding='valid',
-                trainable=False,
-                name='conv1_tr_cv_dummy'))
-
-            self.conv1_tr = self.list_layer['conv1_tr']
-            self.conv1_tr_cv = self.list_layer['conv1_tr_cv']
-
-
-            #
-            # spike time
-            self.list_st=OrderedDict()
-
-            # memebrane potential (encoding target)
-            self.list_v=OrderedDict()
-
-            #
-            self.epoch = -1
 
             #
             self.list_tk=OrderedDict()
@@ -429,14 +452,47 @@ class MNISTModel_CNN(tfe.Network):
 
 
             # layer-wise para
-            self.list_tk['in'] = self.track_layer(lib_snn.Temporal_kernel(
-                [], [], init_tc, init_td_in, init_ta,self.conf.time_window))
-            self.list_tk['conv1'] = self.track_layer(lib_snn.Temporal_kernel(
-                [], [], init_tc, init_td, init_ta,self.conf.time_window))
-            self.list_tk['conv2'] = self.track_layer(lib_snn.Temporal_kernel(
-                [], [], init_tc, init_td, init_ta,self.conf.time_window))
-            self.list_tk['fc1'] = self.track_layer(lib_snn.Temporal_kernel(
-                [], [], init_tc, init_td, init_ta,self.conf.time_window))
+
+            # TODO: TF-V1
+#            self.list_tk['in'] = self.track_layer(lib_snn.Temporal_kernel(
+#                [], [], init_tc, init_td_in, init_ta,self.conf.time_window))
+#            self.list_tk['conv1'] = self.track_layer(lib_snn.Temporal_kernel(
+#                [], [], init_tc, init_td, init_ta,self.conf.time_window))
+#            self.list_tk['conv2'] = self.track_layer(lib_snn.Temporal_kernel(
+#                [], [], init_tc, init_td, init_ta,self.conf.time_window))
+#            self.list_tk['fc1'] = self.track_layer(lib_snn.Temporal_kernel(
+#                [], [], init_tc, init_td, init_ta,self.conf.time_window))
+
+
+            self.list_tk['in'] = lib_snn.Temporal_kernel(
+                [], [], init_tc, init_td_in, init_ta,self.conf.time_window)
+            self.list_tk['conv1'] = lib_snn.Temporal_kernel(
+                [], [], init_tc, init_td, init_ta,self.conf.time_window)
+            self.list_tk['conv2'] = lib_snn.Temporal_kernel(
+                [], [], init_tc, init_td, init_ta,self.conf.time_window)
+            self.list_tk['fc1'] = lib_snn.Temporal_kernel(
+                [], [], init_tc, init_td, init_ta,self.conf.time_window)
+
+
+        # load model configuration
+
+        # parameters load TF-V2, checkpoint version
+        if self.conf.f_surrogate_training_model:
+        #if False:
+            self.load_layer_ann_checkpoint = tf.train.Checkpoint(conv1=self.conv1, conv2=self.conv2, fc1=self.fc1, conv1_bn=self.conv1_bn, conv2_bn=self.conv2_bn, list_tk=self.list_tk)
+        else:
+            self.load_layer_ann_checkpoint = tf.train.Checkpoint(conv1=self.conv1, conv2=self.conv2, fc1=self.fc1, conv1_bn=self.conv1_bn, conv2_bn=self.conv2_bn)
+
+
+        # for checkpoint old version TF V1
+        #self.load_layer_ann_checkpoint = tf.train.Checkpoint(conv2d=self.conv1, conv2d_1=self.conv2, dense=self.fc1, batch_normalization=self.conv1_bn, conv2_bn=self.conv2_bn)
+
+        # TODO: TF-V1
+        #pooling_type= {
+        #    'max': self.track_layer(tf.layers.MaxPooling2D((2,2),(2,2),padding='SAME',data_format=data_format)),
+        #    'avg': self.track_layer(tf.layers.AveragePooling2D((2,2),(2,2),padding='SAME',data_format=data_format))
+        #}
+
 
 #
         self.cmap=matplotlib.cm.get_cmap('viridis')
@@ -475,6 +531,19 @@ class MNISTModel_CNN(tfe.Network):
             self.preproc_snn(inputs,f_training)
         else:
             preproc_sel[self.conf.nn_mode](inputs, f_training)
+
+
+        # graph extract
+        if False:
+        #if True:
+            frozen_func = self.call_ann.get_concrete_function(inputs,f_training)
+            frozen_func.graph.as_graph_def()
+            tf.io.write_graph(frozen_func.graph.as_graph_def(),'./tmp_graph',self.conf.model_name+'_graph.pbtxt')
+            tf.compat.v1.disable_eager_execution()
+            tf.compat.v1.train.export_meta_graph(filename='./tmp_graph/'+self.conf.model_name+'.meta',graph=frozen_func.graph, as_text=True)
+            #tf.compat.v1.enable_eager_execution()
+            assert(False)
+
 
 
     def preproc_snn(self,inputs,f_training):
@@ -564,6 +633,7 @@ class MNISTModel_CNN(tfe.Network):
 
 
     def postproc(self, f_val_snn):
+
         if self.conf.nn_mode=='SNN':
             # gradient-based optimization of TC and td in temporal coding (TTFS)
             if (self.conf.neural_coding=="TEMPORAL" and self.conf.f_train_time_const):
@@ -573,6 +643,9 @@ class MNISTModel_CNN(tfe.Network):
         #if self.conf.nn_mode=='ANN':
         #    if f_val_snn:
         #        self.defused_bn()
+
+
+
 
     ###########################################################
     ## call function
@@ -594,6 +667,15 @@ class MNISTModel_CNN(tfe.Network):
             else:
                 ret_val = nn_mode[self.conf.nn_mode](inputs,f_training)
 
+
+            # tmp
+            #gr=tf.autograph.to_graph(self.call_ann(inputs,f_training).ref())
+            #print(gr)
+            #g = tf.Graph()
+            #with g.as_default():
+                #ret_val = self.call_ann(inputs,f_training)
+
+
             # post processing
             self.postproc(f_val_snn)
 
@@ -608,7 +690,6 @@ class MNISTModel_CNN(tfe.Network):
             if self.conf.en_train and self.conf.f_validation_snn:
                 ret_val = self.call_snn(inputs,f_training)
 
-
             ret_val = nn_mode[self.conf.nn_mode](inputs,f_training)
 
             self.print_model_conf()
@@ -617,6 +698,7 @@ class MNISTModel_CNN(tfe.Network):
         return ret_val
 
     #
+    #@tf.function -> make the function graph?
     def call_ann(self,inputs,f_training):
 
         x = tf.reshape(inputs,self._input_shape)
@@ -629,6 +711,14 @@ class MNISTModel_CNN(tfe.Network):
         a_conv1 = tf.nn.relu(s_conv1_bn)
         p_conv1 = self.pool2d(a_conv1)
 
+        #a_conv1_np = a_conv1.numpy()
+        #~plt.hist(tf.reshape(a_conv1,[-1]))
+        #plt.show()
+        #print(tf.reduce_max(a_conv1))
+        #print(tf.reshape(a_conv1,[-1]))
+        #hist=tf.histogram_fixed_width(tf.reshape(a_conv1,[-1]),[0,2])
+        #print(a_conv1)
+
         s_conv2 = self.conv2(p_conv1)
         if self.f_skip_bn:
             s_conv2_bn = s_conv2
@@ -637,7 +727,7 @@ class MNISTModel_CNN(tfe.Network):
         a_conv2 = tf.nn.relu(s_conv2_bn)
         p_conv2 = self.pool2d(a_conv2)
 
-        s_flat = tf.layers.flatten(p_conv2)
+        s_flat = tf.compat.v1.layers.flatten(p_conv2, data_format=self.data_format)
 
         if f_training:
             s_flat = self.dropout(s_flat,training=f_training)
@@ -703,25 +793,9 @@ class MNISTModel_CNN(tfe.Network):
         #x = t_in
 
 
-        s_conv1 = self.conv1(x)
 
-        # conv - deconv test
-        #s_conv1_tr = self.conv1_tr(x)
-        #s_conv1_tr_cv = self.conv1_tr_cv(s_conv1_tr)
-        #
-        #print(x.shape)
-        #print(s_conv1_tr.shape)
-        #print(s_conv1_tr_cv.shape)
-        #print(s_conv1.shape)
-        #
-        ##print('shape')
-        ##print(self.conv1_tr.kernel.shape)
-        ##print(self.conv1_tr_cv.kernel.shape)
-        #
-        #print(tf.equal(s_conv1,s_conv1_tr_cv))
-        #print(s_conv1[0,10,10,0])
-        #print(s_conv1_tr_cv[0,10,10,0])
-        #s_conv1 = s_conv1_tr_cv
+
+        s_conv1 = self.conv1(x)
 
         if self.f_skip_bn:
             s_conv1_bn = s_conv1
@@ -732,8 +806,6 @@ class MNISTModel_CNN(tfe.Network):
         #a_conv1 = tf.nn.relu(s_conv1_bn)
         #
         #self.list_v['conv1'] = s_conv1_bn
-        #self.list_st['conv1'] = self.temporal_encoding(self.list_v['conv1'],'conv1')
-        #a_conv1 = self.temporal_decoding(self.list_st['conv1'],'conv1')
 
         #v_conv1 = self.list_tk['in'](s_conv1_bn, 'dec', self.epoch, f_training)
         v_conv1 = s_conv1_bn
@@ -747,9 +819,18 @@ class MNISTModel_CNN(tfe.Network):
 
         #print(a_conv1)
 
-        if False:
-            addr=0,10,10,0
-            print("ori: {}, enc: {}, dec: {}".format(s_conv1_bn[addr].numpy(),t_conv1[addr].numpy(),a_conv1[addr].numpy()))
+
+        # debugging
+        #print(t_conv1[0,10,10,0:10])
+        #print(a_conv1[0,10,10,0:10])
+
+        #print(tf.reduce_mean(self.conv1.kernel))
+
+
+
+        #if False:
+        #    addr=0,10,10,0
+        #    print("ori: {}, enc: {}, dec: {}".format(s_conv1_bn[addr].numpy(),t_conv1[addr].numpy(),a_conv1[addr].numpy()))
 
         p_conv1 = self.pool2d(a_conv1)
 
@@ -765,8 +846,6 @@ class MNISTModel_CNN(tfe.Network):
         #a_conv2 = tf.nn.relu(s_conv2_bn)
         #
         #self.list_v['conv2'] = s_conv2_bn
-        #self.list_st['conv2'] = self.temporal_encoding(self.list_v['conv2'],'conv2')
-        #a_conv2 = self.temporal_decoding(self.list_st['conv2'],'conv2')
 
 
         #v_conv2 = self.list_tk['conv1'](s_conv2_bn,'dec',self.epoch, f_training)
@@ -782,7 +861,7 @@ class MNISTModel_CNN(tfe.Network):
         p_conv2 = self.pool2d(a_conv2)
 
 
-        s_flat = tf.layers.flatten(p_conv2)
+        s_flat = tf.compat.v1.layers.flatten(p_conv2, data_format=self.data_format)
 
         if f_training:
             s_flat = self.dropout(s_flat,training=f_training)
@@ -795,8 +874,6 @@ class MNISTModel_CNN(tfe.Network):
         a_fc1 = self.fc1(v_fc1)
         #
         #self.list_v['fc1'] = a_fc1
-        #self.list_st['fc1'] = self.temporal_encoding(self.list_v['fc1'],'fc1')
-        #a_fc1 = self.temporal_decoding(self.list_st['fc1'],'fc1')
 
 
         #v_fc1 = a_fc1
@@ -842,6 +919,33 @@ class MNISTModel_CNN(tfe.Network):
         #print(self.list_tk['conv1'].td)
         #print(self.list_tk['conv2'].tc)
         #print(self.list_tk['conv2'].td)
+
+
+        # debugging
+
+        if False:
+        #if True:
+            x = v_in_dec
+            #x = v_conv1
+            print(tf.reduce_mean(x))
+            plt.hist(tf.reshape(x,[-1]))
+            plt.show()
+
+
+        if False:
+        #if True:
+            print('surrogate model')
+            print(tf.reduce_mean(self.conv1.kernel))
+            print(tf.reduce_mean(self.conv1.bias))
+            print(tf.reduce_mean(self.conv2.kernel))
+            print(tf.reduce_mean(self.conv2.bias))
+            print(tf.reduce_mean(self.fc1.kernel))
+            print(tf.reduce_mean(self.fc1.bias))
+            print(self.conv1_bn.trainable_variables)
+            print(self.conv2_bn.trainable_variables)
+
+
+
         return a_out
 
 
@@ -886,6 +990,8 @@ class MNISTModel_CNN(tfe.Network):
         #print(s_conv1_tr_cv[0,10,10,0])
         #s_conv1 = s_conv1_tr_cv
 
+
+
         if self.f_skip_bn:
             s_conv1_bn = s_conv1
         else:
@@ -895,8 +1001,6 @@ class MNISTModel_CNN(tfe.Network):
         #a_conv1 = tf.nn.relu(s_conv1_bn)
         #
         #self.list_v['conv1'] = s_conv1_bn
-        #self.list_st['conv1'] = self.temporal_encoding(self.list_v['conv1'],'conv1')
-        #a_conv1 = self.temporal_decoding(self.list_st['conv1'],'conv1')
 
         v_conv1 = s_conv1_bn
         t_conv1 = self.list_tk['conv1'](v_conv1,'enc',self.epoch, f_training)
@@ -921,10 +1025,6 @@ class MNISTModel_CNN(tfe.Network):
 
         #
         #a_conv2 = tf.nn.relu(s_conv2_bn)
-        #
-        #self.list_v['conv2'] = s_conv2_bn
-        #self.list_st['conv2'] = self.temporal_encoding(self.list_v['conv2'],'conv2')
-        #a_conv2 = self.temporal_decoding(self.list_st['conv2'],'conv2')
 
         v_conv2 = s_conv2_bn
         t_conv2 = self.list_tk['conv2'](v_conv2,'enc',self.epoch, f_training)
@@ -943,9 +1043,6 @@ class MNISTModel_CNN(tfe.Network):
         #
         a_fc1 = self.fc1(s_flat)
         #
-        #self.list_v['fc1'] = a_fc1
-        #self.list_st['fc1'] = self.temporal_encoding(self.list_v['fc1'],'fc1')
-        #a_fc1 = self.temporal_decoding(self.list_st['fc1'],'fc1')
 
 
         #v_fc1 = a_fc1
@@ -1142,6 +1239,7 @@ class MNISTModel_CNN(tfe.Network):
         #
         plt.clf()
 
+
         #
         inputs = tf.reshape(inputs,self._input_shape)
 
@@ -1161,9 +1259,14 @@ class MNISTModel_CNN(tfe.Network):
             #a_conv1_tr = self.conv1_tr(a_conv1)
             #a_conv1_tr_cv = self.conv1_tr_cv(a_conv1_tr)
             #print(tf.equal(a_conv1,a_conv1_tr_cv))
-            #print(a_conv1[0,10,10,0])
+            #print(a_conv1[0,10,10,0:10])
             #print(a_conv1_tr_cv[0,10,10,0])
             #a_conv1 = a_conv1_tr_cv
+
+
+
+            #x=a_conv1
+            #print('min: {:}, max:{:}'.format(tf.reduce_min(x),tf.reduce_max(x)))
 
 
             p_conv1 = self.max_pool(a_conv1, 'conv1')
@@ -1172,13 +1275,63 @@ class MNISTModel_CNN(tfe.Network):
             a_conv2 = self.n_conv2(s_conv2,t)
             p_conv2 = self.max_pool(a_conv2, 'conv2')
 
-            flat = tf.layers.flatten(p_conv2)
+            flat = tf.compat.v1.layers.flatten(p_conv2, data_format=self.data_format)
 
             s_fc1 = self.fc1(flat)
             a_fc1 = self.n_fc1(s_fc1,t)
 
             #
             if self.f_1st_iter == False:
+
+                if False:
+                #if True:
+                    x = self.n_conv1.vmem
+                    print(tf.reduce_mean(x))
+                    plt.hist(tf.reshape(x,[-1]))
+                    plt.show()
+
+                if False:
+                #if True:
+
+                    print(self.n_conv1.vmem[0,10,10,0:10])
+                    print('w')
+                    print(tf.reduce_mean(self.conv1.kernel))
+                    print(tf.reduce_mean(self.conv1.bias))
+                    print(tf.reduce_mean(self.conv2.kernel))
+                    print(tf.reduce_mean(self.conv2.bias))
+                    print(tf.reduce_mean(self.fc1.kernel))
+                    print(tf.reduce_mean(self.fc1.bias))
+                    print(self.conv1_bn.trainable_variables)
+                    print(self.conv2_bn.trainable_variables)
+
+                    #assert False
+
+                    # test
+                    print(self.n_in.time_const_integ)
+                    print(self.n_in.time_delay_integ)
+                    print(self.n_in.time_const_fire)
+                    print(self.n_in.time_delay_fire)
+                    print('')
+
+                    print(self.n_conv1.time_const_integ)
+                    print(self.n_conv1.time_delay_integ)
+                    print(self.n_conv1.time_const_fire)
+                    print(self.n_conv1.time_delay_fire)
+                    print('')
+
+                    print(self.n_conv2.time_const_integ)
+                    print(self.n_conv2.time_delay_integ)
+                    print(self.n_conv2.time_const_fire)
+                    print(self.n_conv2.time_delay_fire)
+                    print('')
+
+                    print(self.n_fc1.time_const_integ)
+                    print(self.n_fc1.time_delay_integ)
+                    print(self.n_fc1.time_const_fire)
+                    print(self.n_fc1.time_delay_fire)
+                    print('')
+
+
                 #print(self.count_accuracy_time_point)
                 if t==self.accuracy_time_point[self.count_accuracy_time_point]-1:
                     #output=self.n_fc1.vmem
@@ -1187,6 +1340,10 @@ class MNISTModel_CNN(tfe.Network):
 
         if self.conf.f_entropy and (not self.f_1st_iter):
             self.cal_entropy()
+
+
+        #
+        self.bias_restore()
 
 
         if self.f_1st_iter:
@@ -1250,6 +1407,7 @@ class MNISTModel_CNN(tfe.Network):
             #self.dict_stat_w['conv1']=a_conv1.numpy()
             #self.dict_stat_w['conv2']=a_conv2.numpy()
             #self.dict_stat_w['fc1']=a_fc1.numpy()
+
 
 
 
@@ -1834,6 +1992,11 @@ class MNISTModel_CNN(tfe.Network):
             if not 'bn' in k:
                 l.use_bias = False
 
+    def bias_restore(self):
+        if self.conf.use_bias:
+            self.bias_enable()
+        else:
+            self.bias_disable()
 
 
 

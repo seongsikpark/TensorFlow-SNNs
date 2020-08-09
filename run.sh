@@ -40,8 +40,8 @@ nn_mode='ANN'
 #nn_mode='SNN'
 
 
-#exp_case='CNN_MNIST'
-exp_case='VGG16_CIFAR-10'
+exp_case='CNN_MNIST'
+#exp_case='VGG16_CIFAR-10'
 #exp_case='VGG16_CIFAR-100'
 #exp_case='ResNet50_ImageNet'
 
@@ -60,8 +60,8 @@ load_and_train=False
 #load_and_train=True
 
 #
-#f_validation_snn=False
-f_validation_snn=True
+f_validation_snn=False
+#f_validation_snn=True
 
 #
 regularizer='L2'
@@ -184,8 +184,8 @@ n_type='IF'
 f_positive_vmem=False
 
 # refractory mode
-f_refractory=True
-#f_refractory=False
+#f_refractory=True
+f_refractory=False
 
 
 #vth=1.1
@@ -247,6 +247,7 @@ snn_output_type='VMEM'
 ###############################################################################
 ## configurations for TTFS coding (TEMPORAL)
 ###############################################################################
+
 
 
 ###############################################################
@@ -367,8 +368,8 @@ n_tau_time_window=${n_tau_fire_duration}
 #
 # training SNN w/ surrogate model (DNN)
 # actual training is performed in the surrogate DNN model
-#f_surrogate_training_model=True
-f_surrogate_training_model=False
+f_surrogate_training_model=True
+#f_surrogate_training_model=False
 
 
 #
@@ -383,12 +384,13 @@ init_first_spike_time_n=1
 
 
 #
-# TODO: move these code below later to "TO NOT TOUCH"
+# TODO: move these code below later to "DO NOT TOUCH"
 
 if [ ${f_surrogate_training_model} = True ]
 then
     f_w_norm_data=False
-
+else
+    f_validation_snn=False
 fi
 
 
@@ -503,8 +505,8 @@ INFER_CNN_MNIST)
     dataset='MNIST'
     ann_model='CNN'
     # TODO: model name parameterize
-    model_name='cnn_mnist_ro_0'
-    #model_name='cnn_mnist_train_ANN'
+    #model_name='cnn_mnist_ro_0'
+    model_name='cnn_mnist_train_ANN'
 
     if [ ${f_full_test} = True ]
     then
@@ -619,6 +621,15 @@ INFER_CNN_MNIST_SUR)
     # TensorBoard log - 20200506-1445
     #model_name='cnn_mnist_train_ANN_surrogate_2'
 
+    # SNN, 5, 20, 20 - 99.37%, # spikes - 1600, epoch - 635
+    # TensorBoard log - 20200507-1042
+    #model_name='cnn_mnist_train_ANN_surrogate_3'
+
+    #
+    # SNN, 5, 20, 20 - (val, best) 99.42%, (val) 13.16%  (test) ? # spikes - 160, epoch - 6306
+    # TensorBoard log - 20200509-0055
+    # regularization needed, tc increased as training progressed
+    #model_name='cnn_mnist_train_ANN_surrogate_no_reg'
 
     model_name='cnn_mnist_train_ANN_surrogate'
 
@@ -649,7 +660,7 @@ TRAIN_CNN_MNIST)
     dataset='MNIST'
     ann_model='CNN'
 
-    num_epoch=1000
+    num_epoch=10000
 
 
     if [ ${f_surrogate_training_model} = True ]
@@ -781,6 +792,7 @@ fi
 if [ ${neural_coding} = "TEMPORAL" ]
 then
     f_record_first_spike_time=True
+    f_refractory=True
 else
     f_record_first_spike_time=False
 fi

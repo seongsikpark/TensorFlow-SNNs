@@ -1,8 +1,12 @@
 import tensorflow as tf
-import tensorflow.contrib.eager as tfe
+#import tensorflow.contrib.eager as tfe
 
-from tensorflow.contrib.layers.python.layers import initializers
-from tensorflow.contrib.layers.python.layers import regularizers
+#from tensorflow.contrib.layers.python.layers import initializers
+#from tensorflow.contrib.layers.python.layers import regularizers
+
+import tensorflow.keras.initializers as initializers
+import tensorflow.keras.regularizers as regularizers
+
 
 from tensorflow.python.framework import tensor_shape
 from tensorflow.python.ops import math_ops
@@ -35,7 +39,9 @@ import threading
 
 #
 # noinspection PyUnboundLocalVariable
-class CIFARModel_CNN(tfe.Network):
+#class CIFARModel_CNN(tfe.Network):
+#class CIFARModel_CNN(tf.keras.layers):
+class CIFARModel_CNN(tf.keras.layers.Layer):
     def __init__(self, data_format, conf):
         super(CIFARModel_CNN, self).__init__(name='')
 
@@ -70,6 +76,11 @@ class CIFARModel_CNN(tfe.Network):
         #
         self.f_skip_bn = self.conf.f_fused_bn
 
+
+        #
+        self.epoch = -1
+
+        #
         self.layer_name=[
             'in',
             'conv1',
@@ -548,6 +559,10 @@ class CIFARModel_CNN(tfe.Network):
 
 
                 file.close()
+
+
+            # SNN training w/ TTFS coding
+            # surrogate mode training
 
 
             #
@@ -2469,9 +2484,7 @@ class CIFARModel_CNN(tfe.Network):
                     axe.axvline(x=plt_idx*self.conf.time_fire_start, color='b')                         # fire start
                     axe.axvline(x=plt_idx*self.conf.time_fire_start+self.conf.time_fire_duration, color='b') # fire end
 
-
                     plt_idx+=1
-
 
         else:
             plt_idx=0

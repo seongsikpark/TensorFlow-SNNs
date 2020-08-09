@@ -4,7 +4,7 @@ from __future__ import print_function
 
 import numpy as np
 import tensorflow as tf
-import tensorflow.contrib.eager as tfe
+#import tensorflow.contrib.eager as tfe
 
 import math
 
@@ -15,7 +15,8 @@ import pandas as pd
 
 #
 def test(model, dataset, num_dataset, conf, f_val=False, epoch=0, f_val_snn=False):
-    avg_loss = tfe.metrics.Mean('loss')
+    #avg_loss = tfe.metrics.Mean('loss')
+    avg_loss = tf.keras.metrics.Mean('loss')
 
     #if conf.nn_mode=='SNN':
     if conf.nn_mode=='SNN' or f_val_snn:
@@ -41,10 +42,12 @@ def test(model, dataset, num_dataset, conf, f_val=False, epoch=0, f_val_snn=Fals
             print('num_accuracy_time_point: {:d}'.format(model.num_accuracy_time_point))
 
         for i in range(num_accuracy_time_point):
-            accuracy_times.append(tfe.metrics.Accuracy('accuracy'))
+            #accuracy_times.append(tfe.metrics.Accuracy('accuracy'))
+            accuracy_times.append(tf.keras.metrics.Accuracy('accuracy'))
 
             if conf.dataset == 'ImageNet':
-                accuracy_times_top5.append(tfe.metrics.Mean('accuracy_top5'))
+                #accuracy_times_top5.append(tfe.metrics.Mean('accuracy_top5'))
+                accuracy_times_top5.append(tf.keras.metrics.Mean('accuracy_top5'))
 
 
         #num_batch=int(math.ceil(float(conf.num_test_dataset)/float(conf.batch_size)))
@@ -69,7 +72,10 @@ def test(model, dataset, num_dataset, conf, f_val=False, epoch=0, f_val_snn=Fals
         if f_val_snn:
             model.f_done_preproc = False
 
-        for (idx_batch, (images, labels_one_hot)) in enumerate(tfe.Iterator(dataset)):
+        idx_batch=0
+        #for (idx_batch, (images, labels_one_hot)) in enumerate(tfe.Iterator(dataset)):
+        #for (idx_batch, (images, labels_one_hot)) in enumerate(tf.Iterator(dataset)):
+        for (images, labels_one_hot) in dataset:
             labels = tf.argmax(labels_one_hot,axis=1,output_type=tf.int32)
 
             f_resize_output = False
@@ -125,7 +131,7 @@ def test(model, dataset, num_dataset, conf, f_val=False, epoch=0, f_val_snn=Fals
                                 accuracy_top5(tf.cast(tf.nn.in_top_k(predictions,labels,5),tf.int32))
 
                 predictions = predictions_times[-1]
-                avg_loss(train.loss(predictions,labels_one_hot))
+                avg_loss(train.loss_cross_entoropy(predictions,labels_one_hot))
 
                 # TODO: decide remove?
                 # syntax error
@@ -180,6 +186,7 @@ def test(model, dataset, num_dataset, conf, f_val=False, epoch=0, f_val_snn=Fals
 
                     f.close()
 
+            idx_batch += 1
 
         #
         if f_val_snn:
@@ -301,10 +308,12 @@ def test(model, dataset, num_dataset, conf, f_val=False, epoch=0, f_val_snn=Fals
             model.figure_hold()
 
     else:
-        accuracy=tfe.metrics.Accuracy('accuracy')
+        #accuracy=tfe.metrics.Accuracy('accuracy')
+        accuracy=tf.metrics.Accuracy('accuracy')
 
         if conf.dataset == 'ImageNet':
-            accuracy_top5=tfe.metrics.Mean('accuracy_top5')
+            #accuracy_top5=tfe.metrics.Mean('accuracy_top5')
+            accuracy_top5=tf.metrics.Mean('accuracy_top5')
 
 
         if f_val==False:
@@ -313,8 +322,11 @@ def test(model, dataset, num_dataset, conf, f_val=False, epoch=0, f_val_snn=Fals
             pbar.set_description("batch")
 
 
-        for (idx_batch, (images, labels_one_hot)) in enumerate(tfe.Iterator(dataset)):
+        #for (idx_batch, (images, labels_one_hot)) in enumerate(tfe.Iterator(dataset)):
+        #for (idx_batch, (images, labels_one_hot)) in enumerate(tf.Iterator(dataset)):
         #for idx_batch in range(0,2):
+        idx_batch = 0
+        for (images, labels_one_hot) in dataset:
             #images, labels = tfe.Iterator(dataset).next()
             #print('idx: %d'%(idx_batch))
             #print('image')
@@ -341,10 +353,12 @@ def test(model, dataset, num_dataset, conf, f_val=False, epoch=0, f_val_snn=Fals
                     with tf.device('/cpu:0'):
                         #accuracy_top5(tf.cast(tf.nn.in_top_k(predictions,labels,5),tf.int32))
                         accuracy_top5(tf.cast(tf.nn.in_top_k(predictions, tf.argmax(labels_one_hot,axis=1,output_type=tf.int32),5),tf.int32))
-                avg_loss(train.loss(predictions,labels_one_hot))
+                avg_loss(train.loss_cross_entoropy(predictions,labels_one_hot))
 
             if f_val==False:
                 pbar.update()
+
+            idx_batch += 1
 
         ret_accu = 100*accuracy.result()
         if conf.dataset == 'ImageNet':

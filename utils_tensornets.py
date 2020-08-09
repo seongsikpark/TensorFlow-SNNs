@@ -9,8 +9,8 @@ import warnings
 from contextlib import contextmanager
 from distutils.version import LooseVersion
 
-from tensorflow.contrib.framework import arg_scope
-from tensorflow.contrib.layers.python.layers.utils import collect_named_outputs
+#from tensorflow.contrib.framework import arg_scope
+#from tensorflow.contrib.layers.python.layers.utils import collect_named_outputs
 from tensorflow.python.framework import ops
 
 #from layers import conv2d
@@ -30,7 +30,13 @@ def tf_later_than(v):
     return LooseVersion(tf.__version__) > LooseVersion(v)
 
 
-if tf_later_than('1.8.0'):
+print(tf.__version__)
+print(LooseVersion(tf.__version__))
+
+if tf_later_than('2.0.0'):
+    from tensorflow.keras.applications.imagenet_utils import decode_predictions
+    from tensorflow.keras.utils import get_file
+elif tf_later_than('1.8.0'):
     from tensorflow.python.keras.applications.imagenet_utils \
         import decode_predictions
     from tensorflow.python.keras.utils import get_file
@@ -240,53 +246,57 @@ def init(scopes):
     for scope in scopes:
         sess.run(tf.variables_initializer(get_weights(scope)))
 
+#
+# TODO: isn't it neccessary?
+#def var_scope(name):
+#    def decorator(func):
+#	#print('function_name', func)
+#        def wrapper(*args, **kwargs):
+#	    #print(args)
+#            stem = kwargs.get('stem', False)
+#            scope = kwargs.get('scope', None)
+#            reuse = kwargs.get('reuse', None)
+#            with tf.variable_scope(scope, name, reuse=reuse):
+#                x = func(*args, **kwargs)
+#                if func.__name__ == 'wrapper':
+#                    from .middles import direct as p0
+#                    from .preprocess import direct as p1
+#                    from .pretrained import direct as p2
+#                    _scope = tf.get_variable_scope().name
+#		    #print('_scope: ',_scope)
+#                    _input_shape = tuple([i.value for i in args[0].shape[1:3]])
+#		    #print(_input_shape)
+#                    _outs = get_outputs(_scope)
+#                    for i in p0(name)[0]:
+#                        collect_named_outputs(__middles__, _scope, _outs[i])
+#                    if stem:
+#                        x.aliases.insert(0, _scope)
+#                        x.p = get_middles(_scope)[p0(name)[2]]
+#                    setattr(x, 'preprocess', p1(name, _input_shape))
+#                    setattr(x, 'pretrained', p2(name, x))
+#                    setattr(x, 'get_bottleneck',
+#                            lambda: get_bottleneck(_scope))
+#                    setattr(x, 'get_middles', lambda: get_middles(_scope))
+#                    setattr(x, 'get_outputs', lambda: get_outputs(_scope))
+#                    setattr(x, 'get_weights', lambda: get_weights(_scope))
+#                    setattr(x, 'print_middles', lambda: print_middles(_scope))
+#                    setattr(x, 'print_outputs', lambda: print_outputs(_scope))
+#                    setattr(x, 'print_weights', lambda: print_weights(_scope))
+#                    setattr(x, 'print_summary', lambda: print_summary(_scope))
+#                return x
+#        return wrapper
+#    return decorator
 
-def var_scope(name):
-    def decorator(func):
-	#print('function_name', func)
-        def wrapper(*args, **kwargs):
-	    #print(args)
-            stem = kwargs.get('stem', False)
-            scope = kwargs.get('scope', None)
-            reuse = kwargs.get('reuse', None)
-            with tf.variable_scope(scope, name, reuse=reuse):
-                x = func(*args, **kwargs)
-                if func.__name__ == 'wrapper':
-                    from .middles import direct as p0
-                    from .preprocess import direct as p1
-                    from .pretrained import direct as p2
-                    _scope = tf.get_variable_scope().name
-		    #print('_scope: ',_scope)
-                    _input_shape = tuple([i.value for i in args[0].shape[1:3]])
-		    #print(_input_shape)
-                    _outs = get_outputs(_scope)
-                    for i in p0(name)[0]:
-                        collect_named_outputs(__middles__, _scope, _outs[i])
-                    if stem:
-                        x.aliases.insert(0, _scope)
-                        x.p = get_middles(_scope)[p0(name)[2]]
-                    setattr(x, 'preprocess', p1(name, _input_shape))
-                    setattr(x, 'pretrained', p2(name, x))
-                    setattr(x, 'get_bottleneck',
-                            lambda: get_bottleneck(_scope))
-                    setattr(x, 'get_middles', lambda: get_middles(_scope))
-                    setattr(x, 'get_outputs', lambda: get_outputs(_scope))
-                    setattr(x, 'get_weights', lambda: get_weights(_scope))
-                    setattr(x, 'print_middles', lambda: print_middles(_scope))
-                    setattr(x, 'print_outputs', lambda: print_outputs(_scope))
-                    setattr(x, 'print_weights', lambda: print_weights(_scope))
-                    setattr(x, 'print_summary', lambda: print_summary(_scope))
-                return x
-        return wrapper
-    return decorator
 
 
-def ops_to_outputs(func):
-    def wrapper(*args, **kwargs):
-        x = func(*args, **kwargs)
-        x = collect_named_outputs(__outputs__, tf.get_variable_scope().name, x)
-        return x
-    return wrapper
+#
+# TODO: isn't it neccessary?
+#def ops_to_outputs(func):
+#    def wrapper(*args, **kwargs):
+#        x = func(*args, **kwargs)
+#        x = collect_named_outputs(__outputs__, tf.get_variable_scope().name, x)
+#        return x
+#    return wrapper
 
 
 @contextmanager
@@ -306,7 +316,8 @@ def set_args(largs, conv_bias=True):
 #		print(x)
 #		print(y)
 
-            layers_args = [arg_scope(x, **y) for (x, y) in largs(is_training)]
+        # TODO: Is this not needed?
+            #layers_args = [arg_scope(x, **y) for (x, y) in largs(is_training)]
 
 	    #for (x,y) in largs(is_training):
 		#print(arg_scope(x,**y))

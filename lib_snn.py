@@ -1,5 +1,5 @@
 import tensorflow as tf
-import tensorflow.contrib.eager as tfe
+#import tensorflow.contrib.eager as tfe
 
 #import tensorflow_probability as tfp
 
@@ -9,7 +9,8 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
-class Neuron(tf.layers.Layer):
+#class Neuron(tf.layers.Layer):
+class Neuron(tf.keras.layers.Layer):
     def __init__(self,dim,n_type,fan_in,conf,neural_coding,depth=0,n_name='',**kwargs):
         #super(Neuron, self).__init__(name="")
         super(Neuron, self).__init__()
@@ -26,6 +27,10 @@ class Neuron(tf.layers.Layer):
 
         self.n_name = n_name
 
+        # stat for weighted spike
+        self.en_stat_ws = True
+        #self.en_stat_ws = False
+
         #self.zeros = np.zeros(self.dim,dtype=np.float32)
         #self.zeros = tf.constant(0.0,shape=self.dim,dtype=tf.float32)
         #self.fires = np.full(self.dim, self.conf.n_in_init_vth,dtype=np.float32)
@@ -38,6 +43,7 @@ class Neuron(tf.layers.Layer):
         #if self.conf.f_record_first_spike_time:
             #self.init_first_spike_time = -1.0
         self.init_first_spike_time = self.conf.time_fire_duration*self.conf.init_first_spike_time_n
+
 
 
 
@@ -104,6 +110,10 @@ class Neuron(tf.layers.Layer):
         #if self.conf.f_record_first_spike_time:
         #    self.first_spike_time=self.add_variable("first_spike_time",shape=self.dim,dtype=tf.float32,initializer=tf.constant_initializer(self.init_first_spike_time),trainable=False)
 
+
+        # stat for weighted spike
+        if self.en_stat_ws:
+            self.stat_ws = self.add_variable("stat_ws",shape=self.conf.p_ws,dtype=tf.float32,initializer=tf.zeros_initializer,trainable=False)
 
         self.first_spike_time=self.add_variable("first_spike_time",shape=self.dim,dtype=tf.float32,initializer=tf.constant_initializer(self.init_first_spike_time),trainable=False)
         #if self.conf.f_train_time_const:
@@ -557,9 +567,10 @@ class Neuron(tf.layers.Layer):
 
         if self.conf.f_refractory:
             #self.f_fire = np.logical_and(self.vmem >= self.vth,np.equal(self.refractory,0.0))
-            self.f_fire = tf.logical_and(self.vmem >= self.vth, np.equal(self.refractory,0.0))
+            self.f_fire = tf.logical_and(self.vmem >= self.vth, tf.equal(self.refractory,0.0))
         else:
             self.f_fire = self.vmem >= self.vth
+
 
         if self.conf.f_refractory:
             print('fire_weighted_spike, refractory: not implemented yet')
@@ -567,6 +578,19 @@ class Neuron(tf.layers.Layer):
         self.out = tf.where(self.f_fire,self.vth,tf.zeros(self.out.shape))
 
         self.vmem = tf.subtract(self.vmem,self.out)
+
+        # stat for weighted spike
+        if self.en_stat_ws:
+            count = tf.cast(tf.math.count_nonzero(self.out),tf.float32)
+            #print(count)
+           # tf.tensor_scatter_nd_add(self.stat_ws,[[t_mod]],[count])
+            #self.stat_ws.scatter_add(tf.IndexedSlices(10.0,1))
+            self.stat_ws.scatter_add(tf.IndexedSlices(count,t_mod))
+            #tf.tensor_scatter_nd_add(self.stat_ws,[[1]],[10])
+
+            print(self.stat_ws)
+            #plt.hist(self.stat_ws.numpy())
+            #plt.show()
 
         if self.conf.f_isi:
             self.cal_isi(self.f_fire,t)
@@ -1108,7 +1132,7 @@ class Neuron(tf.layers.Layer):
 ## Temporal kernel for surrogate model training
 ## enc(t)=ta*exp(-(t-td)/tc)
 ###############################################################################
-class Temporal_kernel(tf.layers.Layer):
+class Temporal_kernel(tf.keras.layers.Layer):
     def __init__(self,dim_in,dim_out,init_tc,init_td,init_ta,init_tw):
         super(Temporal_kernel, self).__init__()
         #
@@ -1127,9 +1151,20 @@ class Temporal_kernel(tf.layers.Layer):
 
         #
         # TODO: parameterize these variables depending on strategies, model, and dataset
-        self.epoch_start_t_int = 1
-        self.epoch_start_clip_tw = 1
-        self.epoch_start_train_tk = 1
+        epoch_start_train_tk_start = 1
+        #epoch_start_train_tk_start = 100
+        #epoch_start_train_tk_start = 1
+        epoch_start_train_t_int = 1
+        epoch_start_train_clip_tw = 1
+
+        self.epoch_start_t_int = epoch_start_train_t_int
+        self.epoch_start_clip_tw = epoch_start_train_clip_tw
+        self.epoch_start_train_tk = epoch_start_train_tk_start
+
+        # start epoch training with floor function - quantization
+        # before this epoch, training with round founction
+        #self.epoch_start_train_floor = 10
+        self.epoch_start_train_floor = 10000
 
 
         # encoding decoding para couple
@@ -1186,6 +1221,7 @@ class Temporal_kernel(tf.layers.Layer):
         return ret
 
     def call_encoding(self, input, epoch, f_training):
+
         #
         self.in_enc = input
 
@@ -1193,9 +1229,11 @@ class Temporal_kernel(tf.layers.Layer):
         t_float = self.call_encoding_kernel(input)
 
         #
+        infer_mode = (f_training==False)and(epoch<0)
+        #
         #if False:
         #if ((f_training==False) and (epoch==-1)) or ((f_training == True) and (epoch > self.epoch_start_t_int)):
-        if (f_training==True)and(epoch > self.epoch_start_t_int) or (f_training==False)and(epoch<0):
+        if (f_training==True)and(epoch > self.epoch_start_t_int) or infer_mode:
             # TODO: parameterize
             #if epoch > self.epoch_start_t_int+100:
             #if epoch > self.epoch_start_t_int:
@@ -1204,7 +1242,16 @@ class Temporal_kernel(tf.layers.Layer):
             #    t = tf.quantization.fake_quant_with_min_max_vars(t_float,0,tf.pow(2.0,16.0)-1,16)
             #   #` t=tf.round(t_float)
 
-            t = tf.quantization.fake_quant_with_min_max_vars(t_float,0,tf.pow(2.0,16.0)-1,16)
+
+            if (epoch < self.epoch_start_train_floor) and not infer_mode:
+                t = tf.quantization.fake_quant_with_min_max_vars(t_float,0,tf.pow(2.0,16.0)-1,16)
+            else:
+                #t = tf.quantization.fake_quant_with_min_max_vars(t_float,0,tf.pow(2.0,16.0)-1,16)
+                t = tf.math.floor(t_float)
+
+
+            #tmp = tf.where(tf.equal(t,0),100,t)
+            #print(tf.reduce_min(tmp))
 
         else :
             t = t_float
@@ -1220,7 +1267,8 @@ class Temporal_kernel(tf.layers.Layer):
 #            #print(self.tw)
 
 
-
+        #print('min: {:}, max:{:}'.format(tf.reduce_min(t),tf.reduce_max(t)))
+        #print(t)
 
         #
         self.out_enc = t
@@ -1258,9 +1306,20 @@ class Temporal_kernel(tf.layers.Layer):
         #x = tf.multiply(self.ta,tf.exp(tf.divide(tf.subtract(self.td,t),self.tc)))
 
         if self.f_enc_dec_couple:
-            x = tf.exp(tf.divide(tf.subtract(self.td,t),self.tc))
+            tw_target = self.tw
+            td = self.td
+            tc = self.tc
+
+            #if epoch > 500:
+            #    tw_target = 1.5*self.tw - self.tw/1000*epoch
+
         else:
-            x = tf.exp(tf.divide(tf.subtract(self.td_dec,t),self.tc_dec))
+            tw_target = self.tw_dec
+            td = self.td_dec
+            tc = self.tc_dec
+
+        #
+        x = tf.exp(tf.divide(tf.subtract(td,t),tc))
 
 
 
@@ -1270,30 +1329,15 @@ class Temporal_kernel(tf.layers.Layer):
 
 
 
-            if self.f_enc_dec_couple:
-                tw_target = self.tw
-
-                #if epoch > 500:
-                #    tw_target = 1.5*self.tw - self.tw/1000*epoch
-
-            else:
-                tw_target = self.tw_dec
 
             #if epoch > 300:
             #    tw_target = self.tw/2
             #else:
             #    tw_target = self.tw
 
-            if (f_training==False) and (epoch<0):
-                if self.f_enc_dec_couple:
-                    tw_target = self.tw
-                else:
-                    tw_target = self.tw_dec
+            #
+            tk_min = tf.exp(tf.divide(tf.subtract(td,tw_target),tc))
 
-            if self.f_enc_dec_couple:
-                tk_min = tf.exp(tf.divide(tf.subtract(self.td,tw_target),self.tc))
-            else:
-                tk_min = tf.exp(tf.divide(tf.subtract(self.td_dec,tw_target),self.tc_dec))
             #print('')
             #print(tw_target)
             #print(tk_min)
@@ -1310,6 +1354,7 @@ class Temporal_kernel(tf.layers.Layer):
         self.out_dec = x
 
 
+        #print('min: {:}, max:{:}'.format(tf.reduce_min(x),tf.reduce_max(x)))
 
         return x
 
