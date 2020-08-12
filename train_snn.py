@@ -222,15 +222,16 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
 
             # TODO: parametrize
 
-            f_loss_dist = False
+            f_loss_dist = True
+            #f_loss_dist = False
             if f_loss_dist:
                 loss_name=['prediction', 'enc_st']
             else:
                 loss_name=['prediction']
 
             # regularizer - temporal kernel paras.
-            f_reg_tc_para = True
-            #f_reg_tc_para = False
+            #f_reg_tc_para = True
+            f_reg_tc_para = False
             if f_reg_tc_para:
                 loss_name.append('reg_tc_para')
 
@@ -301,7 +302,8 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
                 enc_st = tf.cast(enc_st,tf.float32)
                 #max_enc_target = tf.where(t > max_enc_st*max_border,\
                 #dist = tfd.Beta(1,3)
-                dist = tfd.Beta(0.9,0.1)
+                #dist = tfd.Beta(0.9,0.1)
+                dist = tfd.Beta(0.1,0.9)
                 dist_sample = dist.sample(enc_st.shape)
                 #dist_sample = tf.multiply(dist_sample,model.conf.time_window)
                 dist_sample = tf.multiply(dist_sample,enc_st_target_end)
@@ -328,7 +330,8 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
                 enc_st = tf.cast(enc_st,tf.float32)
                 #max_enc_target = tf.where(t > max_enc_st*max_border,\
                 #dist = tfd.Beta(1,3)
-                dist = tfd.Beta(0.9,0.1)
+                #dist = tfd.Beta(0.9,0.1)
+                dist = tfd.Beta(0.1,0.9)
                 dist_sample = dist.sample(enc_st.shape)
                 #dist_sample = tf.multiply(dist_sample,model.conf.time_window)
                 dist_sample = tf.multiply(dist_sample,enc_st_target_end)
@@ -472,10 +475,10 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
             loss_weight['prediction']=1.0
 
             if f_loss_dist:
-                loss_weight['enc_st']=0.01
+                loss_weight['enc_st']=0.001
 
             if f_reg_tc_para:
-                loss_weight['reg_tc_para']=0.01
+                loss_weight['reg_tc_para']=0.001
 
             #loss_weight['max_enc_st']=0.0
             ##loss_weight['min_enc_st']=0.1

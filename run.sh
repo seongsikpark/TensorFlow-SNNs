@@ -40,8 +40,8 @@ nn_mode='ANN'
 #nn_mode='SNN'
 
 
-exp_case='CNN_MNIST'
-#exp_case='VGG16_CIFAR-10'
+#exp_case='CNN_MNIST'
+exp_case='VGG16_CIFAR-10'
 #exp_case='VGG16_CIFAR-100'
 #exp_case='ResNet50_ImageNet'
 
@@ -109,9 +109,8 @@ time_step_save_interval=2
 # SNN training
 #time_step=200
 #time_step_save_interval=40
-#time_step_save_interval=10
-time_step_save_interval=20
-#time_step_save_interval=40
+#time_step_save_interval=20
+time_step_save_interval=10
 
 
 ###############################################################
@@ -630,6 +629,18 @@ INFER_CNN_MNIST_SUR)
     # TensorBoard log - 20200509-0055
     # regularization needed, tc increased as training progressed
     #model_name='cnn_mnist_train_ANN_surrogate_no_reg'
+
+    #
+    # SNN, 5, 20, 20 - 99.28%, # spikes - 1197, epoch - 2000
+    # regularizer - encoded spike time (KL loss, beta dist.(0.9,0.1), 0.001)
+    # TensorBoard log -
+    #model_name='cnn_mnist_train_ANN_surrogate_reg-enc_1'
+
+    #
+    # SNN, 5, 20, 20 - 99.31%, # spikes - 1343, epoch - 1895
+    # regularizer - encoded spike time (KL loss, beta dist.(0.1,0.9), 0.001)
+    # TensorBoard log -
+    #model_name='cnn_mnist_train_ANN_surrogate_reg-enc_2'
 
     model_name='cnn_mnist_train_ANN_surrogate'
 

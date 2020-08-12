@@ -1331,6 +1331,14 @@ class MNISTModel_CNN(tf.keras.layers.Layer):
                     print(self.n_fc1.time_delay_fire)
                     print('')
 
+                #if True:
+                if False:
+                    print(self.list_tk['in'].tw)
+                    print(self.list_tk['conv1'].tw)
+                    print(self.list_tk['conv2'].tw)
+                    #print(self.list_tk['fc1'].tw)
+
+
 
                 #print(self.count_accuracy_time_point)
                 if t==self.accuracy_time_point[self.count_accuracy_time_point]-1:

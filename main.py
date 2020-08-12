@@ -584,9 +584,6 @@ def main(_):
                 print('load model')
                 print(tf.train.latest_checkpoint(checkpoint_load_dir))
 
-
-
-                assert False, "load code modify"
                 load_layer = model.load_layer_ann_checkpoint
                 #load_layer = tf.train.Checkpoint(conv1=model.conv1, conv2=model.conv2, fc1=model.fc1, conv1_bn=model.conv1_bn, conv2_bn=model.conv2_bn)
                 load_model = tf.train.Checkpoint(model=load_layer, optimizer=optimizer, global_epoch=global_epoch)
