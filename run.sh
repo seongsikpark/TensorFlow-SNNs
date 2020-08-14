@@ -52,7 +52,7 @@ exp_case='VGG16_CIFAR-10'
 ###############################################################################
 
 training_mode=True
-#training_mode=False
+training_mode=False
 
 #
 # If this flag is False, then the trained model is overwritten
@@ -350,6 +350,7 @@ time_window=${time_fire_duration}
 #time_window=${time_fire_duration}
 
 
+
 #f_tc_based=True
 f_tc_based=False
 
@@ -367,8 +368,8 @@ n_tau_time_window=${n_tau_fire_duration}
 #
 # training SNN w/ surrogate model (DNN)
 # actual training is performed in the surrogate DNN model
-f_surrogate_training_model=True
-#f_surrogate_training_model=False
+#f_surrogate_training_model=True
+f_surrogate_training_model=False
 
 
 #
@@ -525,12 +526,16 @@ INFER_CNN_MNIST)
     fi
     ;;
 
-
 INFER_VGG16_CIFAR-10)
+#INFER_VGG16_CIFAR-10_TV-V1)
     echo "Inference mode - "${nn_mode}", Model: VGG16, Dataset: CIFAR-10"
     ann_model='CNN'         # CNN-CIFAR: VGG16
     dataset='CIFAR-10'
-    model_name='vgg_cifar_ro_0'
+    # TF-V1 - old
+    #model_name='vgg_cifar_ro_0'
+
+    # 92.44
+    model_name='vgg16_cifar10_train_ANN'
 
     if [ ${f_full_test} = True ]
     then

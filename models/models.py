@@ -169,7 +169,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         padding = 'same'
 
         self.nn_mode = {
-            'ANN': self.call_ann,
+            'ANN': self.call_ann if not self.conf.f_surrogate_training_model else self.call_ann_surrogate_training,
             'SNN': self.call_snn if not self.conf.f_pruning_channel else self.call_snn_pruning
         }
 
@@ -178,62 +178,67 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             'SNN': self.call_snn
         }
 
+        #regularizer_type = {
+        #    'L1': regularizers.l1_regularizer(conf.lamb),
+        #    'L2': regularizers.l2_regularizer(conf.lamb)
+        #}
+
         regularizer_type = {
-            'L1': regularizers.l1_regularizer(conf.lamb),
-            'L2': regularizers.l2_regularizer(conf.lamb)
+            'L1': regularizers.l1(conf.lamb),
+            'L2': regularizers.l2(conf.lamb)
         }
+
+
         kernel_regularizer = regularizer_type[self.conf.regularizer]
-        kernel_initializer = initializers.xavier_initializer(True)
+        #kernel_initializer = initializers.xavier_initializer(True)
+        kernel_initializer = initializers.GlorotUniform()
         #kernel_initializer = initializers.variance_scaling_initializer(factor=2.0,mode='FAN_IN')    # MSRA init. = He init
 
         self.layer_list=collections.OrderedDict()
-        self.layer_list['conv1'] = self.track_layer(tf.layers.Conv2D(64,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME'))
+        self.layer_list['conv1'] = tf.keras.layers.Conv2D(64,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv1_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv1_1'] = tf.keras.layers.Conv2D(64,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv1_1_bn'] = tf.keras.layers.BatchNormalization()
 
+        self.layer_list['conv2'] = tf.keras.layers.Conv2D(128,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv2_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv2_1'] = tf.keras.layers.Conv2D(128,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv2_1_bn'] = tf.keras.layers.BatchNormalization()
 
-        self.layer_list['conv1_bn'] = self.track_layer(tf.layers.BatchNormalization())
-        self.layer_list['conv1_1'] = self.track_layer(tf.layers.Conv2D(64,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME'))
-        self.layer_list['conv1_1_bn'] = self.track_layer(tf.layers.BatchNormalization())
+        self.layer_list['conv3'] = tf.keras.layers.Conv2D(256,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv3_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv3_1'] = tf.keras.layers.Conv2D(256,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv3_1_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv3_2'] = tf.keras.layers.Conv2D(256,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv3_2_bn'] = tf.keras.layers.BatchNormalization()
 
-        self.layer_list['conv2'] = self.track_layer(tf.layers.Conv2D(128,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME'))
-        self.layer_list['conv2_bn'] = self.track_layer(tf.layers.BatchNormalization())
-        self.layer_list['conv2_1'] = self.track_layer(tf.layers.Conv2D(128,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME'))
-        self.layer_list['conv2_1_bn'] = self.track_layer(tf.layers.BatchNormalization())
+        self.layer_list['conv4'] = tf.keras.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv4_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv4_1'] = tf.keras.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv4_1_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv4_2'] = tf.keras.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv4_2_bn'] = tf.keras.layers.BatchNormalization()
 
-        self.layer_list['conv3'] = self.track_layer(tf.layers.Conv2D(256,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME'))
-        self.layer_list['conv3_bn'] = self.track_layer(tf.layers.BatchNormalization())
-        self.layer_list['conv3_1'] = self.track_layer(tf.layers.Conv2D(256,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME'))
-        self.layer_list['conv3_1_bn'] = self.track_layer(tf.layers.BatchNormalization())
-        self.layer_list['conv3_2'] = self.track_layer(tf.layers.Conv2D(256,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME'))
-        self.layer_list['conv3_2_bn'] = self.track_layer(tf.layers.BatchNormalization())
+        self.layer_list['conv5'] = tf.keras.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv5_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv5_1'] = tf.keras.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv5_1_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv5_2'] = tf.keras.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv5_2_bn'] = tf.keras.layers.BatchNormalization()
 
-        self.layer_list['conv4'] = self.track_layer(tf.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME'))
-        self.layer_list['conv4_bn'] = self.track_layer(tf.layers.BatchNormalization())
-        self.layer_list['conv4_1'] = self.track_layer(tf.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME'))
-        self.layer_list['conv4_1_bn'] = self.track_layer(tf.layers.BatchNormalization())
-        self.layer_list['conv4_2'] = self.track_layer(tf.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME'))
-        self.layer_list['conv4_2_bn'] = self.track_layer(tf.layers.BatchNormalization())
+        self.layer_list['fc1'] = tf.keras.layers.Dense(512,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer)
 
-        self.layer_list['conv5'] = self.track_layer(tf.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME'))
-        self.layer_list['conv5_bn'] = self.track_layer(tf.layers.BatchNormalization())
-        self.layer_list['conv5_1'] = self.track_layer(tf.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME'))
-        self.layer_list['conv5_1_bn'] = self.track_layer(tf.layers.BatchNormalization())
-        self.layer_list['conv5_2'] = self.track_layer(tf.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME'))
-        self.layer_list['conv5_2_bn'] = self.track_layer(tf.layers.BatchNormalization())
+        self.layer_list['fc1_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['fc2'] = tf.keras.layers.Dense(512,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer)
+        self.layer_list['fc2_bn'] = tf.keras.layers.BatchNormalization()
 
+        #self.layer_list['fc3'] = tf.keras.layers.Dense(self.num_class,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer))
+        self.layer_list['fc3'] = tf.keras.layers.Dense(self.num_class,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer)
+        self.layer_list['fc3_bn'] = tf.keras.layers.BatchNormalization()
 
-        self.layer_list['fc1'] = self.track_layer(tf.layers.Dense(512,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer))
-
-        self.layer_list['fc1_bn'] = self.track_layer(tf.layers.BatchNormalization())
-        self.layer_list['fc2'] = self.track_layer(tf.layers.Dense(512,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer))
-        self.layer_list['fc2_bn'] = self.track_layer(tf.layers.BatchNormalization())
-
-        #self.layer_list['fc3'] = self.track_layer(tf.layers.Dense(self.num_class,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer))
-        self.layer_list['fc3'] = self.track_layer(tf.layers.Dense(self.num_class,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer))
-        self.layer_list['fc3_bn'] = self.track_layer(tf.layers.BatchNormalization())
-
-        self.dropout_conv = self.track_layer(tf.layers.Dropout(0.3))
-        self.dropout_conv2 = self.track_layer(tf.layers.Dropout(0.4))
-        self.dropout = self.track_layer(tf.layers.Dropout(0.5))
+        self.dropout_conv = tf.keras.layers.Dropout(0.3)
+        self.dropout_conv2 = tf.keras.layers.Dropout(0.4)
+        self.dropout = tf.keras.layers.Dropout(0.5)
 
 
         # remove later
@@ -271,13 +276,13 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         self.fc3_bn=self.layer_list['fc3_bn']
 
         pooling_type= {
-            'max': self.track_layer(tf.layers.MaxPooling2D((2,2),(2,2),padding='SAME',data_format=data_format)),
-            'avg': self.track_layer(tf.layers.AveragePooling2D((2,2),(2,2),padding='SAME',data_format=data_format))
+            'max': tf.keras.layers.MaxPooling2D((2,2),(2,2),padding='SAME',data_format=data_format),
+            'avg': tf.keras.layers.AveragePooling2D((2,2),(2,2),padding='SAME',data_format=data_format)
         }
 
         self.pool2d = pooling_type[self.conf.pooling]
 
-        #self.pool2d_arg ='max': self.track_layer(tf.nn.max_poolwith_argmax((2,2),(2,2),padding='SAME',data_format=data_format)),
+        #self.pool2d_arg ='max': tf.nn.max_poolwith_argmax((2,2),(2,2),padding='SAME',data_format=data_format)),
 
         self.act_relu = tf.nn.relu
 
@@ -440,38 +445,38 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
             self.neuron_list=collections.OrderedDict()
 
-            #self.neuron_list['in'] = self.track_layer(lib_snn.Neuron(self.input_shape_snn,'IN',1,self.conf))
-            self.neuron_list['in'] = self.track_layer(lib_snn.Neuron(self.input_shape_snn,'IN',1,self.conf,nc,0,'in'))
+            #self.neuron_list['in'] = lib_snn.Neuron(self.input_shape_snn,'IN',1,self.conf)
+            self.neuron_list['in'] = lib_snn.Neuron(self.input_shape_snn,'IN',1,self.conf,nc,0,'in')
 
 
-            self.neuron_list['conv1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv1,n_type,self.fanin_conv,self.conf,nc,1,'conv1'))
-            self.neuron_list['conv1_1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv1_1,n_type,self.fanin_conv,self.conf,nc,2,'conv1_1'))
+            self.neuron_list['conv1'] = lib_snn.Neuron(self.shape_out_conv1,n_type,self.fanin_conv,self.conf,nc,1,'conv1')
+            self.neuron_list['conv1_1'] = lib_snn.Neuron(self.shape_out_conv1_1,n_type,self.fanin_conv,self.conf,nc,2,'conv1_1')
 
 
-            self.neuron_list['conv2'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv2,n_type,self.fanin_conv,self.conf,nc,3,'conv2'))
-            self.neuron_list['conv2_1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv2_1,n_type,self.fanin_conv,self.conf,nc,4,'conv2_1'))
+            self.neuron_list['conv2'] = lib_snn.Neuron(self.shape_out_conv2,n_type,self.fanin_conv,self.conf,nc,3,'conv2')
+            self.neuron_list['conv2_1'] = lib_snn.Neuron(self.shape_out_conv2_1,n_type,self.fanin_conv,self.conf,nc,4,'conv2_1')
 
-            self.neuron_list['conv3'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv3,n_type,self.fanin_conv,self.conf,nc,5,'conv3'))
-            self.neuron_list['conv3_1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv3_1,n_type,self.fanin_conv,self.conf,nc,6,'conv3_1'))
-            self.neuron_list['conv3_2'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv3_2,n_type,self.fanin_conv,self.conf,nc,7,'conv3_2'))
+            self.neuron_list['conv3'] = lib_snn.Neuron(self.shape_out_conv3,n_type,self.fanin_conv,self.conf,nc,5,'conv3')
+            self.neuron_list['conv3_1'] = lib_snn.Neuron(self.shape_out_conv3_1,n_type,self.fanin_conv,self.conf,nc,6,'conv3_1')
+            self.neuron_list['conv3_2'] = lib_snn.Neuron(self.shape_out_conv3_2,n_type,self.fanin_conv,self.conf,nc,7,'conv3_2')
 
             #nc = 'BURST'
             #self.conf.n_init_vth=0.125
 
-            self.neuron_list['conv4'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv4,n_type,self.fanin_conv,self.conf,nc,8,'conv4'))
-            self.neuron_list['conv4_1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv4_1,n_type,self.fanin_conv,self.conf,nc,9,'conv4_1'))
-            self.neuron_list['conv4_2'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv4_2,n_type,self.fanin_conv,self.conf,nc,10,'conv4_2'))
+            self.neuron_list['conv4'] = lib_snn.Neuron(self.shape_out_conv4,n_type,self.fanin_conv,self.conf,nc,8,'conv4')
+            self.neuron_list['conv4_1'] = lib_snn.Neuron(self.shape_out_conv4_1,n_type,self.fanin_conv,self.conf,nc,9,'conv4_1')
+            self.neuron_list['conv4_2'] = lib_snn.Neuron(self.shape_out_conv4_2,n_type,self.fanin_conv,self.conf,nc,10,'conv4_2')
 
             #self.conf.n_init_vth=0.125/2.0
 
-            self.neuron_list['conv5'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv5,n_type,self.fanin_conv,self.conf,nc,11,'conv5'))
-            self.neuron_list['conv5_1'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv5_1,n_type,self.fanin_conv,self.conf,nc,12,'conv5_1'))
-            self.neuron_list['conv5_2'] = self.track_layer(lib_snn.Neuron(self.shape_out_conv5_2,n_type,self.fanin_conv,self.conf,nc,13,'conv5_2'))
+            self.neuron_list['conv5'] = lib_snn.Neuron(self.shape_out_conv5,n_type,self.fanin_conv,self.conf,nc,11,'conv5')
+            self.neuron_list['conv5_1'] = lib_snn.Neuron(self.shape_out_conv5_1,n_type,self.fanin_conv,self.conf,nc,12,'conv5_1')
+            self.neuron_list['conv5_2'] = lib_snn.Neuron(self.shape_out_conv5_2,n_type,self.fanin_conv,self.conf,nc,13,'conv5_2')
 
-            self.neuron_list['fc1'] = self.track_layer(lib_snn.Neuron(self.shape_out_fc1,n_type,512,self.conf,nc,14,'fc1'))
-            self.neuron_list['fc2'] = self.track_layer(lib_snn.Neuron(self.shape_out_fc2,n_type,512,self.conf,nc,15,'fc2'))
-            #self.neuron_list['fc3'] = self.track_layer(lib_snn.Neuron(self.shape_out_fc3,n_type,512,self.conf))
-            self.neuron_list['fc3'] = self.track_layer(lib_snn.Neuron(self.shape_out_fc3,'OUT',512,self.conf,nc,16,'fc3'))
+            self.neuron_list['fc1'] = lib_snn.Neuron(self.shape_out_fc1,n_type,512,self.conf,nc,14,'fc1')
+            self.neuron_list['fc2'] = lib_snn.Neuron(self.shape_out_fc2,n_type,512,self.conf,nc,15,'fc2')
+            #self.neuron_list['fc3'] = lib_snn.Neuron(self.shape_out_fc3,n_type,512,self.conf)
+            self.neuron_list['fc3'] = lib_snn.Neuron(self.shape_out_fc3,'OUT',512,self.conf,nc,16,'fc3')
 
 
             # modify later
@@ -580,6 +585,62 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             self.kernel_pruning_channel = collections.OrderedDict()
             self.th_idx_pruning_channel = 0.5
 
+        # model loading V2
+        self.load_layer_ann_checkpoint = self.load_layer_ann_checkpoint_func()
+
+
+    def load_layer_ann_checkpoint_func(self):
+        if self.conf.f_surrogate_training_model:
+            load_layer_ann_checkpoint = tf.train.Checkpoint(
+                conv1=self.conv1,
+                conv2=self.conv2,
+                fc1=self.fc1,
+                conv1_bn=self.conv1_bn,
+                conv2_bn=self.conv2_bn,
+                list_tk=self.list_tk
+            )
+
+        else:
+            load_layer_ann_checkpoint = tf.train.Checkpoint(
+                conv1=self.conv1,
+                conv1_bn=self.conv1_bn,
+                conv1_1=self.conv1_1,
+                conv1_1_bn=self.conv1_1_bn,
+                conv2=self.conv2,
+                conv2_bn=self.conv2_bn,
+                conv2_1=self.conv2_1,
+                conv2_1_bn=self.conv2_1_bn,
+                conv3=self.conv3,
+                conv3_bn=self.conv3_bn,
+                conv3_1=self.conv3_1,
+                conv3_1_bn=self.conv3_1_bn,
+                conv3_2=self.conv3_2,
+                conv3_2_bn=self.conv3_2_bn,
+                conv4=self.conv4,
+                conv4_bn=self.conv4_bn,
+                conv4_1=self.conv4_1,
+                conv4_1_bn=self.conv4_1_bn,
+                conv4_2=self.conv4_2,
+                conv4_2_bn=self.conv4_2_bn,
+                conv5=self.conv5,
+                conv5_bn=self.conv5_bn,
+                conv5_1=self.conv5_1,
+                conv5_1_bn=self.conv5_1_bn,
+                conv5_2=self.conv5_2,
+                conv5_2_bn=self.conv5_2_bn,
+                fc1=self.fc1,
+                fc1_bn=self.fc1_bn,
+                fc2=self.fc2,
+                fc2_bn=self.fc2_bn,
+                fc3=self.fc3,
+                fc3_bn=self.fc3_bn
+            )
+
+        return load_layer_ann_checkpoint
+
+
+
+    #
     def call(self, inputs, f_training):
         if self.f_load_model_done:
             if (self.conf.nn_mode=='SNN' and self.conf.f_pruning_channel==True):
@@ -942,7 +1003,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         a_conv5_2 = tf.nn.relu(s_conv5_2_bn)
         p_conv5_2 = self.pool2d(a_conv5_2)
 
-        s_flat = tf.layers.flatten(p_conv5_2)
+        s_flat = tf.compat.v1.layers.flatten(p_conv5_2)
 
         if f_training:
            s_flat = self.dropout(s_flat,training=f_training)
@@ -1076,6 +1137,283 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         return a_out
 
 
+
+
+    # surrogate DNN model for training SNN w/ TTFS coding
+    def call_ann_surrogate_training(self,inputs,f_training,tw):
+        #print(type(inputs))
+        #if self.f_1st_iter == False and self.conf.nn_mode=='ANN':
+        if self.f_1st_iter == False:
+            if self.f_done_preproc == False:
+                self.f_done_preproc=True
+                self.print_model_conf()
+                self.preproc_ann_norm()
+
+
+            self.f_skip_bn=self.conf.f_fused_bn
+        else:
+            self.f_skip_bn=False
+
+        x = tf.reshape(inputs,self._input_shape)
+
+        a_in = x
+
+        s_conv1 = self.conv1(a_in)
+        if self.f_skip_bn:
+            s_conv1_bn = s_conv1
+        else:
+            s_conv1_bn = self.conv1_bn(s_conv1,training=f_training)
+
+        a_conv1 = tf.nn.relu(s_conv1_bn)
+        if f_training:
+            a_conv1 = self.dropout_conv(a_conv1,training=f_training)
+        s_conv1_1 = self.conv1_1(a_conv1)
+
+        #pred = tf.reduce_mean(self.conv1_1.kernel,[0,1])
+
+        if self.f_skip_bn:
+            s_conv1_1_bn = s_conv1_1
+        else:
+            s_conv1_1_bn = self.conv1_1_bn(s_conv1_1,training=f_training)
+        a_conv1_1 = tf.nn.relu(s_conv1_1_bn)
+        p_conv1_1 = self.pool2d(a_conv1_1)
+        #if f_training:
+        #    x = self.dropout_conv(x,training=f_training)
+
+        s_conv2 = self.conv2(p_conv1_1)
+        if self.f_skip_bn:
+            s_conv2_bn = s_conv2
+        else:
+            s_conv2_bn = self.conv2_bn(s_conv2,training=f_training)
+        a_conv2 = tf.nn.relu(s_conv2_bn)
+        if f_training:
+           a_conv2 = self.dropout_conv2(a_conv2,training=f_training)
+        s_conv2_1 = self.conv2_1(a_conv2)
+        if self.f_skip_bn:
+            s_conv2_1_bn = s_conv2_1
+        else:
+            s_conv2_1_bn = self.conv2_1_bn(s_conv2_1,training=f_training)
+        a_conv2_1 = tf.nn.relu(s_conv2_1_bn)
+        p_conv2_1 = self.pool2d(a_conv2_1)
+        #if f_training:
+        #   x = self.dropout_conv2(x,training=f_training)
+
+        s_conv3 = self.conv3(p_conv2_1)
+        if self.f_skip_bn:
+            s_conv3_bn = s_conv3
+        else:
+            s_conv3_bn = self.conv3_bn(s_conv3,training=f_training)
+        a_conv3 = tf.nn.relu(s_conv3_bn)
+        if f_training:
+           a_conv3 = self.dropout_conv2(a_conv3,training=f_training)
+        s_conv3_1 = self.conv3_1(a_conv3)
+        if self.f_skip_bn:
+            s_conv3_1_bn = s_conv3_1
+        else:
+            s_conv3_1_bn = self.conv3_1_bn(s_conv3_1,training=f_training)
+        a_conv3_1 = tf.nn.relu(s_conv3_1_bn)
+        if f_training:
+           a_conv3_1 = self.dropout_conv2(a_conv3_1,training=f_training)
+        s_conv3_2 = self.conv3_2(a_conv3_1)
+        if self.f_skip_bn:
+            s_conv3_2_bn = s_conv3_2
+        else:
+            s_conv3_2_bn = self.conv3_2_bn(s_conv3_2,training=f_training)
+        a_conv3_2 = tf.nn.relu(s_conv3_2_bn)
+        p_conv3_2 = self.pool2d(a_conv3_2)
+        #if f_training:
+        #   x = self.dropout_conv2(x,training=f_training)
+
+        s_conv4 = self.conv4(p_conv3_2)
+        if self.f_skip_bn:
+            s_conv4_bn = s_conv4
+        else:
+            s_conv4_bn = self.conv4_bn(s_conv4,training=f_training)
+        a_conv4 = tf.nn.relu(s_conv4_bn)
+        if f_training:
+           a_conv4 = self.dropout_conv2(a_conv4,training=f_training)
+        s_conv4_1 = self.conv4_1(a_conv4)
+        if self.f_skip_bn:
+            s_conv4_1_bn = s_conv4_1
+        else:
+            s_conv4_1_bn = self.conv4_1_bn(s_conv4_1,training=f_training)
+        a_conv4_1 = tf.nn.relu(s_conv4_1_bn)
+        if f_training:
+           a_conv4_1 = self.dropout_conv2(a_conv4_1,training=f_training)
+        s_conv4_2 = self.conv4_2(a_conv4_1)
+        if self.f_skip_bn:
+            s_conv4_2_bn = s_conv4_2
+        else:
+            s_conv4_2_bn = self.conv4_2_bn(s_conv4_2,training=f_training)
+        a_conv4_2 = tf.nn.relu(s_conv4_2_bn)
+        p_conv4_2 = self.pool2d(a_conv4_2)
+        #if f_training:
+        #   x = self.dropout_conv2(x,training=f_training)
+
+        s_conv5 = self.conv5(p_conv4_2)
+        if self.f_skip_bn:
+            s_conv5_bn = s_conv5
+        else:
+            s_conv5_bn = self.conv5_bn(s_conv5,training=f_training)
+        a_conv5 = tf.nn.relu(s_conv5_bn)
+        if f_training:
+           a_conv5 = self.dropout_conv2(a_conv5,training=f_training)
+        s_conv5_1 = self.conv5_1(a_conv5)
+        if self.f_skip_bn:
+            s_conv5_1_bn = s_conv5_1
+        else:
+            s_conv5_1_bn = self.conv5_1_bn(s_conv5_1,training=f_training)
+        a_conv5_1 = tf.nn.relu(s_conv5_1_bn)
+        if f_training:
+           a_conv5_1 = self.dropout_conv2(a_conv5_1,training=f_training)
+        s_conv5_2 = self.conv5_2(a_conv5_1)
+        if self.f_skip_bn:
+            s_conv5_2_bn = s_conv5_2
+        else:
+            s_conv5_2_bn = self.conv5_2_bn(s_conv5_2,training=f_training)
+        a_conv5_2 = tf.nn.relu(s_conv5_2_bn)
+        p_conv5_2 = self.pool2d(a_conv5_2)
+
+        s_flat = tf.compat.v1.layers.flatten(p_conv5_2)
+
+        if f_training:
+           s_flat = self.dropout(s_flat,training=f_training)
+
+        s_fc1 = self.fc1(s_flat)
+        if self.f_skip_bn:
+            s_fc1_bn = s_fc1
+        else:
+            s_fc1_bn = self.fc1_bn(s_fc1,training=f_training)
+        a_fc1 = tf.nn.relu(s_fc1_bn)
+        if f_training:
+           a_fc1 = self.dropout(a_fc1,training=f_training)
+
+        s_fc2 = self.fc2(a_fc1)
+        if self.f_skip_bn:
+            s_fc2_bn = s_fc2
+        else:
+            s_fc2_bn = self.fc2_bn(s_fc2,training=f_training)
+        a_fc2 = tf.nn.relu(s_fc2_bn)
+        if f_training:
+           a_fc2 = self.dropout(a_fc2,training=f_training)
+
+        s_fc3 = self.fc3(a_fc2)
+        if self.f_skip_bn:
+            s_fc3_bn = s_fc3
+        else:
+            if ('bn' in self.conf.model_name) or ('ro' in self.conf.model_name) :
+                s_fc3_bn = self.fc3_bn(s_fc3,training=f_training)
+            else:
+                s_fc3_bn = s_fc3
+        #a_fc3 = s_fc3_bn
+        if 'ro' in self.conf.model_name:
+            a_fc3 = tf.nn.relu(s_fc3_bn)
+        else:
+            a_fc3 = s_fc3_bn
+
+        #if f_training:
+        #   x = self.dropout(x,training=f_training)
+
+
+        #print("here")
+        # write stat
+        #print(self.conf.f_write_stat)
+        #print(self.f_1st_iter)
+        #print(self.dict_stat_w["fc1"])
+        if (self.conf.f_write_stat) and (not self.f_1st_iter):
+            #self.dict_stat_w['conv1']=np.append(self.dict_stat_w['conv1'],a_conv1.numpy(),axis=0)
+            #self.dict_stat_w['conv1_1']=np.append(self.dict_stat_w['conv1_1'],a_conv1_1.numpy(),axis=0)
+            #self.dict_stat_w['conv2']=np.append(self.dict_stat_w['conv2'],a_conv2.numpy(),axis=0)
+            #self.dict_stat_w['conv2_1']=np.append(self.dict_stat_w['conv2_1'],a_conv2_1.numpy(),axis=0)
+            #self.dict_stat_w['conv3']=np.append(self.dict_stat_w['conv3'],a_conv3.numpy(),axis=0)
+            #self.dict_stat_w['conv3_1']=np.append(self.dict_stat_w['conv3_1'],a_conv3_1.numpy(),axis=0)
+            #self.dict_stat_w['conv3_2']=np.append(self.dict_stat_w['conv3_2'],a_conv3_2.numpy(),axis=0)
+            #self.dict_stat_w['conv4']=np.append(self.dict_stat_w['conv4'],a_conv4.numpy(),axis=0)
+            #self.dict_stat_w['conv4_1']=np.append(self.dict_stat_w['conv4_1'],a_conv4_1.numpy(),axis=0)
+            #self.dict_stat_w['conv4_2']=np.append(self.dict_stat_w['conv4_2'],a_conv4_2.numpy(),axis=0)
+            #self.dict_stat_w['conv5']=np.append(self.dict_stat_w['conv5'],a_conv5.numpy(),axis=0)
+            #self.dict_stat_w['conv5_1']=np.append(self.dict_stat_w['conv5_1'],a_conv5_1.numpy(),axis=0)
+            #self.dict_stat_w['conv5_2']=np.append(self.dict_stat_w['conv5_2'],a_conv5_2.numpy(),axis=0)
+            #self.dict_stat_w['fc1']=np.append(self.dict_stat_w['fc1'],a_fc1.numpy(),axis=0)
+            #self.dict_stat_w['fc2']=np.append(self.dict_stat_w['fc2'],a_fc2.numpy(),axis=0)
+            #self.dict_stat_w['fc3']=np.append(self.dict_stat_w['fc3'],a_fc3.numpy(),axis=0)
+            # test bn activation distribution
+            self.dict_stat_w['fc1']=np.append(self.dict_stat_w['fc1'],s_fc1_bn.numpy(),axis=0)
+
+
+        if self.conf.f_comp_act and (not self.f_1st_iter):
+            self.dict_stat_w['conv1']=a_conv1.numpy()
+            self.dict_stat_w['conv1_1']=a_conv1_1.numpy()
+            self.dict_stat_w['conv2']=a_conv2.numpy()
+            self.dict_stat_w['conv2_1']=a_conv2_1.numpy()
+            self.dict_stat_w['conv3']=a_conv3.numpy()
+            self.dict_stat_w['conv3_1']=a_conv3_1.numpy()
+            self.dict_stat_w['conv3_2']=a_conv3_2.numpy()
+            self.dict_stat_w['conv4']=a_conv4.numpy()
+            self.dict_stat_w['conv4_1']=a_conv4_1.numpy()
+            self.dict_stat_w['conv4_2']=a_conv4_2.numpy()
+            self.dict_stat_w['conv5']=a_conv5.numpy()
+            self.dict_stat_w['conv5_1']=a_conv5_1.numpy()
+            self.dict_stat_w['conv5_2']=a_conv5_2.numpy()
+            self.dict_stat_w['fc1']=a_fc1.numpy()
+            self.dict_stat_w['fc2']=a_fc2.numpy()
+            self.dict_stat_w['fc3']=a_fc3.numpy()
+
+
+
+        a_out = a_fc3
+        #print(a_out)
+        #print(a_fc2)
+        #print(s_fc3)
+        #print(self.fc3.kernel)
+        #print(self.fc3.bias)
+        #print(a_fc2)
+        #print(a_fc3)
+
+
+
+        if self.f_1st_iter and self.conf.nn_mode=='ANN':
+            print('1st iter')
+            self.f_1st_iter = False
+            self.f_skip_bn = (not self.f_1st_iter) and (self.conf.f_fused_bn)
+
+
+        if not self.f_1st_iter and self.conf.f_train_time_const:
+            print("training time constant for temporal coding in SNN")
+
+            self.dnn_act_list['in'] = a_in
+            self.dnn_act_list['conv1']   = a_conv1
+            self.dnn_act_list['conv1_1'] = a_conv1_1
+
+            self.dnn_act_list['conv2']   = a_conv2
+            self.dnn_act_list['conv2_1'] = a_conv2_1
+
+            self.dnn_act_list['conv3']   = a_conv3
+            self.dnn_act_list['conv3_1'] = a_conv3_1
+            self.dnn_act_list['conv3_2'] = a_conv3_2
+
+            self.dnn_act_list['conv4']   = a_conv4
+            self.dnn_act_list['conv4_1'] = a_conv4_1
+            self.dnn_act_list['conv4_2'] = a_conv4_2
+
+            self.dnn_act_list['conv5']   = a_conv5
+            self.dnn_act_list['conv5_1'] = a_conv5_1
+            self.dnn_act_list['conv5_2'] = a_conv5_2
+
+            self.dnn_act_list['fc1'] = a_fc1
+            self.dnn_act_list['fc2'] = a_fc2
+            self.dnn_act_list['fc3'] = a_fc3
+
+
+        return a_out
+
+
+
+
+
+
+
+    #
     def print_model_conf(self):
         # print model configuration
         print('Input   N: '+str(self.in_shape))

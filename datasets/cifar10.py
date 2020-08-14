@@ -8,7 +8,8 @@ import tensorflow as tf
 
 def load(conf):
     print("load CIFAR10 dataset")
-    (img_train,label_train), (img_test, label_test) = tf.contrib.keras.datasets.cifar10.load_data()
+    #(img_train,label_train), (img_test, label_test) = tf.contrib.keras.datasets.cifar10.load_data()
+    (img_train,label_train), (img_test, label_test) = tf.keras.datasets.cifar10.load_data()
 
     #print(type(img_train))
     img_train = img_train.astype(float)
@@ -112,8 +113,9 @@ def preprocess_train(img, label):
     #img_p = tf.image.random_brightness(img_p,max_delta=103)
 
 
-    img_p = tf.image.resize_image_with_crop_or_pad(img_p,36,36)
-    img_p = tf.random_crop(img_p,[32,32,3])
+    #img_p = tf.image.resize_image_with_crop_or_pad(img_p,36,36)
+    img_p = tf.image.resize_with_crop_or_pad(img_p,36,36)
+    img_p = tf.image.random_crop(img_p,[32,32,3])
 
 
     #img_p = tf.cast(img,tf.float32)
