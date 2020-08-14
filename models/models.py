@@ -2053,7 +2053,6 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
                             axe.axvline(x=fire_e)
 
 
-
                         idx_plot+=1
 
 

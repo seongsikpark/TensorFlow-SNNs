@@ -109,9 +109,9 @@ time_step_save_interval=2
 # SNN training
 #time_step=200
 #time_step_save_interval=40
-#time_step_save_interval=10
-time_step_save_interval=20
-#time_step_save_interval=40
+#time_step_save_interval=20
+time_step_save_interval=10
+#time_step_save_interval=5
 
 
 ###############################################################
@@ -630,6 +630,19 @@ INFER_CNN_MNIST_SUR)
     # TensorBoard log - 20200509-0055
     # regularization needed, tc increased as training progressed
     #model_name='cnn_mnist_train_ANN_surrogate_no_reg'
+
+    #
+    # SNN, 5, 20, 20 - 99.42%, # spikes - 1460, epoch - 924
+    # regularizer - encoded spike time (KL loss, beta dist.(0.9,0.1))
+    # TensorBoard log -
+    #model_name='cnn_mnist_train_ANN_surrogate_reg-enc_0'
+
+    #
+    # SNN, 5, 20, 20 - 99.42%, # spikes - 1460, epoch - 890
+    # regularizer - encoded spike time (KL loss, beta dist.(0.1,0.9))
+    # TensorBoard log -
+    #model_name='cnn_mnist_train_ANN_surrogate_reg-enc_3'
+
 
     model_name='cnn_mnist_train_ANN_surrogate'
 
