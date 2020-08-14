@@ -222,8 +222,8 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
 
             # TODO: parametrize
 
-            f_loss_dist = True
-            #f_loss_dist = False
+            #f_loss_dist = True
+            f_loss_dist = False
             if f_loss_dist:
                 loss_name=['prediction', 'enc_st']
             else:
@@ -284,73 +284,76 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
 
 
             # TODO: here - KL divergence loss
-            if f_loss_dist:
+            if model.conf.model_name=='cnn_mnist_train_ANN_surrogate':
+                if f_loss_dist:
 
-                # loss - encoded spike time (KL-divergence)
-                loss_tmp = 0
-                enc_st = model.list_tk['conv1'].out_enc
-                enc_st_target_end = 200
+                    # loss - encoded spike time (KL-divergence)
+                    loss_tmp = 0
+                    enc_st = model.list_tk['conv1'].out_enc
+                    enc_st_target_end = 200
 
-                #enc_st = tf.where(enc_st>enc_st_target_end,enc_st_target_end)
-                enc_st = tf.clip_by_value(enc_st,0,enc_st_target_end)
-                #tmp = tf.where(tf.equal(enc_st,0),100,enc_st)
-                #print(tf.reduce_min(tmp))
-                enc_st = tf.round(enc_st)
-                #enc_st = tf.histogram_fixed_width(enc_st, [0,model.list_tk['conv1'].tw])
-                #enc_st = tf.histogram_fixed_width(enc_st, [0,enc_st_target_end], dtype=tf.float32)
-                #enc_st = tf.histogram_fixed_width(enc_st, [0,enc_st_target_end])
-                enc_st = tf.cast(enc_st,tf.float32)
-                #max_enc_target = tf.where(t > max_enc_st*max_border,\
-                #dist = tfd.Beta(1,3)
-                #dist = tfd.Beta(0.9,0.1)
-                dist = tfd.Beta(0.1,0.9)
-                dist_sample = dist.sample(enc_st.shape)
-                #dist_sample = tf.multiply(dist_sample,model.conf.time_window)
-                dist_sample = tf.multiply(dist_sample,enc_st_target_end)
-                dist_sample = tf.round(dist_sample)
-                loss_tmp += loss_kld(enc_st,dist_sample)
+                    #enc_st = tf.where(enc_st>enc_st_target_end,enc_st_target_end)
+                    enc_st = tf.clip_by_value(enc_st,0,enc_st_target_end)
+                    #tmp = tf.where(tf.equal(enc_st,0),100,enc_st)
+                    #print(tf.reduce_min(tmp))
+                    enc_st = tf.round(enc_st)
+                    #enc_st = tf.histogram_fixed_width(enc_st, [0,model.list_tk['conv1'].tw])
+                    #enc_st = tf.histogram_fixed_width(enc_st, [0,enc_st_target_end], dtype=tf.float32)
+                    #enc_st = tf.histogram_fixed_width(enc_st, [0,enc_st_target_end])
+                    enc_st = tf.cast(enc_st,tf.float32)
+                    #max_enc_target = tf.where(t > max_enc_st*max_border,\
+                    #dist = tfd.Beta(1,3)
+                    #dist = tfd.Beta(0.9,0.1)
+                    dist = tfd.Beta(0.1,0.9)
+                    dist_sample = dist.sample(enc_st.shape)
+                    #dist_sample = tf.multiply(dist_sample,model.conf.time_window)
+                    dist_sample = tf.multiply(dist_sample,enc_st_target_end)
+                    dist_sample = tf.round(dist_sample)
+                    loss_tmp += loss_kld(enc_st,dist_sample)
 
-                #
-                #print(enc_st)
-                #plt.figure()
-                #plt.hist(tf.reshape(dist_sample,[-1]))
-                #plt.figure()
-                #plt.hist(tf.reshape(enc_st,[-1]))
-                #plt.show()
-                #assert(False)
+                    #
+                    #print(enc_st)
+                    #plt.figure()
+                    #plt.hist(tf.reshape(dist_sample,[-1]))
+                    #plt.figure()
+                    #plt.hist(tf.reshape(enc_st,[-1]))
+                    #plt.show()
+                    #assert(False)
 
 
-                enc_st = model.list_tk['conv2'].out_enc
-                enc_st = tf.clip_by_value(enc_st,0,enc_st_target_end)
-                enc_st = tf.round(enc_st)
-                #enc_st = tf.histogram_fixed_width(enc_st, [0,model.list_tk['conv2'].tw])
-                #enc_st = tf.histogram_fixed_width(enc_st, [0,200])
-                #enc_st = tf.histogram_fixed_width(enc_st, [0,enc_st_target_end], dtype=tf.float32)
-                enc_st = tf.histogram_fixed_width(enc_st, [0,enc_st_target_end])
-                enc_st = tf.cast(enc_st,tf.float32)
-                #max_enc_target = tf.where(t > max_enc_st*max_border,\
-                #dist = tfd.Beta(1,3)
-                #dist = tfd.Beta(0.9,0.1)
-                dist = tfd.Beta(0.1,0.9)
-                dist_sample = dist.sample(enc_st.shape)
-                #dist_sample = tf.multiply(dist_sample,model.conf.time_window)
-                dist_sample = tf.multiply(dist_sample,enc_st_target_end)
-                dist_sample = tf.round(dist_sample)
-                loss_tmp += loss_kld(enc_st,dist_sample)
+                    enc_st = model.list_tk['conv2'].out_enc
+                    enc_st = tf.clip_by_value(enc_st,0,enc_st_target_end)
+                    enc_st = tf.round(enc_st)
+                    #enc_st = tf.histogram_fixed_width(enc_st, [0,model.list_tk['conv2'].tw])
+                    #enc_st = tf.histogram_fixed_width(enc_st, [0,200])
+                    #enc_st = tf.histogram_fixed_width(enc_st, [0,enc_st_target_end], dtype=tf.float32)
+                    enc_st = tf.histogram_fixed_width(enc_st, [0,enc_st_target_end])
+                    enc_st = tf.cast(enc_st,tf.float32)
+                    #max_enc_target = tf.where(t > max_enc_st*max_border,\
+                    #dist = tfd.Beta(1,3)
+                    #dist = tfd.Beta(0.9,0.1)
+                    dist = tfd.Beta(0.1,0.9)
+                    dist_sample = dist.sample(enc_st.shape)
+                    #dist_sample = tf.multiply(dist_sample,model.conf.time_window)
+                    dist_sample = tf.multiply(dist_sample,enc_st_target_end)
+                    dist_sample = tf.round(dist_sample)
+                    loss_tmp += loss_kld(enc_st,dist_sample)
 
-                loss_list['enc_st'] = loss_tmp
+                    loss_list['enc_st'] = loss_tmp
 
-#            #print(type(dist_sample))
-#            #fig, axs = plt.subplots(1,2)
-#
-#            #axs_tmp[0].hist(tf.reshape(dist_sample[0,:,:,:],shape=-1))
-#            #axs_tmp[1].hist(tf.reshape(enc_st[0,:,:,:],shape=-1))
-#            #plt.hist(tf.reshape(dist_sample[0,:,:,:],shape=-1))
-#            plt.hist(tf.reshape(enc_st[0,:,:,:],shape=-1),bins=100)
-#
-#            plt.draw()
-#            plt.pause(0.0000000000000001)
-#
+    #            #print(type(dist_sample))
+    #            #fig, axs = plt.subplots(1,2)
+    #
+    #            #axs_tmp[0].hist(tf.reshape(dist_sample[0,:,:,:],shape=-1))
+    #            #axs_tmp[1].hist(tf.reshape(enc_st[0,:,:,:],shape=-1))
+    #            #plt.hist(tf.reshape(dist_sample[0,:,:,:],shape=-1))
+    #            plt.hist(tf.reshape(enc_st[0,:,:,:],shape=-1),bins=100)
+    #
+    #            plt.draw()
+    #            plt.pause(0.0000000000000001)
+            else:
+                #print('here')
+                pass
 
 
 
@@ -475,10 +478,10 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
             loss_weight['prediction']=1.0
 
             if f_loss_dist:
-                loss_weight['enc_st']=0.0001
+                loss_weight['enc_st']=0.001
 
             if f_reg_tc_para:
-                loss_weight['reg_tc_para']=0.0001
+                loss_weight['reg_tc_para']=0.001
 
             #loss_weight['max_enc_st']=0.0
             ##loss_weight['min_enc_st']=0.1
