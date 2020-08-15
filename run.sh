@@ -52,7 +52,7 @@ exp_case='VGG16_CIFAR-10'
 ###############################################################################
 
 training_mode=True
-training_mode=False
+#training_mode=False
 
 #
 # If this flag is False, then the trained model is overwritten
@@ -338,16 +338,16 @@ epoch_train_time_const=1
 
 
 # TTFS - MNIST default setting
-tc=5
-time_fire_start=20    # integration duration - n x tc
-time_fire_duration=20   # time window - n x tc
-time_window=${time_fire_duration}
+#tc=5
+#time_fire_start=20    # integration duration - n x tc
+#time_fire_duration=20   # time window - n x tc
+#time_window=${time_fire_duration}
 
 # TTFS - CIFAR-10 default setting
-#tc=20
-#time_fire_start=80    # integration duration - n x tc
-#time_fire_duration=80   # time window - n x tc
-#time_window=${time_fire_duration}
+tc=20
+time_fire_start=80    # integration duration - n x tc
+time_fire_duration=80   # time window - n x tc
+time_window=${time_fire_duration}
 
 
 
@@ -368,8 +368,8 @@ n_tau_time_window=${n_tau_fire_duration}
 #
 # training SNN w/ surrogate model (DNN)
 # actual training is performed in the surrogate DNN model
-#f_surrogate_training_model=True
-f_surrogate_training_model=False
+f_surrogate_training_model=True
+#f_surrogate_training_model=False
 
 
 #
@@ -720,7 +720,9 @@ TRAIN_VGG16_CIFAR-10)
 
     if [ ${f_full_test} = True ]
     then
-        batch_size=400
+        #batch_size=400
+        batch_size=250
+        #batch_size=128
         idx_test_dataset_s=0
         num_test_dataset=10000
     fi

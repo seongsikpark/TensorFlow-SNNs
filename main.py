@@ -753,16 +753,19 @@ def main(_):
                         tf.summary.scalar('loss_max_tk_rep', loss_max_tk_rep, step=epoch)
                         tf.summary.scalar('accuracy', acc_train, step=epoch)
 
-                        for l_name in model.layer_name[:-1]:
+                        #for l_name in model.layer_name[:-1]:
+                        for l_name, tk in model.list_tk.items():
                             #scalar_name = 'tc_dec_avg_'+l_name
                             #tf.contrib.summary.scalar(scalar_name, tf.reduce_mean(model.list_tk[l_name].tc_dec), step=epoch)
                             #scalar_name = 'td_dec_avg_'+l_name
                             #tf.contrib.summary.scalar(scalar_name, tf.reduce_mean(model.list_tk[l_name].td_dec), step=epoch)
 
                             scalar_name = 'tc_avg_'+l_name
-                            tf.summary.scalar(scalar_name, tf.reduce_mean(model.list_tk[l_name].tc), step=epoch)
+                            #tf.summary.scalar(scalar_name, tf.reduce_mean(model.list_tk[l_name].tc), step=epoch)
+                            tf.summary.scalar(scalar_name, tf.reduce_mean(tk.tc), step=epoch)
                             scalar_name = 'td_avg_'+l_name
-                            tf.summary.scalar(scalar_name, tf.reduce_mean(model.list_tk[l_name].td), step=epoch)
+                            #tf.summary.scalar(scalar_name, tf.reduce_mean(model.list_tk[l_name].td), step=epoch)
+                            tf.summary.scalar(scalar_name, tf.reduce_mean(tk.td), step=epoch)
 
                             #scalar_name = 'ta_avg_'+l_name
                             #tf.contrib.summary.scalar(scalar_name, tf.reduce_mean(model.list_tk[l_name].ta), step=epoch)
