@@ -222,8 +222,8 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
 
             # TODO: parametrize
 
-            #f_loss_dist = True
-            f_loss_dist = False
+            f_loss_dist = True
+            #f_loss_dist = False
             if f_loss_dist:
                 loss_name=['prediction', 'enc_st']
             else:
@@ -288,6 +288,30 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
                 if f_loss_dist:
 
                     # loss - encoded spike time (KL-divergence)
+                    loss_tmp = 0
+                    enc_st = model.list_tk['in'].out_enc
+                    enc_st_target_end = 200
+
+                    #enc_st = tf.where(enc_st>enc_st_target_end,enc_st_target_end)
+                    enc_st = tf.clip_by_value(enc_st,0,enc_st_target_end)
+                    #tmp = tf.where(tf.equal(enc_st,0),100,enc_st)
+                    #print(tf.reduce_min(tmp))
+                    enc_st = tf.round(enc_st)
+                    #enc_st = tf.histogram_fixed_width(enc_st, [0,model.list_tk['conv1'].tw])
+                    #enc_st = tf.histogram_fixed_width(enc_st, [0,enc_st_target_end], dtype=tf.float32)
+                    #enc_st = tf.histogram_fixed_width(enc_st, [0,enc_st_target_end])
+                    enc_st = tf.cast(enc_st,tf.float32)
+                    #max_enc_target = tf.where(t > max_enc_st*max_border,\
+                    #dist = tfd.Beta(1,3)
+                    #dist = tfd.Beta(0.9,0.1)
+                    dist = tfd.Beta(0.1,0.9)
+                    dist_sample = dist.sample(enc_st.shape)
+                    #dist_sample = tf.multiply(dist_sample,model.conf.time_window)
+                    dist_sample = tf.multiply(dist_sample,enc_st_target_end)
+                    dist_sample = tf.round(dist_sample)
+                    loss_tmp += loss_kld(enc_st,dist_sample)
+
+
                     loss_tmp = 0
                     enc_st = model.list_tk['conv1'].out_enc
                     enc_st_target_end = 200
