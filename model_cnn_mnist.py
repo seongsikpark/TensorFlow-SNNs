@@ -358,39 +358,6 @@ class MNISTModel_CNN(tf.keras.layers.Layer):
         #if True:
         if self.conf.f_surrogate_training_model:
 
-            # TODO: to be removed
-#            kernel_initializer_conv_tr=tf.ones_initializer()
-#
-#            self.list_layer['conv1_tr'] = self.track_layer(tf.layers.Conv2DTranspose(
-#                12,
-#                self.kernel_size,
-#                strides=self.kernel_size,
-#                data_format=data_format,
-#                activation=activation,
-#                use_bias=False,
-#                kernel_regularizer=kernel_regularizer,
-#                kernel_initializer=kernel_initializer_conv_tr,
-#                padding='valid',
-#                trainable=False,
-#                name="conv1_tr_dummy"))
-#
-#            self.list_layer['conv1_tr_cv'] = self.track_layer(tf.layers.Conv2D(
-#                12,
-#                self.kernel_size,
-#                strides=self.kernel_size,
-#                data_format=data_format,
-#                activation=activation,
-#                use_bias=False,
-#                kernel_regularizer=kernel_regularizer,
-#                kernel_initializer=kernel_initializer_conv_tr,
-#                padding='valid',
-#                trainable=False,
-#                name='conv1_tr_cv_dummy'))
-#
-#            self.conv1_tr = self.list_layer['conv1_tr']
-#            self.conv1_tr_cv = self.list_layer['conv1_tr_cv']
-
-
             #
             self.list_tk=OrderedDict()
 
@@ -438,8 +405,8 @@ class MNISTModel_CNN(tf.keras.layers.Layer):
 #                self.dict_shape['fc1'], self.dict_shape['fc1'], init_tc, init_td, init_ta,self.conf.time_window))
 
             # neuron-wise
-            s = self.dict_shape['conv2_p']
-            shape_fc1_flat = [s[0],s[1]*s[2]*s[3]]
+            #s = self.dict_shape['conv2_p']
+            #shape_fc1_flat = [s[0],s[1]*s[2]*s[3]]
 
             #self.list_tk['in'] = self.track_layer(lib_snn.Temporal_kernel(
             #    self.input_shape_snn, self.dict_shape['conv1'], init_tc, init_td, init_ta,self.conf.time_window))

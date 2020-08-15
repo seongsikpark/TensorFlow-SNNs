@@ -182,6 +182,15 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
     accuracy = tf.keras.metrics.Accuracy('accuracy')
 
 
+    # TODO: parametrize
+
+    #f_loss_dist = True
+    f_loss_dist = False
+
+    #
+    if f_loss_dist:
+        if epoch % 10 == 0:
+            dist_sample = model.dist_beta_sample_func()
 
 
     #for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
@@ -220,10 +229,7 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
             #loss_name=['prediction', 'max_enc_st']
 
 
-            # TODO: parametrize
 
-            f_loss_dist = True
-            #f_loss_dist = False
             if f_loss_dist:
                 loss_name=['prediction', 'enc_st']
             else:
@@ -284,34 +290,10 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
 
 
             # TODO: here - KL divergence loss
-            if model.conf.model_name=='cnn_mnist_train_ANN_surrogate':
-                if f_loss_dist:
+            if f_loss_dist:
+                if model.conf.model_name=='cnn_mnist_train_ANN_surrogate':
 
                     # loss - encoded spike time (KL-divergence)
-                    loss_tmp = 0
-                    enc_st = model.list_tk['in'].out_enc
-                    enc_st_target_end = 200
-
-                    #enc_st = tf.where(enc_st>enc_st_target_end,enc_st_target_end)
-                    enc_st = tf.clip_by_value(enc_st,0,enc_st_target_end)
-                    #tmp = tf.where(tf.equal(enc_st,0),100,enc_st)
-                    #print(tf.reduce_min(tmp))
-                    enc_st = tf.round(enc_st)
-                    #enc_st = tf.histogram_fixed_width(enc_st, [0,model.list_tk['conv1'].tw])
-                    #enc_st = tf.histogram_fixed_width(enc_st, [0,enc_st_target_end], dtype=tf.float32)
-                    #enc_st = tf.histogram_fixed_width(enc_st, [0,enc_st_target_end])
-                    enc_st = tf.cast(enc_st,tf.float32)
-                    #max_enc_target = tf.where(t > max_enc_st*max_border,\
-                    #dist = tfd.Beta(1,3)
-                    #dist = tfd.Beta(0.9,0.1)
-                    dist = tfd.Beta(0.1,0.9)
-                    dist_sample = dist.sample(enc_st.shape)
-                    #dist_sample = tf.multiply(dist_sample,model.conf.time_window)
-                    dist_sample = tf.multiply(dist_sample,enc_st_target_end)
-                    dist_sample = tf.round(dist_sample)
-                    loss_tmp += loss_kld(enc_st,dist_sample)
-
-
                     loss_tmp = 0
                     enc_st = model.list_tk['conv1'].out_enc
                     enc_st_target_end = 200
@@ -363,7 +345,6 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
                     dist_sample = tf.round(dist_sample)
                     loss_tmp += loss_kld(enc_st,dist_sample)
 
-                    loss_list['enc_st'] = loss_tmp
 
     #            #print(type(dist_sample))
     #            #fig, axs = plt.subplots(1,2)
@@ -375,15 +356,39 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
     #
     #            plt.draw()
     #            plt.pause(0.0000000000000001)
-            else:
-                #print('here')
-                pass
+                else:
+
+                    # loss - encoded spike time (KL-divergence)
+                    loss_tmp = 0
+
+                    #alpha = 0.1
+                    #beta = 0.9
+
+                    #dist = tfd.Beta(alpha,beta)
+
+                    enc_st_target_end = model.list_tk['in'].tw*10
+
+                    for l_name, tk in model.list_tk.items():
+                        #print(tk)
+                        #print(l_name)
+                        #enc_st = model.list_tk['conv1'].out_enc
+                        enc_st = tk.out_enc
+                        #enc_st_target_end = 200
+                        #enc_st_target_end = tk.tw*10
+
+                        enc_st = tf.clip_by_value(enc_st,0,enc_st_target_end)
+                        enc_st = tf.round(enc_st)
+                        #enc_st = tf.cast(enc_st,tf.float32)
+
+                        #dist_sample = dist.sample(enc_st.shape)
+                        #dist_sample = enc_st
+                        dist_sample = model.dist_beta_sample[l_name]
+                        dist_sample = tf.multiply(dist_sample,enc_st_target_end)
+                        dist_sample = tf.round(dist_sample)
+                        loss_tmp += loss_kld(enc_st,dist_sample)
 
 
-
-
-
-
+                loss_list['enc_st'] = loss_tmp
 #
 #
 #            # TODO: Is it really needed? -> regularizer

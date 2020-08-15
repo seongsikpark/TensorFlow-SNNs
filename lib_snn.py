@@ -1154,7 +1154,8 @@ class Temporal_kernel(tf.keras.layers.Layer):
         epoch_start_train_tk_start = 1
         #epoch_start_train_tk_start = 100
         #epoch_start_train_tk_start = 1
-        epoch_start_train_t_int = 1
+        #epoch_start_train_t_int = 1
+        epoch_start_train_t_int = 1000
         epoch_start_train_clip_tw = 1
 
         self.epoch_start_t_int = epoch_start_train_t_int
@@ -1208,6 +1209,7 @@ class Temporal_kernel(tf.keras.layers.Layer):
         self.out_enc = self.add_variable("out_enc",shape=self.dim_out,dtype=tf.float32,initializer=tf.zeros_initializer(),trainable=False)
         # output of decoding
         self.out_dec = self.add_variable("out_dec",shape=self.dim_in,dtype=tf.float32,initializer=tf.zeros_initializer(),trainable=False)
+
 
 
     def call(self, input, mode, epoch, f_training):
