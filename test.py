@@ -96,7 +96,7 @@ def test(model, dataset, num_dataset, conf, f_val=False, epoch=0, f_val_snn=Fals
                     #    model(images, f_training=False)
 
                 # predictions_times - [saved time step, batch, output dim]
-                predictions_times = model(images, f_training=False, f_val_snn=f_val_snn)
+                predictions_times = model(images, f_training=False, f_val_snn=f_val_snn, epoch=epoch)
 
                 if f_resize_output:
                     labels = labels[0:conf.batch_size-concat_dim]
@@ -341,7 +341,7 @@ def test(model, dataset, num_dataset, conf, f_val=False, epoch=0, f_val_snn=Fals
 
             if idx_batch!=-1:
                 #model=tfe.defun(model)
-                predictions = model(images, f_training=False)
+                predictions = model(images, f_training=False, epoch=epoch)
 
                 #print(predictions.shape)
                 #print(str(tf.argmax(predictions,axis=1))+' : '+str(tf.argmax(labels,axis=1)))

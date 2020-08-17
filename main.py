@@ -866,7 +866,7 @@ def main(_):
                 #
                 f_save_model = False
                 with val_summary_writer.as_default():
-                    loss_val, acc_val, _ = test.test(model, val_dataset, num_val_dataset, conf, f_val=True)
+                    loss_val, acc_val, _ = test.test(model, val_dataset, num_val_dataset, conf, f_val=True, epoch=epoch)
                     #loss_val, acc_val, _ = test.test(model, test_dataset, conf, f_val=True)
 
                     #with tf.summary.always_record_summaries():
@@ -891,7 +891,7 @@ def main(_):
 
                         with val_snn_summary_writer.as_default():
                             #loss_val_snn, acc_val_snn, _ = test.test(model, val_dataset, conf, f_val=False, f_val_snn=True)
-                            loss_val_snn, acc_val_snn, _ = test.test(model, val_dataset, num_val_dataset, conf, f_val=True, f_val_snn=True)
+                            loss_val_snn, acc_val_snn, _ = test.test(model, val_dataset, num_val_dataset, conf, f_val=True, f_val_snn=True, epoch=epoch)
 
                             #with tf.summary.always_record_summaries():
                             tf.summary.scalar('loss', loss_val_snn, step=epoch)

@@ -162,9 +162,6 @@ def reg_tc_para(model):
 
 #
 def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
-    #print("train_snn.py - train_one_epoch_ttfs > not yet implemented")
-    #assert(False)
-
     #global_step = tf.train.get_or_create_global_step()
 
     #print("epoch: {}".format(global_step))
@@ -199,7 +196,7 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
 
 
         with tf.GradientTape(persistent=True) as tape:
-            predictions = model(images, f_training=True)
+            predictions = model(images, f_training=True, epoch=epoch)
             #predictions = predictions[-1]
 
             # labels_st: labels (first spike time) for TTFS coding

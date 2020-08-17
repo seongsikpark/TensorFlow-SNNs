@@ -1156,7 +1156,7 @@ class Temporal_kernel(tf.keras.layers.Layer):
         #epoch_start_train_tk_start = 1
         #epoch_start_train_t_int = 1
         epoch_start_train_t_int = 1000
-        epoch_start_train_clip_tw = 1
+        epoch_start_train_clip_tw = 100
 
         self.epoch_start_t_int = epoch_start_train_t_int
         self.epoch_start_clip_tw = epoch_start_train_clip_tw
