@@ -431,7 +431,7 @@ def main(_):
     save_target_acc_sel = {
         'MNIST': 90.0,
         #'MNIST': 99.0,
-        'CIFAR-10': 92.0,
+        'CIFAR-10': 90.0,
         'CIFAR-100': 68.0
     }
     save_target_acc = save_target_acc_sel[conf.dataset]
