@@ -1151,12 +1151,12 @@ class Temporal_kernel(tf.keras.layers.Layer):
 
         #
         # TODO: parameterize these variables depending on strategies, model, and dataset
-        epoch_start_train_tk_start = 1
+        epoch_start_train_tk_start = 10000
         #epoch_start_train_tk_start = 100
         #epoch_start_train_tk_start = 1
         #epoch_start_train_t_int = 1
-        epoch_start_train_t_int = 1000
-        epoch_start_train_clip_tw = 100
+        epoch_start_train_t_int = 10000
+        epoch_start_train_clip_tw = 10000
 
         self.epoch_start_t_int = epoch_start_train_t_int
         self.epoch_start_clip_tw = epoch_start_train_clip_tw
