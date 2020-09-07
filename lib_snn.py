@@ -1151,12 +1151,16 @@ class Temporal_kernel(tf.keras.layers.Layer):
 
         #
         # TODO: parameterize these variables depending on strategies, model, and dataset
-        epoch_start_train_tk_start = 10000
+        epoch_start_train_tk_start = 1
         #epoch_start_train_tk_start = 100
         #epoch_start_train_tk_start = 1
-        #epoch_start_train_t_int = 1
         epoch_start_train_t_int = 10000
-        epoch_start_train_clip_tw = 10000
+        #epoch_start_train_t_int = 200
+        #epoch_start_train_t_int = 400
+        #epoch_start_train_t_int = 10000
+        epoch_start_train_clip_tw = 1
+        #epoch_start_train_clip_tw = 400
+        #epoch_start_train_clip_tw = 10000
 
         self.epoch_start_t_int = epoch_start_train_t_int
         self.epoch_start_clip_tw = epoch_start_train_clip_tw
@@ -1165,12 +1169,17 @@ class Temporal_kernel(tf.keras.layers.Layer):
         # start epoch training with floor function - quantization
         # before this epoch, training with round founction
         #self.epoch_start_train_floor = 10
+        #self.epoch_start_train_floor = 500
         self.epoch_start_train_floor = 10000
 
 
         # encoding decoding para couple
         self.f_enc_dec_couple = True
         #self.f_enc_dec_couple = False
+
+        # double tc
+        self.f_double_tc = True
+        #self.f_double_tc = False
 
     def build(self, _):
 
@@ -1183,6 +1192,9 @@ class Temporal_kernel(tf.keras.layers.Layer):
         #self.ta = self.add_variable("ta",shape=self.dim_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(self.init_ta),trainable=True)
         self.tw = self.add_variable("tw",shape=self.dim_in_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(self.init_tw),trainable=False)
 
+        if self.f_double_tc:
+            self.tc_1 = self.add_variable("tc_1",shape=self.dim_in_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(2.0),trainable=True)
+            self.td_1 = self.add_variable("td_1",shape=self.dim_in_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(0.0),trainable=True)
 
 
         #
@@ -1292,7 +1304,13 @@ class Temporal_kernel(tf.keras.layers.Layer):
         x = tf.add(x,eps)
         x = tf.math.log(x)
 
-        t = tf.subtract(self.td, tf.multiply(x,self.tc))
+        if self.f_double_tc:
+            #t = tf.subtract(self.td, tf.multiply(x,self.tc))
+            A = tf.math.log(tf.add(tf.exp(tf.divide(self.td,self.tc)),tf.exp(tf.divide(self.td_1,self.tc_1))))
+            x = tf.subtract(A,x)
+            t = tf.multiply(tf.divide(tf.add(self.tc,self.tc_1),2),x)
+        else:
+            t = tf.subtract(self.td, tf.multiply(x,self.tc))
 
         t = tf.nn.relu(t)
 
@@ -1321,7 +1339,10 @@ class Temporal_kernel(tf.keras.layers.Layer):
             tc = self.tc_dec
 
         #
-        x = tf.exp(tf.divide(tf.subtract(td,t),tc))
+        if self.f_double_tc:
+            x = tf.add(tf.exp(tf.divide(tf.subtract(td,t),tc)),tf.exp(tf.divide(tf.subtract(self.td_1,t),self.tc_1)))
+        else:
+            x = tf.exp(tf.divide(tf.subtract(td,t),tc))
 
 
 

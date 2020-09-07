@@ -37,11 +37,11 @@ verbose_visual=False
 ## Model & Dataset
 ###############################################################################
 nn_mode='ANN'
-nn_mode='SNN'
+#nn_mode='SNN'
 
 
-exp_case='CNN_MNIST'
-#exp_case='VGG16_CIFAR-10'
+#exp_case='CNN_MNIST'
+exp_case='VGG16_CIFAR-10'
 #exp_case='VGG16_CIFAR-100'
 #exp_case='ResNet50_ImageNet'
 
@@ -52,7 +52,7 @@ exp_case='CNN_MNIST'
 ###############################################################################
 
 training_mode=True
-training_mode=False
+#training_mode=False
 
 #
 # If this flag is False, then the trained model is overwritten
@@ -339,16 +339,18 @@ epoch_train_time_const=1
 
 
 # TTFS - MNIST default setting
-tc=5
-time_fire_start=5    # integration duration - n x tc
-time_fire_duration=20   # time window - n x tc
-time_window=${time_fire_duration}
+#tc=5
+#time_fire_start=20    # integration duration - n x tc
+#time_fire_duration=20   # time window - n x tc
+#time_window=${time_fire_duration}
 
 # TTFS - CIFAR-10 default setting
-#tc=20
-#time_fire_start=80    # integration duration - n x tc
-#time_fire_duration=80   # time window - n x tc
-#time_window=${time_fire_duration}
+#tc=10
+tc=20
+#tc=16
+time_fire_start=80    # integration duration - n x tc
+time_fire_duration=80   # time window - n x tc
+time_window=${time_fire_duration}
 
 
 #f_tc_based=True
@@ -717,7 +719,8 @@ TRAIN_VGG16_CIFAR-10)
 
     if [ ${f_full_test} = True ]
     then
-        batch_size=400
+        #batch_size=400
+        batch_size=250
         idx_test_dataset_s=0
         num_test_dataset=10000
     fi

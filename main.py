@@ -431,7 +431,7 @@ def main(_):
     save_target_acc_sel = {
         'MNIST': 90.0,
         #'MNIST': 99.0,
-        'CIFAR-10': 90.0,
+        'CIFAR-10': 88.0,
         'CIFAR-100': 68.0
     }
     save_target_acc = save_target_acc_sel[conf.dataset]
@@ -478,6 +478,7 @@ def main(_):
     #optimizer = tf.train.MomentumOptimizer(lr,momentum)
     #optimizer = tf.train.AdamOptimizer(lr)
     optimizer = tf.keras.optimizers.Adam(lr)
+    #optimizer = tf.keras.optimizers.SGD(learning_rate=lr,momentum=momentum)
 
 
     if conf.output_dir:
