@@ -74,7 +74,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         if self.f_debug_visual:
             #self.debug_visual_threads = []
             self.debug_visual_axes = []
-            self.debug_visual_list_neuron = collections.OrderedDict()
+            self.debug_visual_neuron_list = collections.OrderedDict()
 
         #
         self.f_skip_bn = self.conf.f_fused_bn
@@ -197,47 +197,47 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         kernel_initializer = initializers.GlorotUniform()
         #kernel_initializer = initializers.variance_scaling_initializer(factor=2.0,mode='FAN_IN')    # MSRA init. = He init
 
-        self.list_layer=collections.OrderedDict()
-        self.list_layer['conv1'] = tf.keras.layers.Conv2D(64,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
-        self.list_layer['conv1_bn'] = tf.keras.layers.BatchNormalization()
-        self.list_layer['conv1_1'] = tf.keras.layers.Conv2D(64,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
-        self.list_layer['conv1_1_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list=collections.OrderedDict()
+        self.layer_list['conv1'] = tf.keras.layers.Conv2D(64,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv1_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv1_1'] = tf.keras.layers.Conv2D(64,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv1_1_bn'] = tf.keras.layers.BatchNormalization()
 
-        self.list_layer['conv2'] = tf.keras.layers.Conv2D(128,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
-        self.list_layer['conv2_bn'] = tf.keras.layers.BatchNormalization()
-        self.list_layer['conv2_1'] = tf.keras.layers.Conv2D(128,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
-        self.list_layer['conv2_1_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv2'] = tf.keras.layers.Conv2D(128,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv2_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv2_1'] = tf.keras.layers.Conv2D(128,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv2_1_bn'] = tf.keras.layers.BatchNormalization()
 
-        self.list_layer['conv3'] = tf.keras.layers.Conv2D(256,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
-        self.list_layer['conv3_bn'] = tf.keras.layers.BatchNormalization()
-        self.list_layer['conv3_1'] = tf.keras.layers.Conv2D(256,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
-        self.list_layer['conv3_1_bn'] = tf.keras.layers.BatchNormalization()
-        self.list_layer['conv3_2'] = tf.keras.layers.Conv2D(256,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
-        self.list_layer['conv3_2_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv3'] = tf.keras.layers.Conv2D(256,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv3_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv3_1'] = tf.keras.layers.Conv2D(256,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv3_1_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv3_2'] = tf.keras.layers.Conv2D(256,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv3_2_bn'] = tf.keras.layers.BatchNormalization()
 
-        self.list_layer['conv4'] = tf.keras.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
-        self.list_layer['conv4_bn'] = tf.keras.layers.BatchNormalization()
-        self.list_layer['conv4_1'] = tf.keras.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
-        self.list_layer['conv4_1_bn'] = tf.keras.layers.BatchNormalization()
-        self.list_layer['conv4_2'] = tf.keras.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
-        self.list_layer['conv4_2_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv4'] = tf.keras.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv4_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv4_1'] = tf.keras.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv4_1_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv4_2'] = tf.keras.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv4_2_bn'] = tf.keras.layers.BatchNormalization()
 
-        self.list_layer['conv5'] = tf.keras.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
-        self.list_layer['conv5_bn'] = tf.keras.layers.BatchNormalization()
-        self.list_layer['conv5_1'] = tf.keras.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
-        self.list_layer['conv5_1_bn'] = tf.keras.layers.BatchNormalization()
-        self.list_layer['conv5_2'] = tf.keras.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
-        self.list_layer['conv5_2_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv5'] = tf.keras.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv5_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv5_1'] = tf.keras.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv5_1_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv5_2'] = tf.keras.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv5_2_bn'] = tf.keras.layers.BatchNormalization()
 
-        self.list_layer['fc1'] = tf.keras.layers.Dense(512,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer)
+        self.layer_list['fc1'] = tf.keras.layers.Dense(512,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer)
 
-        self.list_layer['fc1_bn'] = tf.keras.layers.BatchNormalization()
-        self.list_layer['fc2'] = tf.keras.layers.Dense(512,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer)
-        self.list_layer['fc2_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['fc1_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['fc2'] = tf.keras.layers.Dense(512,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer)
+        self.layer_list['fc2_bn'] = tf.keras.layers.BatchNormalization()
 
-        #self.list_layer['fc3'] = tf.keras.layers.Dense(self.num_class,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer))
-        self.list_layer['fc3'] = tf.keras.layers.Dense(self.num_class,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer)
-        self.list_layer['fc3_bn'] = tf.keras.layers.BatchNormalization()
+        #self.layer_list['fc3'] = tf.keras.layers.Dense(self.num_class,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer))
+        self.layer_list['fc3'] = tf.keras.layers.Dense(self.num_class,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer)
+        self.layer_list['fc3_bn'] = tf.keras.layers.BatchNormalization()
 
         self.dropout_conv = tf.keras.layers.Dropout(0.3)
         self.dropout_conv2 = tf.keras.layers.Dropout(0.4)
@@ -245,38 +245,38 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
 
         # remove later
-        self.conv1=self.list_layer['conv1']
-        self.conv1_bn=self.list_layer['conv1_bn']
-        self.conv1_1=self.list_layer['conv1_1']
-        self.conv1_1_bn=self.list_layer['conv1_1_bn']
-        self.conv2=self.list_layer['conv2']
-        self.conv2_bn=self.list_layer['conv2_bn']
-        self.conv2_1=self.list_layer['conv2_1']
-        self.conv2_1_bn=self.list_layer['conv2_1_bn']
-        self.conv3=self.list_layer['conv3']
-        self.conv3_bn=self.list_layer['conv3_bn']
-        self.conv3_1=self.list_layer['conv3_1']
-        self.conv3_1_bn=self.list_layer['conv3_1_bn']
-        self.conv3_2=self.list_layer['conv3_2']
-        self.conv3_2_bn=self.list_layer['conv3_2_bn']
-        self.conv4=self.list_layer['conv4']
-        self.conv4_bn=self.list_layer['conv4_bn']
-        self.conv4_1=self.list_layer['conv4_1']
-        self.conv4_1_bn=self.list_layer['conv4_1_bn']
-        self.conv4_2=self.list_layer['conv4_2']
-        self.conv4_2_bn=self.list_layer['conv4_2_bn']
-        self.conv5=self.list_layer['conv5']
-        self.conv5_bn=self.list_layer['conv5_bn']
-        self.conv5_1=self.list_layer['conv5_1']
-        self.conv5_1_bn=self.list_layer['conv5_1_bn']
-        self.conv5_2=self.list_layer['conv5_2']
-        self.conv5_2_bn=self.list_layer['conv5_2_bn']
-        self.fc1=self.list_layer['fc1']
-        self.fc1_bn=self.list_layer['fc1_bn']
-        self.fc2=self.list_layer['fc2']
-        self.fc2_bn=self.list_layer['fc2_bn']
-        self.fc3=self.list_layer['fc3']
-        self.fc3_bn=self.list_layer['fc3_bn']
+        self.conv1=self.layer_list['conv1']
+        self.conv1_bn=self.layer_list['conv1_bn']
+        self.conv1_1=self.layer_list['conv1_1']
+        self.conv1_1_bn=self.layer_list['conv1_1_bn']
+        self.conv2=self.layer_list['conv2']
+        self.conv2_bn=self.layer_list['conv2_bn']
+        self.conv2_1=self.layer_list['conv2_1']
+        self.conv2_1_bn=self.layer_list['conv2_1_bn']
+        self.conv3=self.layer_list['conv3']
+        self.conv3_bn=self.layer_list['conv3_bn']
+        self.conv3_1=self.layer_list['conv3_1']
+        self.conv3_1_bn=self.layer_list['conv3_1_bn']
+        self.conv3_2=self.layer_list['conv3_2']
+        self.conv3_2_bn=self.layer_list['conv3_2_bn']
+        self.conv4=self.layer_list['conv4']
+        self.conv4_bn=self.layer_list['conv4_bn']
+        self.conv4_1=self.layer_list['conv4_1']
+        self.conv4_1_bn=self.layer_list['conv4_1_bn']
+        self.conv4_2=self.layer_list['conv4_2']
+        self.conv4_2_bn=self.layer_list['conv4_2_bn']
+        self.conv5=self.layer_list['conv5']
+        self.conv5_bn=self.layer_list['conv5_bn']
+        self.conv5_1=self.layer_list['conv5_1']
+        self.conv5_1_bn=self.layer_list['conv5_1_bn']
+        self.conv5_2=self.layer_list['conv5_2']
+        self.conv5_2_bn=self.layer_list['conv5_2_bn']
+        self.fc1=self.layer_list['fc1']
+        self.fc1_bn=self.layer_list['fc1_bn']
+        self.fc2=self.layer_list['fc2']
+        self.fc2_bn=self.layer_list['fc2_bn']
+        self.fc3=self.layer_list['fc3']
+        self.fc3_bn=self.layer_list['fc3_bn']
 
         pooling_type= {
             'max': tf.keras.layers.MaxPooling2D((2,2),(2,2),padding='SAME',data_format=data_format),
@@ -446,72 +446,69 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             n_type = self.conf.n_type
             nc = self.conf.neural_coding
 
-            self.list_neuron=collections.OrderedDict()
+            self.neuron_list=collections.OrderedDict()
 
-            #self.list_neuron['in'] = lib_snn.Neuron(self.input_shape_snn,'IN',1,self.conf)
-            self.list_neuron['in'] = lib_snn.Neuron(self.input_shape_snn,'IN',1,self.conf,nc,0,'in')
-
-
-            self.list_neuron['conv1'] = lib_snn.Neuron(self.shape_out_conv1,n_type,self.fanin_conv,self.conf,nc,1,'conv1')
-            self.list_neuron['conv1_1'] = lib_snn.Neuron(self.shape_out_conv1_1,n_type,self.fanin_conv,self.conf,nc,2,'conv1_1')
+            #self.neuron_list['in'] = lib_snn.Neuron(self.input_shape_snn,'IN',1,self.conf)
+            self.neuron_list['in'] = lib_snn.Neuron(self.input_shape_snn,'IN',1,self.conf,nc,0,'in')
 
 
-            self.list_neuron['conv2'] = lib_snn.Neuron(self.shape_out_conv2,n_type,self.fanin_conv,self.conf,nc,3,'conv2')
-            self.list_neuron['conv2_1'] = lib_snn.Neuron(self.shape_out_conv2_1,n_type,self.fanin_conv,self.conf,nc,4,'conv2_1')
+            self.neuron_list['conv1'] = lib_snn.Neuron(self.shape_out_conv1,n_type,self.fanin_conv,self.conf,nc,1,'conv1')
+            self.neuron_list['conv1_1'] = lib_snn.Neuron(self.shape_out_conv1_1,n_type,self.fanin_conv,self.conf,nc,2,'conv1_1')
 
-            self.list_neuron['conv3'] = lib_snn.Neuron(self.shape_out_conv3,n_type,self.fanin_conv,self.conf,nc,5,'conv3')
-            self.list_neuron['conv3_1'] = lib_snn.Neuron(self.shape_out_conv3_1,n_type,self.fanin_conv,self.conf,nc,6,'conv3_1')
-            self.list_neuron['conv3_2'] = lib_snn.Neuron(self.shape_out_conv3_2,n_type,self.fanin_conv,self.conf,nc,7,'conv3_2')
+
+            self.neuron_list['conv2'] = lib_snn.Neuron(self.shape_out_conv2,n_type,self.fanin_conv,self.conf,nc,3,'conv2')
+            self.neuron_list['conv2_1'] = lib_snn.Neuron(self.shape_out_conv2_1,n_type,self.fanin_conv,self.conf,nc,4,'conv2_1')
+
+            self.neuron_list['conv3'] = lib_snn.Neuron(self.shape_out_conv3,n_type,self.fanin_conv,self.conf,nc,5,'conv3')
+            self.neuron_list['conv3_1'] = lib_snn.Neuron(self.shape_out_conv3_1,n_type,self.fanin_conv,self.conf,nc,6,'conv3_1')
+            self.neuron_list['conv3_2'] = lib_snn.Neuron(self.shape_out_conv3_2,n_type,self.fanin_conv,self.conf,nc,7,'conv3_2')
 
             #nc = 'BURST'
             #self.conf.n_init_vth=0.125
 
-            self.list_neuron['conv4'] = lib_snn.Neuron(self.shape_out_conv4,n_type,self.fanin_conv,self.conf,nc,8,'conv4')
-            self.list_neuron['conv4_1'] = lib_snn.Neuron(self.shape_out_conv4_1,n_type,self.fanin_conv,self.conf,nc,9,'conv4_1')
-            self.list_neuron['conv4_2'] = lib_snn.Neuron(self.shape_out_conv4_2,n_type,self.fanin_conv,self.conf,nc,10,'conv4_2')
+            self.neuron_list['conv4'] = lib_snn.Neuron(self.shape_out_conv4,n_type,self.fanin_conv,self.conf,nc,8,'conv4')
+            self.neuron_list['conv4_1'] = lib_snn.Neuron(self.shape_out_conv4_1,n_type,self.fanin_conv,self.conf,nc,9,'conv4_1')
+            self.neuron_list['conv4_2'] = lib_snn.Neuron(self.shape_out_conv4_2,n_type,self.fanin_conv,self.conf,nc,10,'conv4_2')
 
             #self.conf.n_init_vth=0.125/2.0
 
-            self.list_neuron['conv5'] = lib_snn.Neuron(self.shape_out_conv5,n_type,self.fanin_conv,self.conf,nc,11,'conv5')
-            self.list_neuron['conv5_1'] = lib_snn.Neuron(self.shape_out_conv5_1,n_type,self.fanin_conv,self.conf,nc,12,'conv5_1')
-            self.list_neuron['conv5_2'] = lib_snn.Neuron(self.shape_out_conv5_2,n_type,self.fanin_conv,self.conf,nc,13,'conv5_2')
+            self.neuron_list['conv5'] = lib_snn.Neuron(self.shape_out_conv5,n_type,self.fanin_conv,self.conf,nc,11,'conv5')
+            self.neuron_list['conv5_1'] = lib_snn.Neuron(self.shape_out_conv5_1,n_type,self.fanin_conv,self.conf,nc,12,'conv5_1')
+            self.neuron_list['conv5_2'] = lib_snn.Neuron(self.shape_out_conv5_2,n_type,self.fanin_conv,self.conf,nc,13,'conv5_2')
 
-            self.list_neuron['fc1'] = lib_snn.Neuron(self.shape_out_fc1,n_type,512,self.conf,nc,14,'fc1')
-            self.list_neuron['fc2'] = lib_snn.Neuron(self.shape_out_fc2,n_type,512,self.conf,nc,15,'fc2')
-            #self.list_neuron['fc3'] = lib_snn.Neuron(self.shape_out_fc3,n_type,512,self.conf)
-            self.list_neuron['fc3'] = lib_snn.Neuron(self.shape_out_fc3,'OUT',512,self.conf,nc,16,'fc3')
+            self.neuron_list['fc1'] = lib_snn.Neuron(self.shape_out_fc1,n_type,512,self.conf,nc,14,'fc1')
+            self.neuron_list['fc2'] = lib_snn.Neuron(self.shape_out_fc2,n_type,512,self.conf,nc,15,'fc2')
+            #self.neuron_list['fc3'] = lib_snn.Neuron(self.shape_out_fc3,n_type,512,self.conf)
+            self.neuron_list['fc3'] = lib_snn.Neuron(self.shape_out_fc3,'OUT',512,self.conf,nc,16,'fc3')
 
 
             # modify later
-            self.n_in = self.list_neuron['in']
+            self.n_in = self.neuron_list['in']
 
-            self.n_conv1 = self.list_neuron['conv1']
-            self.n_conv1_1 = self.list_neuron['conv1_1']
-            #self.n_conv1_1 = tf.contrib.eager.defun(self.list_neuron['conv1_1'])
+            self.n_conv1 = self.neuron_list['conv1']
+            self.n_conv1_1 = self.neuron_list['conv1_1']
+            #self.n_conv1_1 = tf.contrib.eager.defun(self.neuron_list['conv1_1'])
 
-            self.n_conv2 = self.list_neuron['conv2']
-            self.n_conv2_1 = self.list_neuron['conv2_1']
+            self.n_conv2 = self.neuron_list['conv2']
+            self.n_conv2_1 = self.neuron_list['conv2_1']
 
-            self.n_conv3 = self.list_neuron['conv3']
-            self.n_conv3_1 = self.list_neuron['conv3_1']
-            self.n_conv3_2 = self.list_neuron['conv3_2']
+            self.n_conv3 = self.neuron_list['conv3']
+            self.n_conv3_1 = self.neuron_list['conv3_1']
+            self.n_conv3_2 = self.neuron_list['conv3_2']
 
-            self.n_conv4 = self.list_neuron['conv4']
-            self.n_conv4_1 = self.list_neuron['conv4_1']
-            self.n_conv4_2 = self.list_neuron['conv4_2']
+            self.n_conv4 = self.neuron_list['conv4']
+            self.n_conv4_1 = self.neuron_list['conv4_1']
+            self.n_conv4_2 = self.neuron_list['conv4_2']
 
-            self.n_conv5 = self.list_neuron['conv5']
-            self.n_conv5_1 = self.list_neuron['conv5_1']
-            self.n_conv5_2 = self.list_neuron['conv5_2']
+            self.n_conv5 = self.neuron_list['conv5']
+            self.n_conv5_1 = self.neuron_list['conv5_1']
+            self.n_conv5_2 = self.neuron_list['conv5_2']
 
-            self.n_fc1 = self.list_neuron['fc1']
-            self.n_fc2 = self.list_neuron['fc2']
-            self.n_fc3 = self.list_neuron['fc3']
+            self.n_fc1 = self.neuron_list['fc1']
+            self.n_fc2 = self.neuron_list['fc2']
+            self.n_fc3 = self.neuron_list['fc3']
 
-            #
-            self.snn_output_layer = self.n_fc3
 
-            self.snn_output = tf.Variable(initial_value=tf.zeros((self.num_accuracy_time_point,)+tuple(self.snn_output_layer.dim)),dtype=tf.float32,trainable=False)
             #
             if self.conf.f_train_time_const:
                 self.dnn_act_list=collections.OrderedDict()
@@ -548,19 +545,19 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
                     if (type=='tc') :
 
-                        self.list_neuron[name].set_time_const_init_fire(val)
+                        self.neuron_list[name].set_time_const_init_fire(val)
 
                         if not ('in' in name):
-                            self.list_neuron[name].set_time_const_init_integ(self.list_neuron[name_prev].time_const_init_fire)
+                            self.neuron_list[name].set_time_const_init_integ(self.neuron_list[name_prev].time_const_init_fire)
 
                         name_prev = name
 
                     elif (type=='td'):
 
-                        self.list_neuron[name].set_time_delay_init_fire(val)
+                        self.neuron_list[name].set_time_delay_init_fire(val)
 
                         if not ('in' in name):
-                            self.list_neuron[name].set_time_delay_init_integ(self.list_neuron[name_prev].time_delay_init_fire)
+                            self.neuron_list[name].set_time_delay_init_integ(self.neuron_list[name_prev].time_delay_init_fire)
 
                         name_prev = name
 
@@ -776,7 +773,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
     def reset_per_sample_snn(self):
         self.reset_neuron()
         #self.snn_output = np.zeros((self.num_accuracy_time_point,)+self.n_fc1.get_spike_count().numpy().shape)
-        self.snn_output.assign(tf.zeros((self.num_accuracy_time_point,)+tuple(self.snn_output_layer.dim)))
+        self.snn_output.assign(tf.zeros((self.num_accuracy_time_point,)+tuple(self.n_fc1.dim)))
         self.count_accuracy_time_point=0
 
 
@@ -855,9 +852,6 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
     #
     # TODO: input neuron ?
     def load_temporal_kernel_para(self):
-        if self.conf.verbose:
-            print('preprocessing: load_temporal_kernel_para')
-
         for l_name in self.layer_name:
 
             if l_name != self.layer_name[-1]:
@@ -894,7 +888,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         if self.f_load_model_done:
 
             # pre-processing
-            self.preproc(inputs,f_training,f_val_snn)
+            #self.preproc(inputs,f_training,f_val_snn)
 
             # run
             if (self.conf.nn_mode=='SNN' and self.conf.neural_coding=="TEMPORAL" and self.conf.f_train_time_const):
@@ -965,9 +959,9 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
         if self.conf.f_vth_conp:
             for idx_l, l in enumerate(self.layer_name):
-                #self.list_neuron[l].set_vth(np.broadcast_to(self.conf.n_init_vth*1.0 + 0.1*self.dict_stat_r[l]/f_norm(self.dict_stat_r[l]),self.dict_shape[l]))
-                self.list_neuron[l].set_vth(np.broadcast_to(self.dict_stat_r[l]/f_norm(self.dict_stat_r[l]),self.dict_shape[l]))
-                #self.list_neuron[l].set_vth(np.broadcast_to(self.dict_stat_r[l]/np.broadcast_to(f_norm(self.dict_stat_r[l]),self.dict_stat_r[l].shape)   ,self.dict_shape[l]))
+                #self.neuron_list[l].set_vth(np.broadcast_to(self.conf.n_init_vth*1.0 + 0.1*self.dict_stat_r[l]/f_norm(self.dict_stat_r[l]),self.dict_shape[l]))
+                self.neuron_list[l].set_vth(np.broadcast_to(self.dict_stat_r[l]/f_norm(self.dict_stat_r[l]),self.dict_shape[l]))
+                #self.neuron_list[l].set_vth(np.broadcast_to(self.dict_stat_r[l]/np.broadcast_to(f_norm(self.dict_stat_r[l]),self.dict_stat_r[l].shape)   ,self.dict_shape[l]))
 
         #self.print_act_d()
         # print
@@ -1092,7 +1086,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
     def temporal_norm(self):
         print('Temporal normalization')
-        for key, value in self.list_layer.items():
+        for key, value in self.layer_list.items():
             if self.conf.f_fused_bn:
                 if not ('bn' in key):
                     value.kernel=value.kernel/self.tw
@@ -2057,26 +2051,26 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         #return kernel, bias
 
 
-#    def preproc_ann_to_snn(self):
-#        print('preprocessing: ANN to SNN')
-#        if self.conf.f_fused_bn:
-#            self.fused_bn()
-#
-#        #self.print_model()
-#        #print(np.max(list(self.list_layer.values())[0].kernel))
-#        #self.temporal_norm()
-#        #print(np.max(list(self.list_layer.values())[0].kernel))
-#
-#
-#        #self.print_model()
-#        # weight normalization - data based
-#        if self.conf.f_w_norm_data:
-#            self.data_based_w_norm()
-#
-#        #if self.conf.f_comp_act:
-#        #    self.load_act_after_w_norm()
-#
-#        #self.print_act_after_w_norm()
+    def preproc_ann_to_snn(self):
+        print('preprocessing: ANN to SNN')
+        if self.conf.f_fused_bn:
+            self.fused_bn()
+
+        #self.print_model()
+        #print(np.max(list(self.layer_list.values())[0].kernel))
+        #self.temporal_norm()
+        #print(np.max(list(self.layer_list.values())[0].kernel))
+
+
+        #self.print_model()
+        # weight normalization - data based
+        if self.conf.f_w_norm_data:
+            self.data_based_w_norm()
+
+        #if self.conf.f_comp_act:
+        #    self.load_act_after_w_norm()
+
+        #self.print_act_after_w_norm()
 
     def _model_based_norm(self, layer, axis):
         w_in_sum = tf.reduce_sum(tf.maximum(layer.kernel,0),axis=axis)
@@ -2259,7 +2253,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
     def get_total_residual_vmem(self):
         len=self.total_residual_vmem.shape[0]
-        for idx_n, (nn, n) in enumerate(self.list_neuron.items()):
+        for idx_n, (nn, n) in enumerate(self.neuron_list.items()):
             idx=idx_n-1
             if nn!='in' or nn!='fc3':
                 self.total_residual_vmem[idx]+=tf.reduce_sum(tf.abs(n.vmem))
@@ -2268,7 +2262,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
     def get_total_isi(self):
         isi_count=np.zeros(self.conf.time_step)
 
-        for idx_n, (nn, n) in enumerate(self.list_neuron.items()):
+        for idx_n, (nn, n) in enumerate(self.neuron_list.items()):
             if nn!='in' or nn!='fc3':
                 isi_count_n = np.bincount(np.int32(n.isi.numpy().flatten()))
                 isi_count_n.resize(self.conf.time_step)
@@ -2278,7 +2272,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
 
     def f_out_isi(self,t):
-        for idx_n, (nn, n) in enumerate(self.list_neuron.items()):
+        for idx_n, (nn, n) in enumerate(self.neuron_list.items()):
             if nn!='in' or nn!='fc3':
                 f_name = './isi/'+nn+'_'+self.conf.model_name+'_'+self.conf.input_spike_mode+'_'+self.conf.neural_coding+'_'+str(self.conf.time_step)+'.csv'
 
@@ -2303,7 +2297,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         #print(range(0,self.spike_amp_kind)[::-1])
         #print(np.power(0.5,range(0,self.spike_amp_kind)))
 
-        for idx_n, (nn, n) in enumerate(self.list_neuron.items()):
+        for idx_n, (nn, n) in enumerate(self.neuron_list.items()):
             if nn!='in' or nn!='fc3':
                 spike_amp_n = np.histogram(n.out.numpy().flatten(),self.spike_amp_bin)
                 #spike_amp = spike_amp + spike_amp_n[0]
@@ -2321,8 +2315,8 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         spike_count = np.zeros([len,])
         spike_count_int = np.zeros([len,])
 
-        #for idx_n, (nn, n) in enumerate(self.list_neuron.items()):
-        for idx_n, (nn, n) in enumerate(self.list_neuron.items()):
+        #for idx_n, (nn, n) in enumerate(self.neuron_list.items()):
+        for idx_n, (nn, n) in enumerate(self.neuron_list.items()):
             idx=idx_n-1
             if nn!='in':
                 spike_count_int[idx]=tf.reduce_sum(n.get_spike_count_int())
@@ -2338,26 +2332,26 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         return [spike_count_int, spike_count]
 
     #def bias_norm_weighted_spike(self):
-        #for k, l in self.list_layer.items():
+        #for k, l in self.layer_list.items():
         #    if not 'bn' in k:
         #        l.bias = l.bias/(1-1/np.power(2,8))
         #        #l.bias = l.bias/8.0
-        #self.list_layer['conv1'].bias=self.list_layer['conv1'].bias/8.0
+        #self.layer_list['conv1'].bias=self.layer_list['conv1'].bias/8.0
 
     def bias_norm_proposed_method(self):
-        for k, l in self.list_layer.items():
+        for k, l in self.layer_list.items():
             if not 'bn' in k:
                 l.bias = l.bias*self.conf.n_init_vth
                 #l.bias = l.bias/200
                 #l.bias = l.bias*0.0
 
     def bias_enable(self):
-        for k, l in self.list_layer.items():
+        for k, l in self.layer_list.items():
             if not 'bn' in k:
                 l.use_bias = True
 
     def bias_disable(self):
-        for k, l in self.list_layer.items():
+        for k, l in self.layer_list.items():
             if not 'bn' in k:
                 l.use_bias = False
 
@@ -2366,20 +2360,20 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         self.total_comp_act[t,-1]=0.0
         for idx_l, l in enumerate(self.layer_name):
             if l !='fc3':
-                self.total_comp_act[t,idx_l]=np.mean(np.abs(self.list_neuron[l].spike_counter.numpy().flatten()/(float)(t+1)-self.dict_stat_w[l].flatten()))
+                self.total_comp_act[t,idx_l]=np.mean(np.abs(self.neuron_list[l].spike_counter.numpy().flatten()/(float)(t+1)-self.dict_stat_w[l].flatten()))
                 self.total_comp_act[t,-1]+=self.total_comp_act[t,idx_l]
 
 
         #l='conv1'
-        #print(self.list_neuron[l].spike_counter.numpy().flatten())
+        #print(self.neuron_list[l].spike_counter.numpy().flatten())
         #print(self.dict_stat_w[l].flatten())
 
     def comp_act_ws(self,t):
         self.total_comp_act[t,-1]=0.0
         for idx_l, l in enumerate(self.layer_name):
             if l !='fc3':
-                #self.total_comp_act[t,idx_l]=np.mean(np.abs(self.list_neuron[l].spike_counter.numpy().flatten()/((float)(t+1)/(float)(self.conf.p_ws))-self.dict_stat_w[l].flatten()))
-                self.total_comp_act[t,idx_l]=np.mean(np.abs(self.list_neuron[l].spike_counter.numpy().flatten()/((float)(t+1)/(float)(self.conf.p_ws))-self.dict_stat_w[l].flatten()))
+                #self.total_comp_act[t,idx_l]=np.mean(np.abs(self.neuron_list[l].spike_counter.numpy().flatten()/((float)(t+1)/(float)(self.conf.p_ws))-self.dict_stat_w[l].flatten()))
+                self.total_comp_act[t,idx_l]=np.mean(np.abs(self.neuron_list[l].spike_counter.numpy().flatten()/((float)(t+1)/(float)(self.conf.p_ws))-self.dict_stat_w[l].flatten()))
                 self.total_comp_act[t,-1]+=self.total_comp_act[t,idx_l]
 
 
@@ -2448,507 +2442,24 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         #print(self.dict_stat_w[l].shape)
 
 
-    ###########################################
-    # bias control
-    ###########################################
-    def bias_control(self,t):
-        if self.conf.input_spike_mode == 'WEIGHTED_SPIKE' or self.conf.neural_coding == 'WEIGHTED_SPIKE':
-            #if self.conf.neural_coding == 'WEIGHTED_SPIKE':
-            #if tf.equal(tf.reduce_max(a_in),0.0):
-            if (int)(t%self.conf.p_ws) == 0:
-                self.bias_enable()
-            else:
-                self.bias_disable()
-        else:
-            if self.conf.input_spike_mode == 'BURST':
-                if t==0:
-                    self.bias_enable()
-                else:
-                    if tf.equal(tf.reduce_max(a_in),0.0):
-                        self.bias_enable()
-                    else:
-                        self.bias_disable()
 
 
-        if self.conf.neural_coding == 'TEMPORAL':
-            #if (int)(t%self.conf.p_ws) == 0:
-            if t == 0:
-                self.bias_enable()
-            else:
-                self.bias_disable()
 
-    def bias_norm_weighted_spike(self):
-        for k, l in self.list_layer.items():
-            if not 'bn' in k:
-            #if (not 'bn' in k) and (not 'fc1' in k) :
-                #l.bias = l.bias/(1-1/np.power(2,8))
-                l.bias = l.bias/8.0
-
-    def bias_norm_proposed_method(self):
-        for k, l in self.list_layer.items():
-            if not 'bn' in k:
-                l.bias = l.bias*self.conf.n_init_vth
-                #l.bias = l.bias/200
-                #l.bias = l.bias*0.0
-
-    def bias_enable(self):
-        for k, l in self.list_layer.items():
-            if not 'bn' in k:
-                l.use_bias = True
-
-    def bias_disable(self):
-        for k, l in self.list_layer.items():
-            if not 'bn' in k:
-                l.use_bias = False
-
-    def bias_restore(self):
-        if self.conf.use_bias:
-            self.bias_enable()
-        else:
-            self.bias_disable()
-
-
-    ######################################################################
-    # SNN call
-    ######################################################################
+#####
     def call_snn(self,inputs,f_training,tw,epoch):
 
-
+        #####
+        #print("inputs: ")
+        #print(inputs.shape)
         #
-#        self.count_accuracy_time_point=0
-#
-#        # reset for sample
-#        if self.f_1st_iter == False:
-#            self.reset_neuron()
-#
-#            if self.f_done_preproc == False:
-#                self.f_done_preproc = True
-#                self.print_model_conf()
-#                self.preproc_ann_to_snn()
-#
-#                # for proposed method
-#                #self.bias_norm_proposed_method()
-#                #if self.conf.f_ws:
-#                #    self.bias_norm_weighted_spike()
-#
-#                #if self.f_debug_visual == True:
-#                #    self.print_model()
-#
-#            #spike_count = np.zeros((self.num_accuracy_time_point,)+self.n_fc3.get_spike_count().numpy().shape)
-#            self.spike_count.assign(tf.zeros((self.num_accuracy_time_point,)+tuple(self.n_fc3.dim)))
-#
-#            if self.conf.f_comp_act:
-#                self.save_ann_act(inputs,f_training)
-#            #print((self.num_accuracy_time_point,)+self.n_fc3.get_spike_count().numpy().shape)
-
+        #_, axes = plt.subplots(1,4)
         #
-        plt.clf()
+        #axes[0].imshow(inputs[0,:,:,:])
+        #axes[1].imshow(inputs[0,:,:,0])
+        #axes[2].imshow(inputs[0,:,:,1])
+        #axes[3].imshow(inputs[0,:,:,2])
+        #plt.show()
 
-        #
-        for t in range(tw):
-            if self.verbose == True:
-                print('time: '+str(t))
-            #x = tf.reshape(inputs,self._input_shape)
-
-            self.bias_control(t)
-
-            a_in = self.n_in(inputs,t)
-
-
-            #if self.conf.f_real_value_input_snn:
-            #    a_in = inputs
-            #else:
-            #    a_in = self.n_in(inputs,t)
-
-            ####################
-            # bias control
-            ####################
-            if self.conf.input_spike_mode == 'WEIGHTED_SPIKE' or self.conf.neural_coding == 'WEIGHTED_SPIKE':
-                #if self.conf.neural_coding == 'WEIGHTED_SPIKE':
-                #if tf.equal(tf.reduce_max(a_in),0.0):
-                if (int)(t%self.conf.p_ws) == 0:
-                    self.bias_enable()
-                else:
-                    self.bias_disable()
-            else:
-                if self.conf.input_spike_mode == 'BURST':
-                    if t==0:
-                        self.bias_enable()
-                    else:
-                        if tf.equal(tf.reduce_max(a_in),0.0):
-                            self.bias_enable()
-                        else:
-                            self.bias_disable()
-
-
-            if self.conf.neural_coding == 'TEMPORAL':
-                #if (int)(t%self.conf.p_ws) == 0:
-                if t == 0:
-                    self.bias_enable()
-                else:
-                    self.bias_disable()
-
-
-            ####################
-            #
-            ####################
-            s_conv1 = self.conv1(a_in)
-            a_conv1 = self.n_conv1(s_conv1,t)
-
-            s_conv1_1 = self.conv1_1(a_conv1)
-            a_conv1_1 = self.n_conv1_1(s_conv1_1,t)
-
-            if self.conf.f_spike_max_pool:
-                p_conv1_1 = lib_snn.spike_max_pool(
-                    a_conv1_1,
-                    self.n_conv1_1.get_spike_count(),
-                    self.dict_shape['conv1_p']
-                )
-            else:
-                p_conv1_1 = self.pool2d(a_conv1_1)
-
-            s_conv2 = self.conv2(p_conv1_1)
-            a_conv2 = self.n_conv2(s_conv2,t)
-            s_conv2_1 = self.conv2_1(a_conv2)
-            a_conv2_1 = self.n_conv2_1(s_conv2_1,t)
-
-            if self.conf.f_spike_max_pool:
-                p_conv2_1 = lib_snn.spike_max_pool(
-                    a_conv2_1,
-                    self.n_conv2_1.get_spike_count(),
-                    self.dict_shape['conv2_p']
-                )
-            else:
-                p_conv2_1 = self.pool2d(a_conv2_1)
-
-            s_conv3 = self.conv3(p_conv2_1)
-            a_conv3 = self.n_conv3(s_conv3,t)
-            s_conv3_1 = self.conv3_1(a_conv3)
-            a_conv3_1 = self.n_conv3_1(s_conv3_1,t)
-            s_conv3_2 = self.conv3_2(a_conv3_1)
-            a_conv3_2 = self.n_conv3_2(s_conv3_2,t)
-
-            if self.conf.f_spike_max_pool:
-                p_conv3_2 = lib_snn.spike_max_pool(
-                    a_conv3_2,
-                    self.n_conv3_2.get_spike_count(),
-                    self.dict_shape['conv3_p']
-                )
-            else:
-                p_conv3_2 = self.pool2d(a_conv3_2)
-
-
-            s_conv4 = self.conv4(p_conv3_2)
-            a_conv4 = self.n_conv4(s_conv4,t)
-            s_conv4_1 = self.conv4_1(a_conv4)
-            a_conv4_1 = self.n_conv4_1(s_conv4_1,t)
-            s_conv4_2 = self.conv4_2(a_conv4_1)
-            a_conv4_2 = self.n_conv4_2(s_conv4_2,t)
-
-            if self.conf.f_spike_max_pool:
-                p_conv4_2 = lib_snn.spike_max_pool(
-                    a_conv4_2,
-                    self.n_conv4_2.get_spike_count(),
-                    self.dict_shape['conv4_p']
-                )
-            else:
-                p_conv4_2 = self.pool2d(a_conv4_2)
-
-            s_conv5 = self.conv5(p_conv4_2)
-            a_conv5 = self.n_conv5(s_conv5,t)
-            s_conv5_1 = self.conv5_1(a_conv5)
-            a_conv5_1 = self.n_conv5_1(s_conv5_1,t)
-            s_conv5_2 = self.conv5_2(a_conv5_1)
-            a_conv5_2 = self.n_conv5_2(s_conv5_2,t)
-
-            if self.conf.f_spike_max_pool:
-                p_conv5_2 = lib_snn.spike_max_pool(
-                    a_conv5_2,
-                    self.n_conv5_2.get_spike_count(),
-                    self.dict_shape['conv5_p']
-                )
-            else:
-                p_conv5_2 = self.pool2d(a_conv5_2)
-
-            flat = tf.compat.v1.layers.flatten(p_conv5_2)
-
-            s_fc1 = self.fc1(flat)
-            #s_fc1_bn = self.fc1_bn(s_fc1,training=f_training)
-            #a_fc1 = self.n_fc1(s_fc1_bn,t)
-            a_fc1 = self.n_fc1(s_fc1,t)
-
-            s_fc2 = self.fc2(a_fc1)
-            #s_fc2_bn = self.fc2_bn(s_fc2,training=f_training)
-            #a_fc2 = self.n_fc2(s_fc2_bn,t)
-            a_fc2 = self.n_fc2(s_fc2,t)
-
-            s_fc3 = self.fc3(a_fc2)
-            #print('a_fc3')
-            a_fc3 = self.n_fc3(s_fc3,t)
-
-
-            #print(str(t)+" : "+str(self.n_fc3.vmem.numpy()))
-
-
-
-            ###
-#            idx_print=0,10,10,0
-#            print("time: {time:} - input: {input:0.5f}, vmem: {vmem:0.5f}, spk: {spike:f} {spike_bool:}\n"
-#                  .format(
-#                        time=t,
-#                        input=inputs.numpy()[idx_print],
-#                        vmem=self.n_in.vmem.numpy()[idx_print],
-#                        spike=self.n_in.out.numpy()[idx_print],
-#                        spike_bool= (self.n_in.out.numpy()[idx_print]>0.0))
-#                  )
-
-
-
-
-            #print('synapse')
-            #print(s_conv1[0,15,15,0])
-            #print('vmem')
-            #print(self.n_conv1.vmem[0,15,15,0])
-            #print('vth')
-            #print(self.n_conv1.vth[0,15,15,0])
-            #print('')
-
-
-            #
-            #if self.f_1st_iter == False:
-            #    plt_idx=0
-            #    subplot_x=4
-            #    subplot_y=4
-            #    for layer_name, layer in self.list_layer.items():
-            #        if not ('bn' in layer_name):
-            #            print('subplot {}, {}'.format(int(plt_idx/subplot_x+1),int(plt_idx%subplot_x+1)))
-            #            #plt.subplot(subplot_x*subplot_y,int(plt_idx/subplot_x+1),int(plt_idx%subplot_x+1))
-            #            #plt.subplot(int(plt_idx/subplot_x+1),int(plt_idx%subplot_x+1),plt_idx+1)
-            #            plt.subplot(subplot_y,subplot_y,plt_idx+1)
-            #            plt.hist(np.abs(layer.kernel.numpy().flatten()),bins=100)
-            #            plt_idx+=1
-            #
-            #            print("{} - max: {}, mean: {}".format(layer_name,np.max(np.abs(layer.kernel.numpy())),np.mean(np.abs(layer.kernel.numpy()))))
-            #
-            #    plt.show()
-
-            if self.f_1st_iter == False and self.f_debug_visual == True:
-                #self.visual(t)
-
-
-                synapse=s_conv1
-                neuron=self.n_in
-
-                #synapse=s_fc2
-                #neuron=self.n_fc2
-
-                synapse_1=s_conv1
-                neuron_1=self.n_conv1
-
-                synapse_2 = s_conv1_1
-                neuron_2 = self.n_conv1_1
-
-
-                #self.debug_visual(synapse, neuron, synapse_1, neuron_1, synapse_2, neuron_2, t)
-                self.debug_visual_raster(t)
-
-                #if t==self.tw-1:
-                #    plt.figure()
-                #    #plt.show()
-
-            ##########
-            #
-            ##########
-
-            if self.f_1st_iter == False:
-                if self.conf.f_comp_act:
-                    if self.conf.neural_coding=='RATE':
-                        self.comp_act_rate(t)
-                    elif self.conf.neural_coding=='WEIGHTED_SPIKE':
-                        self.comp_act_ws(t)
-                    elif self.conf.neural_coding=='BURST':
-                        self.comp_act_pro(t)
-
-                if self.conf.f_isi:
-                    self.total_isi += self.get_total_isi()
-                    self.total_spike_amp += self.get_total_spike_amp()
-
-                    self.f_out_isi(t)
-
-
-                if self.conf.f_entropy:
-                    #print(a_conv1.numpy().shape)
-                    #print(self.n_conv1.out.numpy().shape)
-                    #print(self.dict_stat_w['conv1'].shape)
-                    #self.dict_stat_w['conv4'][t]=self.n_conv4.out.numpy()
-                    #self.dict_stat_w['fc2'][t]=self.n_fc2.out.numpy()
-
-                    for idx_l, l in enumerate(self.layer_name):
-                        if l !='fc3':
-                            self.dict_stat_w[l][t] = self.list_neuron[l].out.numpy()
-
-
-                    #print(self.dict_stat_w['conv1'])
-
-                if t==self.accuracy_time_point[self.count_accuracy_time_point]-1:
-                    output=self.n_fc3.vmem
-                    self.recoding_ret_val()
-
-
-                    #num_spike_count = tf.cast(tf.reduce_sum(self.spike_count,axis=[2]),tf.int32)
-                    #num_spike_count = tf.reduce_sum(self.spike_count,axis=[2])
-
-            #print(t, self.n_fc3.last_spike_time.numpy())
-            #print(t, self.n_fc3.isi.numpy())
-
-        if self.conf.f_entropy and (not self.f_1st_iter):
-            self.cal_entropy()
-
-
-        if self.f_1st_iter:
-            self.f_1st_iter = False
-
-            self.conv1_bn(s_conv1,training=f_training)
-            self.conv1_1_bn(s_conv1_1,training=f_training)
-
-            self.conv2_bn(s_conv2,training=f_training)
-            self.conv2_1_bn(s_conv2_1,training=f_training)
-
-            self.conv3_bn(s_conv3,training=f_training)
-            self.conv3_1_bn(s_conv3_1,training=f_training)
-            self.conv3_2_bn(s_conv3_2,training=f_training)
-
-            self.conv4_bn(s_conv4,training=f_training)
-            self.conv4_1_bn(s_conv4_1,training=f_training)
-            self.conv4_2_bn(s_conv4_2,training=f_training)
-
-            self.conv5_bn(s_conv5,training=f_training)
-            self.conv5_1_bn(s_conv5_1,training=f_training)
-            self.conv5_2_bn(s_conv5_2,training=f_training)
-
-            self.fc1_bn(s_fc1,training=f_training)
-            self.fc2_bn(s_fc2,training=f_training)
-            self.fc3_bn(s_fc3,training=f_training)
-
-            return 0
-
-
-        else:
-
-            if not self.conf.f_pruning_channel:
-                self.get_total_residual_vmem()
-
-                #spike_zero = tf.reduce_sum(self.spike_count,axis=[0,2])
-                spike_zero = tf.reduce_sum(self.snn_output,axis=[0,2])
-                #spike_zero = tf.count_nonzero(self.spike_count,axis=[0,2])
-
-                if np.any(spike_zero.numpy() == 0.0):
-                #if num_spike_count==0.0:
-                    print('spike count 0')
-                    #print(num_spike_count.numpy())
-                    #a = input("press any key to exit")
-                    #os.system("Pause")
-                    #raw_input("Press any key to exit")
-                    #sys.exit(0)
-
-            #plt.hist(self.n_conv1.vmem.numpy().flatten())
-            #plt.show()
-
-            if self.conf.f_pruning_channel:
-                for idx_l, l in enumerate(self.layer_name):
-                    if 'conv' in l:
-                        neuron = self.list_neuron[l]
-                        kernel_name = self.layer_name[idx_l+1]
-
-                        if 'conv' in kernel_name:
-                            self.idx_pruning_channel[kernel_name] =\
-                                self.get_pruning_channel_idx(neuron.get_spike_count())
-
-
-                            n_remain_channel = tf.shape(self.idx_pruning_channel[kernel_name])[-1]
-                            n_original_channel = tf.shape(neuron.get_spike_count())[-1]
-                            remain_ratio = n_remain_channel/n_original_channel
-
-                            print('%3d / %3d : %.4f'%(n_remain_channel,n_original_channel,remain_ratio))
-
-                            self.f_idx_pruning_channel[kernel_name]=remain_ratio < self.th_idx_pruning_channel
-                            #print(self.f_idx_pruning_channel)
-
-            # first_spike_time visualization
-            if self.conf.f_record_first_spike_time and self.conf.f_visual_record_first_spike_time:
-                print('first spike time')
-                _, axes = plt.subplots(4,4)
-                idx_plot=0
-                for n_name, n in self.list_neuron.items():
-                    if not ('fc3' in n_name):
-                        #positive = n.first_spike_time > 0
-                        #print(n_name+'] min: '+str(tf.reduce_min(n.first_spike_time[positive]))+', mean: '+str(tf.reduce_mean(n.first_spike_time[positive])))
-                        #print(tf.reduce_min(n.first_spike_time[positive]))
-
-                        #positive=n.first_spike_time.numpy().flatten() > 0
-                        positive=tf.boolean_mask(n.first_spike_time,n.first_spike_time>0)
-
-                        if not tf.equal(tf.size(positive),0):
-
-                            #min=np.min(n.first_spike_time.numpy().flatten()[positive,])
-                            #print(positive.shape)
-                            #min=np.min(n.first_spike_time.numpy().flatten()[positive])
-                            min=tf.reduce_min(positive)
-                            #mean=np.mean(n.first_spike_time.numpy().flatten()[positive,])
-
-                            #if self.conf.f_tc_based:
-                            #    fire_s=idx_plot*self.conf.time_fire_start
-                            #    fire_e=idx_plot*self.conf.time_fire_start+self.conf.time_fire_duration
-                            #else:
-                            #    fire_s=idx_plot*self.conf.time_fire_start
-                            #    fire_e=idx_plot*self.conf.time_fire_start+self.conf.time_fire_duration
-
-                            #fire_s = n.time_start_fire
-                            #fire_e = n.time_end_fire
-
-                            fire_s = idx_plot * self.conf.time_fire_start
-                            fire_e = idx_plot * self.conf.time_fire_start + self.conf.time_fire_duration
-
-                            axe=axes.flatten()[idx_plot]
-                            #axe.hist(n.first_spike_time.numpy().flatten()[positive],bins=range(fire_s,fire_e,1))
-                            axe.hist(positive.numpy().flatten(),bins=range(fire_s,fire_e,1))
-
-                            axe.axvline(x=min.numpy(),color='b', linestyle='dashed')
-
-                            axe.axvline(x=fire_s)
-                            axe.axvline(x=fire_e)
-
-
-                        idx_plot+=1
-
-
-
-                # file write raw data
-                for n_name, n in self.list_neuron.items():
-                    if not ('fc3' in n_name):
-                        positive=tf.boolean_mask(n.first_spike_time,n.first_spike_time>0).numpy()
-
-                        fname = './spike_time/spike-time'
-                        if self.conf.f_load_time_const:
-                            fname += '_train-'+str(self.conf.time_const_num_trained_data)+'_tc-'+str(self.conf.tc)+'_tw-'+str(self.conf.time_window)
-
-                        fname += '_'+n_name+'.csv'
-                        f = open(fname,'w')
-                        wr = csv.writer(f)
-                        wr.writerow(positive)
-                        f.close()
-
-
-                plt.show()
-
-
-        #return self.spike_count
-        return self.snn_output
-
-    ######################################################################
-    # SNN call - backup
-    ######################################################################
-    def call_snn_bck(self,inputs,f_training,tw,epoch):
 
 
         #
@@ -3154,7 +2665,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             #    plt_idx=0
             #    subplot_x=4
             #    subplot_y=4
-            #    for layer_name, layer in self.list_layer.items():
+            #    for layer_name, layer in self.layer_list.items():
             #        if not ('bn' in layer_name):
             #            print('subplot {}, {}'.format(int(plt_idx/subplot_x+1),int(plt_idx%subplot_x+1)))
             #            #plt.subplot(subplot_x*subplot_y,int(plt_idx/subplot_x+1),int(plt_idx%subplot_x+1))
@@ -3220,15 +2731,14 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
                     for idx_l, l in enumerate(self.layer_name):
                         if l !='fc3':
-                            self.dict_stat_w[l][t] = self.list_neuron[l].out.numpy()
+                            self.dict_stat_w[l][t] = self.neuron_list[l].out.numpy()
 
 
                     #print(self.dict_stat_w['conv1'])
 
                 if t==self.accuracy_time_point[self.count_accuracy_time_point]-1:
                     output=self.n_fc3.vmem
-                    #self.recoding_ret_val(output)
-                    self.recoding_ret_val()
+                    self.recoding_ret_val(output)
 
 
                     #num_spike_count = tf.cast(tf.reduce_sum(self.spike_count,axis=[2]),tf.int32)
@@ -3292,7 +2802,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             if self.conf.f_pruning_channel:
                 for idx_l, l in enumerate(self.layer_name):
                     if 'conv' in l:
-                        neuron = self.list_neuron[l]
+                        neuron = self.neuron_list[l]
                         kernel_name = self.layer_name[idx_l+1]
 
                         if 'conv' in kernel_name:
@@ -3314,7 +2824,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
                 print('first spike time')
                 _, axes = plt.subplots(4,4)
                 idx_plot=0
-                for n_name, n in self.list_neuron.items():
+                for n_name, n in self.neuron_list.items():
                     if not ('fc3' in n_name):
                         #positive = n.first_spike_time > 0
                         #print(n_name+'] min: '+str(tf.reduce_min(n.first_spike_time[positive]))+', mean: '+str(tf.reduce_mean(n.first_spike_time[positive])))
@@ -3359,7 +2869,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
 
                 # file write raw data
-                for n_name, n in self.list_neuron.items():
+                for n_name, n in self.neuron_list.items():
                     if not ('fc3' in n_name):
                         positive=tf.boolean_mask(n.first_spike_time,n.first_spike_time>0).numpy()
 
@@ -3381,50 +2891,24 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
 
 
-    ###########################################################
-    ## SNN output
-    ###########################################################
-
-    #
-    def recoding_ret_val(self):
-        output=self.snn_output_func()
-        self.snn_output.scatter_nd_update([self.count_accuracy_time_point],tf.expand_dims(output,0))
+    def recoding_ret_val(self, output):
+        self.spike_count.scatter_nd_update([self.count_accuracy_time_point],tf.expand_dims(output,0))
 
         tc_int, tc = self.get_total_spike_count()
-        self.total_spike_count_int[self.count_accuracy_time_point]+=tc_int
-        self.total_spike_count[self.count_accuracy_time_point]+=tc
+        #self.total_spike_count_int[self.count_accuracy_time_point]+=tc_int
+        #self.total_spike_count[self.count_accuracy_time_point]+=tc
+
+        self.total_spike_count_int[self.count_accuracy_time_point] = self.total_spike_count_int[self.count_accuracy_time_point]+tc_int
+        self.total_spike_count[self.count_accuracy_time_point] = self.total_spike_count[self.count_accuracy_time_point]+tc
+
+
+
+        #self.total_spike_count_int[self.count_accuracy_time_point]=tc_int
+        #self.total_spike_count[self.count_accuracy_time_point]=tc
+
+        #print(self.total_spike_count_int[self.count_accuracy_time_point][0])
 
         self.count_accuracy_time_point+=1
-
-        #num_spike_count = tf.cast(tf.reduce_sum(self.snn_output,axis=[2]),tf.int32)
-
-    def snn_output_func(self):
-        snn_output_func_sel = {
-            "SPIKE": self.snn_output_layer.spike_counter,
-            "VMEM": self.snn_output_layer.vmem,
-            "FIRST_SPIKE_TIME": self.snn_output_layer.first_spike_time
-        }
-        return snn_output_func_sel[self.conf.snn_output_type]
-
-
-
-
-#    def recoding_ret_val(self, output):
-#        self.spike_count.scatter_nd_update([self.count_accuracy_time_point],tf.expand_dims(output,0))
-#
-#        tc_int, tc = self.get_total_spike_count()
-#        #self.total_spike_count_int[self.count_accuracy_time_point]+=tc_int
-#        #self.total_spike_count[self.count_accuracy_time_point]+=tc
-#
-#        self.total_spike_count_int[self.count_accuracy_time_point] = self.total_spike_count_int[self.count_accuracy_time_point]+tc_int
-#        self.total_spike_count[self.count_accuracy_time_point] = self.total_spike_count[self.count_accuracy_time_point]+tc
-#
-#        #self.total_spike_count_int[self.count_accuracy_time_point]=tc_int
-#        #self.total_spike_count[self.count_accuracy_time_point]=tc
-#
-#        #print(self.total_spike_count_int[self.count_accuracy_time_point][0])
-#
-#        self.count_accuracy_time_point+=1
 
 
 #####
@@ -3460,12 +2944,12 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         for k, v in self.idx_pruning_channel.items():
             if self.f_idx_pruning_channel[k]:
                 print(k)
-                print(tf.shape(self.list_layer[k].kernel))
+                print(tf.shape(self.layer_list[k].kernel))
                 print(tf.shape(tuple(v.flatten())))
-                self.kernel_pruning_channel[k] = self.list_layer[k].kernel.numpy()[:,:,tuple(v.flatten()),:]
+                self.kernel_pruning_channel[k] = self.layer_list[k].kernel.numpy()[:,:,tuple(v.flatten()),:]
                 self.conv_pruning_channel[k] = partial(self.conv_channel_wise_pruning,name=k)
             else:
-                self.conv_pruning_channel[k] = self.list_layer[k]
+                self.conv_pruning_channel[k] = self.layer_list[k]
 
 
 
@@ -3619,7 +3103,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             if self.conf.f_entropy:
                 for idx_l, l in enumerate(self.layer_name):
                     if l !='fc3':
-                        self.dict_stat_w[l][t] = self.list_neuron[l].out.numpy()
+                        self.dict_stat_w[l][t] = self.neuron_list[l].out.numpy()
 
 
             if t==self.accuracy_time_point[self.count_accuracy_time_point]-1:
@@ -3656,7 +3140,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
 
     def reset_neuron(self):
-        for idx, l in self.list_neuron.items():
+        for idx, l in self.neuron_list.items():
             l.reset()
 
     def debug_visual(self, synapse, neuron, synapse_1, neuron_1, synapse_2, neuron_2, t):
@@ -3794,9 +3278,9 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             plt.close("dummy")
             _, self.debug_visual_axes = plt.subplots(subplot_y,subplot_x)
 
-            for neuron_name, neuron in self.list_neuron.items():
+            for neuron_name, neuron in self.neuron_list.items():
                 if not ('fc3' in neuron_name):
-                    self.debug_visual_list_neuron[neuron_name]=neuron
+                    self.debug_visual_neuron_list[neuron_name]=neuron
 
                     axe = self.debug_visual_axes.flatten()[plt_idx]
 
@@ -3814,7 +3298,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
         else:
             plt_idx=0
-            for neuron_name, neuron in self.debug_visual_list_neuron.items():
+            for neuron_name, neuron in self.debug_visual_neuron_list.items():
 
                 t_fire_s = plt_idx*self.conf.time_fire_start
                 t_fire_e = t_fire_s + self.conf.time_fire_duration
@@ -3914,7 +3398,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
     def conv_channel_wise_pruning(self, act, name):
         kernel_p = self.kernel_pruning_channel[name]
-        bias = self.list_layer[name].bias
+        bias = self.layer_list[name].bias
         idx_channel = self.idx_pruning_channel[name]
 
 
@@ -3955,26 +3439,26 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
         # train_time_const
         name_layer_prev=''
-        for name_layer, layer in self.list_neuron.items():
+        for name_layer, layer in self.neuron_list.items():
             if not ('fc3' in name_layer):
                 dnn_act = self.dnn_act_list[name_layer]
-                self.list_neuron[name_layer].train_time_const_fire(dnn_act)
+                self.neuron_list[name_layer].train_time_const_fire(dnn_act)
 
             if not ('in' in name_layer):
-                self.list_neuron[name_layer].set_time_const_integ(self.list_neuron[name_layer_prev].time_const_fire)
+                self.neuron_list[name_layer].set_time_const_integ(self.neuron_list[name_layer_prev].time_const_fire)
 
             name_layer_prev = name_layer
 
 
         # train_time_delay
         name_layer_prev=''
-        for name_layer, layer in self.list_neuron.items():
+        for name_layer, layer in self.neuron_list.items():
             if not ('fc3' in name_layer or 'in' in name_layer):
                 dnn_act = self.dnn_act_list[name_layer]
-                self.list_neuron[name_layer].train_time_delay_fire(dnn_act)
+                self.neuron_list[name_layer].train_time_delay_fire(dnn_act)
 
             if not ('in' in name_layer or 'conv1' in name_layer):
-                self.list_neuron[name_layer].set_time_delay_integ(self.list_neuron[name_layer_prev].time_delay_fire)
+                self.neuron_list[name_layer].set_time_delay_integ(self.neuron_list[name_layer_prev].time_delay_fire)
 
             name_layer_prev = name_layer
 
@@ -3982,12 +3466,12 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 #        if self.conf.f_tc_based:
 #            # update integ and fire time
 #            name_layer_prev=''
-#            for name_layer, layer in self.list_neuron.items():
+#            for name_layer, layer in self.neuron_list.items():
 #                if not ('fc3' in name_layer):
-#                    self.list_neuron[name_layer].set_time_fire(self.list_neuron[name_layer].time_const_fire*self.conf.n_tau_fire_start)
+#                    self.neuron_list[name_layer].set_time_fire(self.neuron_list[name_layer].time_const_fire*self.conf.n_tau_fire_start)
 #
 #                if not ('in' in name_layer):
-#                    self.list_neuron[name_layer].set_time_integ(self.list_neuron[name_layer_prev].time_const_integ*self.conf.n_tau_fire_start)
+#                    self.neuron_list[name_layer].set_time_integ(self.neuron_list[name_layer_prev].time_const_integ*self.conf.n_tau_fire_start)
 #
 #                name_layer_prev = name_layer
 
@@ -3998,11 +3482,11 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         loss_min=0
         loss_max=0
 
-        for name_layer, layer in self.list_neuron.items():
+        for name_layer, layer in self.neuron_list.items():
             if not ('fc3' in name_layer):
-                loss_prec += self.list_neuron[name_layer].loss_prec
-                loss_min += self.list_neuron[name_layer].loss_min
-                loss_max += self.list_neuron[name_layer].loss_max
+                loss_prec += self.neuron_list[name_layer].loss_prec
+                loss_min += self.neuron_list[name_layer].loss_min
+                loss_max += self.neuron_list[name_layer].loss_max
 
         return [loss_prec, loss_min, loss_max]
 

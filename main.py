@@ -774,10 +774,9 @@ def main(_):
                                 scalar_name = 'td_1_avg_'+l_name
                                 tf.summary.scalar(scalar_name, tf.reduce_mean(tk.td_1), step=epoch)
 
+
                             #scalar_name = 'ta_avg_'+l_name
                             #tf.contrib.summary.scalar(scalar_name, tf.reduce_mean(model.list_tk[l_name].ta), step=epoch)
-
-
 
 
 
