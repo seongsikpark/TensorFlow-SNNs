@@ -261,8 +261,14 @@ class Neuron(tf.keras.layers.Layer):
     def input_spike_real(self,inputs,t):
         if self.conf.neural_coding=="WEIGHTED_SPIKE":
             self.out=tf.truediv(inputs,self.conf.p_ws)
+        if self.conf.neural_coding=="TEMPORAL":
+            if t==0:
+                self.out=inputs
+            else:
+                self.out = tf.zeros(self.out.shape)
         else:
-            self.out=inputs
+            #self.out=inputs
+            assert False
 
     def input_spike_poission(self,inputs,t):
         # Poission input
@@ -457,7 +463,13 @@ class Neuron(tf.keras.layers.Layer):
         #print(inputs.shape)
         #print(receptive_kernel.shape)
 
-        psp = tf.multiply(inputs,receptive_kernel)
+        if self.depth==1:
+            if self.conf.input_spike_mode=='REAL':
+                psp = inputs
+            else:
+                psp = tf.multiply(inputs,receptive_kernel)
+        else:
+            psp = tf.multiply(inputs,receptive_kernel)
         #print(inputs[0,0,0,1])
         #print(psp[0,0,0,1])
 
@@ -1178,8 +1190,8 @@ class Temporal_kernel(tf.keras.layers.Layer):
         #self.f_enc_dec_couple = False
 
         # double tc
-        self.f_double_tc = True
-        #self.f_double_tc = False
+        #self.f_double_tc = True
+        self.f_double_tc = False
 
     def build(self, _):
 
@@ -1193,7 +1205,7 @@ class Temporal_kernel(tf.keras.layers.Layer):
         self.tw = self.add_variable("tw",shape=self.dim_in_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(self.init_tw),trainable=False)
 
         if self.f_double_tc:
-            self.tc_1 = self.add_variable("tc_1",shape=self.dim_in_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(2.0),trainable=True)
+            self.tc_1 = self.add_variable("tc_1",shape=self.dim_in_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(10.0),trainable=True)
             self.td_1 = self.add_variable("td_1",shape=self.dim_in_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(0.0),trainable=True)
 
 

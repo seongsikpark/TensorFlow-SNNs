@@ -37,7 +37,7 @@ verbose_visual=False
 ## Model & Dataset
 ###############################################################################
 nn_mode='ANN'
-#nn_mode='SNN'
+nn_mode='SNN'
 
 
 #exp_case='CNN_MNIST'
@@ -52,7 +52,7 @@ exp_case='VGG16_CIFAR-10'
 ###############################################################################
 
 training_mode=True
-#training_mode=False
+training_mode=False
 
 #
 # If this flag is False, then the trained model is overwritten
@@ -108,9 +108,10 @@ time_step_save_interval=2
 # for MNIST, CNN
 # SNN training
 #time_step=200
+time_step_save_interval=100
 #time_step_save_interval=40
 #time_step_save_interval=20
-time_step_save_interval=10
+#time_step_save_interval=10
 #time_step_save_interval=5
 
 
@@ -120,9 +121,12 @@ time_step_save_interval=10
 
 # for MNIST, CNN
 #batch_size=250
-batch_size=1
+batch_size=25
+#batch_size=1
+
 idx_test_dataset_s=0
-num_test_dataset=2
+num_test_dataset=25
+#num_test_dataset=500
 #num_test_dataset=50000
 #num_test_dataset=10000
 #num_test_dataset=250
@@ -142,11 +146,11 @@ num_test_dataset=2
 #
 ## input spike mode
 #
-#input_spike_mode='REAL'
+input_spike_mode='REAL'
 #input_spike_mode='POISSON'
 #input_spike_mode='WEIGHTED_SPIKE'
 #input_spike_mode='BURST'
-input_spike_mode='TEMPORAL'
+#input_spike_mode='TEMPORAL'
 
 #
 ## neural coding
@@ -667,6 +671,36 @@ INFER_CNN_MNIST_SUR)
     ;;
 
 
+INFER_VGG16_CIFAR-10_SUR)
+    echo "Inference mode - "${nn_mode}", Model: VGG16 (surrogate), Dataset: CIFAR-10"
+    dataset='CIFAR-10'
+    ann_model='VGG16'
+
+    model_name='vgg16_cifar10_train_ANN_surrogate'
+
+    if [ ${f_full_test} = True ]
+    then
+        batch_size=400
+        idx_test_dataset_s=0
+        num_test_dataset=10000
+    fi
+
+    if [ ${neural_coding} = "TEMPORAL" ]
+    then
+        if [ ${f_tc_based} = True ]
+        then
+            time_step="$((18*${n_tau_fire_start}*${tc} + ${n_tau_fire_duration}*${tc}))"
+        else
+            time_step="$((16*${time_fire_start} + ${time_fire_duration}))"
+        fi
+    fi
+    ;;
+
+
+
+
+
+
 ###############################################################
 ## Training setup
 ###############################################################
@@ -708,12 +742,17 @@ TRAIN_VGG16_CIFAR-10)
     dataset='CIFAR-10'
     ann_model='VGG16'
 
-    num_epoch=2000
+
+    #
+    #model_name='vgg16_cifar_train_ANN_surrogate_88_2'
+
 
     if [ ${f_surrogate_training_model} = True ]
     then
+        num_epoch=5000
         model_name='vgg16_cifar10_train_'${nn_mode}_'surrogate'
     else
+        num_epoch=2000
         model_name='vgg16_cifar10_train_'${nn_mode}
     fi
 
