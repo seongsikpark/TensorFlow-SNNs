@@ -1165,11 +1165,11 @@ class Temporal_kernel(tf.keras.layers.Layer):
         # TODO: parameterize these variables depending on strategies, model, and dataset
         epoch_start_train_tk_start = 1
         #epoch_start_train_tk_start = 100
-        #epoch_start_train_tk_start = 1
-        epoch_start_train_t_int = 10000
-        #epoch_start_train_t_int = 200
+
+        epoch_start_train_t_int = 100
         #epoch_start_train_t_int = 400
         #epoch_start_train_t_int = 10000
+
         epoch_start_train_clip_tw = 1
         #epoch_start_train_clip_tw = 400
         #epoch_start_train_clip_tw = 10000
@@ -1180,9 +1180,9 @@ class Temporal_kernel(tf.keras.layers.Layer):
 
         # start epoch training with floor function - quantization
         # before this epoch, training with round founction
-        #self.epoch_start_train_floor = 10
-        #self.epoch_start_train_floor = 500
-        self.epoch_start_train_floor = 10000
+        #self.epoch_start_train_floor = 1
+        self.epoch_start_train_floor = 200
+        #self.epoch_start_train_floor = 10000
 
 
         # encoding decoding para couple

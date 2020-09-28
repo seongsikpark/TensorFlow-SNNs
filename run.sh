@@ -32,12 +32,15 @@ verbose=False
 #verbose_visual=True
 verbose_visual=False
 
+#en_tensorboard_write=True
+en_tensorboard_write=False
+
 
 ###############################################################################
 ## Model & Dataset
 ###############################################################################
 nn_mode='ANN'
-nn_mode='SNN'
+#nn_mode='SNN'
 
 
 #exp_case='CNN_MNIST'
@@ -52,12 +55,12 @@ exp_case='VGG16_CIFAR-10'
 ###############################################################################
 
 training_mode=True
-training_mode=False
+#training_mode=False
 
 #
 # If this flag is False, then the trained model is overwritten
 load_and_train=False
-#load_and_train=True
+load_and_train=True
 
 #
 f_validation_snn=False
@@ -101,7 +104,7 @@ f_full_test=True
 # DNN-to-SNN, inference
 time_step=200
 #time_step_save_interval=10
-time_step_save_interval=2
+#time_step_save_interval=2
 
 
 
@@ -676,6 +679,12 @@ INFER_VGG16_CIFAR-10_SUR)
     dataset='CIFAR-10'
     ann_model='VGG16'
 
+    #
+    # SNN, 20, 80, 80 - 88.79 %, # spikes - 9.091E+4
+    # regularizer -
+    # TensorBoard log -
+    # model_name='vgg16_cifar10_train_ANN_surrogate_0'
+
     model_name='vgg16_cifar10_train_ANN_surrogate'
 
     if [ ${f_full_test} = True ]
@@ -1016,6 +1025,7 @@ log_file=${path_log_root}/${date}.log
     -f_surrogate_training_model=${f_surrogate_training_model}\
     -f_overwrite_train_model=${f_overwrite_train_model}\
     -f_validation_snn=${f_validation_snn}\
+    -en_tensorboard_write=${en_tensorboard_write}\
     ; } 2>&1 | tee ${log_file}
 
 echo 'log_file: '${log_file}

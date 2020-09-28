@@ -823,7 +823,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
     def preproc_ann(self, inputs, f_training):
         if self.f_done_preproc == False:
             self.f_done_preproc=True
-            #self.print_model_conf()
+            self.print_model_conf()
             self.preproc_ann_norm()
 
         self.f_skip_bn=self.conf.f_fused_bn
