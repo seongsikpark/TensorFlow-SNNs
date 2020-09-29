@@ -1421,8 +1421,11 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         #pr = 0.1
         #pr = 0.6
         #pr = 0.9
-        pr = 1.0
-        target_epoch = 600
+        #pr = 1.0
+        #target_epoch = 600
+
+        pr = self.conf.bypass_pr
+        target_epoch = self.conf.bypass_target_epoch
 
         pr_target_epoch = pr*epoch/target_epoch
         #if epoch==-1 or epoch > 100:

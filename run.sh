@@ -53,12 +53,16 @@ exp_case='VGG16_CIFAR-10'
 ## Deep SNNs training w/ temporal information - surrogate DNN model
 ###############################################################################
 
+
+
 epoch_start_train_tk=600
 epoch_start_train_t_int=600
 epoch_start_train_floor=600
 epoch_start_train_clip_tw=1
 
-
+#
+bypass_pr=1.0
+bypass_target_epoch=600
 
 
 ###############################################################################
@@ -1030,6 +1034,8 @@ log_file=${path_log_root}/${date}.log
     -epoch_start_train_t_int=${epoch_start_train_t_int}\
     -epoch_start_train_floor=${epoch_start_train_floor}\
     -epoch_start_train_clip_tw=${epoch_start_train_clip_tw}\
+    -bypass_pr=${bypass_pr}\
+    -bypass_target_epoch=${bypass_target_epoch}\
     ; } 2>&1 | tee ${log_file}
 
 echo 'log_file: '${log_file}

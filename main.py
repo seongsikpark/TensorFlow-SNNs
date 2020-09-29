@@ -301,6 +301,9 @@ tf.compat.v1.app.flags.DEFINE_integer('epoch_start_train_t_int',100,'epoch start
 tf.compat.v1.app.flags.DEFINE_integer('epoch_start_train_floor',100,'epoch start train floor')
 tf.compat.v1.app.flags.DEFINE_integer('epoch_start_train_clip_tw',1,'epoch start train clip tw')
 
+tf.compat.v1.app.flags.DEFINE_float('bypass_pr',1.0,'bypass probabilty')
+tf.compat.v1.app.flags.DEFINE_integer('bypass_target_epoch',1,'bypass target epoch')
+
 
 #
 conf = flags.FLAGS
