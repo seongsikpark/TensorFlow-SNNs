@@ -291,6 +291,15 @@ tf.compat.v1.app.flags.DEFINE_bool("f_overwrite_train_model", False, "overwrite 
 #
 tf.compat.v1.app.flags.DEFINE_bool("f_validation_snn", False, "validation on SNN")
 
+#
+tf.compat.v1.app.flags.DEFINE_bool("en_tensorboard_write", False, "Tensorboard write")
+
+
+# Deep SNNs training w/ tepmoral information - surrogate DNN model
+tf.compat.v1.app.flags.DEFINE_integer('epoch_start_train_tk',100,'epoch start train tk')
+tf.compat.v1.app.flags.DEFINE_integer('epoch_start_train_t_int',100,'epoch start train t_int')
+tf.compat.v1.app.flags.DEFINE_integer('epoch_start_train_floor',100,'epoch start train floor')
+tf.compat.v1.app.flags.DEFINE_integer('epoch_start_train_clip_tw',1,'epoch start train clip tw')
 
 
 #
@@ -431,7 +440,7 @@ def main(_):
     save_target_acc_sel = {
         'MNIST': 90.0,
         #'MNIST': 99.0,
-        'CIFAR-10': 88.0,
+        'CIFAR-10': 91.0,
         'CIFAR-100': 68.0
     }
     save_target_acc = save_target_acc_sel[conf.dataset]
@@ -503,6 +512,7 @@ def main(_):
         val_snn_dir = None
         test_dir = None
 
+    #if conf.en_tensorboard_write:
     summary_writer = tf.summary.create_file_writer(train_dir,flush_millis=100)
     val_summary_writer = tf.summary.create_file_writer(val_dir,flush_millis=100,name='val')
 
@@ -512,6 +522,8 @@ def main(_):
     # TODO: TF-V1
     #test_summary_writer = tf.contrib.summary.create_file_writer(test_dir,flush_millis=100,name='test')
     test_summary_writer = tf.summary.create_file_writer(test_dir,flush_millis=100,name='test')
+
+
     checkpoint_dir = os.path.join(conf.checkpoint_dir,conf.model_name)
     checkpoint_load_dir = os.path.join(conf.checkpoint_load_dir,conf.model_name)
 
@@ -745,46 +757,46 @@ def main(_):
                         #save_epoch=0
 
                         #
-                        #with tf.summary.always_record_summaries():
-                        tf.summary.scalar('loss', loss_train, step=epoch)
-                        tf.summary.scalar('loss_pred', loss_pred_train, step=epoch)
-                        tf.summary.scalar('loss_enc_st', loss_enc_st_train, step=epoch)
-                        tf.summary.scalar('loss_max_enc_st', loss_max_enc_st_train, step=epoch)
-                        tf.summary.scalar('loss_min_enc_st', loss_min_enc_st_train, step=epoch)
-                        tf.summary.scalar('loss_max_tk_rep', loss_max_tk_rep, step=epoch)
-                        tf.summary.scalar('accuracy', acc_train, step=epoch)
+                        if conf.en_tensorboard_write:
+                            #with tf.summary.always_record_summaries():
+                            tf.summary.scalar('loss', loss_train, step=epoch)
+                            tf.summary.scalar('loss_pred', loss_pred_train, step=epoch)
+                            tf.summary.scalar('loss_enc_st', loss_enc_st_train, step=epoch)
+                            tf.summary.scalar('loss_max_enc_st', loss_max_enc_st_train, step=epoch)
+                            tf.summary.scalar('loss_min_enc_st', loss_min_enc_st_train, step=epoch)
+                            tf.summary.scalar('loss_max_tk_rep', loss_max_tk_rep, step=epoch)
+                            tf.summary.scalar('accuracy', acc_train, step=epoch)
 
-                        #for l_name in model.layer_name[:-1]:
-                        for l_name, tk in model.list_tk.items():
-                            #scalar_name = 'tc_dec_avg_'+l_name
-                            #tf.contrib.summary.scalar(scalar_name, tf.reduce_mean(model.list_tk[l_name].tc_dec), step=epoch)
-                            #scalar_name = 'td_dec_avg_'+l_name
-                            #tf.contrib.summary.scalar(scalar_name, tf.reduce_mean(model.list_tk[l_name].td_dec), step=epoch)
+                            #for l_name in model.layer_name[:-1]:
+                            for l_name, tk in model.list_tk.items():
+                                #scalar_name = 'tc_dec_avg_'+l_name
+                                #tf.contrib.summary.scalar(scalar_name, tf.reduce_mean(model.list_tk[l_name].tc_dec), step=epoch)
+                                #scalar_name = 'td_dec_avg_'+l_name
+                                #tf.contrib.summary.scalar(scalar_name, tf.reduce_mean(model.list_tk[l_name].td_dec), step=epoch)
 
-                            scalar_name = 'tc_avg_'+l_name
-                            #tf.summary.scalar(scalar_name, tf.reduce_mean(model.list_tk[l_name].tc), step=epoch)
-                            tf.summary.scalar(scalar_name, tf.reduce_mean(tk.tc), step=epoch)
-                            scalar_name = 'td_avg_'+l_name
-                            #tf.summary.scalar(scalar_name, tf.reduce_mean(model.list_tk[l_name].td), step=epoch)
-                            tf.summary.scalar(scalar_name, tf.reduce_mean(tk.td), step=epoch)
+                                scalar_name = 'tc_avg_'+l_name
+                                #tf.summary.scalar(scalar_name, tf.reduce_mean(model.list_tk[l_name].tc), step=epoch)
+                                tf.summary.scalar(scalar_name, tf.reduce_mean(tk.tc), step=epoch)
+                                scalar_name = 'td_avg_'+l_name
+                                #tf.summary.scalar(scalar_name, tf.reduce_mean(model.list_tk[l_name].td), step=epoch)
+                                tf.summary.scalar(scalar_name, tf.reduce_mean(tk.td), step=epoch)
 
-                            if tk.f_double_tc:
-                                scalar_name = 'tc_1_avg_'+l_name
-                                tf.summary.scalar(scalar_name, tf.reduce_mean(tk.tc_1), step=epoch)
-                                scalar_name = 'td_1_avg_'+l_name
-                                tf.summary.scalar(scalar_name, tf.reduce_mean(tk.td_1), step=epoch)
+                                if tk.f_double_tc:
+                                    scalar_name = 'tc_1_avg_'+l_name
+                                    tf.summary.scalar(scalar_name, tf.reduce_mean(tk.tc_1), step=epoch)
+                                    scalar_name = 'td_1_avg_'+l_name
+                                    tf.summary.scalar(scalar_name, tf.reduce_mean(tk.td_1), step=epoch)
 
-
-                            #scalar_name = 'ta_avg_'+l_name
-                            #tf.contrib.summary.scalar(scalar_name, tf.reduce_mean(model.list_tk[l_name].ta), step=epoch)
+                                #scalar_name = 'ta_avg_'+l_name
+                                #tf.contrib.summary.scalar(scalar_name, tf.reduce_mean(model.list_tk[l_name].ta), step=epoch)
 
 
 
                         # TODO: tmp for kl loss test -> tensorboard histogram
 
-                        pre_enc = model.list_tk['conv1'].in_enc
-                        enc_st = model.list_tk['conv1'].out_enc
-                        dec_st = model.list_tk['conv1'].out_dec
+                        #pre_enc = model.list_tk['conv1'].in_enc
+                        #enc_st = model.list_tk['conv1'].out_enc
+                        #dec_st = model.list_tk['conv1'].out_dec
 
                         #
                         #enc_st[0,0,0,0]=tf.zeros(shape=[1])
@@ -863,9 +875,10 @@ def main(_):
                         save_epoch=1
 
                         #
-                        #with tf.summary.always_record_summaries():
-                        tf.summary.scalar('loss', loss_train, step=epoch)
-                        tf.summary.scalar('accuracy', acc_train, step=epoch)
+                        if conf.en_tensorboard_write:
+                            #with tf.summary.always_record_summaries():
+                            tf.summary.scalar('loss', loss_train, step=epoch)
+                            tf.summary.scalar('accuracy', acc_train, step=epoch)
 
                 #end = time.time()
                 #print('\nTrain time for epoch #%d (global step %d): %f' % (epoch, global_step.numpy(), end-start))
@@ -877,9 +890,10 @@ def main(_):
                     loss_val, acc_val, _ = test.test(model, val_dataset, num_val_dataset, conf, f_val=True, epoch=epoch)
                     #loss_val, acc_val, _ = test.test(model, test_dataset, conf, f_val=True)
 
-                    #with tf.summary.always_record_summaries():
-                    tf.summary.scalar('loss', loss_val, step=epoch)
-                    tf.summary.scalar('accuracy', acc_val, step=epoch)
+                    if conf.en_tensorboard_write:
+                        #with tf.summary.always_record_summaries():
+                        tf.summary.scalar('loss', loss_val, step=epoch)
+                        tf.summary.scalar('accuracy', acc_val, step=epoch)
 
 
 
@@ -901,10 +915,11 @@ def main(_):
                             #loss_val_snn, acc_val_snn, _ = test.test(model, val_dataset, conf, f_val=False, f_val_snn=True)
                             loss_val_snn, acc_val_snn, _ = test.test(model, val_dataset, num_val_dataset, conf, f_val=True, f_val_snn=True, epoch=epoch)
 
-                            #with tf.summary.always_record_summaries():
-                            tf.summary.scalar('loss', loss_val_snn, step=epoch)
-                            tf.summary.scalar('accuracy', acc_val_snn, step=epoch)
-                            tf.summary.scalar('spikes', model.total_spike_count_int[-1,-1]/num_val_dataset, step=epoch)
+                            if conf.en_tensorboard_write:
+                                #with tf.summary.always_record_summaries():
+                                tf.summary.scalar('loss', loss_val_snn, step=epoch)
+                                tf.summary.scalar('accuracy', acc_val_snn, step=epoch)
+                                tf.summary.scalar('spikes', model.total_spike_count_int[-1,-1]/num_val_dataset, step=epoch)
 
                         acc_val_target = acc_val_snn
 

@@ -1145,7 +1145,7 @@ class Neuron(tf.keras.layers.Layer):
 ## enc(t)=ta*exp(-(t-td)/tc)
 ###############################################################################
 class Temporal_kernel(tf.keras.layers.Layer):
-    def __init__(self,dim_in,dim_out,init_tc,init_td,init_ta,init_tw):
+    def __init__(self,dim_in,dim_out,init_tc,init_td,init_ta,init_tw,conf):
         super(Temporal_kernel, self).__init__()
         #
         self.dim_in = dim_in
@@ -1161,28 +1161,14 @@ class Temporal_kernel(tf.keras.layers.Layer):
         #self.init_ta = init_ta
         self.init_tw = init_tw
 
-        #
-        # TODO: parameterize these variables depending on strategies, model, and dataset
-        epoch_start_train_tk_start = 1
-        #epoch_start_train_tk_start = 100
-        #epoch_start_train_tk_start = 1
-        epoch_start_train_t_int = 10000
-        #epoch_start_train_t_int = 200
-        #epoch_start_train_t_int = 400
-        #epoch_start_train_t_int = 10000
-        epoch_start_train_clip_tw = 1
-        #epoch_start_train_clip_tw = 400
-        #epoch_start_train_clip_tw = 10000
-
-        self.epoch_start_t_int = epoch_start_train_t_int
-        self.epoch_start_clip_tw = epoch_start_train_clip_tw
-        self.epoch_start_train_tk = epoch_start_train_tk_start
-
+        self.epoch_start_t_int = conf.epoch_start_train_t_int
+        self.epoch_start_clip_tw = conf.epoch_start_train_clip_tw
+        self.epoch_start_train_tk = conf.epoch_start_train_tk
         # start epoch training with floor function - quantization
         # before this epoch, training with round founction
-        #self.epoch_start_train_floor = 10
-        #self.epoch_start_train_floor = 500
-        self.epoch_start_train_floor = 10000
+        self.epoch_start_train_floor = conf.epoch_start_train_floor
+
+
 
 
         # encoding decoding para couple

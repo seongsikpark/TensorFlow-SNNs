@@ -32,6 +32,9 @@ verbose=False
 #verbose_visual=True
 verbose_visual=False
 
+#en_tensorboard_write=True
+en_tensorboard_write=False
+
 
 ###############################################################################
 ## Model & Dataset
@@ -46,13 +49,24 @@ exp_case='VGG16_CIFAR-10'
 #exp_case='ResNet50_ImageNet'
 
 
+###############################################################################
+## Deep SNNs training w/ temporal information - surrogate DNN model
+###############################################################################
+
+epoch_start_train_tk=600
+epoch_start_train_t_int=600
+epoch_start_train_floor=600
+epoch_start_train_clip_tw=1
+
+
+
 
 ###############################################################################
 ## Run
 ###############################################################################
 
 training_mode=True
-training_mode=False
+#training_mode=False
 
 #
 # If this flag is False, then the trained model is overwritten
@@ -101,7 +115,7 @@ f_full_test=True
 # DNN-to-SNN, inference
 time_step=200
 #time_step_save_interval=10
-time_step_save_interval=2
+#time_step_save_interval=2
 
 
 
@@ -672,6 +686,12 @@ INFER_VGG16_CIFAR-10_SUR)
     dataset='CIFAR-10'
     ann_model='VGG16'
 
+    #
+    # SNN, 20, 80, 80 - 88.79 %, # spikes - 9.091E+4
+    # regularizer -
+    # TensorBoard log -
+    # model_name='vgg16_cifar10_train_ANN_surrogate_0'
+
     model_name='vgg16_cifar10_train_ANN_surrogate'
 
     if [ ${f_full_test} = True ]
@@ -757,9 +777,9 @@ TRAIN_VGG16_CIFAR-10)
     then
         if [ ${f_tc_based} = True ]
         then
-            time_step="$((5*${n_tau_fire_start}*${tc} + ${n_tau_fire_duration}*${tc}))"
+            time_step="$((18*${n_tau_fire_start}*${tc} + ${n_tau_fire_duration}*${tc}))"
         else
-            time_step="$((4*${time_fire_start} + ${time_fire_duration}))"
+            time_step="$((16*${time_fire_start} + ${time_fire_duration}))"
         fi
     fi
     ;;
@@ -790,9 +810,9 @@ TRAIN_VGG16_CIFAR-100)
     then
         if [ ${f_tc_based} = True ]
         then
-            time_step="$((5*${n_tau_fire_start}*${tc} + ${n_tau_fire_duration}*${tc}))"
+            time_step="$((18*${n_tau_fire_start}*${tc} + ${n_tau_fire_duration}*${tc}))"
         else
-            time_step="$((4*${time_fire_start} + ${time_fire_duration}))"
+            time_step="$((16*${time_fire_start} + ${time_fire_duration}))"
         fi
     fi
     ;;
@@ -1005,6 +1025,11 @@ log_file=${path_log_root}/${date}.log
     -f_surrogate_training_model=${f_surrogate_training_model}\
     -f_overwrite_train_model=${f_overwrite_train_model}\
     -f_validation_snn=${f_validation_snn}\
+    -en_tensorboard_write=${en_tensorboard_write}\
+    -epoch_start_train_tk=${epoch_start_train_tk}\
+    -epoch_start_train_t_int=${epoch_start_train_t_int}\
+    -epoch_start_train_floor=${epoch_start_train_floor}\
+    -epoch_start_train_clip_tw=${epoch_start_train_clip_tw}\
     ; } 2>&1 | tee ${log_file}
 
 echo 'log_file: '${log_file}
