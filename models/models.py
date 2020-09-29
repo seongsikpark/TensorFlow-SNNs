@@ -608,22 +608,22 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             init_ta=10.0
 
             #
-            self.list_tk['in'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
-            self.list_tk['conv1'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
-            self.list_tk['conv1_1'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
-            self.list_tk['conv2'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
-            self.list_tk['conv2_1'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
-            self.list_tk['conv3'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
-            self.list_tk['conv3_1'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
-            self.list_tk['conv3_2'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
-            self.list_tk['conv4'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
-            self.list_tk['conv4_1'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
-            self.list_tk['conv4_2'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
-            self.list_tk['conv5'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
-            self.list_tk['conv5_1'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
-            self.list_tk['conv5_2'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
-            self.list_tk['fc1'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
-            self.list_tk['fc2'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
+            self.list_tk['in'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
+            self.list_tk['conv1'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
+            self.list_tk['conv1_1'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
+            self.list_tk['conv2'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
+            self.list_tk['conv2_1'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
+            self.list_tk['conv3'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
+            self.list_tk['conv3_1'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
+            self.list_tk['conv3_2'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
+            self.list_tk['conv4'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
+            self.list_tk['conv4_1'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
+            self.list_tk['conv4_2'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
+            self.list_tk['conv5'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
+            self.list_tk['conv5_1'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
+            self.list_tk['conv5_2'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
+            self.list_tk['fc1'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
+            self.list_tk['fc2'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
             #self.list_tk['fc3'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
 
             # TODO: parameterize with other file (e.g., train_snn.py)
@@ -1420,9 +1420,9 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
         #pr = 0.1
         #pr = 0.6
-        pr = 0.9
-        #pr = 1.0
-        target_epoch = 200
+        #pr = 0.9
+        pr = 1.0
+        target_epoch = 600
 
         pr_target_epoch = pr*epoch/target_epoch
         #if epoch==-1 or epoch > 100:

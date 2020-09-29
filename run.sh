@@ -49,6 +49,17 @@ exp_case='VGG16_CIFAR-10'
 #exp_case='ResNet50_ImageNet'
 
 
+###############################################################################
+## Deep SNNs training w/ temporal information - surrogate DNN model
+###############################################################################
+
+epoch_start_train_tk=600
+epoch_start_train_t_int=600
+epoch_start_train_floor=600
+epoch_start_train_clip_tw=1
+
+
+
 
 ###############################################################################
 ## Run
@@ -60,7 +71,7 @@ training_mode=True
 #
 # If this flag is False, then the trained model is overwritten
 load_and_train=False
-load_and_train=True
+#load_and_train=True
 
 #
 f_validation_snn=False
@@ -777,9 +788,9 @@ TRAIN_VGG16_CIFAR-10)
     then
         if [ ${f_tc_based} = True ]
         then
-            time_step="$((5*${n_tau_fire_start}*${tc} + ${n_tau_fire_duration}*${tc}))"
+            time_step="$((18*${n_tau_fire_start}*${tc} + ${n_tau_fire_duration}*${tc}))"
         else
-            time_step="$((4*${time_fire_start} + ${time_fire_duration}))"
+            time_step="$((16*${time_fire_start} + ${time_fire_duration}))"
         fi
     fi
     ;;
@@ -810,9 +821,9 @@ TRAIN_VGG16_CIFAR-100)
     then
         if [ ${f_tc_based} = True ]
         then
-            time_step="$((5*${n_tau_fire_start}*${tc} + ${n_tau_fire_duration}*${tc}))"
+            time_step="$((18*${n_tau_fire_start}*${tc} + ${n_tau_fire_duration}*${tc}))"
         else
-            time_step="$((4*${time_fire_start} + ${time_fire_duration}))"
+            time_step="$((16*${time_fire_start} + ${time_fire_duration}))"
         fi
     fi
     ;;
@@ -1026,6 +1037,10 @@ log_file=${path_log_root}/${date}.log
     -f_overwrite_train_model=${f_overwrite_train_model}\
     -f_validation_snn=${f_validation_snn}\
     -en_tensorboard_write=${en_tensorboard_write}\
+    -epoch_start_train_tk=${epoch_start_train_tk}\
+    -epoch_start_train_t_int=${epoch_start_train_t_int}\
+    -epoch_start_train_floor=${epoch_start_train_floor}\
+    -epoch_start_train_clip_tw=${epoch_start_train_clip_tw}\
     ; } 2>&1 | tee ${log_file}
 
 echo 'log_file: '${log_file}
