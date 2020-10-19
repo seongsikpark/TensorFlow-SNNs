@@ -54,15 +54,28 @@ exp_case='VGG16_CIFAR-10'
 ###############################################################################
 
 
-
 epoch_start_train_tk=600
-epoch_start_train_t_int=600
-epoch_start_train_floor=600
+epoch_start_train_t_int=1000
+epoch_start_train_floor=1000
 epoch_start_train_clip_tw=1
+epoch_start_loss_enc_spike=600
 
 #
 bypass_pr=1.0
-bypass_target_epoch=600
+bypass_target_epoch=1000
+
+
+#
+# encoded spike distribution loss
+#f_loss_enc_spike=False
+f_loss_enc_spike=True
+
+# weight of loss
+w_loss_enc_spike=0.001
+
+# coefficient of beta distribution for KL loss
+beta_dist_a=0.1
+beta_dist_b=0.9
 
 
 ###############################################################################
@@ -372,6 +385,20 @@ tc=20
 #tc=16
 time_fire_start=80    # integration duration - n x tc
 time_fire_duration=80   # time window - n x tc
+time_window=${time_fire_duration}
+
+
+# TTFS - CIFAR-10
+tc=10
+time_fire_start=40    # integration duration - n x tc
+time_fire_duration=40   # time window - n x tc
+time_window=${time_fire_duration}
+
+
+# TTFS - CIFAR-10
+tc=8
+time_fire_start=32    # integration duration - n x tc
+time_fire_duration=32   # time window - n x tc
 time_window=${time_fire_duration}
 
 
@@ -701,6 +728,7 @@ INFER_VGG16_CIFAR-10_SUR)
     # model_name='vgg16_cifar10_train_ANN_surrogate_0'
 
     model_name='vgg16_cifar10_train_ANN_surrogate'
+    #model_name='vgg16_cifar10_train_ANN_surrogate_mix_1000_65'
 
     if [ ${f_full_test} = True ]
     then
@@ -1045,8 +1073,13 @@ log_file=${path_log_root}/${date}.log
     -epoch_start_train_t_int=${epoch_start_train_t_int}\
     -epoch_start_train_floor=${epoch_start_train_floor}\
     -epoch_start_train_clip_tw=${epoch_start_train_clip_tw}\
+    -epoch_start_loss_enc_spike=${epoch_start_loss_enc_spike}\
     -bypass_pr=${bypass_pr}\
     -bypass_target_epoch=${bypass_target_epoch}\
+    -f_loss_enc_spike=${f_loss_enc_spike}\
+    -w_loss_enc_spike=${w_loss_enc_spike}\
+    -beta_dist_a=${beta_dist_a}\
+    -beta_dist_b=${beta_dist_b}\
     ; } 2>&1 | tee ${log_file}
 
 echo 'log_file: '${log_file}

@@ -181,13 +181,15 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
 
     # TODO: parametrize
 
-    #f_loss_dist = True
-    f_loss_dist = False
+    #f_loss_enc_spike = True
+    #f_loss_enc_spike = False
+
+    f_loss_enc_spike = model.conf.f_loss_enc_spike and (epoch > model.conf.epoch_start_loss_enc_spike)
 
     #
-    if f_loss_dist:
-        if epoch % 10 == 0:
-            dist_sample = model.dist_beta_sample_func()
+    if f_loss_enc_spike:
+        if epoch % 50 == 0:
+            model.dist_beta_sample_func()
 
 
     #for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
@@ -227,7 +229,7 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
 
 
 
-            if f_loss_dist:
+            if f_loss_enc_spike:
                 loss_name=['prediction', 'enc_st']
             else:
                 loss_name=['prediction']
@@ -287,7 +289,7 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
 
 
             # TODO: here - KL divergence loss
-            if f_loss_dist:
+            if f_loss_enc_spike:
                 if model.conf.model_name=='cnn_mnist_train_ANN_surrogate':
 
                     # loss - encoded spike time (KL-divergence)
@@ -503,8 +505,9 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
             #
             loss_weight['prediction']=1.0
 
-            if f_loss_dist:
-                loss_weight['enc_st']=0.001
+            if f_loss_enc_spike:
+                #loss_weight['enc_st']=0.001
+                loss_weight['enc_st']=model.conf.w_loss_enc_spike
 
             if f_reg_tc_para:
                 loss_weight['reg_tc_para']=0.001
@@ -558,7 +561,7 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
 
 
 
-            if f_loss_dist:
+            if f_loss_enc_spike:
                 if isinstance(loss_list['enc_st'],int):
                     avg_loss_enc_st=0.0
                 else:

@@ -295,14 +295,29 @@ tf.compat.v1.app.flags.DEFINE_bool("f_validation_snn", False, "validation on SNN
 tf.compat.v1.app.flags.DEFINE_bool("en_tensorboard_write", False, "Tensorboard write")
 
 
+################################################################################
 # Deep SNNs training w/ tepmoral information - surrogate DNN model
+################################################################################
 tf.compat.v1.app.flags.DEFINE_integer('epoch_start_train_tk',100,'epoch start train tk')
 tf.compat.v1.app.flags.DEFINE_integer('epoch_start_train_t_int',100,'epoch start train t_int')
 tf.compat.v1.app.flags.DEFINE_integer('epoch_start_train_floor',100,'epoch start train floor')
 tf.compat.v1.app.flags.DEFINE_integer('epoch_start_train_clip_tw',1,'epoch start train clip tw')
+tf.compat.v1.app.flags.DEFINE_integer('epoch_start_loss_enc_spike',100,'epoch start encoded spike loss')
 
+#
 tf.compat.v1.app.flags.DEFINE_float('bypass_pr',1.0,'bypass probabilty')
 tf.compat.v1.app.flags.DEFINE_integer('bypass_target_epoch',1,'bypass target epoch')
+
+#
+tf.compat.v1.app.flags.DEFINE_bool('f_loss_enc_spike',False,'flag for encoded spike loss')
+
+#
+tf.compat.v1.app.flags.DEFINE_float('w_loss_enc_spike',0.001,'weight of encoded spike loss')
+
+# coefficient of beta distribution
+tf.compat.v1.app.flags.DEFINE_float('beta_dist_a',0.1,'coefficient of beta distribution - alpha')
+tf.compat.v1.app.flags.DEFINE_float('beta_dist_b',0.1,'coefficient of beta distribution - beta')
+
 
 
 #
