@@ -1347,10 +1347,6 @@ class Temporal_kernel(tf.keras.layers.Layer):
         #if False:
         #if (f_training == False) or ((f_training==True) and (epoch > self.epoch_start_clip_tw)):
         if (f_training==True)and(epoch > self.epoch_start_clip_tw) or (f_training==False)and(epoch<0):
-
-
-
-
             #if epoch > 300:
             #    tw_target = self.tw/2
             #else:
@@ -1378,6 +1374,12 @@ class Temporal_kernel(tf.keras.layers.Layer):
         #print('min: {:}, max:{:}'.format(tf.reduce_min(x),tf.reduce_max(x)))
 
         return x
+
+    #
+    def set_init_td_by_target_range(self, act_target_range):
+
+        td=tf.multiply(self.tc,tf.math.log(act_target_range))
+        self.td.assign(tf.constant(td,dtype=tf.float32,shape=self.td.shape))
 
 
 
