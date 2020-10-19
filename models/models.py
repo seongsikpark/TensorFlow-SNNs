@@ -641,7 +641,6 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
                 self.dist_beta_sample = collections.OrderedDict()
 
 
-
         # model loading V2
         self.load_layer_ann_checkpoint = self.load_layer_ann_checkpoint_func()
 
@@ -829,6 +828,10 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             self.print_model_conf()
             self.preproc_ann_norm()
 
+            # surrogate DNN model for training SNN with temporal information
+            if self.conf.f_surrogate_training_model:
+                self.preproc_surrogate_training_model()
+
         self.f_skip_bn=self.conf.f_fused_bn
 
 
@@ -853,6 +856,10 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         #    self.load_act_after_w_norm()
 
         #self.print_act_after_w_norm()
+
+    def preproc_surrogate_training_model(self):
+        self.dist_beta_sample_func()
+
 
 
     #

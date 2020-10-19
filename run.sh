@@ -58,7 +58,7 @@ epoch_start_train_tk=600
 epoch_start_train_t_int=1000
 epoch_start_train_floor=1000
 epoch_start_train_clip_tw=1
-epoch_start_loss_enc_spike=600
+epoch_start_loss_enc_spike=5
 
 #
 bypass_pr=1.0
