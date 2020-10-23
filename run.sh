@@ -58,7 +58,7 @@ epoch_start_train_tk=600
 epoch_start_train_t_int=1000
 epoch_start_train_floor=1000
 epoch_start_train_clip_tw=1
-epoch_start_loss_enc_spike=5
+epoch_start_loss_enc_spike=600
 
 #
 bypass_pr=1.0
@@ -71,12 +71,14 @@ bypass_target_epoch=1000
 f_loss_enc_spike=True
 
 # weight of loss
-w_loss_enc_spike=0.001
+w_loss_enc_spike=0.1
 
 # coefficient of beta distribution for KL loss
 beta_dist_a=0.1
 beta_dist_b=0.9
 
+# target max encoded spike time - number of time window
+enc_st_n_tw=10
 
 ###############################################################################
 ## Run
@@ -1080,6 +1082,7 @@ log_file=${path_log_root}/${date}.log
     -w_loss_enc_spike=${w_loss_enc_spike}\
     -beta_dist_a=${beta_dist_a}\
     -beta_dist_b=${beta_dist_b}\
+    -enc_st_n_tw=${enc_st_n_tw}\
     ; } 2>&1 | tee ${log_file}
 
 echo 'log_file: '${log_file}

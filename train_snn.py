@@ -304,7 +304,7 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
                     enc_st = tf.round(enc_st)
                     #enc_st = tf.histogram_fixed_width(enc_st, [0,model.list_tk['conv1'].tw])
                     #enc_st = tf.histogram_fixed_width(enc_st, [0,enc_st_target_end], dtype=tf.float32)
-                    #enc_st = tf.histogram_fixed_width(enc_st, [0,enc_st_target_end])
+                    enc_st = tf.histogram_fixed_width(enc_st, [0,enc_st_target_end])
                     enc_st = tf.cast(enc_st,tf.float32)
                     #max_enc_target = tf.where(t > max_enc_st*max_border,\
                     #dist = tfd.Beta(1,3)
@@ -365,8 +365,6 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
 
                     #dist = tfd.Beta(alpha,beta)
 
-                    enc_st_target_end = model.list_tk['in'].tw*10
-
                     for l_name, tk in model.list_tk.items():
                         #print(tk)
                         #print(l_name)
@@ -375,15 +373,22 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
                         #enc_st_target_end = 200
                         #enc_st_target_end = tk.tw*10
 
-                        enc_st = tf.clip_by_value(enc_st,0,enc_st_target_end)
+                        enc_st = tf.clip_by_value(enc_st,0,model.enc_st_target_end)
                         enc_st = tf.round(enc_st)
+
+                        enc_st = tf.reshape(enc_st, [-1])
+
+                        enc_st = tf.histogram_fixed_width(enc_st, [0,model.enc_st_target_end], nbins=model.enc_st_target_end)
+                        enc_st = tf.cast(enc_st,tf.float32)
+
                         #enc_st = tf.cast(enc_st,tf.float32)
 
                         #dist_sample = dist.sample(enc_st.shape)
                         #dist_sample = enc_st
                         dist_sample = model.dist_beta_sample[l_name]
-                        dist_sample = tf.multiply(dist_sample,enc_st_target_end)
+                        dist_sample = tf.multiply(dist_sample,model.enc_st_target_end)
                         dist_sample = tf.round(dist_sample)
+
                         loss_tmp += loss_kld(enc_st,dist_sample)
 
 
@@ -633,7 +638,6 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
             grads_and_vars = zip(grads,train_vars_w)
             optimizer.apply_gradients(grads_and_vars)
         else:
-
             # temporal kernel
             train_vars_tk = [v for v in model.trainable_variables if ('temporal_kernel' in v.name)]
             train_vars = train_vars_w + train_vars_tk

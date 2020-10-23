@@ -1147,6 +1147,7 @@ class Neuron(tf.keras.layers.Layer):
 class Temporal_kernel(tf.keras.layers.Layer):
     def __init__(self,dim_in,dim_out,init_tc,init_td,init_ta,init_tw,conf):
         super(Temporal_kernel, self).__init__()
+
         #
         self.dim_in = dim_in
         self.dim_out = dim_out
@@ -1167,6 +1168,9 @@ class Temporal_kernel(tf.keras.layers.Layer):
         # start epoch training with floor function - quantization
         # before this epoch, training with round founction
         self.epoch_start_train_floor = conf.epoch_start_train_floor
+
+        #
+        self.enc_st_n_tw = conf.enc_st_n_tw
 
 
 
@@ -1294,7 +1298,8 @@ class Temporal_kernel(tf.keras.layers.Layer):
 
     def call_encoding_kernel(self, input):
 
-        eps = 1.0E-20
+        #eps = 1.0E-20
+        eps = tf.math.exp(-float(self.enc_st_n_tw))
 
         #x = tf.nn.relu(input)
         #x = tf.divide(x,self.ta)

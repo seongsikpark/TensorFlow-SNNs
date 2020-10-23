@@ -640,15 +640,26 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
                 self.dist_beta_sample = collections.OrderedDict()
 
+                self.enc_st_n_tw = self.conf.enc_st_n_tw
+
+                #self.enc_st_target_end = self.conf.time_window*10
+                self.enc_st_target_end = self.conf.time_window*self.enc_st_n_tw
+
+
 
         # model loading V2
         self.load_layer_ann_checkpoint = self.load_layer_ann_checkpoint_func()
 
     #
     def dist_beta_sample_func(self):
-        for l_name, tk in self.list_tk.items():
-            enc_st = tk.out_enc
-            self.dist_beta_sample[l_name] = self.dist.sample(enc_st.shape)
+        if self.conf.f_loss_enc_spike:
+            for l_name, tk in self.list_tk.items():
+                enc_st = tf.reshape(tk.out_enc, [-1])
+
+                samples = self.dist.sample(enc_st.shape)
+                self.dist_beta_sample[l_name] = tf.histogram_fixed_width(samples, [0,self.enc_st_target_end], nbins=self.enc_st_target_end)
+        else:
+            pass
 
     #~
     def load_layer_ann_checkpoint_func(self):
