@@ -318,7 +318,8 @@ tf.compat.v1.app.flags.DEFINE_float('w_loss_enc_spike',0.001,'weight of encoded 
 tf.compat.v1.app.flags.DEFINE_float('beta_dist_a',0.1,'coefficient of beta distribution - alpha')
 tf.compat.v1.app.flags.DEFINE_float('beta_dist_b',0.1,'coefficient of beta distribution - beta')
 
-
+#
+tf.compat.v1.app.flags.DEFINE_integer('enc_st_n_tw',10,'target max encoded spike time - number of time window')
 
 #
 conf = flags.FLAGS
