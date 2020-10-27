@@ -145,7 +145,9 @@ def train_one_epoch_ttfs_test(model, optimizer, dataset):
 
 
 
-#fig_tmp, axs_tmp = plt.subplots(1,2)
+fig_glob, axs_glob= plt.subplots(1,2)
+axs_glob[0].set_yscale('log')
+plt.yscale("log")
 
 #
 def reg_tc_para(model):
@@ -190,6 +192,9 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
     if f_loss_enc_spike:
         if epoch % 50 == 0:
             model.dist_beta_sample_func()
+
+    #
+    f_plot_done = False
 
 
     #for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
@@ -374,11 +379,12 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
                         #enc_st_target_end = tk.tw*10
 
                         enc_st = tf.clip_by_value(enc_st,0,model.enc_st_target_end)
-                        enc_st = tf.round(enc_st)
+                        #enc_st = tf.round(enc_st)
 
                         enc_st = tf.reshape(enc_st, [-1])
 
                         enc_st = tf.histogram_fixed_width(enc_st, [0,model.enc_st_target_end], nbins=model.enc_st_target_end)
+
                         enc_st = tf.cast(enc_st,tf.float32)
 
                         #enc_st = tf.cast(enc_st,tf.float32)
@@ -386,14 +392,41 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
                         #dist_sample = dist.sample(enc_st.shape)
                         #dist_sample = enc_st
                         dist_sample = model.dist_beta_sample[l_name]
-                        dist_sample = tf.multiply(dist_sample,model.enc_st_target_end)
-                        dist_sample = tf.round(dist_sample)
 
                         loss_tmp += loss_kld(enc_st,dist_sample)
 
 
+                        #print(enc_st)
+                        #print(dist_sample)
+
+                        #fig, axs = plt.subplots(1,2)
+
+                        if (not f_plot_done) and (epoch % 10==0) :
+                            f_plot_done = True
+                            axs_glob[0].plot(enc_st)
+                            axs_glob[1].plot(dist_sample)
+
+                            plt.draw()
+                            plt.pause(0.0000000000000001)
+
                 loss_list['enc_st'] = loss_tmp
+
+
+#            # debug
+#            for l_name, tk in model.list_tk.items():
+#                enc_st = tk.out_enc
+#                #enc_st = tf.clip_by_value(enc_st,0,model.enc_st_target_end)
+#                #enc_st = tf.clip_by_value(enc_st,0,model.conf.time_window)
+#                enc_st = tf.reshape(enc_st, [-1])
+#                enc_st = tf.histogram_fixed_width(enc_st, [0,model.enc_st_target_end], nbins=model.enc_st_target_end)
+#                enc_st = tf.cast(enc_st,tf.float32)
 #
+#                axs_glob[0].plot(enc_st)
+#
+#                plt.draw()
+#                plt.pause(0.0000000000000001)
+
+
 #
 #            # TODO: Is it really needed? -> regularizer
 #            # loss - maximum encoded spike time

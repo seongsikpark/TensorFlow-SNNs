@@ -1298,8 +1298,8 @@ class Temporal_kernel(tf.keras.layers.Layer):
 
     def call_encoding_kernel(self, input):
 
-        #eps = 1.0E-20
-        eps = tf.math.exp(-float(self.enc_st_n_tw))
+        eps = 1.0E-36
+        #eps = tf.math.exp(-float(self.enc_st_n_tw))
 
         #x = tf.nn.relu(input)
         #x = tf.divide(x,self.ta)
@@ -1316,6 +1316,8 @@ class Temporal_kernel(tf.keras.layers.Layer):
             t = tf.subtract(self.td, tf.multiply(x,self.tc))
 
         t = tf.nn.relu(t)
+
+        #print(t)
 
         #print(t)
         #print(self.td)

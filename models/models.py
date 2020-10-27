@@ -626,6 +626,14 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             self.list_tk['fc2'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
             #self.list_tk['fc3'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
 
+
+
+            #
+            self.enc_st_n_tw = self.conf.enc_st_n_tw
+
+            #self.enc_st_target_end = self.conf.time_window*10
+            self.enc_st_target_end = self.conf.time_window*self.enc_st_n_tw
+
             # TODO: parameterize with other file (e.g., train_snn.py)
             #f_loss_dist = True
             if self.conf.f_loss_enc_spike:
@@ -640,10 +648,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
                 self.dist_beta_sample = collections.OrderedDict()
 
-                self.enc_st_n_tw = self.conf.enc_st_n_tw
 
-                #self.enc_st_target_end = self.conf.time_window*10
-                self.enc_st_target_end = self.conf.time_window*self.enc_st_n_tw
 
 
 
@@ -657,6 +662,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
                 enc_st = tf.reshape(tk.out_enc, [-1])
 
                 samples = self.dist.sample(enc_st.shape)
+                samples = tf.multiply(samples,self.enc_st_target_end)
                 self.dist_beta_sample[l_name] = tf.histogram_fixed_width(samples, [0,self.enc_st_target_end], nbins=self.enc_st_target_end)
         else:
             pass

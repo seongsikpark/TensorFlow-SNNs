@@ -58,7 +58,7 @@ epoch_start_train_tk=600
 epoch_start_train_t_int=1000
 epoch_start_train_floor=1000
 epoch_start_train_clip_tw=1
-epoch_start_loss_enc_spike=600
+epoch_start_loss_enc_spike=0
 
 #
 bypass_pr=1.0
@@ -71,14 +71,20 @@ bypass_target_epoch=1000
 f_loss_enc_spike=True
 
 # weight of loss
-w_loss_enc_spike=0.1
+w_loss_enc_spike=0.01
 
 # coefficient of beta distribution for KL loss
-beta_dist_a=0.1
-beta_dist_b=0.9
+#beta_dist_a=0.1
+#beta_dist_b=0.9
+
+#beta_dist_a=0.9
+#beta_dist_b=0.1
+
+beta_dist_a=0.5
+beta_dist_b=0.00001
 
 # target max encoded spike time - number of time window
-enc_st_n_tw=10
+enc_st_n_tw=2
 
 ###############################################################################
 ## Run
