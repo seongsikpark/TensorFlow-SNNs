@@ -40,7 +40,7 @@ en_tensorboard_write=False
 ## Model & Dataset
 ###############################################################################
 nn_mode='ANN'
-#nn_mode='SNN'
+nn_mode='SNN'
 
 
 #exp_case='CNN_MNIST'
@@ -91,7 +91,7 @@ enc_st_n_tw=2
 ###############################################################################
 
 training_mode=True
-#training_mode=False
+training_mode=False
 
 #
 # If this flag is False, then the trained model is overwritten
@@ -185,11 +185,11 @@ num_test_dataset=25
 #
 ## input spike mode
 #
-input_spike_mode='REAL'
+#input_spike_mode='REAL'
 #input_spike_mode='POISSON'
 #input_spike_mode='WEIGHTED_SPIKE'
 #input_spike_mode='BURST'
-#input_spike_mode='TEMPORAL'
+input_spike_mode='TEMPORAL'
 
 #
 ## neural coding
@@ -396,18 +396,11 @@ time_fire_duration=80   # time window - n x tc
 time_window=${time_fire_duration}
 
 
-# TTFS - CIFAR-10
-tc=10
-time_fire_start=40    # integration duration - n x tc
-time_fire_duration=40   # time window - n x tc
-time_window=${time_fire_duration}
-
-
-# TTFS - CIFAR-10
-tc=8
-time_fire_start=32    # integration duration - n x tc
-time_fire_duration=32   # time window - n x tc
-time_window=${time_fire_duration}
+## TTFS - CIFAR-10
+#tc=8
+#time_fire_start=32    # integration duration - n x tc
+#time_fire_duration=32   # time window - n x tc
+#time_window=${time_fire_duration}
 
 
 #f_tc_based=True
@@ -427,8 +420,8 @@ n_tau_time_window=${n_tau_fire_duration}
 #
 # training SNN w/ surrogate model (DNN)
 # actual training is performed in the surrogate DNN model
-f_surrogate_training_model=True
-#f_surrogate_training_model=False
+#f_surrogate_training_model=True
+f_surrogate_training_model=False
 
 
 #
