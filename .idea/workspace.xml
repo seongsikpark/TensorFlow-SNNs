@@ -12,9 +12,8 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a59cc8b6-9dbe-41c8-8d2e-009d3879113f" name="Default" comment="1024 - encoded spike loss">
+    <list default="true" id="a59cc8b6-9dbe-41c8-8d2e-009d3879113f" name="Default" comment="1027 - encoded spike loss">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib_snn.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib_snn.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/models/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/run.sh" beforeDir="false" afterPath="$PROJECT_DIR$/run.sh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/train_snn.py" beforeDir="false" afterPath="$PROJECT_DIR$/train_snn.py" afterDir="false" />
@@ -85,6 +84,7 @@
           <entry key="project.closed" value="7" />
           <entry key="project.open.time.0" value="1" />
           <entry key="project.open.time.1" value="4" />
+          <entry key="project.open.time.10" value="1" />
           <entry key="project.open.time.2" value="2" />
           <entry key="project.open.time.23" value="1" />
           <entry key="project.open.time.3" value="3" />
@@ -94,7 +94,7 @@
           <entry key="project.open.time.7" value="2" />
           <entry key="project.open.time.8" value="1" />
           <entry key="project.open.time.9" value="1" />
-          <entry key="project.opened" value="22" />
+          <entry key="project.opened" value="23" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.vcs.git.usages">
@@ -106,16 +106,16 @@
         <counts>
           <entry key="Python Console" value="49" />
           <entry key="conf" value="583" />
-          <entry key="py" value="161007" />
-          <entry key="sh" value="22423" />
-          <entry key="txt" value="307" />
+          <entry key="py" value="161446" />
+          <entry key="sh" value="23185" />
+          <entry key="txt" value="309" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Bash" value="22423" />
-          <entry key="PLAIN_TEXT" value="890" />
-          <entry key="Python" value="161056" />
+          <entry key="Bash" value="23185" />
+          <entry key="PLAIN_TEXT" value="892" />
+          <entry key="Python" value="161495" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -145,7 +145,7 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/main.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="750">
+                <state relative-caret-position="4830">
                   <caret line="328" selection-start-line="328" selection-end-line="328" />
                   <folding>
                     <element signature="e#0#38#0" expanded="true" />
@@ -157,7 +157,7 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/datasets/cifar10.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="15">
+                <state relative-caret-position="1575">
                   <caret line="110" column="47" selection-start-line="110" selection-start-column="47" selection-end-line="110" selection-end-column="47" />
                   <folding>
                     <element signature="e#0#38#0" expanded="true" />
@@ -169,7 +169,7 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/train.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="375">
+                <state relative-caret-position="915">
                   <caret line="72" column="20" selection-start-line="72" selection-start-column="20" selection-end-line="72" selection-end-column="20" />
                   <folding>
                     <element signature="e#0#38#0" expanded="true" />
@@ -193,11 +193,11 @@
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/models/models.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="285">
-                  <caret line="630" column="12" selection-start-line="630" selection-start-column="12" selection-end-line="630" selection-end-column="12" />
+                <state relative-caret-position="345">
+                  <caret line="665" column="19" selection-start-line="665" selection-start-column="19" selection-end-line="665" selection-end-column="19" />
                   <folding>
                     <element signature="e#0#23#0" expanded="true" />
-                    <marker date="1603786568913" expanded="true" signature="41753:41798" ph="..." />
+                    <marker date="1603990444958" expanded="true" signature="41872:41917" ph="..." />
                   </folding>
                 </state>
               </provider>
@@ -206,7 +206,7 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/model_cnn_mnist.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="-6075">
+                <state relative-caret-position="7005">
                   <caret line="497" column="46" selection-start-line="497" selection-start-column="46" selection-end-line="497" selection-end-column="46" />
                   <folding>
                     <element signature="e#0#23#0" expanded="true" />
@@ -224,8 +224,8 @@
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/run.sh">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="705">
-                  <caret line="84" lean-forward="true" selection-start-line="84" selection-end-line="84" />
+                <state relative-caret-position="30">
+                  <caret line="42" selection-start-line="42" selection-end-line="42" />
                 </state>
               </provider>
             </entry>
@@ -233,8 +233,8 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/lib_snn.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="555">
-                  <caret line="1309" column="27" selection-start-line="1309" selection-start-column="27" selection-end-line="1309" selection-end-column="27" />
+                <state relative-caret-position="19395">
+                  <caret line="1302" selection-start-line="1302" selection-end-line="1302" />
                   <folding>
                     <element signature="e#0#23#0" expanded="true" />
                     <marker date="1603780550205" expanded="true" signature="18673:18678" ph="..." />
@@ -259,12 +259,12 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/train_snn.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="540">
-                  <caret line="196" column="22" selection-start-line="196" selection-start-column="22" selection-end-line="196" selection-end-column="22" />
+                <state relative-caret-position="555">
+                  <caret line="415" column="75" selection-start-line="415" selection-start-column="75" selection-end-line="415" selection-end-column="75" />
                   <folding>
                     <element signature="e#0#38#0" expanded="true" />
-                    <marker date="1603788605041" expanded="true" signature="897:935" ph="..." />
-                    <marker date="1603788605041" expanded="true" signature="1159:1280" ph="..." />
+                    <marker date="1604331135235" expanded="true" signature="897:935" ph="..." />
+                    <marker date="1604331135235" expanded="true" signature="1159:1280" ph="..." />
                   </folding>
                 </state>
               </provider>
@@ -426,30 +426,7 @@
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
     </navigator>
-    <panes>
-      <pane id="ProjectPane">
-        <subPane>
-          <expand>
-            <path>
-              <item name="05_SNN_temporal" type="b2602c69:ProjectViewProjectNode" />
-              <item name="05_SNN_temporal" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="05_SNN_temporal" type="b2602c69:ProjectViewProjectNode" />
-              <item name="05_SNN_temporal" type="462c0819:PsiDirectoryNode" />
-              <item name="datasets" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="05_SNN_temporal" type="b2602c69:ProjectViewProjectNode" />
-              <item name="05_SNN_temporal" type="462c0819:PsiDirectoryNode" />
-              <item name="models" type="462c0819:PsiDirectoryNode" />
-            </path>
-          </expand>
-          <select />
-        </subPane>
-      </pane>
-      <pane id="Scope" />
-    </panes>
+    <panes />
   </component>
   <component name="PropertiesComponent">
     <property name="SearchEverywhereHistoryKey" value=":w&#9;null&#9;null&#10;rerun&#9;ACTION&#9;Rerun" />
@@ -809,7 +786,14 @@
       <option name="project" value="LOCAL" />
       <updated>1603474828940</updated>
     </task>
-    <option name="localTasksCounter" value="30" />
+    <task id="LOCAL-00030" summary="1027 - encoded spike loss">
+      <created>1603788669025</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1603788669025</updated>
+    </task>
+    <option name="localTasksCounter" value="31" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
@@ -838,11 +822,11 @@
       <window_info anchor="bottom" id="Cvs" order="3" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="4" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="5" weight="0.3294753" />
-      <window_info anchor="bottom" id="Event Log" order="6" sideWeight="0.50239044" side_tool="true" weight="0.2029321" />
+      <window_info anchor="bottom" id="Event Log" order="6" sideWeight="0.50278884" side_tool="true" weight="0.20192307" />
       <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Version Control" order="8" weight="0.32852563" />
       <window_info anchor="bottom" id="Python Console" order="9" weight="0.20512821" />
-      <window_info anchor="bottom" id="Terminal" order="10" sideWeight="0.49760956" visible="true" weight="0.20272435" />
+      <window_info anchor="bottom" id="Terminal" order="10" sideWeight="0.49721116" visible="true" weight="0.20192307" />
       <window_info anchor="bottom" id="Docker" order="11" show_stripe_button="false" />
       <window_info anchor="bottom" id="Inspection Results" order="12" weight="0.32937366" />
       <window_info anchor="right" id="Coverage" order="0" side_tool="true" />
@@ -935,7 +919,8 @@
     <MESSAGE value="0930 - training parameters - parameterize" />
     <MESSAGE value="1019 - encoded spike loss" />
     <MESSAGE value="1024 - encoded spike loss" />
-    <option name="LAST_COMMIT_MESSAGE" value="1024 - encoded spike loss" />
+    <MESSAGE value="1027 - encoded spike loss" />
+    <option name="LAST_COMMIT_MESSAGE" value="1027 - encoded spike loss" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1115,12 +1100,69 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4830">
+          <caret line="328" selection-start-line="328" selection-end-line="328" />
+          <folding>
+            <element signature="e#0#38#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/datasets/cifar10.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1575">
+          <caret line="110" column="47" selection-start-line="110" selection-start-column="47" selection-end-line="110" selection-end-column="47" />
+          <folding>
+            <element signature="e#0#38#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/train.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="915">
+          <caret line="72" column="20" selection-start-line="72" selection-start-column="20" selection-end-line="72" selection-end-column="20" />
+          <folding>
+            <element signature="e#0#38#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/test.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2475">
           <caret line="178" selection-start-line="178" selection-end-line="178" />
           <folding>
             <element signature="e#0#38#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model_cnn_mnist.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="7005">
+          <caret line="497" column="46" selection-start-line="497" selection-start-column="46" selection-end-line="497" selection-end-column="46" />
+          <folding>
+            <element signature="e#0#23#0" expanded="true" />
+            <marker date="1597502888409" expanded="true" signature="792:797" ph="..." />
+            <marker date="1597502888409" expanded="true" signature="67723:67724" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib_snn.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="19395">
+          <caret line="1302" selection-start-line="1302" selection-end-line="1302" />
+          <folding>
+            <element signature="e#0#23#0" expanded="true" />
+            <marker date="1603780550205" expanded="true" signature="18673:18678" ph="..." />
+            <marker date="1603780550205" expanded="true" signature="30484:30488" ph="..." />
+            <marker date="1603780550205" expanded="true" signature="32508:32517" ph="..." />
+            <marker date="1603780550205" expanded="true" signature="33435:33445" ph="..." />
+            <marker date="1603780550205" expanded="true" signature="43176:43180" ph="..." />
           </folding>
         </state>
       </provider>
@@ -1163,70 +1205,13 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/main.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="750">
-          <caret line="328" selection-start-line="328" selection-end-line="328" />
-          <folding>
-            <element signature="e#0#38#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/datasets/cifar10.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
-          <caret line="110" column="47" selection-start-line="110" selection-start-column="47" selection-end-line="110" selection-end-column="47" />
-          <folding>
-            <element signature="e#0#38#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/train.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="375">
-          <caret line="72" column="20" selection-start-line="72" selection-start-column="20" selection-end-line="72" selection-end-column="20" />
-          <folding>
-            <element signature="e#0#38#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/model_cnn_mnist.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-6075">
-          <caret line="497" column="46" selection-start-line="497" selection-start-column="46" selection-end-line="497" selection-end-column="46" />
-          <folding>
-            <element signature="e#0#23#0" expanded="true" />
-            <marker date="1597502888409" expanded="true" signature="792:797" ph="..." />
-            <marker date="1597502888409" expanded="true" signature="67723:67724" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/models/models.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="285">
-          <caret line="630" column="12" selection-start-line="630" selection-start-column="12" selection-end-line="630" selection-end-column="12" />
+        <state relative-caret-position="345">
+          <caret line="665" column="19" selection-start-line="665" selection-start-column="19" selection-end-line="665" selection-end-column="19" />
           <folding>
             <element signature="e#0#23#0" expanded="true" />
-            <marker date="1603786568913" expanded="true" signature="41753:41798" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/lib_snn.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="555">
-          <caret line="1309" column="27" selection-start-line="1309" selection-start-column="27" selection-end-line="1309" selection-end-column="27" />
-          <folding>
-            <element signature="e#0#23#0" expanded="true" />
-            <marker date="1603780550205" expanded="true" signature="18673:18678" ph="..." />
-            <marker date="1603780550205" expanded="true" signature="30484:30488" ph="..." />
-            <marker date="1603780550205" expanded="true" signature="32508:32517" ph="..." />
-            <marker date="1603780550205" expanded="true" signature="33435:33445" ph="..." />
-            <marker date="1603780550205" expanded="true" signature="43176:43180" ph="..." />
+            <marker date="1603990444958" expanded="true" signature="41872:41917" ph="..." />
           </folding>
         </state>
       </provider>
@@ -1240,20 +1225,20 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/train_snn.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="540">
-          <caret line="196" column="22" selection-start-line="196" selection-start-column="22" selection-end-line="196" selection-end-column="22" />
+        <state relative-caret-position="555">
+          <caret line="415" column="75" selection-start-line="415" selection-start-column="75" selection-end-line="415" selection-end-column="75" />
           <folding>
             <element signature="e#0#38#0" expanded="true" />
-            <marker date="1603788605041" expanded="true" signature="897:935" ph="..." />
-            <marker date="1603788605041" expanded="true" signature="1159:1280" ph="..." />
+            <marker date="1604331135235" expanded="true" signature="897:935" ph="..." />
+            <marker date="1604331135235" expanded="true" signature="1159:1280" ph="..." />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/run.sh">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="705">
-          <caret line="84" lean-forward="true" selection-start-line="84" selection-end-line="84" />
+        <state relative-caret-position="30">
+          <caret line="42" selection-start-line="42" selection-end-line="42" />
         </state>
       </provider>
     </entry>
