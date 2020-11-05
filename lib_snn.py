@@ -1250,7 +1250,7 @@ class Temporal_kernel(tf.keras.layers.Layer):
         #
         #if False:
         #if ((f_training==False) and (epoch==-1)) or ((f_training == True) and (epoch > self.epoch_start_t_int)):
-        if (f_training==True)and(epoch > self.epoch_start_t_int) or (f_training==False):
+        if ((f_training==True)and(tf.math.greater(epoch,self.epoch_start_t_int))) or (f_training==False):
             # TODO: parameterize
             #if epoch > self.epoch_start_t_int+100:
             #if epoch > self.epoch_start_t_int:
@@ -1262,7 +1262,7 @@ class Temporal_kernel(tf.keras.layers.Layer):
             t = tf.quantization.fake_quant_with_min_max_vars(t_float, 0, tf.pow(2.0, 16.0) - 1, 16)
 
             #if (epoch < self.epoch_start_train_floor) and not infer_mode:
-            if ((f_training==True) and (epoch > self.epoch_start_train_floor)) or (f_training==False):
+            if ((f_training==True) and (tf.math.greater(epoch,self.epoch_start_train_floor))) or (f_training==False):
                 #t = tf.quantization.fake_quant_with_min_max_vars(t_float,0,tf.pow(2.0,16.0)-1,16)
                 t = tf.math.floor(t_float)
 
@@ -1355,7 +1355,7 @@ class Temporal_kernel(tf.keras.layers.Layer):
         #if False:
         #if (f_training == False) or ((f_training==True) and (epoch > self.epoch_start_clip_tw)):
         #if (f_training==True)and(epoch > self.epoch_start_clip_tw) or (f_training==False)and(epoch<0):
-        if ((f_training == True) and (epoch > self.epoch_start_clip_tw)) or (f_training == False):
+        if ((f_training == True) and (tf.math.greater(epoch,self.epoch_start_clip_tw))) or (f_training == False):
             #if epoch > 300:
             #    tw_target = self.tw/2
             #else:

@@ -61,7 +61,7 @@ epoch_start_loss_enc_spike=0
 
 #
 bypass_pr=0
-bypass_target_epoch=1
+bypass_target_epoch=500
 
 
 #
