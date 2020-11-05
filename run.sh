@@ -1,7 +1,8 @@
 #!/bin/bash
 
 #
-source ./venv/bin/activate
+source ../05_SNN/venv/bin/activate
+#source ./venv/bin/activate
 
 
 ###############################################################################
@@ -39,7 +40,7 @@ en_tensorboard_write=True
 ## Model & Dataset
 ###############################################################################
 nn_mode='ANN'
-#nn_mode='SNN'
+nn_mode='SNN'
 
 
 #exp_case='CNN_MNIST'
@@ -73,14 +74,14 @@ f_loss_enc_spike=False
 w_loss_enc_spike=10
 
 # coefficient of beta distribution for KL loss
-beta_dist_a=2
-beta_dist_b=0.9
+#beta_dist_a=0.1
+#beta_dist_b=0.9
 
 #beta_dist_a=0.9
 #beta_dist_b=0.1
 
-#beta_dist_a=0.5
-#beta_dist_b=0.00001
+beta_dist_a=1
+beta_dist_b=2
 
 # target max encoded spike time - number of time window
 enc_st_n_tw=2
@@ -91,7 +92,6 @@ enc_st_n_tw=2
 
 training_mode=True
 #training_mode=False
-
 
 #
 # If this flag is False, then the trained model is overwritten
