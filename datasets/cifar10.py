@@ -51,16 +51,21 @@ def load(conf):
     #img_test=img_test[:conf.num_test_dataset,:,:,:]
 
 
-    num_train_dataset = 45000
+    #num_train_dataset = 45000
+    num_train_dataset = 5000
     num_val_dataset = 5000
     num_test_dataset = conf.num_test_dataset
 
-    img_val = img_train[num_train_dataset:,:,:,:]
-    label_val = label_train[num_train_dataset:,:]
 
     img_train = img_train[:num_train_dataset,:,:,:]
     label_train = label_train[:num_train_dataset,:]
 
+
+    #img_val = img_train[num_train_dataset:,:,:,:]
+    #label_val = label_train[num_train_dataset:,:]
+
+    img_val = img_train[:num_val_dataset,:,:,:]
+    label_val = label_train[:num_val_dataset,:]
 
     label_test=label_test[conf.idx_test_dataset_s:conf.idx_test_dataset_s+conf.num_test_dataset]
     img_test=img_test[conf.idx_test_dataset_s:conf.idx_test_dataset_s+conf.num_test_dataset,:,:,:]

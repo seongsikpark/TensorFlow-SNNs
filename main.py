@@ -17,7 +17,7 @@ from datetime import datetime
 #en_gpu=False
 en_gpu=True
 
-gpu_number=0
+gpu_number=2
 os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
 
 #
@@ -459,7 +459,8 @@ def main(_):
     save_target_acc_sel = {
         'MNIST': 90.0,
         #'MNIST': 99.0,
-        'CIFAR-10': 91.0,
+        #'CIFAR-10': 91.0,
+        'CIFAR-10': 20.0,
         'CIFAR-100': 68.0
     }
     save_target_acc = save_target_acc_sel[conf.dataset]
