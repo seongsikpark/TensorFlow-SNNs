@@ -17,7 +17,7 @@ from datetime import datetime
 #en_gpu=False
 en_gpu=True
 
-gpu_number=2
+gpu_number=0
 os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
 
 #
@@ -322,6 +322,9 @@ tf.compat.v1.app.flags.DEFINE_float('beta_dist_b',0.1,'coefficient of beta distr
 tf.compat.v1.app.flags.DEFINE_integer('enc_st_n_tw',10,'target max encoded spike time - number of time window')
 
 #
+tf.compat.v1.app.flags.DEFINE_string('tfboard_log_file_name',None,'tfboard log file name')
+
+#
 conf = flags.FLAGS
 
 data_path_imagenet='/home/sspark/Datasets/ILSVRC2012'
@@ -512,8 +515,15 @@ def main(_):
 
     if conf.output_dir:
         output_dir = os.path.join(conf.output_dir,conf.model_name+'_'+conf.nn_mode)
-        #output_dir = os.path.join(output_dir,now.strftime("%Y%m%d-%H%M"))
-        output_dir = os.path.join(output_dir,'bypass_fixed_pr-{}_ep-{}'.format(conf.bypass_pr,conf.bypass_target_epoch))
+
+        if conf.tfboard_log_file_name == None:
+            output_dir = os.path.join(output_dir,now.strftime("%Y%m%d-%H%M"))
+        else:
+            output_dir = os.path.join(output_dir,conf.tfboard_log_file_name)
+
+        #
+        #output_dir = os.path.join(output_dir,'bypass_layer_pr-{}_ep-{}'.format(conf.bypass_pr,conf.bypass_target_epoch))
+
 
         #if conf.nn_mode == 'SNN':
         #    output_dir = os.path.join(output_dir,conf.n_type+'_time_step_'+str(conf.time_step)+'_vth_'+str(conf.n_init_vth))

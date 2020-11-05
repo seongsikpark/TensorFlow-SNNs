@@ -12,11 +12,13 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a59cc8b6-9dbe-41c8-8d2e-009d3879113f" name="Default" comment="1027 - encoded spike loss">
+    <list default="true" id="a59cc8b6-9dbe-41c8-8d2e-009d3879113f" name="Default" comment="1106">
+      <change afterPath="$PROJECT_DIR$/run_batch_enc_dec_tk.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/run_enc_dec_tk.sh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/models/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/run.sh" beforeDir="false" afterPath="$PROJECT_DIR$/run.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/train_snn.py" beforeDir="false" afterPath="$PROJECT_DIR$/train_snn.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -106,29 +108,29 @@
         <counts>
           <entry key="Python Console" value="49" />
           <entry key="conf" value="583" />
-          <entry key="py" value="161446" />
-          <entry key="sh" value="23185" />
-          <entry key="txt" value="309" />
+          <entry key="py" value="162093" />
+          <entry key="sh" value="25385" />
+          <entry key="txt" value="317" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Bash" value="23185" />
-          <entry key="PLAIN_TEXT" value="892" />
-          <entry key="Python" value="161495" />
+          <entry key="Bash" value="25385" />
+          <entry key="PLAIN_TEXT" value="900" />
+          <entry key="Python" value="162142" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
           <entry key="conf" value="12" />
           <entry key="py" value="77" />
-          <entry key="sh" value="14" />
+          <entry key="sh" value="20" />
           <entry key="tensorboard" value="1" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
-          <entry key="Bash" value="14" />
+          <entry key="Bash" value="20" />
           <entry key="PLAIN_TEXT" value="12" />
           <entry key="Python" value="78" />
         </counts>
@@ -145,8 +147,8 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/main.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="4830">
-                  <caret line="328" selection-start-line="328" selection-end-line="328" />
+                <state relative-caret-position="540">
+                  <caret line="521" column="75" selection-start-line="521" selection-start-column="75" selection-end-line="521" selection-end-column="75" />
                   <folding>
                     <element signature="e#0#38#0" expanded="true" />
                   </folding>
@@ -157,7 +159,7 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/datasets/cifar10.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="1575">
+                <state relative-caret-position="1650">
                   <caret line="110" column="47" selection-start-line="110" selection-start-column="47" selection-end-line="110" selection-end-column="47" />
                   <folding>
                     <element signature="e#0#38#0" expanded="true" />
@@ -169,7 +171,7 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/train.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="915">
+                <state relative-caret-position="375">
                   <caret line="72" column="20" selection-start-line="72" selection-start-column="20" selection-end-line="72" selection-end-column="20" />
                   <folding>
                     <element signature="e#0#38#0" expanded="true" />
@@ -181,7 +183,7 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/test.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="2475">
+                <state relative-caret-position="911">
                   <caret line="178" selection-start-line="178" selection-end-line="178" />
                   <folding>
                     <element signature="e#0#38#0" expanded="true" />
@@ -190,23 +192,36 @@
               </provider>
             </entry>
           </file>
-          <file pinned="false" current-in-tab="true">
+          <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/models/models.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="345">
-                  <caret line="665" column="19" selection-start-line="665" selection-start-column="19" selection-end-line="665" selection-end-column="19" />
+                <state relative-caret-position="60">
+                  <caret line="1481" column="19" selection-start-line="1481" selection-start-column="19" selection-end-line="1481" selection-end-column="19" />
                   <folding>
                     <element signature="e#0#23#0" expanded="true" />
-                    <marker date="1603990444958" expanded="true" signature="41872:41917" ph="..." />
                   </folding>
                 </state>
               </provider>
             </entry>
           </file>
+          <file pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/run_enc_dec_tk.sh">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="269">
+                  <caret line="1023" column="36" selection-start-line="1023" selection-start-column="36" selection-end-line="1023" selection-end-column="36" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/run_batch.sh">
+              <provider selected="true" editor-type-id="text-editor" />
+            </entry>
+          </file>
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/model_cnn_mnist.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="7005">
+                <state relative-caret-position="15">
                   <caret line="497" column="46" selection-start-line="497" selection-start-column="46" selection-end-line="497" selection-end-column="46" />
                   <folding>
                     <element signature="e#0#23#0" expanded="true" />
@@ -222,10 +237,19 @@
       <split-second>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
           <file pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/run_batch_enc_dec_tk.sh">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="1083">
+                  <caret line="79" lean-forward="true" selection-start-line="79" selection-end-line="79" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/run.sh">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="30">
-                  <caret line="42" selection-start-line="42" selection-end-line="42" />
+                <state relative-caret-position="645">
+                  <caret line="43" selection-start-line="43" selection-end-line="43" />
                 </state>
               </provider>
             </entry>
@@ -233,15 +257,15 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/lib_snn.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="19395">
-                  <caret line="1302" selection-start-line="1302" selection-end-line="1302" />
+                <state relative-caret-position="19410">
+                  <caret line="1303" selection-start-line="1303" selection-end-line="1303" />
                   <folding>
                     <element signature="e#0#23#0" expanded="true" />
-                    <marker date="1603780550205" expanded="true" signature="18673:18678" ph="..." />
-                    <marker date="1603780550205" expanded="true" signature="30484:30488" ph="..." />
-                    <marker date="1603780550205" expanded="true" signature="32508:32517" ph="..." />
-                    <marker date="1603780550205" expanded="true" signature="33435:33445" ph="..." />
-                    <marker date="1603780550205" expanded="true" signature="43176:43180" ph="..." />
+                    <marker date="1604587739020" expanded="true" signature="18673:18678" ph="..." />
+                    <marker date="1604587739020" expanded="true" signature="30484:30488" ph="..." />
+                    <marker date="1604587739020" expanded="true" signature="32508:32517" ph="..." />
+                    <marker date="1604587739020" expanded="true" signature="33435:33445" ph="..." />
+                    <marker date="1604587739020" expanded="true" signature="43176:43180" ph="..." />
                   </folding>
                 </state>
               </provider>
@@ -263,8 +287,8 @@
                   <caret line="415" column="75" selection-start-line="415" selection-start-column="75" selection-end-line="415" selection-end-column="75" />
                   <folding>
                     <element signature="e#0#38#0" expanded="true" />
-                    <marker date="1604331135235" expanded="true" signature="897:935" ph="..." />
-                    <marker date="1604331135235" expanded="true" signature="1159:1280" ph="..." />
+                    <marker date="1604587754304" expanded="true" signature="897:935" ph="..." />
+                    <marker date="1604587754304" expanded="true" signature="1159:1280" ph="..." />
                   </folding>
                 </state>
               </provider>
@@ -394,11 +418,13 @@
         <option value="$PROJECT_DIR$/datasets/cifar100.py" />
         <option value="$PROJECT_DIR$/model_cnn_mnist.py" />
         <option value="$PROJECT_DIR$/models/models_legacy.py" />
-        <option value="$PROJECT_DIR$/main.py" />
         <option value="$PROJECT_DIR$/lib_snn.py" />
-        <option value="$PROJECT_DIR$/models/models.py" />
         <option value="$PROJECT_DIR$/train_snn.py" />
         <option value="$PROJECT_DIR$/run.sh" />
+        <option value="$PROJECT_DIR$/models/models.py" />
+        <option value="$PROJECT_DIR$/main.py" />
+        <option value="$PROJECT_DIR$/run_enc_dec_tk.sh" />
+        <option value="$PROJECT_DIR$/run_batch_enc_dec_tk.sh" />
       </list>
     </option>
   </component>
@@ -426,12 +452,25 @@
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
     </navigator>
-    <panes />
+    <panes>
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="05_SNN_temporal" type="b2602c69:ProjectViewProjectNode" />
+              <item name="05_SNN_temporal" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+      <pane id="Scope" />
+    </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="SearchEverywhereHistoryKey" value=":w&#9;null&#9;null&#10;rerun&#9;ACTION&#9;Rerun" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../20_HBN_SIM" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../06_SNN_noise" />
     <property name="run.code.analysis.last.selected.profile" value="pProject Default" />
     <property name="settings.editor.selected.configurable" value="editor.preferences.fonts.default" />
   </component>
@@ -448,6 +487,120 @@
       <recent name="$PROJECT_DIR$/models" />
     </key>
   </component>
+  <component name="RestoreUpdateTree" date="Moments ago" ActionInfo="_Update">
+    <UpdatedFiles>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Updated from server" />
+        <option name="myStatusName" value="Changed on server" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="CHANGED_ON_SERVER" />
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Updated" />
+          <option name="myStatusName" value="Changed" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="UPDATED" />
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/lib_snn.py</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/main.py</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/models/models.py</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/run.sh</PATH>
+          <PATH vcs="Git" revision="">$PROJECT_DIR$/train_snn.py</PATH>
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Created" />
+          <option name="myStatusName" value="Created" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="CREATED" />
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Deleted" />
+          <option name="myStatusName" value="Deleted" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="true" />
+          <option name="myId" value="REMOVED_FROM_REPOSITORY" />
+        </FILE-GROUP>
+        <FILE-GROUP>
+          <option name="myUpdateName" value="Restored" />
+          <option name="myStatusName" value="Will be restored" />
+          <option name="mySupportsDeletion" value="false" />
+          <option name="myCanBeAbsent" value="false" />
+          <option name="myId" value="RESTORED" />
+        </FILE-GROUP>
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Modified" />
+        <option name="myStatusName" value="Modified" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MODIFIED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Skipped" />
+        <option name="myStatusName" value="Skipped" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="SKIPPED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged with conflicts" />
+        <option name="myStatusName" value="Will be merged with conflicts" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED_WITH_CONFLICTS" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged with tree conflicts" />
+        <option name="myStatusName" value="Merged with tree conflicts" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED_WITH_TREE_CONFLICT" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged with property conflicts" />
+        <option name="myStatusName" value="Will be merged with property conflicts" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED_WITH_PROPERTY_CONFLICT" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Merged" />
+        <option name="myStatusName" value="Will be merged" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="MERGED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Not in repository" />
+        <option name="myStatusName" value="Not in repository" />
+        <option name="mySupportsDeletion" value="true" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="UNKNOWN" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Locally added" />
+        <option name="myStatusName" value="Locally added" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="LOCALLY_ADDED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Locally removed" />
+        <option name="myStatusName" value="Locally removed" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="LOCALLY_REMOVED" />
+      </FILE-GROUP>
+      <FILE-GROUP>
+        <option name="myUpdateName" value="Switched" />
+        <option name="myStatusName" value="Switched" />
+        <option name="mySupportsDeletion" value="false" />
+        <option name="myCanBeAbsent" value="false" />
+        <option name="myId" value="SWITCHED" />
+      </FILE-GROUP>
+    </UpdatedFiles>
+  </component>
   <component name="RunDashboard">
     <option name="ruleStates">
       <list>
@@ -460,7 +613,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Bash.run">
+  <component name="RunManager" selected="Bash.run_batch_enc_dec_tk.sh">
     <configuration default="true" type="BashConfigurationType" factoryName="Bash">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="INTERPRETER_PATH" value="/bin/bash" />
@@ -479,6 +632,16 @@
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/run.sh" />
       <option name="PARAMETERS" value="" />
       <module name="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="run_batch_enc_dec_tk.sh" type="BashConfigurationType" factoryName="Bash" temporary="true">
+      <module name="05_SNN" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="INTERPRETER_PATH" value="/bin/bash" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/run_batch_enc_dec_tk.sh" />
+      <option name="PARAMETERS" value="" />
       <method v="2" />
     </configuration>
     <configuration name="run_batch.sh" type="BashConfigurationType" factoryName="Bash" temporary="true">
@@ -562,9 +725,11 @@
       <item itemvalue="Python.main" />
       <item itemvalue="Bash.run_batch.sh" />
       <item itemvalue="Python.lib_snn" />
+      <item itemvalue="Bash.run_batch_enc_dec_tk.sh" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Bash.run_batch_enc_dec_tk.sh" />
         <item itemvalue="Python.lib_snn" />
         <item itemvalue="Bash.run_batch.sh" />
       </list>
@@ -793,7 +958,14 @@
       <option name="project" value="LOCAL" />
       <updated>1603788669025</updated>
     </task>
-    <option name="localTasksCounter" value="31" />
+    <task id="LOCAL-00031" summary="1027 - encoded spike loss">
+      <created>1604379700469</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1604379700469</updated>
+    </task>
+    <option name="localTasksCounter" value="32" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
@@ -810,23 +982,22 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="22" width="2560" height="1394" extended-state="6" />
-    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" weight="0.2003984" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.2003984" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" weight="0.32977587" />
-      <window_info active="true" x="2" y="387" width="1916" height="307" id="Run" order="3" visible="true" weight="0.3378486" />
+      <window_info x="2" y="387" width="1916" height="307" id="Run" order="3" weight="0.3378486" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
       <window_info anchor="bottom" id="Debug" order="2" weight="0.2975815" />
       <window_info anchor="bottom" id="Cvs" order="3" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="4" weight="0.4" />
-      <window_info anchor="bottom" id="TODO" order="5" weight="0.3294753" />
+      <window_info anchor="bottom" id="TODO" order="5" weight="0.32932693" />
       <window_info anchor="bottom" id="Event Log" order="6" sideWeight="0.50278884" side_tool="true" weight="0.20192307" />
       <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Version Control" order="8" weight="0.32852563" />
       <window_info anchor="bottom" id="Python Console" order="9" weight="0.20512821" />
-      <window_info anchor="bottom" id="Terminal" order="10" sideWeight="0.49721116" visible="true" weight="0.20192307" />
+      <window_info anchor="bottom" id="Terminal" order="10" sideWeight="0.49721116" weight="0.20192307" />
       <window_info anchor="bottom" id="Docker" order="11" show_stripe_button="false" />
       <window_info anchor="bottom" id="Inspection Results" order="12" weight="0.32937366" />
       <window_info anchor="right" id="Coverage" order="0" side_tool="true" />
@@ -920,7 +1091,8 @@
     <MESSAGE value="1019 - encoded spike loss" />
     <MESSAGE value="1024 - encoded spike loss" />
     <MESSAGE value="1027 - encoded spike loss" />
-    <option name="LAST_COMMIT_MESSAGE" value="1027 - encoded spike loss" />
+    <MESSAGE value="1106" />
+    <option name="LAST_COMMIT_MESSAGE" value="1106" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -934,17 +1106,11 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/../05_SNN_git/venv/lib/python3.6/site-packages/pandas/core/generic.py" />
-    <entry file="file://$PROJECT_DIR$/../05_SNN_git/venv/lib/python3.6/site-packages/tensorflow/python/ops/variables.py" />
     <entry file="file://$PROJECT_DIR$/../05_SNN_git/venv/lib/python3.6/site-packages/tensorflow/python/platform/app.py" />
     <entry file="file://$PROJECT_DIR$/venv/lib/python3.6/site-packages/tensorflow/python/platform/app.py" />
     <entry file="file://$PROJECT_DIR$/venv/lib/python3.6/site-packages/matplotlib/figure.py" />
     <entry file="file://$PROJECT_DIR$/run_mann_ref.sh" />
-    <entry file="file://$PROJECT_DIR$/run_batch.sh" />
     <entry file="file://$PROJECT_DIR$/resnet.py" />
-    <entry file="file://$PROJECT_DIR$/run_train_tc_batch.sh">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/model_cnn_mnist_ori.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2115">
@@ -1100,69 +1266,17 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/main.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4830">
-          <caret line="328" selection-start-line="328" selection-end-line="328" />
-          <folding>
-            <element signature="e#0#38#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/datasets/cifar10.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1575">
-          <caret line="110" column="47" selection-start-line="110" selection-start-column="47" selection-end-line="110" selection-end-column="47" />
-          <folding>
-            <element signature="e#0#38#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/train.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="915">
-          <caret line="72" column="20" selection-start-line="72" selection-start-column="20" selection-end-line="72" selection-end-column="20" />
-          <folding>
-            <element signature="e#0#38#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2475">
-          <caret line="178" selection-start-line="178" selection-end-line="178" />
-          <folding>
-            <element signature="e#0#38#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/model_cnn_mnist.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="7005">
-          <caret line="497" column="46" selection-start-line="497" selection-start-column="46" selection-end-line="497" selection-end-column="46" />
-          <folding>
-            <element signature="e#0#23#0" expanded="true" />
-            <marker date="1597502888409" expanded="true" signature="792:797" ph="..." />
-            <marker date="1597502888409" expanded="true" signature="67723:67724" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/lib_snn.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="19395">
-          <caret line="1302" selection-start-line="1302" selection-end-line="1302" />
+        <state relative-caret-position="19410">
+          <caret line="1303" selection-start-line="1303" selection-end-line="1303" />
           <folding>
             <element signature="e#0#23#0" expanded="true" />
-            <marker date="1603780550205" expanded="true" signature="18673:18678" ph="..." />
-            <marker date="1603780550205" expanded="true" signature="30484:30488" ph="..." />
-            <marker date="1603780550205" expanded="true" signature="32508:32517" ph="..." />
-            <marker date="1603780550205" expanded="true" signature="33435:33445" ph="..." />
-            <marker date="1603780550205" expanded="true" signature="43176:43180" ph="..." />
+            <marker date="1604587739020" expanded="true" signature="18673:18678" ph="..." />
+            <marker date="1604587739020" expanded="true" signature="30484:30488" ph="..." />
+            <marker date="1604587739020" expanded="true" signature="32508:32517" ph="..." />
+            <marker date="1604587739020" expanded="true" signature="33435:33445" ph="..." />
+            <marker date="1604587739020" expanded="true" signature="43176:43180" ph="..." />
           </folding>
         </state>
       </provider>
@@ -1205,17 +1319,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/models/models.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="345">
-          <caret line="665" column="19" selection-start-line="665" selection-start-column="19" selection-end-line="665" selection-end-column="19" />
-          <folding>
-            <element signature="e#0#23#0" expanded="true" />
-            <marker date="1603990444958" expanded="true" signature="41872:41917" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/scripts/path.conf">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="225">
@@ -1229,16 +1332,98 @@
           <caret line="415" column="75" selection-start-line="415" selection-start-column="75" selection-end-line="415" selection-end-column="75" />
           <folding>
             <element signature="e#0#38#0" expanded="true" />
-            <marker date="1604331135235" expanded="true" signature="897:935" ph="..." />
-            <marker date="1604331135235" expanded="true" signature="1159:1280" ph="..." />
+            <marker date="1604587754304" expanded="true" signature="897:935" ph="..." />
+            <marker date="1604587754304" expanded="true" signature="1159:1280" ph="..." />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/run.sh">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="30">
-          <caret line="42" selection-start-line="42" selection-end-line="42" />
+        <state relative-caret-position="645">
+          <caret line="43" selection-start-line="43" selection-end-line="43" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/model_cnn_mnist.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="15">
+          <caret line="497" column="46" selection-start-line="497" selection-start-column="46" selection-end-line="497" selection-end-column="46" />
+          <folding>
+            <element signature="e#0#23#0" expanded="true" />
+            <marker date="1597502888409" expanded="true" signature="792:797" ph="..." />
+            <marker date="1597502888409" expanded="true" signature="67723:67724" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/run_batch.sh">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/run_train_tc_batch.sh">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/train.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="375">
+          <caret line="72" column="20" selection-start-line="72" selection-start-column="20" selection-end-line="72" selection-end-column="20" />
+          <folding>
+            <element signature="e#0#38#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/datasets/cifar10.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1650">
+          <caret line="110" column="47" selection-start-line="110" selection-start-column="47" selection-end-line="110" selection-end-column="47" />
+          <folding>
+            <element signature="e#0#38#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="911">
+          <caret line="178" selection-start-line="178" selection-end-line="178" />
+          <folding>
+            <element signature="e#0#38#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/models/models.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="60">
+          <caret line="1481" column="19" selection-start-line="1481" selection-start-column="19" selection-end-line="1481" selection-end-column="19" />
+          <folding>
+            <element signature="e#0#23#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="540">
+          <caret line="521" column="75" selection-start-line="521" selection-start-column="75" selection-end-line="521" selection-end-column="75" />
+          <folding>
+            <element signature="e#0#38#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/run_enc_dec_tk.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="269">
+          <caret line="1023" column="36" selection-start-line="1023" selection-start-column="36" selection-end-line="1023" selection-end-column="36" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/run_batch_enc_dec_tk.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1083">
+          <caret line="79" lean-forward="true" selection-start-line="79" selection-end-line="79" />
         </state>
       </provider>
     </entry>
