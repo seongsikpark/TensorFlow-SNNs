@@ -512,7 +512,8 @@ def main(_):
 
     if conf.output_dir:
         output_dir = os.path.join(conf.output_dir,conf.model_name+'_'+conf.nn_mode)
-        output_dir = os.path.join(output_dir,now.strftime("%Y%m%d-%H%M"))
+        #output_dir = os.path.join(output_dir,now.strftime("%Y%m%d-%H%M"))
+        output_dir = os.path.join(output_dir,'bypass_fixed_pr-{}_ep-{}'.format(conf.bypass_pr,conf.bypass_target_epoch))
 
         #if conf.nn_mode == 'SNN':
         #    output_dir = os.path.join(output_dir,conf.n_type+'_time_step_'+str(conf.time_step)+'_vth_'+str(conf.n_init_vth))
@@ -533,6 +534,9 @@ def main(_):
         test_dir = None
 
     #if conf.en_tensorboard_write:
+    name_tb_write = 'testhere'
+
+
     summary_writer = tf.summary.create_file_writer(train_dir,flush_millis=100)
     val_summary_writer = tf.summary.create_file_writer(val_dir,flush_millis=100,name='val')
 
