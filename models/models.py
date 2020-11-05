@@ -1482,18 +1482,16 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         #target_epoch = 600
 
         target_epoch = self.conf.bypass_target_epoch
+        pr_target_epoch = tf.divide(tf.add(epoch,1.0),target_epoch)
+        pr = tf.subtract(1.0,self.conf.bypass_pr)
 
-
-        #pr_target_epoch = pr*epoch/target_epoch
-        pr_target_epoch = tf.multiply(self.conf.bypass_pr,tf.divide(epoch,target_epoch))
-
-        pr = tf.subtract(1.0,pr_target_epoch)
 
         #if epoch==-1 or epoch > 100:
         #if epoch==-1 or tf.random.uniform(shape=(),minval=0,maxval=1)<pr:
         #pr_layer = pr*(5/5)*pr_target_epoch
+
+        #pr_layer = tf.multiply(pr,pr_target_epoch)
         pr_layer = pr
-        #pr_layer = 0.5
 
 
         if self.f_1st_iter:
@@ -1524,9 +1522,6 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             v_conv1_dec = self.list_tk['conv1'](t_conv1,'dec',self.epoch,f_training)
             a_conv1 = v_conv1_dec
         else:
-            print('h')
-            print(pr)
-            print(rand)
             a_conv1 = tf.nn.relu(s_conv1_bn)
 
         if f_training:
