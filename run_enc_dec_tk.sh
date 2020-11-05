@@ -1,5 +1,13 @@
 #!/bin/bash
 
+###############################################################################
+## Aguments
+###############################################################################
+# $1: # of epoch for training surrogate model
+# $2:
+
+
+
 #
 source ../05_SNN/venv/bin/activate
 #source ./venv/bin/activate
@@ -54,15 +62,15 @@ exp_case='VGG16_CIFAR-10'
 ###############################################################################
 
 
-epoch_start_train_tk=0
-epoch_start_train_t_int=0
-epoch_start_train_floor=0
-epoch_start_train_clip_tw=0
-epoch_start_loss_enc_spike=0
+epoch_start_train_tk=$2
+epoch_start_train_t_int=$3
+epoch_start_train_floor=$4
+epoch_start_train_clip_tw=$5
+epoch_start_loss_enc_spike=$6
 
 #
-bypass_pr=0
-bypass_target_epoch=500
+bypass_pr=$7
+bypass_target_epoch=$8
 
 
 #
@@ -147,9 +155,10 @@ time_step=200
 # for MNIST, CNN
 # SNN training
 #time_step=200
+time_step_save_interval=100
 #time_step_save_interval=40
 #time_step_save_interval=20
-time_step_save_interval=10
+#time_step_save_interval=10
 #time_step_save_interval=5
 
 
@@ -159,9 +168,12 @@ time_step_save_interval=10
 
 # for MNIST, CNN
 #batch_size=250
-batch_size=1
+batch_size=25
+#batch_size=1
+
 idx_test_dataset_s=0
-num_test_dataset=2
+num_test_dataset=25
+#num_test_dataset=500
 #num_test_dataset=50000
 #num_test_dataset=10000
 #num_test_dataset=250
@@ -181,11 +193,11 @@ num_test_dataset=2
 #
 ## input spike mode
 #
-#input_spike_mode='REAL'
+input_spike_mode='REAL'
 #input_spike_mode='POISSON'
 #input_spike_mode='WEIGHTED_SPIKE'
 #input_spike_mode='BURST'
-input_spike_mode='TEMPORAL'
+#input_spike_mode='TEMPORAL'
 
 #
 ## neural coding
@@ -755,6 +767,9 @@ INFER_VGG16_CIFAR-10_SUR)
 
 
 
+
+
+
 ###############################################################
 ## Training setup
 ###############################################################
@@ -797,9 +812,14 @@ TRAIN_VGG16_CIFAR-10)
     ann_model='VGG16'
 
 
+    #
+    #model_name='vgg16_cifar_train_ANN_surrogate_88_2'
+
+
     if [ ${f_surrogate_training_model} = True ]
     then
-        num_epoch=5000
+        #num_epoch=5000
+        num_epoch=$1
         model_name='vgg16_cifar10_train_'${nn_mode}_'surrogate'
     else
         num_epoch=2000
@@ -971,7 +991,8 @@ else
     log_file_post_fix=_${n_type}_time_step_${time_step}_vth_${vth}_c_infer
 fi
 
-log_file=${path_log_root}/log_${model_name}_${nn_mode}_${log_file_post_fix}
+#log_file=${path_log_root}/log_${model_name}_${nn_mode}_${log_file_post_fix}
+#log_file
 
 
 date=`date +%Y%m%d_%H%M`
@@ -985,7 +1006,22 @@ mkdir -p ${path_result_root}
 mkdir -p ${time_const_root}
 
 #log_file=${path_log_root}/log_${model_name}_${nn_mode}_${time_step}_${vth}_999_norm_${f_real_value_input_snn}_${date}
-log_file=${path_log_root}/${date}.log
+#log_file=${path_log_root}/${date}.log
+
+
+
+#epoch=$1
+#epoch_start_train_tk=$2
+#epoch_start_train_t_int=$3
+#epoch_start_train_floor=$4
+#epoch_start_train_clip_tw=$5
+#epoch_start_loss_enc_spike=$6
+#
+#bypass_pr=$7
+#bypass_target_epoch=$8
+log_file_name=ep-$1_tk-$2_int-$3_fl-$4_cl-$5_le-$6_bp-$7_bt-$8
+log_file=${path_log_root}/${log_file_name}.log
+tfboard_log_file_name=${log_file_name}
 
 #{ unbuffer time kernprof -l main.py \
 #{ CUDA_VISIBLE_DEVICES=0 unbuffer time python main.py \
@@ -1079,6 +1115,7 @@ log_file=${path_log_root}/${date}.log
     -beta_dist_a=${beta_dist_a}\
     -beta_dist_b=${beta_dist_b}\
     -enc_st_n_tw=${enc_st_n_tw}\
+    -tfboard_log_file_name=${tfboard_log_file_name}\
     ; } 2>&1 | tee ${log_file}
 
 echo 'log_file: '${log_file}
