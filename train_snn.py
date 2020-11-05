@@ -413,15 +413,17 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
 
             else:
                 for l_name, tk in model.list_tk.items():
-                    if (not f_plot_done) and (epoch % 10==0) and (epoch!=0) and (l_name=='conv2'):
+                    if (not f_plot_done) and (epoch % 10 == 0) and (epoch!=0) and (l_name == 'conv2'):
 
                         f_plot_done = True
 
                         enc_st = tk.out_enc
-                        enc_st = tf.clip_by_value(enc_st,0,model.enc_st_target_end)
+                        enc_st = tf.clip_by_value(enc_st, 0, model.enc_st_target_end)
                         enc_st = tf.reshape(enc_st, [-1])
-                        enc_st = tf.histogram_fixed_width(enc_st, [0,model.enc_st_target_end], nbins=model.enc_st_target_end)
-                        enc_st = tf.cast(enc_st,tf.float32)
+                        enc_st = tf.histogram_fixed_width(enc_st, [0, model.enc_st_target_end],
+                                                          nbins=model.enc_st_target_end)
+
+                        enc_st = tf.cast(enc_st, tf.float32)
 
                         axs_glob[0].plot(enc_st)
 
@@ -429,8 +431,10 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
                         plt.pause(0.0000000000000001)
 
 
-#            # debug
-#            for l_name, tk in model.list_tk.items():
+
+
+            #            # debug
+            #            for l_name, tk in model.list_tk.items():
 #                enc_st = tk.out_enc
 #                #enc_st = tf.clip_by_value(enc_st,0,model.enc_st_target_end)
 #                #enc_st = tf.clip_by_value(enc_st,0,model.conf.time_window)

@@ -32,8 +32,8 @@ verbose=False
 #verbose_visual=True
 verbose_visual=False
 
-#en_tensorboard_write=True
-en_tensorboard_write=False
+en_tensorboard_write=True
+#en_tensorboard_write=False
 
 
 ###############################################################################
@@ -54,21 +54,21 @@ exp_case='VGG16_CIFAR-10'
 ###############################################################################
 
 
-epoch_start_train_tk=200
-epoch_start_train_t_int=1000
-epoch_start_train_floor=1000
-epoch_start_train_clip_tw=1
-epoch_start_loss_enc_spike=200
+epoch_start_train_tk=0
+epoch_start_train_t_int=0
+epoch_start_train_floor=0
+epoch_start_train_clip_tw=0
+epoch_start_loss_enc_spike=0
 
 #
-bypass_pr=1.0
-bypass_target_epoch=1000
+bypass_pr=0
+bypass_target_epoch=500
 
 
 #
 # encoded spike distribution loss
-#f_loss_enc_spike=False
-f_loss_enc_spike=True
+f_loss_enc_spike=False
+#f_loss_enc_spike=True
 
 # weight of loss
 w_loss_enc_spike=10
@@ -84,14 +84,14 @@ beta_dist_a=1
 beta_dist_b=2
 
 # target max encoded spike time - number of time window
-enc_st_n_tw=10
+enc_st_n_tw=2
 
 ###############################################################################
 ## Run
 ###############################################################################
 
 training_mode=True
-training_mode=False
+#training_mode=False
 
 #
 # If this flag is False, then the trained model is overwritten
