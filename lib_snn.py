@@ -28,8 +28,8 @@ class Neuron(tf.keras.layers.Layer):
         self.n_name = n_name
 
         # stat for weighted spike
-        self.en_stat_ws = True
-        #self.en_stat_ws = False
+        #self.en_stat_ws = True
+        self.en_stat_ws = False
 
         #self.zeros = np.zeros(self.dim,dtype=np.float32)
         #self.zeros = tf.constant(0.0,shape=self.dim,dtype=tf.float32)
@@ -251,7 +251,7 @@ class Neuron(tf.keras.layers.Layer):
         #print(self.vth.shape)
         #print(self.time_const_fire.shape)
         #self.vth = tf.constant(tf.exp(tf.divide(-time,self.time_const_fire)),tf.float32,self.out.shape)
-        self.vth = tf.exp(tf.divide(-time,self.time_const_fire))
+        self.vth = tf.multiply(self.conf.n_init_vth,tf.exp(tf.divide(-time,self.time_const_fire)))
 
         # polynomial
         #self.vth = tf.constant(tf.add(-tf.pow(t/self.conf.tc,2),1.0),tf.float32,self.out.shape)
@@ -259,16 +259,21 @@ class Neuron(tf.keras.layers.Layer):
 
     ##
     def input_spike_real(self,inputs,t):
+        # TODO: check it
         if self.conf.neural_coding=="WEIGHTED_SPIKE":
             self.out=tf.truediv(inputs,self.conf.p_ws)
-        if self.conf.neural_coding=="TEMPORAL":
+        elif self.conf.neural_coding=="TEMPORAL":
             if t==0:
                 self.out=inputs
             else:
                 self.out = tf.zeros(self.out.shape)
         else:
-            #self.out=inputs
-            assert False
+            self.out=inputs
+
+#        else:
+#            self.out=inputs
+#            #assert False
+        #self.out=inputs
 
     def input_spike_poission(self,inputs,t):
         # Poission input
@@ -573,7 +578,9 @@ class Neuron(tf.keras.layers.Layer):
         # weighted synpase input
         t_mod = (int)(t%self.conf.p_ws)
         if t_mod == 0:
-            self.vth = tf.constant(0.5,tf.float32,self.vth.shape)
+            #here
+            #self.vth = tf.constant(0.5,tf.float32,self.vth.shape)
+            self.vth = tf.constant(self.conf.n_init_vth,tf.float32,self.vth.shape)
         else:
             self.vth = tf.multiply(self.vth,0.5)
 

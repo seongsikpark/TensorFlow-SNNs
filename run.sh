@@ -90,7 +90,7 @@ enc_st_n_tw=2
 ## Run
 ###############################################################################
 
-training_mode=True
+#training_mode=True
 training_mode=False
 
 #
@@ -115,7 +115,7 @@ f_overwrite_train_model=False
 
 # full test
 f_full_test=True
-#f_full_test=False
+f_full_test=False
 
 
 #
@@ -138,7 +138,7 @@ f_full_test=True
 
 # for MNIST, CNN
 # DNN-to-SNN, inference
-time_step=200
+#time_step=200
 #time_step_save_interval=10
 #time_step_save_interval=2
 
@@ -147,6 +147,11 @@ time_step=200
 # for MNIST, CNN
 # SNN training
 #time_step=200
+
+
+# CIFAR-10
+time_step=1500
+
 time_step_save_interval=100
 #time_step_save_interval=40
 #time_step_save_interval=20
@@ -185,19 +190,19 @@ num_test_dataset=25
 #
 ## input spike mode
 #
-#input_spike_mode='REAL'
+input_spike_mode='REAL'
 #input_spike_mode='POISSON'
 #input_spike_mode='WEIGHTED_SPIKE'
 #input_spike_mode='BURST'
-input_spike_mode='TEMPORAL'
+#input_spike_mode='TEMPORAL'
 
 #
 ## neural coding
 #
 #neural_coding='RATE'
-#neural_coding='WEIGHTED_SPIKE'
+neural_coding='WEIGHTED_SPIKE'
 #neural_coding='BURST'
-neural_coding='TEMPORAL'
+#neural_coding='TEMPORAL'
 #neural_coding='NON_LINEAR'     # PF-Neuron
 
 
@@ -259,9 +264,9 @@ then
     # decreasing
     #vth=1.0
     #vth=0.5        # 1/2
-    #vth=0.25       # 1/4
+    vth=0.25       # 1/4
     # increasing
-    vth=0.125      # 1/8 # default
+    #vth=0.125      # 1/8 # default
     #vth=0.0625     # 1/16
     #vth=0.03125    # 1/32
     #vth=0.015625   # 1/64
@@ -389,10 +394,9 @@ epoch_train_time_const=1
 
 # TTFS - CIFAR-10 default setting
 #tc=10
-tc=20
-#tc=16
-time_fire_start=80    # integration duration - n x tc
-time_fire_duration=80   # time window - n x tc
+tc=8
+time_fire_start=32    # integration duration - n x tc
+time_fire_duration=32   # time window - n x tc
 time_window=${time_fire_duration}
 
 
@@ -583,7 +587,8 @@ INFER_VGG16_CIFAR-10)
     echo "Inference mode - "${nn_mode}", Model: VGG16, Dataset: CIFAR-10"
     ann_model='CNN'         # CNN-CIFAR: VGG16
     dataset='CIFAR-10'
-    model_name='vgg_cifar_ro_0'
+    #model_name='vgg_cifar_ro_0'
+    model_name='vgg16_cifar10_train_ANN'
 
     if [ ${f_full_test} = True ]
     then
@@ -834,7 +839,8 @@ TRAIN_VGG16_CIFAR-100)
     ann_model='VGG16'
 
     #num_epoch=2000
-    num_epoch=4000
+    #num_epoch=4000
+    num_epoch=10000
 
     if [ ${f_surrogate_training_model} = True ]
     then
@@ -981,11 +987,16 @@ date=`date +%Y%m%d_%H%M`
 
 path_result_root=${path_result_root}/${model_name}
 time_const_root=${time_const_init_file_name}/${model_name}
+#
+path_stat=${path_stat_root}/${model_name}
 
 #
 mkdir -p ${path_log_root}
 mkdir -p ${path_result_root}
 mkdir -p ${time_const_root}
+mkdir -p ${path_stat}
+
+
 
 #log_file=${path_log_root}/log_${model_name}_${nn_mode}_${time_step}_${vth}_999_norm_${f_real_value_input_snn}_${date}
 log_file=${path_log_root}/${date}.log

@@ -209,7 +209,7 @@ tf.compat.v1.app.flags.DEFINE_bool('f_vth_conp',False,'f_vth_conp')
 tf.compat.v1.app.flags.DEFINE_bool('f_spike_max_pool',False,'f_spike_max_pool')
 tf.compat.v1.app.flags.DEFINE_bool('f_w_norm_data',False,'f_w_norm_data')
 tf.compat.v1.app.flags.DEFINE_bool('f_ws',False,'wieghted synapse')
-tf.compat.v1.app.flags.DEFINE_integer('p_ws',8,'period of wieghted synapse')
+tf.compat.v1.app.flags.DEFINE_float('p_ws',8,'period of wieghted synapse')
 
 tf.compat.v1.app.flags.DEFINE_integer('num_class',10,'number_of_class (do not touch)')
 
@@ -331,9 +331,13 @@ conf.data_path_imagenet = data_path_imagenet
 #
 conf.time_fire_start = 1.5
 
-
+# TODO: parameterize - input 0~1
 if conf.model_name == 'vgg_cifar_ro_0':
     conf.f_data_std = False
+
+# stat mode - cpu
+if conf.f_write_stat:
+    en_gpu=False
 
 def main(_):
     #pr = cProfile.Profile()
