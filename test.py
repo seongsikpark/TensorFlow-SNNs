@@ -253,6 +253,8 @@ def test(model, dataset, num_dataset, conf, f_val=False, epoch=0, f_val_snn=Fals
                 if conf.neural_coding=="TEMPORAL":
                     f_name_result += outfile_name_temporal(conf)
 
+                if conf.noise_en:
+                    f_name_result += '_nt-'+conf.noise_type+'_np-'+str(conf.noise_pr)
 
                 #f_name_result = f_name_result+'.xlsx'
                 f_name_result += '.xlsx'

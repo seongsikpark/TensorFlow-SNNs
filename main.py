@@ -321,6 +321,13 @@ tf.compat.v1.app.flags.DEFINE_float('beta_dist_b',0.1,'coefficient of beta distr
 #
 tf.compat.v1.app.flags.DEFINE_integer('enc_st_n_tw',10,'target max encoded spike time - number of time window')
 
+# noise
+tf.compat.v1.app.flags.DEFINE_bool('noise_en',False,'noise injection mode enable')
+tf.compat.v1.app.flags.DEFINE_string('noise_type',None,'noise type - DEL ..')
+tf.compat.v1.app.flags.DEFINE_float('noise_pr',0.1,'noise probability for DEL')
+
+
+
 #
 conf = flags.FLAGS
 

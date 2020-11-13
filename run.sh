@@ -200,9 +200,9 @@ input_spike_mode='REAL'
 ## neural coding
 #
 #neural_coding='RATE'
-neural_coding='WEIGHTED_SPIKE'
+#neural_coding='WEIGHTED_SPIKE'
 #neural_coding='BURST'
-#neural_coding='TEMPORAL'
+neural_coding='TEMPORAL'
 #neural_coding='NON_LINEAR'     # PF-Neuron
 
 
@@ -259,19 +259,29 @@ then
 fi
 
 
-if [ ${neural_coding} = 'BURST' ]
+vth=1.0
+# TODO: input_spike_mode - REAL
+#if [ ${input_spike_mode} = 'REAL' ] && [ ${neural_coding} = 'BURST' ]
+if [ ${neural_coding} = 'RATE' ]
+then
+    vth=0.4
+elif [ ${neural_coding} = 'BURST' ]
 then
     # decreasing
     #vth=1.0
     #vth=0.5        # 1/2
-    vth=0.25       # 1/4
+    #vth=0.25       # 1/4
     # increasing
     #vth=0.125      # 1/8 # default
+    vth=0.4         # empirical best
     #vth=0.0625     # 1/16
     #vth=0.03125    # 1/32
     #vth=0.015625   # 1/64
     #vth=0.015625   # 1/128
     #vth=0.0078125  # 1/256
+elif [ ${neural_coding} = 'TEMPORAL' ]
+then
+    vth=0.8
 fi
 
 
@@ -298,11 +308,11 @@ snn_output_type='VMEM'
 
 
 
-###############################################################
+###############################################################################
 ## Gradient-based optimization of tc and td
 ## only for the TTFS coding (TEMPORAL)
 ## "Deep Spiking Neural Networks with Time-to-first-spike Coding", DAC-20
-###############################################################
+###############################################################################
 
 batch_run_mode=False
 #batch_run_mode=True
@@ -310,7 +320,28 @@ batch_run_mode=False
 #
 batch_run_train_tc=False
 #batch_run_train_tc=True
-###############################################################
+###############################################################################
+
+
+###############################################################################
+## Noise
+##
+###############################################################################
+
+noise_en=False
+#noise_en=True
+
+noise_type="DEL"
+#noise_type="JIT"
+
+# for noise_type = DEL (pr), JIT (std)
+noise_pr=0.01
+#noise_pr=1.0
+
+
+###############################################################################
+
+
 
 f_visual_record_first_spike_time=False
 #f_visual_record_first_spike_time=True
@@ -394,11 +425,16 @@ epoch_train_time_const=1
 
 # TTFS - CIFAR-10 default setting
 #tc=10
-tc=8
-time_fire_start=32    # integration duration - n x tc
-time_fire_duration=32   # time window - n x tc
-time_window=${time_fire_duration}
+#tc=8
+#time_fire_start=32    # integration duration - n x tc
+#time_fire_duration=32   # time window - n x tc
+#time_window=${time_fire_duration}
 
+
+tc=2
+time_fire_start=6    # integration duration - n x tc
+time_fire_duration=12   # time window - n x tc
+time_window=${time_fire_duration}
 
 ## TTFS - CIFAR-10
 #tc=8
@@ -1093,6 +1129,9 @@ log_file=${path_log_root}/${date}.log
     -beta_dist_a=${beta_dist_a}\
     -beta_dist_b=${beta_dist_b}\
     -enc_st_n_tw=${enc_st_n_tw}\
+    -noise_en=${noise_en}\
+    -noise_type=${noise_type}\
+    -noise_pr=${noise_pr}\
     ; } 2>&1 | tee ${log_file}
 
 echo 'log_file: '${log_file}

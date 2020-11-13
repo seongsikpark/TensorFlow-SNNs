@@ -9,6 +9,9 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
+from collections import deque
+from tensorflow.python.framework import tensor_shape
+
 #class Neuron(tf.layers.Layer):
 class Neuron(tf.keras.layers.Layer):
     def __init__(self,dim,n_type,fan_in,conf,neural_coding,depth=0,n_name='',**kwargs):
@@ -154,6 +157,16 @@ class Neuron(tf.keras.layers.Layer):
                 self.loss_min=self.add_variable("loss_min",shape=[],dtype=tf.float32,initializer=tf.zeros_initializer,trainable=False)
                 self.loss_max=self.add_variable("loss_max",shape=[],dtype=tf.float32,initializer=tf.zeros_initializer,trainable=False)
 
+
+        if self.conf.noise_en and (self.conf.noise_type=="JIT"):
+            #self.jit_max = tf.floor(4*self.conf.noise_pr)       # 4 sigma
+            self.jit_max = int(tf.floor(4*self.conf.noise_pr))       # 4 sigma
+            shape = tensor_shape.TensorShape(self.vmem.shape)
+            #shape = tensor_shape.TensorShape(self.out.shape+[int(self.jit_max),])
+            #shape = tensor_shape.TensorShape([int(self.jit_max),]+self.out.shape)
+
+            #self.jit_q = self.add_variable("jit_q",shape=shape,dtype=tf.bool,initializer=tf.constant_initializer(False),trainable=False)
+            self.jit_q = self.add_variable("jit_q",shape=shape,dtype=tf.int32,initializer=tf.constant_initializer(False),trainable=False)
 
     def call(self,inputs,t):
         
@@ -456,6 +469,18 @@ class Neuron(tf.keras.layers.Layer):
             time = time - self.time_delay_integ
         #time = tf.zeros(self.vmem.shape)
 
+#        if self.conf.noise_en:
+#            if self.conf.noise_type=="JIT":
+#                rand = tf.random.normal(shape=inputs.shape,mean=0.0,stddev=self.conf.noise_pr)
+#                rand = tf.abs(rand)
+#                rand = tf.floor(rand)
+#
+#                time = tf.add(time,rand)
+#                #print(rand)
+#                #print(time)
+#
+#                #assert False
+
         #receptive_kernel = tf.constant(tf.exp(-time/self.conf.tc),tf.float32,self.vmem.shape)
 
         #receptive_kernel = tf.constant(tf.exp(-time/self.time_const_integ),tf.float32,self.vmem.shape)
@@ -525,6 +550,57 @@ class Neuron(tf.keras.layers.Layer):
 
         self.vmem = tf.add(self.vmem,psp)
 
+    # TODO: move
+    ############################################################
+    ## noise function
+    ############################################################
+    def noise_jit(self,t):
+        rand = tf.random.normal(self.out.shape,mean=0.0,stddev=self.conf.noise_pr)
+        time_jit= tf.cast(tf.floor(tf.abs(rand)),dtype=tf.int32)
+
+        f_jit_del = tf.not_equal(time_jit,tf.zeros(self.out.shape,dtype=tf.int32))
+        t_mod = t%self.jit_max
+        pow_t_mod = tf.pow(2,t_mod)
+        one_or_zero = tf.cast(tf.math.mod(tf.truediv(self.jit_q,pow_t_mod,2),2),tf.float32)
+        f_jit_ins = tf.equal(one_or_zero,tf.ones(self.out.shape))
+        self.jit_q = tf.where(f_jit_ins,tf.subtract(self.jit_q,pow_t_mod),self.jit_q)
+
+
+        f_fire_and_jit_del = tf.math.logical_and(self.f_fire,f_jit_del)
+
+        jit_t = tf.math.floormod(tf.add(tf.constant(t,shape=time_jit.shape,dtype=tf.int32),time_jit),self.jit_max)
+
+        jit_q_t = tf.add(self.jit_q,tf.pow(2,jit_t))
+
+        self.jit_q = tf.where(f_fire_and_jit_del,jit_q_t,self.jit_q)
+
+        # jitter - del
+        out_tmp = tf.where(f_fire_and_jit_del,tf.zeros(self.out.shape),self.out)
+
+        # jitter - insert
+        # reset by subtraction
+        self.out = tf.where(f_jit_ins,self.vth,out_tmp)
+
+
+
+
+
+    def noise_del(self):
+        #print(self.out)
+        #print(tf.reduce_sum(self.out))
+
+        rand = tf.random.uniform(self.out.shape,minval=0.0,maxval=1.0)
+
+        f_noise = tf.less(rand,tf.constant(self.conf.noise_pr,shape=self.out.shape))
+
+        f_fire_and_noise = tf.math.logical_and(self.f_fire,f_noise)
+
+        #out_noise = tf.where(f_fire_and_noise,tf.zeros(self.out.shape),self.out)
+        self.out = tf.where(f_fire_and_noise,tf.zeros(self.out.shape),self.out)
+
+        #print("out_noise: {}".format(tf.reduce_sum(out_noise)))
+
+        #assert False
 
 
 
@@ -553,6 +629,17 @@ class Neuron(tf.keras.layers.Layer):
             'NON_LINEAR': self.fire_non_lin
         }.get(self.neural_coding, self.fire_rate) (t)
 
+        #
+        if self.conf.noise_en:
+
+            # noise - jitter
+            if self.conf.noise_type=='JIT':
+                self.noise_jit(t)
+
+            # TODO: modify it to switch style
+            # noise - DEL spikes
+            if self.conf.noise_type == 'DEL':
+                self.noise_del()
 
 
     #
@@ -684,6 +771,8 @@ class Neuron(tf.keras.layers.Layer):
 
         if self.conf.f_refractory:
             self.cal_refractory_temporal(self.f_fire)
+
+
 
 
     #
