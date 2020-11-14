@@ -745,7 +745,7 @@ class Neuron(tf.keras.layers.Layer):
 
         if self.conf.noise_en:
             if self.conf.noise_type=="JIT":
-                rand = tf.random.normal(shape=out.shape,mean=0.0,stddev=self.conf.noise_pr)
+                rand = tf.random.normal(shape=self.out.shape,mean=0.0,stddev=self.conf.noise_pr)
                 rand = tf.abs(rand)
                 rand = tf.floor(rand)
                 pow_rand = tf.pow(2.0,rand)
