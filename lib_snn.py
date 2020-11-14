@@ -158,15 +158,15 @@ class Neuron(tf.keras.layers.Layer):
                 self.loss_max=self.add_variable("loss_max",shape=[],dtype=tf.float32,initializer=tf.zeros_initializer,trainable=False)
 
 
-        if self.conf.noise_en and (self.conf.noise_type=="JIT"):
-            #self.jit_max = tf.floor(4*self.conf.noise_pr)       # 4 sigma
-            self.jit_max = int(tf.floor(4*self.conf.noise_pr))       # 4 sigma
-            shape = tensor_shape.TensorShape(self.vmem.shape)
-            #shape = tensor_shape.TensorShape(self.out.shape+[int(self.jit_max),])
-            #shape = tensor_shape.TensorShape([int(self.jit_max),]+self.out.shape)
-
-            #self.jit_q = self.add_variable("jit_q",shape=shape,dtype=tf.bool,initializer=tf.constant_initializer(False),trainable=False)
-            self.jit_q = self.add_variable("jit_q",shape=shape,dtype=tf.int32,initializer=tf.constant_initializer(False),trainable=False)
+#        if self.conf.noise_en and (self.conf.noise_type=="JIT"):
+#            #self.jit_max = tf.floor(4*self.conf.noise_pr)       # 4 sigma
+#            self.jit_max = int(tf.floor(4*self.conf.noise_pr))       # 4 sigma
+#            shape = tensor_shape.TensorShape(self.vmem.shape)
+#            #shape = tensor_shape.TensorShape(self.out.shape+[int(self.jit_max),])
+#            #shape = tensor_shape.TensorShape([int(self.jit_max),]+self.out.shape)
+#
+#            #self.jit_q = self.add_variable("jit_q",shape=shape,dtype=tf.bool,initializer=tf.constant_initializer(False),trainable=False)
+#            self.jit_q = self.add_variable("jit_q",shape=shape,dtype=tf.int32,initializer=tf.constant_initializer(False),trainable=False)
 
     def call(self,inputs,t):
         
@@ -469,17 +469,17 @@ class Neuron(tf.keras.layers.Layer):
             time = time - self.time_delay_integ
         #time = tf.zeros(self.vmem.shape)
 
-#        if self.conf.noise_en:
-#            if self.conf.noise_type=="JIT":
-#                rand = tf.random.normal(shape=inputs.shape,mean=0.0,stddev=self.conf.noise_pr)
-#                rand = tf.abs(rand)
-#                rand = tf.floor(rand)
-#
-#                time = tf.add(time,rand)
-#                #print(rand)
-#                #print(time)
-#
-#                #assert False
+        if self.conf.noise_en:
+            if self.conf.noise_type=="JIT":
+                rand = tf.random.normal(shape=inputs.shape,mean=0.0,stddev=self.conf.noise_pr)
+                rand = tf.abs(rand)
+                rand = tf.floor(rand)
+
+                time = tf.add(time,rand)
+                #print(rand)
+                #print(time)
+
+                #assert False
 
         #receptive_kernel = tf.constant(tf.exp(-time/self.conf.tc),tf.float32,self.vmem.shape)
 
@@ -632,9 +632,9 @@ class Neuron(tf.keras.layers.Layer):
         #
         if self.conf.noise_en:
 
-            # noise - jitter
-            if self.conf.noise_type=='JIT':
-                self.noise_jit(t)
+            ## noise - jitter
+            #if self.conf.noise_type=='JIT':
+            #    self.noise_jit(t)
 
             # TODO: modify it to switch style
             # noise - DEL spikes
@@ -685,6 +685,17 @@ class Neuron(tf.keras.layers.Layer):
 
         self.vmem = tf.subtract(self.vmem,self.out)
 
+        # noise - jit
+        if self.conf.noise_en:
+            if self.conf.noise_type=="JIT":
+                rand = tf.random.normal(shape=out.shape,mean=0.0,stddev=self.conf.noise_pr)
+                rand = tf.abs(rand)
+                rand = tf.floor(rand)
+                pow_rand = tf.pow(2.0,rand)
+
+                self.out = tf.multiply(self.out,pow_rand)
+
+
         # stat for weighted spike
         if self.en_stat_ws:
             count = tf.cast(tf.math.count_nonzero(self.out),tf.float32)
@@ -730,6 +741,17 @@ class Neuron(tf.keras.layers.Layer):
         # exp decreasing order
         #self.vth = tf.where(f_fire,self.vth*0.5,self.vth_init)
         #self.vth = tf.where(f_fire,self.vth*0.9,self.vth_init)
+
+
+        if self.conf.noise_en:
+            if self.conf.noise_type=="JIT":
+                rand = tf.random.normal(shape=out.shape,mean=0.0,stddev=self.conf.noise_pr)
+                rand = tf.abs(rand)
+                rand = tf.floor(rand)
+                pow_rand = tf.pow(2.0,rand)
+
+                self.out = tf.multiply(self.out,pow_rand)
+
 
         if self.conf.f_isi:
             self.cal_isi(self.f_fire,t)

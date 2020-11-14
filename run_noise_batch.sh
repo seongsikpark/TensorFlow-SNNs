@@ -15,7 +15,9 @@
 #is_arr=('REAL' 'POISSON' 'WEIGHTED_SPIKE' 'BURST' 'TEMPORAL')
 is_arr=('REAL')
 #nc_arr=('RATE' 'WEIGHTED_SPIKE' 'BURST' 'TEMPORAL')
-nc_arr=('RATE' 'WEIGHTED_SPIKE' 'BURST')
+#nc_arr=('RATE' 'WEIGHTED_SPIKE' 'BURST')
+#nc_arr=('WEIGHTED_SPIKE' 'BURST')
+nc_arr=('BURST')
 #nc_arr=('TEMPORAL')
 
 
@@ -36,8 +38,14 @@ tssi=${tssi_arr[0]}
 noise_en=True      #: true
 if [ ${noise_en} = True ]
 then
-    noise_type_arr=('DEL')
-    noise_pr_arr=(0.01 0.02 0.05 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0)
+    # del
+    #noise_type_arr=('DEL')
+    #noise_pr_arr=(0.01 0.02 0.05 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9)
+
+    # jit
+    noise_type_arr=('JIT')
+    noise_pr_arr=(0.1 0.3 0.5 0.7 0.9 1.0 2.0 4.0 8.0)
+
 else
     noise_type_arr=('NULL')
     noise_pr_arr=(0)
