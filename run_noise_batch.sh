@@ -17,7 +17,8 @@ is_arr=('REAL')
 #nc_arr=('RATE' 'WEIGHTED_SPIKE' 'BURST' 'TEMPORAL')
 #nc_arr=('RATE' 'WEIGHTED_SPIKE' 'BURST')
 #nc_arr=('WEIGHTED_SPIKE' 'BURST')
-nc_arr=('BURST')
+nc_arr=('WEIGHTED_SPIKE')
+#nc_arr=('BURST')
 #nc_arr=('TEMPORAL')
 
 
@@ -43,7 +44,11 @@ then
     #noise_pr_arr=(0.01 0.02 0.05 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9)
 
     # jit
-    noise_type_arr=('JIT')
+    #noise_type_arr=('JIT')
+    #noise_pr_arr=(0.1 0.3 0.5 0.7 0.9 1.0 2.0 4.0 8.0)
+
+    # jit_na - jit not absolute
+    noise_type_arr=('JIT-NA')
     noise_pr_arr=(0.1 0.3 0.5 0.7 0.9 1.0 2.0 4.0 8.0)
 
 else
@@ -64,20 +69,23 @@ for ((i_is=0;i_is<${#is_arr[@]};i_is++)) do
             ts_arr=(1000)
             #vth_arr=(0.03125 0.0625 0.0125 0.25 0.4 0.5 0.6 0.8 1.0)
             #vth_arr=(0.2 0.4 0.6 0.8 1.0 1.2)
-            vth_arr=(0.4 0.6)
+            #vth_arr=(0.4 0.6)
+            vth_arr=(0.4)
         elif [ ${nc} = 'WEIGHTED_SPIKE' ]
         then
             ts_arr=(1500)
             #vth_arr=(0.6 0.8 1.0)
             #vth_arr=(0.2 0.4 0.6 0.8 1.0 1.2)
             #vth_arr=(0.2 0.4 0.6 0.8 1.0 1.2)
-            vth_arr=(1.0 1.2)
+            #vth_arr=(1.0 1.2)
+            vth_arr=(1.2)
         elif [ ${nc} = 'BURST' ]
         then
             ts_arr=(1000)
             #vth_arr=(0.03125 0.0625 0.0125 0.25 0.5 1.0)
             #vth_arr=(0.2 0.4 0.6 0.8 1.0 1.2)
-            vth_arr=(0.4 0.6)
+            #vth_arr=(0.4 0.6)
+            vth_arr=(0.4)
         elif [ ${nc} = 'TEMPORAL' ]
         then
             ts_arr=(1500)

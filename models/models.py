@@ -241,9 +241,9 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
 
         if self.conf.dataset=='CIFAR-100':
-            self.dropout_conv = tf.keras.layers.Dropout(0.5)
-            self.dropout_conv2 = tf.keras.layers.Dropout(0.5)
-            self.dropout = tf.keras.layers.Dropout(0.5)
+            self.dropout_conv = tf.keras.layers.Dropout(0.3)
+            self.dropout_conv2 = tf.keras.layers.Dropout(0.3)
+            self.dropout = tf.keras.layers.Dropout(0.3)
         else:
             # cifar-10
             self.dropout_conv = tf.keras.layers.Dropout(0.3)
@@ -1260,8 +1260,8 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             s_conv1_1_bn = self.conv1_1_bn(s_conv1_1,training=f_training)
         a_conv1_1 = tf.nn.relu(s_conv1_1_bn)
         p_conv1_1 = self.pool2d(a_conv1_1)
-        #if f_training:
-        #    x = self.dropout_conv(x,training=f_training)
+        if f_training:
+            x = self.dropout_conv(x,training=f_training)
 
         s_conv2 = self.conv2(p_conv1_1)
         if self.f_skip_bn:
@@ -1278,8 +1278,8 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             s_conv2_1_bn = self.conv2_1_bn(s_conv2_1,training=f_training)
         a_conv2_1 = tf.nn.relu(s_conv2_1_bn)
         p_conv2_1 = self.pool2d(a_conv2_1)
-        #if f_training:
-        #   x = self.dropout_conv2(x,training=f_training)
+        if f_training:
+            x = self.dropout_conv2(x,training=f_training)
 
         s_conv3 = self.conv3(p_conv2_1)
         if self.f_skip_bn:
@@ -1304,8 +1304,8 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             s_conv3_2_bn = self.conv3_2_bn(s_conv3_2,training=f_training)
         a_conv3_2 = tf.nn.relu(s_conv3_2_bn)
         p_conv3_2 = self.pool2d(a_conv3_2)
-        #if f_training:
-        #   x = self.dropout_conv2(x,training=f_training)
+        if f_training:
+            x = self.dropout_conv2(x,training=f_training)
 
         s_conv4 = self.conv4(p_conv3_2)
         if self.f_skip_bn:
@@ -1330,8 +1330,8 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             s_conv4_2_bn = self.conv4_2_bn(s_conv4_2,training=f_training)
         a_conv4_2 = tf.nn.relu(s_conv4_2_bn)
         p_conv4_2 = self.pool2d(a_conv4_2)
-        #if f_training:
-        #   x = self.dropout_conv2(x,training=f_training)
+        if f_training:
+            x = self.dropout_conv2(x,training=f_training)
 
         s_conv5 = self.conv5(p_conv4_2)
         if self.f_skip_bn:

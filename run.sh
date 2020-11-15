@@ -40,12 +40,12 @@ en_tensorboard_write=False
 ## Model & Dataset
 ###############################################################################
 nn_mode='ANN'
-nn_mode='SNN'
+#nn_mode='SNN'
 
 
 #exp_case='CNN_MNIST'
-exp_case='VGG16_CIFAR-10'
-#exp_case='VGG16_CIFAR-100'
+#exp_case='VGG16_CIFAR-10'
+exp_case='VGG16_CIFAR-100'
 #exp_case='ResNet50_ImageNet'
 
 
@@ -90,8 +90,8 @@ enc_st_n_tw=2
 ## Run
 ###############################################################################
 
-#training_mode=True
-training_mode=False
+training_mode=True
+#training_mode=False
 
 #
 # If this flag is False, then the trained model is overwritten
@@ -115,7 +115,7 @@ f_overwrite_train_model=False
 
 # full test
 f_full_test=True
-f_full_test=False
+#f_full_test=False
 
 
 #

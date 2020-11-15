@@ -474,12 +474,12 @@ class Neuron(tf.keras.layers.Layer):
                 rand = tf.random.normal(shape=inputs.shape,mean=0.0,stddev=self.conf.noise_pr)
                 rand = tf.abs(rand)
                 rand = tf.floor(rand)
-
                 time = tf.add(time,rand)
-                #print(rand)
-                #print(time)
+            elif self.conf.noise_type=="JIT-NA":
+                rand = tf.random.normal(shape=inputs.shape,mean=0.0,stddev=self.conf.noise_pr)
+                rand = tf.floor(rand)
+                time = tf.add(time,rand)
 
-                #assert False
 
         #receptive_kernel = tf.constant(tf.exp(-time/self.conf.tc),tf.float32,self.vmem.shape)
 
@@ -665,7 +665,6 @@ class Neuron(tf.keras.layers.Layer):
         # weighted synpase input
         t_mod = (int)(t%self.conf.p_ws)
         if t_mod == 0:
-            #here
             #self.vth = tf.constant(0.5,tf.float32,self.vth.shape)
             self.vth = tf.constant(self.conf.n_init_vth,tf.float32,self.vth.shape)
         else:
@@ -688,13 +687,18 @@ class Neuron(tf.keras.layers.Layer):
         # noise - jit
         if self.conf.noise_en:
             if self.conf.noise_type=="JIT":
-                rand = tf.random.normal(shape=out.shape,mean=0.0,stddev=self.conf.noise_pr)
+                rand = tf.random.normal(shape=self.out.shape,mean=0.0,stddev=self.conf.noise_pr)
                 rand = tf.abs(rand)
                 rand = tf.floor(rand)
                 pow_rand = tf.pow(2.0,rand)
 
                 self.out = tf.multiply(self.out,pow_rand)
+            elif self.conf.noise_type=="JIT-NA":
+                rand = tf.random.normal(shape=self.out.shape,mean=0.0,stddev=self.conf.noise_pr)
+                rand = tf.floor(rand)
+                pow_rand = tf.pow(2.0,rand)
 
+                self.out = tf.multiply(self.out,pow_rand)
 
         # stat for weighted spike
         if self.en_stat_ws:
@@ -751,6 +755,13 @@ class Neuron(tf.keras.layers.Layer):
                 pow_rand = tf.pow(2.0,rand)
 
                 self.out = tf.multiply(self.out,pow_rand)
+            elif self.conf.noise_type=="JIT-NA":
+                rand = tf.random.normal(shape=self.out.shape,mean=0.0,stddev=self.conf.noise_pr)
+                rand = tf.floor(rand)
+                pow_rand = tf.pow(2.0,rand)
+
+                self.out = tf.multiply(self.out,pow_rand)
+
 
 
         if self.conf.f_isi:
