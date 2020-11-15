@@ -470,13 +470,10 @@ class Neuron(tf.keras.layers.Layer):
         #time = tf.zeros(self.vmem.shape)
 
         if self.conf.noise_en:
-            if self.conf.noise_type=="JIT":
+            if self.conf.noise_type=="JIT" or self.conf.noise_type=="JIT-A":
                 rand = tf.random.normal(shape=inputs.shape,mean=0.0,stddev=self.conf.noise_pr)
-                rand = tf.abs(rand)
-                rand = tf.floor(rand)
-                time = tf.add(time,rand)
-            elif self.conf.noise_type=="JIT-NA":
-                rand = tf.random.normal(shape=inputs.shape,mean=0.0,stddev=self.conf.noise_pr)
+                if self.conf.noise_type=="JIT-A":
+                    rand = tf.abs(rand)
                 rand = tf.floor(rand)
                 time = tf.add(time,rand)
 
@@ -596,7 +593,11 @@ class Neuron(tf.keras.layers.Layer):
         f_fire_and_noise = tf.math.logical_and(self.f_fire,f_noise)
 
         #out_noise = tf.where(f_fire_and_noise,tf.zeros(self.out.shape),self.out)
-        self.out = tf.where(f_fire_and_noise,tf.zeros(self.out.shape),self.out)
+
+        if self.neural_coding=="TEMPORAL":
+            self.out = tf.where(f_fire_and_noise,tf.zeros(self.out.shape),self.out)
+        else:
+            self.out = tf.where(f_fire_and_noise,tf.zeros(self.out.shape),self.out)
 
         #print("out_noise: {}".format(tf.reduce_sum(out_noise)))
 
@@ -686,19 +687,14 @@ class Neuron(tf.keras.layers.Layer):
 
         # noise - jit
         if self.conf.noise_en:
-            if self.conf.noise_type=="JIT":
+            if self.conf.noise_type=="JIT" or self.conf.noise_type=="JIT-A":
                 rand = tf.random.normal(shape=self.out.shape,mean=0.0,stddev=self.conf.noise_pr)
-                rand = tf.abs(rand)
+                if self.conf.noise_type=="JIT-A":
+                    rand = tf.abs(rand)
                 rand = tf.floor(rand)
                 pow_rand = tf.pow(2.0,rand)
-
-                self.out = tf.multiply(self.out,pow_rand)
-            elif self.conf.noise_type=="JIT-NA":
-                rand = tf.random.normal(shape=self.out.shape,mean=0.0,stddev=self.conf.noise_pr)
-                rand = tf.floor(rand)
-                pow_rand = tf.pow(2.0,rand)
-
-                self.out = tf.multiply(self.out,pow_rand)
+                out_jit = tf.multiply(self.out,pow_rand)
+                self.out = tf.where(self.f_fire,out_jit,self.out)
 
         # stat for weighted spike
         if self.en_stat_ws:
@@ -748,21 +744,14 @@ class Neuron(tf.keras.layers.Layer):
 
 
         if self.conf.noise_en:
-            if self.conf.noise_type=="JIT":
+            if self.conf.noise_type=="JIT" or self.conf.noise_type=="JIT-A":
                 rand = tf.random.normal(shape=self.out.shape,mean=0.0,stddev=self.conf.noise_pr)
-                rand = tf.abs(rand)
+                if self.conf.noise_type=="JIT-A":
+                    rand = tf.abs(rand)
                 rand = tf.floor(rand)
                 pow_rand = tf.pow(2.0,rand)
-
-                self.out = tf.multiply(self.out,pow_rand)
-            elif self.conf.noise_type=="JIT-NA":
-                rand = tf.random.normal(shape=self.out.shape,mean=0.0,stddev=self.conf.noise_pr)
-                rand = tf.floor(rand)
-                pow_rand = tf.pow(2.0,rand)
-
-                self.out = tf.multiply(self.out,pow_rand)
-
-
+                out_jit = tf.multiply(self.out,pow_rand)
+                self.out = tf.where(self.f_fire,out_jit,self.out)
 
         if self.conf.f_isi:
             self.cal_isi(self.f_fire,t)

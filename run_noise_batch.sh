@@ -17,9 +17,9 @@ is_arr=('REAL')
 #nc_arr=('RATE' 'WEIGHTED_SPIKE' 'BURST' 'TEMPORAL')
 #nc_arr=('RATE' 'WEIGHTED_SPIKE' 'BURST')
 #nc_arr=('WEIGHTED_SPIKE' 'BURST')
-nc_arr=('WEIGHTED_SPIKE')
+#nc_arr=('WEIGHTED_SPIKE')
 #nc_arr=('BURST')
-#nc_arr=('TEMPORAL')
+nc_arr=('TEMPORAL' 'BURST')
 
 
 # default - dummy
@@ -49,7 +49,7 @@ then
 
     # jit_na - jit not absolute
     noise_type_arr=('JIT-NA')
-    noise_pr_arr=(0.1 0.3 0.5 0.7 0.9 1.0 2.0 4.0 8.0)
+    noise_pr_arr=(0.1 0.3 0.5 0.7 0.9 1.0 2.0 4.0)
 
 else
     noise_type_arr=('NULL')
