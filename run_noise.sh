@@ -23,7 +23,7 @@ source ../05_SNN/venv/bin/activate
 # noise_pr=$11
 # rep=$12
 
-rep=$12
+rep=${12}
 
 ###############################################################################
 ## Include
@@ -1159,6 +1159,7 @@ log_file=${path_log_root}/${log_file_name}.log
     -noise_en=${noise_en}\
     -noise_type=${noise_type}\
     -noise_pr=${noise_pr}\
+    -rep=${rep}\
     ; } 2>&1 | tee ${log_file}
 
 echo 'log_file: '${log_file}

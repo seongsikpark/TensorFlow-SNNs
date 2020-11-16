@@ -17,7 +17,7 @@ from datetime import datetime
 #en_gpu=False
 en_gpu=True
 
-gpu_number=1
+gpu_number=0
 os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
 
 #
@@ -326,6 +326,7 @@ tf.compat.v1.app.flags.DEFINE_bool('noise_en',False,'noise injection mode enable
 tf.compat.v1.app.flags.DEFINE_string('noise_type',None,'noise type - DEL ..')
 tf.compat.v1.app.flags.DEFINE_float('noise_pr',0.1,'noise probability for DEL')
 tf.compat.v1.app.flags.DEFINE_bool('noise_robust_en',False,'noise robust mode enable')
+tf.compat.v1.app.flags.DEFINE_integer('rep',-1,'repeat - noise experiments')
 
 
 

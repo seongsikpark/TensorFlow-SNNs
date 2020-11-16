@@ -22,7 +22,8 @@ is_arr=('REAL')
 #nc_arr=('TEMPORAL' 'BURST')
 #nc_arr=('TEMPORAL')
 #nc_arr=('TEMPORAL' 'BURST' 'WEIGHTED_SPIKE')
-nc_arr=('RATE' 'BURST' 'TEMPORAL' 'WEIGHTED_SPIKE')
+#nc_arr=('RATE' 'BURST' 'TEMPORAL' 'WEIGHTED_SPIKE')
+nc_arr=('RATE')
 
 
 # default
