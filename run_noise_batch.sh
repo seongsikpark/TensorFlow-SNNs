@@ -24,13 +24,13 @@ is_arr=('REAL')
 nc_arr=('TEMPORAL' 'BURST' 'TEMPORAL')
 
 
-# default - dummy
-ts_arr=(100)
-tssi_arr=(1)
-vth_arr=(1.0)
-tc_arr=(0)
-tfd_n_tc_arr=(0)
-tfs_n_div_tfd_arr=(1)
+# default
+ts_arr_default=(100)
+tssi_arr_default=(1)
+vth_arr_default=(1.0)
+tc_arr_default=(0)
+tfd_n_tc_arr_default=(0)
+tfs_n_div_tfd_arr_default=(1)
 
 #
 tssi=${tssi_arr[0]}
@@ -73,6 +73,11 @@ for ((i_is=0;i_is<${#is_arr[@]};i_is++)) do
             #vth_arr=(0.2 0.4 0.6 0.8 1.0 1.2)
             #vth_arr=(0.4 0.6)
             vth_arr=(0.4)
+
+            # default
+            tc_arr=tc_arr_default
+            tfd_n_tc_arr=tfd_n_tc_arr_default
+            tfs_n_div_tfd_arr=tfs_n_div_tfd_arr_default
         elif [ ${nc} = 'WEIGHTED_SPIKE' ]
         then
             ts_arr=(1500)
@@ -81,6 +86,11 @@ for ((i_is=0;i_is<${#is_arr[@]};i_is++)) do
             #vth_arr=(0.2 0.4 0.6 0.8 1.0 1.2)
             #vth_arr=(1.0 1.2)
             vth_arr=(1.2)
+
+            # default
+            tc_arr=tc_arr_default
+            tfd_n_tc_arr=tfd_n_tc_arr_default
+            tfs_n_div_tfd_arr=tfs_n_div_tfd_arr_default
         elif [ ${nc} = 'BURST' ]
         then
             ts_arr=(1000)
@@ -88,6 +98,11 @@ for ((i_is=0;i_is<${#is_arr[@]};i_is++)) do
             #vth_arr=(0.2 0.4 0.6 0.8 1.0 1.2)
             #vth_arr=(0.4 0.6)
             vth_arr=(0.4)
+
+            # default
+            tc_arr=tc_arr_default
+            tfd_n_tc_arr=tfd_n_tc_arr_default
+            tfs_n_div_tfd_arr=tfs_n_div_tfd_arr_default
         elif [ ${nc} = 'TEMPORAL' ]
         then
             ts_arr=(1500)
