@@ -21,6 +21,9 @@ source ../05_SNN/venv/bin/activate
 # noise_en=$9
 # noise_type=$10
 # noise_pr=$11
+# rep=$12
+
+rep=$12
 
 ###############################################################################
 ## Include
@@ -1054,7 +1057,7 @@ mkdir -p ${path_stat}
 
 if [ ${noise_en} = True ]
 then
-    log_file_name=${input_spike_mode}_${neural_coding}_ts-${time_step}_tssi-${time_step_save_interval}_vth-${vth}_tc-${tc}_tw-${time_window}_tfs-${time_fire_start}_tfd-${time_fire_duration}_noise_t-${noise_type}_noise_p-${noise_pr}
+    log_file_name=${input_spike_mode}_${neural_coding}_ts-${time_step}_tssi-${time_step_save_interval}_vth-${vth}_tc-${tc}_tw-${time_window}_tfs-${time_fire_start}_tfd-${time_fire_duration}_noise_t-${noise_type}_noise_p-${noise_pr}_rep-${rep}
 else
     log_file_name=${input_spike_mode}_${neural_coding}_ts-${time_step}_tssi-${time_step_save_interval}_vth-${vth}_tc-${tc}_tw-${time_window}_tfs-${time_fire_start}_tfd-${time_fire_duration}
 fi

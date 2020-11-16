@@ -21,7 +21,8 @@ is_arr=('REAL')
 #nc_arr=('BURST')
 #nc_arr=('TEMPORAL' 'BURST')
 #nc_arr=('TEMPORAL')
-nc_arr=('TEMPORAL' 'BURST' 'TEMPORAL')
+#nc_arr=('TEMPORAL' 'BURST' 'WEIGHTED_SPIKE')
+nc_arr=('RATE' 'BURST' 'TEMPORAL' 'WEIGHTED_SPIKE')
 
 
 # default
@@ -37,23 +38,26 @@ tfs_n_div_tfd_arr_default=(1)
 tssi=${tssi_arr[0]}
 
 
+# repeat
+rep=5
+
+
 # noise
 noise_en=True      #: true
 #noise_en=False      #: false
 if [ ${noise_en} = True ]
 then
     # del
-    #noise_type_arr=('DEL')
-    #noise_pr_arr=(0.01 0.02 0.05 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9)
+    noise_type_arr=('DEL')
+    noise_pr_arr=(0.01 0.05 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9)
 
     # jit
     #noise_type_arr=('JIT')
     #noise_pr_arr=(0.1 0.3 0.5 0.7 0.9 1.0 2.0 4.0 8.0)
 
     # jit_na - jit not absolute
-    noise_type_arr=('JIT-A')
-    noise_pr_arr=(0.1 0.3 0.5 0.7 0.9 1.0 2.0 4.0)
-
+    #noise_type_arr=('JIT-A')
+    #noise_pr_arr=(0.1 0.3 0.5 0.7 0.9 1.0 2.0 4.0)
 else
     noise_type_arr=('NULL')
     noise_pr_arr=(0)
@@ -76,12 +80,12 @@ for ((i_is=0;i_is<${#is_arr[@]};i_is++)) do
             vth_arr=(0.4)
 
             # default
-            tc_arr=tc_arr_default
-            tfd_n_tc_arr=tfd_n_tc_arr_default
-            tfs_n_div_tfd_arr=tfs_n_div_tfd_arr_default
+            tc_arr=${tc_arr_default}
+            tfd_n_tc_arr=${tfd_n_tc_arr_default}
+            tfs_n_div_tfd_arr=${tfs_n_div_tfd_arr_default}
         elif [ ${nc} = 'WEIGHTED_SPIKE' ]
         then
-            ts_arr=(1500)
+            ts_arr=(1000)
             #vth_arr=(0.6 0.8 1.0)
             #vth_arr=(0.2 0.4 0.6 0.8 1.0 1.2)
             #vth_arr=(0.2 0.4 0.6 0.8 1.0 1.2)
@@ -89,9 +93,9 @@ for ((i_is=0;i_is<${#is_arr[@]};i_is++)) do
             vth_arr=(1.2)
 
             # default
-            tc_arr=tc_arr_default
-            tfd_n_tc_arr=tfd_n_tc_arr_default
-            tfs_n_div_tfd_arr=tfs_n_div_tfd_arr_default
+            tc_arr=${tc_arr_default}
+            tfd_n_tc_arr=${tfd_n_tc_arr_default}
+            tfs_n_div_tfd_arr=${tfs_n_div_tfd_arr_default}
         elif [ ${nc} = 'BURST' ]
         then
             ts_arr=(1000)
@@ -101,9 +105,9 @@ for ((i_is=0;i_is<${#is_arr[@]};i_is++)) do
             vth_arr=(0.4)
 
             # default
-            tc_arr=tc_arr_default
-            tfd_n_tc_arr=tfd_n_tc_arr_default
-            tfs_n_div_tfd_arr=tfs_n_div_tfd_arr_default
+            tc_arr=${tc_arr_default}
+            tfd_n_tc_arr=${tfd_n_tc_arr_default}
+            tfs_n_div_tfd_arr=${tfs_n_div_tfd_arr_default}
         elif [ ${nc} = 'TEMPORAL' ]
         then
             ts_arr=(1500)
@@ -114,9 +118,11 @@ for ((i_is=0;i_is<${#is_arr[@]};i_is++)) do
             vth_arr=(0.8)
 
             #tc_arr=(1 2 4 8 16)
-            tc_arr=(1 2 4)
+            #tc_arr=(1 2 4)
+            tc_arr=(2)
             #tfd_n_tc_arr=(2 3 4 5)
-            tfd_n_tc_arr=(4 5 6)
+            #tfd_n_tc_arr=(4 5 6)
+            tfd_n_tc_arr=(6)
             #tfs_n_div_tfd_arr=(2 1)
             tfs_n_div_tfd_arr=(2)
         fi
@@ -148,8 +154,11 @@ for ((i_is=0;i_is<${#is_arr[@]};i_is++)) do
                                     noise_pr=${noise_pr_arr[$i_noise_pr]}
 
 
-                                    echo is: ${is}, nc: ${nc}, ts: ${ts}, tssi: ${tssi}, vth: ${vth}, tc: ${tc}, tfs: ${tfs}, tfd: ${tfd}, noise_en: ${noise_en}, noise_type: ${noise_type}, noise_pr: ${noise_pr}
-                                    ./run_noise.sh ${is} ${nc} ${ts} ${tssi} ${vth} ${tc} ${tfs} ${tfd} ${noise_en} ${noise_type} ${noise_pr}
+                                    for ((i_rep=1;i_rep<=${rep};i_rep++)) do
+                                        echo repeat: ${i_rep}
+                                        echo is: ${is}, nc: ${nc}, ts: ${ts}, tssi: ${tssi}, vth: ${vth}, tc: ${tc}, tfs: ${tfs}, tfd: ${tfd}, noise_en: ${noise_en}, noise_type: ${noise_type}, noise_pr: ${noise_pr}
+                                        ./run_noise.sh ${is} ${nc} ${ts} ${tssi} ${vth} ${tc} ${tfs} ${tfd} ${noise_en} ${noise_type} ${noise_pr} ${rep}
+                                    done
                                 done
                             done
                         done

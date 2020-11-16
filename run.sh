@@ -339,13 +339,14 @@ noise_type="JIT"
 #noise_pr=0.01
 #noise_pr=0.10
 #noise_pr=0.20
-noise_pr=0.40
+#noise_pr=0.40
 #noise_pr=0.60
-#noise_pr=1.0
+noise_pr=1.0
+noise_pr=2.0
 
 #
-#noise_robust_en=False
-noise_robust_en=True
+noise_robust_en=False
+#noise_robust_en=True
 
 
 

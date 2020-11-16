@@ -1054,6 +1054,9 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             layer_const = 0.50648  # noise del 0.0, n: 2
             layer_const = 0.45505  # noise del 0.0  n: 3
             layer_const = 0.42866  # noise del 0.0  n: 4
+            #layer_const = 0.41409  # noise del 0.0  n: 5
+            #layer_const = 0.40572  # noise del 0.0  n: 6
+            #layer_const = 0.40081  # noise del 0.0  n: 7
             #layer_const = 0.45505*1.2 # noise del 0.0 - n 3
             #layer_const = 1.0  # noise del 0.0
             #layer_const = 0.55  # noise del 0.01
