@@ -25,9 +25,10 @@ nc_arr=('TEMPORAL' 'BURST' 'TEMPORAL')
 
 
 # default
-ts_arr_default=(100)
-tssi_arr_default=(1)
-vth_arr_default=(1.0)
+ts_arr=(100)
+tssi_arr=(1)
+vth_arr=(1.0)
+
 tc_arr_default=(0)
 tfd_n_tc_arr_default=(0)
 tfs_n_div_tfd_arr_default=(1)
