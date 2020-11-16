@@ -1045,45 +1045,47 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             print(k +': '+str(v))
 
 
-        deep_layer_const = 1.0
+        #layer_const = 1.0
+        layer_const = 0.3
+        bias_const = 1.0
 
-        self.conv1.kernel = self.conv1.kernel/self.norm['conv1']*deep_layer_const
-        self.conv1.bias = self.conv1.bias/self.norm_b['conv1']
-        self.conv1_1.kernel = self.conv1_1.kernel/self.norm['conv1_1']*deep_layer_const
-        self.conv1_1.bias = self.conv1_1.bias/self.norm_b['conv1_1']
+        self.conv1.kernel = self.conv1.kernel/self.norm['conv1']*layer_const
+        self.conv1.bias = self.conv1.bias/self.norm_b['conv1']*bias_const
+        self.conv1_1.kernel = self.conv1_1.kernel/self.norm['conv1_1']*layer_const
+        self.conv1_1.bias = self.conv1_1.bias/self.norm_b['conv1_1']*bias_const
 
-        self.conv2.kernel = self.conv2.kernel/self.norm['conv2']*deep_layer_const
-        self.conv2.bias = self.conv2.bias/self.norm_b['conv2']
-        self.conv2_1.kernel = self.conv2_1.kernel/self.norm['conv2_1']*deep_layer_const
-        self.conv2_1.bias = self.conv2_1.bias/self.norm_b['conv2_1']
+        self.conv2.kernel = self.conv2.kernel/self.norm['conv2']*layer_const
+        self.conv2.bias = self.conv2.bias/self.norm_b['conv2']*bias_const
+        self.conv2_1.kernel = self.conv2_1.kernel/self.norm['conv2_1']*layer_const
+        self.conv2_1.bias = self.conv2_1.bias/self.norm_b['conv2_1']*bias_const
 
-        self.conv3.kernel = self.conv3.kernel/self.norm['conv3']*deep_layer_const
-        self.conv3.bias = self.conv3.bias/self.norm_b['conv3']
-        self.conv3_1.kernel = self.conv3_1.kernel/self.norm['conv3_1']*deep_layer_const
-        self.conv3_1.bias = self.conv3_1.bias/self.norm_b['conv3_1']
-        self.conv3_2.kernel = self.conv3_2.kernel/self.norm['conv3_2']*deep_layer_const
-        self.conv3_2.bias = self.conv3_2.bias/self.norm_b['conv3_2']
+        self.conv3.kernel = self.conv3.kernel/self.norm['conv3']*layer_const
+        self.conv3.bias = self.conv3.bias/self.norm_b['conv3']*bias_const
+        self.conv3_1.kernel = self.conv3_1.kernel/self.norm['conv3_1']*layer_const
+        self.conv3_1.bias = self.conv3_1.bias/self.norm_b['conv3_1']*bias_const
+        self.conv3_2.kernel = self.conv3_2.kernel/self.norm['conv3_2']*layer_const
+        self.conv3_2.bias = self.conv3_2.bias/self.norm_b['conv3_2']*bias_const
 
-        self.conv4.kernel = self.conv4.kernel/self.norm['conv4']*deep_layer_const
-        self.conv4.bias = self.conv4.bias/self.norm_b['conv4']
-        self.conv4_1.kernel = self.conv4_1.kernel/self.norm['conv4_1']*deep_layer_const
-        self.conv4_1.bias = self.conv4_1.bias/self.norm_b['conv4_1']
-        self.conv4_2.kernel = self.conv4_2.kernel/self.norm['conv4_2']*deep_layer_const
-        self.conv4_2.bias = self.conv4_2.bias/self.norm_b['conv4_2']
+        self.conv4.kernel = self.conv4.kernel/self.norm['conv4']*layer_const
+        self.conv4.bias = self.conv4.bias/self.norm_b['conv4']*bias_const
+        self.conv4_1.kernel = self.conv4_1.kernel/self.norm['conv4_1']*layer_const
+        self.conv4_1.bias = self.conv4_1.bias/self.norm_b['conv4_1']*bias_const
+        self.conv4_2.kernel = self.conv4_2.kernel/self.norm['conv4_2']*layer_const
+        self.conv4_2.bias = self.conv4_2.bias/self.norm_b['conv4_2']*bias_const
 
-        self.conv5.kernel = self.conv5.kernel/self.norm['conv5']*deep_layer_const
-        self.conv5.bias = self.conv5.bias/self.norm_b['conv5']
-        self.conv5_1.kernel = self.conv5_1.kernel/self.norm['conv5_1']*deep_layer_const
-        self.conv5_1.bias = self.conv5_1.bias/self.norm_b['conv5_1']
-        self.conv5_2.kernel = self.conv5_2.kernel/self.norm['conv5_2']*deep_layer_const
-        self.conv5_2.bias = self.conv5_2.bias/self.norm_b['conv5_2']
+        self.conv5.kernel = self.conv5.kernel/self.norm['conv5']*layer_const
+        self.conv5.bias = self.conv5.bias/self.norm_b['conv5']*bias_const
+        self.conv5_1.kernel = self.conv5_1.kernel/self.norm['conv5_1']*layer_const
+        self.conv5_1.bias = self.conv5_1.bias/self.norm_b['conv5_1']*bias_const
+        self.conv5_2.kernel = self.conv5_2.kernel/self.norm['conv5_2']*layer_const
+        self.conv5_2.bias = self.conv5_2.bias/self.norm_b['conv5_2']*bias_const
 
-        self.fc1.kernel = self.fc1.kernel/self.norm['fc1']*deep_layer_const
-        self.fc1.bias = self.fc1.bias/self.norm_b['fc1']
-        self.fc2.kernel = self.fc2.kernel/self.norm['fc2']*deep_layer_const
-        self.fc2.bias = self.fc2.bias/self.norm_b['fc2']
-        self.fc3.kernel = self.fc3.kernel/self.norm['fc3']*deep_layer_const
-        self.fc3.bias = self.fc3.bias/self.norm_b['fc3']
+        self.fc1.kernel = self.fc1.kernel/self.norm['fc1']*layer_const
+        self.fc1.bias = self.fc1.bias/self.norm_b['fc1']*bias_const
+        self.fc2.kernel = self.fc2.kernel/self.norm['fc2']*layer_const
+        self.fc2.bias = self.fc2.bias/self.norm_b['fc2']*bias_const
+        self.fc3.kernel = self.fc3.kernel/self.norm['fc3']*layer_const
+        self.fc3.bias = self.fc3.bias/self.norm_b['fc3']*bias_const
 
     #
     def data_based_w_norm(self):

@@ -106,6 +106,7 @@ class Neuron(tf.keras.layers.Layer):
 
         if self.conf.f_refractory:
             self.refractory = self.add_variable("refractory",shape=self.dim,dtype=tf.float32,initializer=tf.zeros_initializer,trainable=False)
+            self.t_set_refractory= self.add_variable("t_set_refractory",shape=self.dim,dtype=tf.float32,initializer=tf.constant_initializer(-1.0),trainable=False)
 
         #self.depth = self.add_variable("depth",shape=self.dim,dtype=tf.int32,initializer=tf.zeros_initializer,trainable=False)
 
@@ -219,6 +220,7 @@ class Neuron(tf.keras.layers.Layer):
             self.isi = tf.zeros(self.isi.shape)
         if self.conf.f_refractory:
             self.refractory = tf.zeros(self.refractory.shape)
+            self.t_set_refractory = tf.constant(-1.0,dtype=tf.float32,shape=self.refractory.shape)
 
         if self.conf.f_record_first_spike_time:
             self.reset_first_spike_time()
@@ -344,9 +346,10 @@ class Neuron(tf.keras.layers.Layer):
 
 
         if self.conf.f_refractory:
-            self.f_fire = (self.vmem >= self.vth) & \
-                          tf.equal(self.refractory,tf.constant(0.0,tf.float32,self.refractory.shape))
-                        #(self.vth >= tf.constant(10**(-5),tf.float32,self.vth.shape) ) & \
+            #self.f_fire = (self.vmem >= self.vth) & \
+            #              tf.equal(self.refractory,tf.constant(0.0,tf.float32,self.refractory.shape))
+            #            #(self.vth >= tf.constant(10**(-5),tf.float32,self.vth.shape) ) & \
+            assert False, 'should be modified as fire temporal'
 
         else:
             self.f_fire = (self.vmem >= self.vth) & (self.vth >= 10**(-5))
@@ -362,12 +365,8 @@ class Neuron(tf.keras.layers.Layer):
         self.out = tf.where(self.f_fire,tf.ones(self.out.shape),tf.zeros(self.out.shape))
         self.vmem = tf.where(self.f_fire,tf.zeros(self.out.shape),self.vmem)
 
-
-
-
-
         if self.conf.f_refractory:
-            self.cal_refractory_temporal(self.f_fire)
+            self.cal_refractory_temporal(t)
 
 
         #self.vth = tf.where(f_fire,self.vth*2.0,self.vth_init)
@@ -673,7 +672,8 @@ class Neuron(tf.keras.layers.Layer):
 
         if self.conf.f_refractory:
             #self.f_fire = np.logical_and(self.vmem >= self.vth,np.equal(self.refractory,0.0))
-            self.f_fire = tf.logical_and(self.vmem >= self.vth, tf.equal(self.refractory,0.0))
+            #self.f_fire = tf.logical_and(self.vmem >= self.vth, tf.equal(self.refractory,0.0))
+            assert False, 'modify refractory'
         else:
             self.f_fire = self.vmem >= self.vth
 
@@ -717,7 +717,9 @@ class Neuron(tf.keras.layers.Layer):
     def fire_burst(self,t):
         if self.conf.f_refractory:
             #self.f_fire = np.logical_and(self.vmem >= self.vth,np.equal(self.refractory,0.0))
-            self.f_fire = tf.logical_and(self.vmem >= self.vth, np.equal(self.refractory,0.0))
+            #self.f_fire = tf.logical_and(self.vmem >= self.vth, np.equal(self.refractory,0.0))
+            assert False, 'modify refractory'
+
         else:
             self.f_fire = self.vmem >= self.vth
 
@@ -770,8 +772,13 @@ class Neuron(tf.keras.layers.Layer):
         if self.conf.f_refractory:
             #self.f_fire = (self.vmem >= self.vth) & \
             #                tf.equal(self.refractory,tf.zeros(self.refractory.shape))
-            self.f_fire = (self.vmem >= self.vth) & \
-                              tf.equal(self.refractory,tf.constant(0.0,tf.float32,self.refractory.shape))
+            f_fire = tf.greater_equal(self.vmem,self.vth)
+            #f_refractory = tf.greater_equal(tf.constant(t,tf.float32),self.refractory)
+            #f_refractory = tf.greater_equal(tf.constant(t,tf.float32),self.refractory)
+            f_refractory = tf.greater(tf.constant(t,tf.float32),self.refractory)
+            #self.f_fire = (self.vmem >= self.vth) & \
+            #                  tf.equal(self.refractory,tf.constant(0.0,tf.float32,self.refractory.shape))
+            self.f_fire = tf.logical_and(f_fire,f_refractory)
         else:
             self.f_fire = (self.vmem >= self.vth) & (self.vth >= 10**(-5))
 
@@ -792,7 +799,7 @@ class Neuron(tf.keras.layers.Layer):
         #print("fire: glb {}: loc {} - vth {:0.3f}, kernel {:.03f}, out {:0.3f}".format(t, time,self.vmem[addr],self.vth[addr],self.out[addr]))
 
         if self.conf.f_refractory:
-            self.cal_refractory_temporal(self.f_fire)
+            self.cal_refractory_temporal(t)
 
 
 
@@ -859,9 +866,67 @@ class Neuron(tf.keras.layers.Layer):
 
         #print(tf.reduce_max(np.log2(self.vth/self.vth_init)))
 
-    def cal_refractory_temporal(self,f_fire):
+    def cal_refractory_temporal_original(self,f_fire):
         #self.refractory = tf.where(f_fire,tf.constant(self.conf.time_step,tf.float32,self.refractory.shape),self.refractory)
         self.refractory = tf.where(f_fire,tf.constant(10000.0,tf.float32,self.refractory.shape),self.refractory)
+
+    def cal_refractory_temporal(self, t):
+        if self.conf.noise_robust_en:
+
+            inf_t = 10000.0
+
+            t_b = 2
+
+            f_init_refractory = tf.equal(self.t_set_refractory,tf.constant(-1.0,dtype=tf.float32,shape=self.t_set_refractory.shape))
+
+
+
+            f_first_spike = tf.logical_and(f_init_refractory, self.f_fire)
+
+            t = tf.constant(t,dtype=tf.float32,shape=self.refractory.shape)
+            t_b = tf.constant(t_b,dtype=tf.float32,shape=self.refractory.shape)
+            inf_t = tf.constant(inf_t,dtype=tf.float32,shape=self.refractory.shape)
+
+            self.t_set_refractory = tf.where(f_first_spike,tf.add(t,t_b),self.t_set_refractory)
+            #self.t_set_refractory = tf.where(f_first_spike,t,self.t_set_refractory)
+
+            #
+            f_add_vmem = self.f_fire
+            #add_amount = tf.divide(self.vth,2.0)
+            add_amount = self.vth
+            self.vmem = tf.where(f_add_vmem,tf.add(self.vmem,add_amount),self.vmem)
+
+
+            #
+            f_set_inf_refractory = tf.equal(t,self.t_set_refractory)
+            self.refractory = tf.where(f_set_inf_refractory,inf_t,self.refractory)
+
+            #print(self.t_set_refractory)
+
+            #
+            #self.refractory = tf.where(self.f_fire,tf.constant(10000.0,tf.float32,self.refractory.shape),self.refractory)
+            #f_set_refractory = tf.logical_and(self.f_fire,tf.equal(self.refractory,tf.zeros(shape=self.refractory.shape)))
+            #self.t_set_refractory = tf.where(f_set_refractory,t,self.t_set_refractory)
+
+            #self.refractory = tf.where(self.f_fire,inf_t,self.refractory)
+
+            #print(type(t.numpy()[0,0,0,0]))
+            #print(type(self.t_set_refractory.numpy()[0,0,0,0]))
+            #print(t.shape)
+            #print(self.t_set_refractory.shape)
+            #f_refractory = tf.equal(t,self.t_set_refractory)
+            #print(self.t_set_refractory[0])
+            #self.refractory = tf.where(f_refractory,inf_t,self.refractory)
+
+            #print(t_int)
+            #print(self.depth)
+            #print(self.t_set_refractory.numpy()[0,0,0,0:10])
+            #print(f_init_refractory.numpy()[0,0,0,0:10])
+            #print(self.refractory.numpy()[0,0,0,0:10])
+        else:
+            self.refractory = tf.where(self.f_fire,tf.constant(10000.0,tf.float32,self.refractory.shape),self.refractory)
+
+
 
     #
     def count_spike(self, t):

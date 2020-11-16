@@ -39,13 +39,13 @@ en_tensorboard_write=False
 ###############################################################################
 ## Model & Dataset
 ###############################################################################
-nn_mode='ANN'
-#nn_mode='SNN'
+#nn_mode='ANN'
+nn_mode='SNN'
 
 
 #exp_case='CNN_MNIST'
-#exp_case='VGG16_CIFAR-10'
-exp_case='VGG16_CIFAR-100'
+exp_case='VGG16_CIFAR-10'
+#exp_case='VGG16_CIFAR-100'
 #exp_case='ResNet50_ImageNet'
 
 
@@ -90,8 +90,8 @@ enc_st_n_tw=2
 ## Run
 ###############################################################################
 
-training_mode=True
-#training_mode=False
+#training_mode=True
+training_mode=False
 
 #
 # If this flag is False, then the trained model is overwritten
@@ -115,7 +115,7 @@ f_overwrite_train_model=False
 
 # full test
 f_full_test=True
-#f_full_test=False
+f_full_test=False
 
 
 #
@@ -328,15 +328,21 @@ batch_run_train_tc=False
 ##
 ###############################################################################
 
-noise_en=False
-#noise_en=True
+#noise_en=False
+noise_en=True
 
 noise_type="DEL"
 #noise_type="JIT"
 
 # for noise_type = DEL (pr), JIT (std)
 noise_pr=0.01
+#noise_pr=0.20
 #noise_pr=1.0
+
+#
+noise_robust_en=False
+#noise_robust_en=True
+
 
 
 ###############################################################################
@@ -1132,6 +1138,7 @@ log_file=${path_log_root}/${date}.log
     -noise_en=${noise_en}\
     -noise_type=${noise_type}\
     -noise_pr=${noise_pr}\
+    -noise_robust_en=${noise_robust_en}\
     ; } 2>&1 | tee ${log_file}
 
 echo 'log_file: '${log_file}
