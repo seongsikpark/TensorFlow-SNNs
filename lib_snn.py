@@ -471,9 +471,14 @@ class Neuron(tf.keras.layers.Layer):
         if self.conf.noise_en:
             if self.conf.noise_type=="JIT" or self.conf.noise_type=="JIT-A":
                 rand = tf.random.normal(shape=inputs.shape,mean=0.0,stddev=self.conf.noise_pr)
+
                 if self.conf.noise_type=="JIT-A":
                     rand = tf.abs(rand)
-                rand = tf.floor(rand)
+                    rand = tf.floor(rand)
+                else:
+                    f_positive = tf.greater_equal(rand,tf.zeros(shape=rand.shape))
+                    rand = tf.where(f_positive, tf.floor(rand), tf.math.ceil(rand))
+
                 time = tf.add(time,rand)
 
 
@@ -689,10 +694,15 @@ class Neuron(tf.keras.layers.Layer):
         if self.conf.noise_en:
             if self.conf.noise_type=="JIT" or self.conf.noise_type=="JIT-A":
                 rand = tf.random.normal(shape=self.out.shape,mean=0.0,stddev=self.conf.noise_pr)
+
                 if self.conf.noise_type=="JIT-A":
                     rand = tf.abs(rand)
-                rand = tf.floor(rand)
-                pow_rand = tf.pow(2.0,rand)
+                    rand = tf.floor(rand)
+                else:
+                    f_positive = tf.greater_equal(rand,tf.zeros(shape=rand.shape))
+                    rand = tf.where(f_positive, tf.floor(rand), tf.math.ceil(rand))
+
+                pow_rand = tf.pow(2.0,-rand)
                 out_jit = tf.multiply(self.out,pow_rand)
                 self.out = tf.where(self.f_fire,out_jit,self.out)
 
@@ -748,9 +758,14 @@ class Neuron(tf.keras.layers.Layer):
         if self.conf.noise_en:
             if self.conf.noise_type=="JIT" or self.conf.noise_type=="JIT-A":
                 rand = tf.random.normal(shape=self.out.shape,mean=0.0,stddev=self.conf.noise_pr)
+
                 if self.conf.noise_type=="JIT-A":
                     rand = tf.abs(rand)
-                rand = tf.floor(rand)
+                    rand = tf.floor(rand)
+                else:
+                    f_positive = tf.greater_equal(rand,tf.zeros(shape=rand.shape))
+                    rand = tf.where(f_positive, tf.floor(rand), tf.math.ceil(rand))
+
                 pow_rand = tf.pow(2.0,rand)
                 out_jit = tf.multiply(self.out,pow_rand)
                 self.out = tf.where(self.f_fire,out_jit,self.out)
@@ -875,7 +890,7 @@ class Neuron(tf.keras.layers.Layer):
 
             inf_t = 10000.0
 
-            t_b = 2
+            t_b = 4
 
             f_init_refractory = tf.equal(self.t_set_refractory,tf.constant(-1.0,dtype=tf.float32,shape=self.t_set_refractory.shape))
 

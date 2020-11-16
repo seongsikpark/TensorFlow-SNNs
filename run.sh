@@ -114,7 +114,7 @@ f_overwrite_train_model=False
 
 
 # full test
-f_full_test=True
+#f_full_test=True
 f_full_test=False
 
 
@@ -331,17 +331,21 @@ batch_run_train_tc=False
 #noise_en=False
 noise_en=True
 
-noise_type="DEL"
-#noise_type="JIT"
+#noise_type="DEL"
+noise_type="JIT"
 
 # for noise_type = DEL (pr), JIT (std)
-noise_pr=0.01
+#noise_pr=0.0
+#noise_pr=0.01
+#noise_pr=0.10
 #noise_pr=0.20
+noise_pr=0.40
+#noise_pr=0.60
 #noise_pr=1.0
 
 #
-noise_robust_en=False
-#noise_robust_en=True
+#noise_robust_en=False
+noise_robust_en=True
 
 
 
@@ -439,6 +443,7 @@ epoch_train_time_const=1
 
 tc=2
 time_fire_start=6    # integration duration - n x tc
+#time_fire_start=12    # integration duration - n x tc
 time_fire_duration=12   # time window - n x tc
 time_window=${time_fire_duration}
 

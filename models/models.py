@@ -1045,34 +1045,70 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             print(k +': '+str(v))
 
 
-        #layer_const = 1.0
-        layer_const = 0.3
-        bias_const = 1.0
+        if self.conf.noise_robust_en:
+            layer_const = 0.55  # noise del 0.0
+            layer_const = 0.50648  # noise del 0.0
+            layer_const = 0.65 # noise del 0.0
+            layer_const = 0.55 # noise del 0.0
+            #layer_const = 0.6225 # noise del 0.0
+            layer_const = 0.50648  # noise del 0.0, n: 2
+            layer_const = 0.45505  # noise del 0.0  n: 3
+            layer_const = 0.42866  # noise del 0.0  n: 4
+            #layer_const = 0.45505*1.2 # noise del 0.0 - n 3
+            #layer_const = 1.0  # noise del 0.0
+            #layer_const = 0.55  # noise del 0.01
+            #layer_const = 0.6  # noise del 0.1
+            #layer_const = 0.65  # noise del 0.2
+            #layer_const = 0.78   # noise del 0.4
+            #layer_const = 0.7   # noise del 0.6
+            #layer_const=1.0
+            bias_const = 1.0
 
-        self.conv1.kernel = self.conv1.kernel/self.norm['conv1']*layer_const
-        self.conv1.bias = self.conv1.bias/self.norm_b['conv1']*bias_const
-        self.conv1_1.kernel = self.conv1_1.kernel/self.norm['conv1_1']*layer_const
-        self.conv1_1.bias = self.conv1_1.bias/self.norm_b['conv1_1']*bias_const
+            # compenstation - p
+            if self.conf.noise_type=="DEL":
+                layer_const = layer_const * (1.0+self.conf.noise_pr)
+            elif self.conf.noise_type=="JIT" or self.conf.noise_type=="JIT-A":
+                layer_const = layer_const
+            else:
+                assert False
+        else:
+            layer_const = 1.0
+            bias_const = 1.0
 
-        self.conv2.kernel = self.conv2.kernel/self.norm['conv2']*layer_const
+        if self.conf.input_spike_mode=='REAL':
+            self.conv1.kernel = self.conv1.kernel/self.norm['conv1']
+            self.conv1.bias = self.conv1.bias/self.norm_b['conv1']
+            self.conv1_1.kernel = self.conv1_1.kernel/self.norm['conv1_1']
+            self.conv1_1.bias = self.conv1_1.bias/self.norm_b['conv1_1']
+        else:
+            self.conv1.kernel = self.conv1.kernel/self.norm['conv1']*layer_const
+            self.conv1.bias = self.conv1.bias/self.norm_b['conv1']*bias_const
+            self.conv1_1.kernel = self.conv1_1.kernel/self.norm['conv1_1']*layer_const
+            self.conv1_1.bias = self.conv1_1.bias/self.norm_b['conv1_1']*bias_const
+
+        depth_const = 1.0
+        self.conv2.kernel = self.conv2.kernel/self.norm['conv2']*layer_const*depth_const
         self.conv2.bias = self.conv2.bias/self.norm_b['conv2']*bias_const
-        self.conv2_1.kernel = self.conv2_1.kernel/self.norm['conv2_1']*layer_const
+        self.conv2_1.kernel = self.conv2_1.kernel/self.norm['conv2_1']*layer_const*depth_const
         self.conv2_1.bias = self.conv2_1.bias/self.norm_b['conv2_1']*bias_const
 
-        self.conv3.kernel = self.conv3.kernel/self.norm['conv3']*layer_const
+        depth_const = 1.0
+        self.conv3.kernel = self.conv3.kernel/self.norm['conv3']*layer_const*depth_const
         self.conv3.bias = self.conv3.bias/self.norm_b['conv3']*bias_const
-        self.conv3_1.kernel = self.conv3_1.kernel/self.norm['conv3_1']*layer_const
+        self.conv3_1.kernel = self.conv3_1.kernel/self.norm['conv3_1']*layer_const*depth_const
         self.conv3_1.bias = self.conv3_1.bias/self.norm_b['conv3_1']*bias_const
-        self.conv3_2.kernel = self.conv3_2.kernel/self.norm['conv3_2']*layer_const
+        self.conv3_2.kernel = self.conv3_2.kernel/self.norm['conv3_2']*layer_const*depth_const
         self.conv3_2.bias = self.conv3_2.bias/self.norm_b['conv3_2']*bias_const
 
-        self.conv4.kernel = self.conv4.kernel/self.norm['conv4']*layer_const
+        depth_const = 1.0
+        self.conv4.kernel = self.conv4.kernel/self.norm['conv4']*layer_const*depth_const
         self.conv4.bias = self.conv4.bias/self.norm_b['conv4']*bias_const
-        self.conv4_1.kernel = self.conv4_1.kernel/self.norm['conv4_1']*layer_const
+        self.conv4_1.kernel = self.conv4_1.kernel/self.norm['conv4_1']*layer_const*depth_const
         self.conv4_1.bias = self.conv4_1.bias/self.norm_b['conv4_1']*bias_const
-        self.conv4_2.kernel = self.conv4_2.kernel/self.norm['conv4_2']*layer_const
+        self.conv4_2.kernel = self.conv4_2.kernel/self.norm['conv4_2']*layer_const*depth_const
         self.conv4_2.bias = self.conv4_2.bias/self.norm_b['conv4_2']*bias_const
 
+        depth_const = 1.0
         self.conv5.kernel = self.conv5.kernel/self.norm['conv5']*layer_const
         self.conv5.bias = self.conv5.bias/self.norm_b['conv5']*bias_const
         self.conv5_1.kernel = self.conv5_1.kernel/self.norm['conv5_1']*layer_const
@@ -1080,6 +1116,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         self.conv5_2.kernel = self.conv5_2.kernel/self.norm['conv5_2']*layer_const
         self.conv5_2.bias = self.conv5_2.bias/self.norm_b['conv5_2']*bias_const
 
+        depth_const = 1.0
         self.fc1.kernel = self.fc1.kernel/self.norm['fc1']*layer_const
         self.fc1.bias = self.fc1.bias/self.norm_b['fc1']*bias_const
         self.fc2.kernel = self.fc2.kernel/self.norm['fc2']*layer_const
