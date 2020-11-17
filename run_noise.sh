@@ -21,9 +21,12 @@ source ../05_SNN/venv/bin/activate
 # noise_en=$9
 # noise_type=$10
 # noise_pr=$11
-# rep=$12
+# noise_robust_en=${12}
+# noise_robust_comp_pr_en=${13}
+# noise_robust_spike_num=${14}
+# rep=$15
 
-rep=${12}
+rep=${15}
 
 ###############################################################################
 ## Include
@@ -353,8 +356,23 @@ noise_en=$9
 
 noise_type=${10}
 
-# for noise_type = DEL
+# for noise_type = DEL (pr), JIT (std)
 noise_pr=${11}
+
+#
+noise_robust_en=${12}
+
+#
+noise_robust_comp_pr_en=${13}
+
+#
+noise_robust_spike_num=${14}
+
+
+
+
+
+
 
 
 ###############################################################################
@@ -1057,7 +1075,18 @@ mkdir -p ${path_stat}
 
 if [ ${noise_en} = True ]
 then
-    log_file_name=${input_spike_mode}_${neural_coding}_ts-${time_step}_tssi-${time_step_save_interval}_vth-${vth}_tc-${tc}_tw-${time_window}_tfs-${time_fire_start}_tfd-${time_fire_duration}_noise_t-${noise_type}_noise_p-${noise_pr}_rep-${rep}
+    log_file_name=${input_spike_mode}_${neural_coding}_ts-${time_step}_tssi-${time_step_save_interval}_vth-${vth}_tc-${tc}_tw-${time_window}_tfs-${time_fire_start}_tfd-${time_fire_duration}_noise_t-${noise_type}_noise_p-${noise_pr}
+
+    if [ ${noise_robust_en} = True ]
+    then
+        log_file_name=${log_file_name}_nrs-${noise_robust_spike_num}
+
+        if [ ${noise_robust_comp_pr_en} = True ]
+        then
+            log_file_name=${log_file_name}_nrc
+        fi
+    fi
+    log_file_name=${log_file_name}_rep-${rep}
 else
     log_file_name=${input_spike_mode}_${neural_coding}_ts-${time_step}_tssi-${time_step_save_interval}_vth-${vth}_tc-${tc}_tw-${time_window}_tfs-${time_fire_start}_tfd-${time_fire_duration}
 fi
@@ -1159,6 +1188,9 @@ log_file=${path_log_root}/${log_file_name}.log
     -noise_en=${noise_en}\
     -noise_type=${noise_type}\
     -noise_pr=${noise_pr}\
+    -noise_robust_en=${noise_robust_en}\
+    -noise_robust_spike_num=${noise_robust_spike_num}\
+    -noise_robust_comp_pr_en=${noise_robust_comp_pr_en}\
     -rep=${rep}\
     ; } 2>&1 | tee ${log_file}
 

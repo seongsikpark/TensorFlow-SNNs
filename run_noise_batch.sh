@@ -11,6 +11,10 @@
 # noise_en=$9
 # noise_type=$10
 # noise_pr=$11
+# noise_robust_en=${12}
+# noise_robust_comp_pr_en=${13}
+# noise_robust_spike_num=${14}
+# rep=$15
 
 #is_arr=('REAL' 'POISSON' 'WEIGHTED_SPIKE' 'BURST' 'TEMPORAL')
 is_arr=('REAL')
@@ -22,8 +26,8 @@ is_arr=('REAL')
 #nc_arr=('TEMPORAL' 'BURST')
 #nc_arr=('TEMPORAL')
 #nc_arr=('TEMPORAL' 'BURST' 'WEIGHTED_SPIKE')
-#nc_arr=('RATE' 'BURST' 'TEMPORAL' 'WEIGHTED_SPIKE')
-nc_arr=('RATE')
+nc_arr=('RATE' 'BURST' 'TEMPORAL' 'WEIGHTED_SPIKE')
+#nc_arr=('RATE')
 
 
 # default
@@ -35,26 +39,40 @@ tc_arr_default=(0)
 tfd_n_tc_arr_default=(0)
 tfs_n_div_tfd_arr_default=(1)
 
+# noise robust
+nrc_arr_default=(True)
+nrs_arr_default=(0)
+
+
 #
 tssi=${tssi_arr[0]}
 
 
 # repeat
-rep=5
+rep=1
 
 
 # noise
 noise_en=True      #: true
 #noise_en=False      #: false
+
+
+# noise robust
+noise_robust_en=True
+#noise_robust_en=False
+
+
+
+
 if [ ${noise_en} = True ]
 then
     # del
-    noise_type_arr=('DEL')
-    noise_pr_arr=(0.01 0.05 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9)
+    #noise_type_arr=('DEL')
+    #noise_pr_arr=(0.01 0.05 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9)
 
     # jit
-    #noise_type_arr=('JIT')
-    #noise_pr_arr=(0.1 0.3 0.5 0.7 0.9 1.0 2.0 4.0 8.0)
+    noise_type_arr=('JIT')
+    noise_pr_arr=(0.3 0.5 0.7 0.9 1.0 2.0 4.0)
 
     # jit_na - jit not absolute
     #noise_type_arr=('JIT-A')
@@ -84,6 +102,11 @@ for ((i_is=0;i_is<${#is_arr[@]};i_is++)) do
             tc_arr=${tc_arr_default}
             tfd_n_tc_arr=${tfd_n_tc_arr_default}
             tfs_n_div_tfd_arr=${tfs_n_div_tfd_arr_default}
+
+            # noise robust
+            nrc_arr=${nrc_arr_default}
+            nrs_arr=${nrs_arr_default}
+
         elif [ ${nc} = 'WEIGHTED_SPIKE' ]
         then
             ts_arr=(1000)
@@ -97,6 +120,10 @@ for ((i_is=0;i_is<${#is_arr[@]};i_is++)) do
             tc_arr=${tc_arr_default}
             tfd_n_tc_arr=${tfd_n_tc_arr_default}
             tfs_n_div_tfd_arr=${tfs_n_div_tfd_arr_default}
+
+            # noise robust
+            nrc_arr=${nrc_arr_default}
+            nrs_arr=${nrs_arr_default}
         elif [ ${nc} = 'BURST' ]
         then
             ts_arr=(1000)
@@ -109,6 +136,10 @@ for ((i_is=0;i_is<${#is_arr[@]};i_is++)) do
             tc_arr=${tc_arr_default}
             tfd_n_tc_arr=${tfd_n_tc_arr_default}
             tfs_n_div_tfd_arr=${tfs_n_div_tfd_arr_default}
+
+            # noise robust
+            nrc_arr=${nrc_arr_default}
+            nrs_arr=${nrs_arr_default}
         elif [ ${nc} = 'TEMPORAL' ]
         then
             ts_arr=(1500)
@@ -126,6 +157,16 @@ for ((i_is=0;i_is<${#is_arr[@]};i_is++)) do
             tfd_n_tc_arr=(6)
             #tfs_n_div_tfd_arr=(2 1)
             tfs_n_div_tfd_arr=(2)
+
+            # noise robust
+            if [ ${noise_en} = True ]
+            then
+                nrc_arr=(True False)
+                nrs_arr=(0 1 2 3 4 5 6)
+            else
+                nrc_arr=${nrc_arr_default}
+                nrs_arr=${nrs_arr_default}
+            fi
         fi
 
 
@@ -154,11 +195,18 @@ for ((i_is=0;i_is<${#is_arr[@]};i_is++)) do
                                 for ((i_noise_pr=0;i_noise_pr<${#noise_pr_arr[@]};i_noise_pr++)) do
                                     noise_pr=${noise_pr_arr[$i_noise_pr]}
 
+                                    for ((i_nrc=0;i_nrc<${#nrc_arr[@]};i_nrc++)) do
+                                        nrc=${nrc_arr[$i_nrc]}
 
-                                    for ((i_rep=1;i_rep<=${rep};i_rep++)) do
-                                        echo repeat: ${i_rep}
-                                        echo is: ${is}, nc: ${nc}, ts: ${ts}, tssi: ${tssi}, vth: ${vth}, tc: ${tc}, tfs: ${tfs}, tfd: ${tfd}, noise_en: ${noise_en}, noise_type: ${noise_type}, noise_pr: ${noise_pr}
-                                        ./run_noise.sh ${is} ${nc} ${ts} ${tssi} ${vth} ${tc} ${tfs} ${tfd} ${noise_en} ${noise_type} ${noise_pr} ${rep}
+                                        for ((i_nrs=0;i_nrs<${#nrs_arr[@]};i_nrs++)) do
+                                            nrs=${nrs_arr[$i_nrs]}
+
+                                            for ((i_rep=1;i_rep<=${rep};i_rep++)) do
+                                                echo repeat: ${i_rep}
+                                                echo is: ${is}, nc: ${nc}, ts: ${ts}, tssi: ${tssi}, vth: ${vth}, tc: ${tc}, tfs: ${tfs}, tfd: ${tfd}, noise_en: ${noise_en}, noise_type: ${noise_type}, noise_pr: ${noise_pr}, noise_robust: ${noise_robust_en}, noise_robust_comp: ${nrc}, noise_robust_spike: ${nrs}
+                                                ./run_noise.sh ${is} ${nc} ${ts} ${tssi} ${vth} ${tc} ${tfs} ${tfd} ${noise_en} ${noise_type} ${noise_pr} ${noise_robust_en} ${nrc} ${nrs} ${i_rep}
+                                            done
+                                        done
                                     done
                                 done
                             done

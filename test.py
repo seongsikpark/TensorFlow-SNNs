@@ -256,6 +256,12 @@ def test(model, dataset, num_dataset, conf, f_val=False, epoch=0, f_val_snn=Fals
                 if conf.noise_en:
                     f_name_result += '_nt-'+conf.noise_type+'_np-'+str(conf.noise_pr)
 
+                    if conf.noise_robust_en:
+                        f_name_result += '_nrs-'+str(conf.noise_robust_spike_num)
+
+                        if conf.noise_robust_comp_pr_en:
+                            f_name_result += '_nrc'
+
                     if conf.rep != -1:
                         f_name_result += '_rep-'+str(conf.rep)
 

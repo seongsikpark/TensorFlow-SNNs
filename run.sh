@@ -150,7 +150,7 @@ f_full_test=False
 
 
 # CIFAR-10
-time_step=1500
+time_step=1000
 
 time_step_save_interval=100
 #time_step_save_interval=40
@@ -199,10 +199,10 @@ input_spike_mode='REAL'
 #
 ## neural coding
 #
-#neural_coding='RATE'
+neural_coding='RATE'
 #neural_coding='WEIGHTED_SPIKE'
 #neural_coding='BURST'
-neural_coding='TEMPORAL'
+#neural_coding='TEMPORAL'
 #neural_coding='NON_LINEAR'     # PF-Neuron
 
 
@@ -331,24 +331,27 @@ batch_run_train_tc=False
 #noise_en=False
 noise_en=True
 
-#noise_type="DEL"
-noise_type="JIT"
+noise_type="DEL"
+#noise_type="JIT"
 
 # for noise_type = DEL (pr), JIT (std)
 #noise_pr=0.0
 #noise_pr=0.01
 #noise_pr=0.10
 #noise_pr=0.20
-#noise_pr=0.40
+noise_pr=0.40
 #noise_pr=0.60
-noise_pr=1.0
-noise_pr=2.0
+#noise_pr=1.0
+#noise_pr=2.0
 
 #
 noise_robust_en=False
-#noise_robust_en=True
+noise_robust_en=True
 
+noise_robust_comp_pr_en=True
+#noise_robust_comp_pr_en=False
 
+noise_robust_spike_num=0
 
 ###############################################################################
 
@@ -1145,6 +1148,8 @@ log_file=${path_log_root}/${date}.log
     -noise_type=${noise_type}\
     -noise_pr=${noise_pr}\
     -noise_robust_en=${noise_robust_en}\
+    -noise_robust_spike_num=${noise_robust_spike_num}\
+    -noise_robust_comp_pr_en=${noise_robust_comp_pr_en}\
     ; } 2>&1 | tee ${log_file}
 
 echo 'log_file: '${log_file}

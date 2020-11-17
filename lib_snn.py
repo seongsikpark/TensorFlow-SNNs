@@ -890,7 +890,8 @@ class Neuron(tf.keras.layers.Layer):
 
             inf_t = 10000.0
 
-            t_b = 4
+            t_b = self.conf.noise_robust_spike_num
+            #t_b = 2
 
             f_init_refractory = tf.equal(self.t_set_refractory,tf.constant(-1.0,dtype=tf.float32,shape=self.t_set_refractory.shape))
 

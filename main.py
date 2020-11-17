@@ -326,6 +326,8 @@ tf.compat.v1.app.flags.DEFINE_bool('noise_en',False,'noise injection mode enable
 tf.compat.v1.app.flags.DEFINE_string('noise_type',None,'noise type - DEL ..')
 tf.compat.v1.app.flags.DEFINE_float('noise_pr',0.1,'noise probability for DEL')
 tf.compat.v1.app.flags.DEFINE_bool('noise_robust_en',False,'noise robust mode enable')
+tf.compat.v1.app.flags.DEFINE_bool('noise_robust_comp_pr_en',False,'noise robust compenstation pr enable - only DEL')
+tf.compat.v1.app.flags.DEFINE_integer('noise_robust_spike_num',0,'noise robust spike number')
 tf.compat.v1.app.flags.DEFINE_integer('rep',-1,'repeat - noise experiments')
 
 
