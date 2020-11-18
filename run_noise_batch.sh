@@ -160,7 +160,7 @@ for ((i_is=0;i_is<${#is_arr[@]};i_is++)) do
             tfs_n_div_tfd_arr=(2)
 
             # noise robust
-            if [ ${noise_en} = True ]
+            if [ ${noise_robust_en} = True ]
             then
                 nrc_arr=(True False)
                 nrs_arr=(0 1 2 3 4 5 6)
