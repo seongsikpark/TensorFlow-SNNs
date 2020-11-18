@@ -3,10 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="cd128314-5acb-4064-8a3c-335a0785d3d0" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/run_noise.sh" beforeDir="false" afterPath="$PROJECT_DIR$/run_noise.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib_snn.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib_snn.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/run_noise_batch.sh" beforeDir="false" afterPath="$PROJECT_DIR$/run_noise_batch.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -45,29 +43,29 @@
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="conf" value="1176" />
-          <entry key="py" value="33138" />
-          <entry key="sh" value="12644" />
-          <entry key="txt" value="150" />
+          <entry key="py" value="34846" />
+          <entry key="sh" value="15016" />
+          <entry key="txt" value="178" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Bash" value="12644" />
-          <entry key="PLAIN_TEXT" value="1326" />
-          <entry key="Python" value="33138" />
+          <entry key="Bash" value="15016" />
+          <entry key="PLAIN_TEXT" value="1354" />
+          <entry key="Python" value="34846" />
         </counts>
       </usages-collector>
     </session>
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.46798602">
+    <splitter split-orientation="horizontal" split-proportion="0.50958747">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/main.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="525">
-                  <caret line="328" column="73" selection-start-line="328" selection-start-column="73" selection-end-line="328" selection-end-column="73" />
+                <state relative-caret-position="540">
+                  <caret line="328" column="53" selection-start-line="328" selection-start-column="53" selection-end-line="328" selection-end-column="53" />
                   <folding>
                     <element signature="e#0#38#0" expanded="true" />
                   </folding>
@@ -75,14 +73,14 @@
               </provider>
             </entry>
           </file>
-          <file pinned="false" current-in-tab="true">
+          <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/test.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="728">
-                  <caret line="263" lean-forward="true" selection-start-line="263" selection-end-line="263" />
+                <state relative-caret-position="473">
+                  <caret line="262" column="49" selection-start-line="262" selection-start-column="49" selection-end-line="262" selection-end-column="49" />
                   <folding>
                     <element signature="e#0#38#0" expanded="true" />
-                    <marker date="1605515318492" expanded="true" signature="15546:15548" ph="..." />
+                    <marker date="1605631295530" expanded="true" signature="15784:15786" ph="..." />
                   </folding>
                 </state>
               </provider>
@@ -91,21 +89,21 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/models/models.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="120">
-                  <caret line="1056" column="12" selection-start-line="1056" selection-start-column="12" selection-end-line="1056" selection-end-column="12" />
+                <state relative-caret-position="1170">
+                  <caret line="1084" column="40" selection-start-line="1084" selection-start-column="40" selection-end-line="1084" selection-end-column="40" />
                   <folding>
                     <element signature="e#0#23#0" expanded="true" />
-                    <marker date="1605512420359" expanded="true" signature="68787:68795" ph="..." />
+                    <marker date="1605630567834" expanded="true" signature="70075:70083" ph="..." />
                   </folding>
                 </state>
               </provider>
             </entry>
           </file>
-          <file pinned="false" current-in-tab="false">
+          <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/run_noise_batch.sh">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="585">
-                  <caret line="39" selection-start-line="39" selection-end-line="39" />
+                <state relative-caret-position="930">
+                  <caret line="113" column="33" selection-start-line="113" selection-start-column="33" selection-end-line="113" selection-end-column="33" />
                 </state>
               </provider>
             </entry>
@@ -117,30 +115,30 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/run.sh">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="810">
-                  <caret line="346" selection-start-line="346" selection-end-line="346" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/run_noise.sh">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="1083">
-                  <caret line="1161" column="15" selection-start-line="1161" selection-start-column="15" selection-end-line="1161" selection-end-column="15" />
+                <state relative-caret-position="776">
+                  <caret line="1149" selection-start-line="1149" selection-end-line="1149" />
                 </state>
               </provider>
             </entry>
           </file>
           <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/run_noise.sh">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="195">
+                  <caret line="119" column="28" selection-start-line="119" selection-start-column="28" selection-end-line="119" selection-end-column="28" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/lib_snn.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="660">
-                  <caret line="892" column="18" selection-start-line="892" selection-start-column="18" selection-end-line="892" selection-end-column="18" />
+                <state relative-caret-position="540">
+                  <caret line="605" column="9" selection-start-line="605" selection-start-column="9" selection-end-line="605" selection-end-column="9" />
                   <folding>
                     <element signature="e#0#23#0" expanded="true" />
-                    <marker date="1605512419651" expanded="true" signature="13927:13936" ph="..." />
-                    <marker date="1605512419651" expanded="true" signature="37384:37397" ph="..." />
+                    <marker date="1605678254897" expanded="true" signature="13927:13936" ph="..." />
+                    <marker date="1605678254897" expanded="true" signature="37652:37665" ph="..." />
                   </folding>
                 </state>
               </provider>
@@ -190,13 +188,13 @@
         <option value="$PROJECT_DIR$/scripts/weight_norm.conf" />
         <option value="$PROJECT_DIR$/datasets/cifar10.py" />
         <option value="$PROJECT_DIR$/datasets/cifar100.py" />
-        <option value="$PROJECT_DIR$/models/models.py" />
-        <option value="$PROJECT_DIR$/lib_snn.py" />
-        <option value="$PROJECT_DIR$/run.sh" />
-        <option value="$PROJECT_DIR$/run_noise_batch.sh" />
-        <option value="$PROJECT_DIR$/run_noise.sh" />
         <option value="$PROJECT_DIR$/main.py" />
+        <option value="$PROJECT_DIR$/models/models.py" />
+        <option value="$PROJECT_DIR$/run.sh" />
         <option value="$PROJECT_DIR$/test.py" />
+        <option value="$PROJECT_DIR$/run_noise.sh" />
+        <option value="$PROJECT_DIR$/lib_snn.py" />
+        <option value="$PROJECT_DIR$/run_noise_batch.sh" />
       </list>
     </option>
   </component>
@@ -509,17 +507,30 @@
       <option name="project" value="LOCAL" />
       <updated>1605514055850</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="201116 - repeat mode">
+      <created>1605515321016</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1605515321016</updated>
+    </task>
+    <task id="LOCAL-00014" summary="201117 - noise robust mode">
+      <created>1605632257326</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1605632257326</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="22" width="2560" height="1394" extended-state="6" />
-    <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.25179282" />
+      <window_info content_ui="combo" id="Project" order="0" weight="0.25179282" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
-      <window_info id="Run" order="3" weight="0.29482073" />
+      <window_info id="Run" order="3" visible="true" weight="0.31434262" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
       <window_info anchor="bottom" id="Debug" order="2" weight="0.4" />
@@ -530,7 +541,7 @@
       <window_info anchor="bottom" id="Version Control" order="7" weight="0.32932693" />
       <window_info anchor="bottom" id="Database Changes" order="8" show_stripe_button="false" />
       <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
-      <window_info anchor="bottom" id="Terminal" order="10" weight="0.2099359" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="10" visible="true" weight="0.2099359" />
       <window_info anchor="bottom" id="Python Console" order="11" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -554,7 +565,8 @@
     <MESSAGE value="201116" />
     <MESSAGE value="201116 - modify jitter" />
     <MESSAGE value="201116 - repeat mode" />
-    <option name="LAST_COMMIT_MESSAGE" value="201116 - repeat mode" />
+    <MESSAGE value="201117 - noise robust mode" />
+    <option name="LAST_COMMIT_MESSAGE" value="201117 - noise robust mode" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/train.py">
@@ -614,13 +626,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/scripts/path.conf">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="135">
-          <caret line="9" selection-start-line="9" selection-end-line="9" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/datasets/cifar100.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="525">
@@ -641,68 +646,75 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/lib_snn.py">
+    <entry file="file://$PROJECT_DIR$/scripts/path.conf">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="660">
-          <caret line="892" column="18" selection-start-line="892" selection-start-column="18" selection-end-line="892" selection-end-column="18" />
+        <state relative-caret-position="135">
+          <caret line="9" selection-start-line="9" selection-end-line="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/run.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="776">
+          <caret line="1149" selection-start-line="1149" selection-end-line="1149" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="473">
+          <caret line="262" column="49" selection-start-line="262" selection-start-column="49" selection-end-line="262" selection-end-column="49" />
           <folding>
-            <element signature="e#0#23#0" expanded="true" />
-            <marker date="1605512419651" expanded="true" signature="13927:13936" ph="..." />
-            <marker date="1605512419651" expanded="true" signature="37384:37397" ph="..." />
+            <element signature="e#0#38#0" expanded="true" />
+            <marker date="1605631295530" expanded="true" signature="15784:15786" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="540">
+          <caret line="328" column="53" selection-start-line="328" selection-start-column="53" selection-end-line="328" selection-end-column="53" />
+          <folding>
+            <element signature="e#0#38#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/models/models.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="120">
-          <caret line="1056" column="12" selection-start-line="1056" selection-start-column="12" selection-end-line="1056" selection-end-column="12" />
+        <state relative-caret-position="1170">
+          <caret line="1084" column="40" selection-start-line="1084" selection-start-column="40" selection-end-line="1084" selection-end-column="40" />
           <folding>
             <element signature="e#0#23#0" expanded="true" />
-            <marker date="1605512420359" expanded="true" signature="68787:68795" ph="..." />
+            <marker date="1605630567834" expanded="true" signature="70075:70083" ph="..." />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/run.sh">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="810">
-          <caret line="346" selection-start-line="346" selection-end-line="346" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/run_noise_batch.sh">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="585">
-          <caret line="39" selection-start-line="39" selection-end-line="39" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/run_noise.sh">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1083">
-          <caret line="1161" column="15" selection-start-line="1161" selection-start-column="15" selection-end-line="1161" selection-end-column="15" />
+        <state relative-caret-position="195">
+          <caret line="119" column="28" selection-start-line="119" selection-start-column="28" selection-end-line="119" selection-end-column="28" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/main.py">
+    <entry file="file://$PROJECT_DIR$/lib_snn.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="525">
-          <caret line="328" column="73" selection-start-line="328" selection-start-column="73" selection-end-line="328" selection-end-column="73" />
+        <state relative-caret-position="540">
+          <caret line="605" column="9" selection-start-line="605" selection-start-column="9" selection-end-line="605" selection-end-column="9" />
           <folding>
-            <element signature="e#0#38#0" expanded="true" />
+            <element signature="e#0#23#0" expanded="true" />
+            <marker date="1605678254897" expanded="true" signature="13927:13936" ph="..." />
+            <marker date="1605678254897" expanded="true" signature="37652:37665" ph="..." />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test.py">
+    <entry file="file://$PROJECT_DIR$/run_noise_batch.sh">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="728">
-          <caret line="263" lean-forward="true" selection-start-line="263" selection-end-line="263" />
-          <folding>
-            <element signature="e#0#38#0" expanded="true" />
-            <marker date="1605515318492" expanded="true" signature="15546:15548" ph="..." />
-          </folding>
+        <state relative-caret-position="930">
+          <caret line="113" column="33" selection-start-line="113" selection-start-column="33" selection-end-line="113" selection-end-column="33" />
         </state>
       </provider>
     </entry>

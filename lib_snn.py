@@ -598,10 +598,12 @@ class Neuron(tf.keras.layers.Layer):
 
         #out_noise = tf.where(f_fire_and_noise,tf.zeros(self.out.shape),self.out)
 
-        if self.neural_coding=="TEMPORAL":
-            self.out = tf.where(f_fire_and_noise,tf.zeros(self.out.shape),self.out)
-        else:
-            self.out = tf.where(f_fire_and_noise,tf.zeros(self.out.shape),self.out)
+        #if self.neural_coding=="TEMPORAL":
+            #self.out = tf.where(f_fire_and_noise,tf.zeros(self.out.shape),self.out)
+            #self.f_fire = tf.where(f_fire_and_noise,tf.constant(False,tf.bool,self.f_fire.shape),self.f_fire)
+        #else:
+        self.out = tf.where(f_fire_and_noise,tf.zeros(self.out.shape),self.out)
+        self.f_fire = tf.where(f_fire_and_noise,tf.constant(False,tf.bool,self.f_fire.shape),self.f_fire)
 
         #print("out_noise: {}".format(tf.reduce_sum(out_noise)))
 

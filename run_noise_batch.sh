@@ -24,9 +24,9 @@ is_arr=('REAL')
 #nc_arr=('WEIGHTED_SPIKE')
 #nc_arr=('BURST')
 #nc_arr=('TEMPORAL' 'BURST')
-#nc_arr=('TEMPORAL')
+nc_arr=('TEMPORAL')
 #nc_arr=('TEMPORAL' 'BURST' 'WEIGHTED_SPIKE')
-nc_arr=('RATE' 'BURST' 'TEMPORAL' 'WEIGHTED_SPIKE')
+#nc_arr=('RATE' 'BURST' 'TEMPORAL' 'WEIGHTED_SPIKE')
 #nc_arr=('RATE')
 
 
@@ -58,8 +58,8 @@ noise_en=True      #: true
 
 
 # noise robust
-noise_robust_en=True
-#noise_robust_en=False
+#noise_robust_en=True
+noise_robust_en=False
 
 
 
@@ -67,12 +67,13 @@ noise_robust_en=True
 if [ ${noise_en} = True ]
 then
     # del
-    #noise_type_arr=('DEL')
-    #noise_pr_arr=(0.01 0.05 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9)
+    noise_type_arr=('DEL')
+    noise_pr_arr=(0.01 0.05 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9)
+    #noise_pr_arr=(0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9)
 
     # jit
-    noise_type_arr=('JIT')
-    noise_pr_arr=(0.3 0.5 0.7 0.9 1.0 2.0 4.0)
+    #noise_type_arr=('JIT')
+    #noise_pr_arr=(0.3 0.5 0.7 0.9 1.0 2.0 4.0)
 
     # jit_na - jit not absolute
     #noise_type_arr=('JIT-A')
