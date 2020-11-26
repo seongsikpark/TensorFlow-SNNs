@@ -39,13 +39,13 @@ en_tensorboard_write=False
 ###############################################################################
 ## Model & Dataset
 ###############################################################################
-#nn_mode='ANN'
-nn_mode='SNN'
+nn_mode='ANN'
+#nn_mode='SNN'
 
 
 #exp_case='CNN_MNIST'
-exp_case='VGG16_CIFAR-10'
-#exp_case='VGG16_CIFAR-100'
+#exp_case='VGG16_CIFAR-10'
+exp_case='VGG16_CIFAR-100'
 #exp_case='ResNet50_ImageNet'
 
 
@@ -114,8 +114,8 @@ f_overwrite_train_model=False
 
 
 # full test
-#f_full_test=True
-f_full_test=False
+f_full_test=True
+#f_full_test=False
 
 
 #
@@ -199,10 +199,10 @@ input_spike_mode='REAL'
 #
 ## neural coding
 #
-neural_coding='RATE'
+#neural_coding='RATE'
 #neural_coding='WEIGHTED_SPIKE'
 #neural_coding='BURST'
-#neural_coding='TEMPORAL'
+neural_coding='TEMPORAL'
 #neural_coding='NON_LINEAR'     # PF-Neuron
 
 
@@ -328,11 +328,12 @@ batch_run_train_tc=False
 ##
 ###############################################################################
 
-#noise_en=False
-noise_en=True
+noise_en=False
+#noise_en=True
 
 noise_type="DEL"
 #noise_type="JIT"
+#noise_type="SYN"
 
 # for noise_type = DEL (pr), JIT (std)
 #noise_pr=0.0
@@ -346,10 +347,10 @@ noise_pr=0.40
 
 #
 noise_robust_en=False
-noise_robust_en=True
+#noise_robust_en=True
 
-noise_robust_comp_pr_en=True
-#noise_robust_comp_pr_en=False
+#noise_robust_comp_pr_en=True
+noise_robust_comp_pr_en=False
 
 noise_robust_spike_num=0
 
@@ -667,8 +668,8 @@ INFER_VGG16_CIFAR-100)
     echo "Inference mode - "${nn_mode}", Model: VGG16, Dataset: CIFAR-100"
     ann_model='CNN'         # CNN-CIFAR: VGG16
     dataset='CIFAR-100'
-    #model_name='vgg_cifar100_ro_0'
-    model_name='vgg16_cifar100_train_ANN'
+    model_name='vgg_cifar100_ro_0'
+    #model_name='vgg16_cifar100_train_ANN'
 
 
     if [ ${f_full_test} = True ]

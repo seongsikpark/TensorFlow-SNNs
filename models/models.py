@@ -1044,118 +1044,194 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         for k, v in self.norm_b.items():
             print(k +': '+str(v))
 
+        if self.conf.noise_en:
+            if self.conf.noise_robust_en:
+                #layer_const = 0.55  # noise del 0.0
+                #layer_const = 0.50648  # noise del 0.0
+                #layer_const = 0.65 # noise del 0.0
+                #layer_const = 0.55 # noise del 0.0
+                #layer_const = 0.6225 # noise del 0.0
+                #layer_const = 0.50648  # noise del 0.0, n: 2
+                #layer_const = 0.45505  # noise del 0.0  n: 3
+                #layer_const = 0.42866  # noise del 0.0  n: 4
+                #layer_const = 0.41409  # noise del 0.0  n: 5
+                #layer_const = 0.40572  # noise del 0.0  n: 6
+                #layer_const = 0.40081  # noise del 0.0  n: 7
+                #layer_const = 0.45505*1.2 # noise del 0.0 - n 3
+                #layer_const = 1.0  # noise del 0.0
+                #layer_const = 0.55  # noise del 0.01
+                #layer_const = 0.6  # noise del 0.1
+                #layer_const = 0.65  # noise del 0.2
+                #layer_const = 0.78   # noise del 0.4
+                #layer_const = 0.7   # noise del 0.6
+                #layer_const=1.0
 
-        if self.conf.noise_robust_en:
-            #layer_const = 0.55  # noise del 0.0
-            #layer_const = 0.50648  # noise del 0.0
-            #layer_const = 0.65 # noise del 0.0
-            #layer_const = 0.55 # noise del 0.0
-            #layer_const = 0.6225 # noise del 0.0
-            #layer_const = 0.50648  # noise del 0.0, n: 2
-            #layer_const = 0.45505  # noise del 0.0  n: 3
-            #layer_const = 0.42866  # noise del 0.0  n: 4
-            #layer_const = 0.41409  # noise del 0.0  n: 5
-            #layer_const = 0.40572  # noise del 0.0  n: 6
-            #layer_const = 0.40081  # noise del 0.0  n: 7
-            #layer_const = 0.45505*1.2 # noise del 0.0 - n 3
-            #layer_const = 1.0  # noise del 0.0
-            #layer_const = 0.55  # noise del 0.01
-            #layer_const = 0.6  # noise del 0.1
-            #layer_const = 0.65  # noise del 0.2
-            #layer_const = 0.78   # noise del 0.4
-            #layer_const = 0.7   # noise del 0.6
-            #layer_const=1.0
 
+                layer_const = 1.0
+                bias_const = 1.0
 
-            layer_const = 1.0
-            bias_const = 1.0
-
-            if self.conf.neural_coding == 'TEMPORAL':
-                if self.conf.noise_robust_spike_num==0:
-                    layer_const = 1.0
-                elif self.conf.noise_robust_spike_num==1:
-                    layer_const = 0.50648
-                elif self.conf.noise_robust_spike_num==2:
-                    layer_const = 0.50648
-                elif self.conf.noise_robust_spike_num==3:
-                    layer_const = 0.45505
-                elif self.conf.noise_robust_spike_num==4:
-                    layer_const = 0.42866
-                elif self.conf.noise_robust_spike_num==5:
-                    layer_const = 0.41409
-                elif self.conf.noise_robust_spike_num==6:
-                    layer_const = 0.40572
-                elif self.conf.noise_robust_spike_num==7:
-                    layer_const = 0.40081
+                if self.conf.neural_coding == 'TEMPORAL':
+                    if self.conf.noise_robust_spike_num==0:
+                        layer_const = 1.0
+                    elif self.conf.noise_robust_spike_num==1:
+                        layer_const = 0.50648
+                    elif self.conf.noise_robust_spike_num==2:
+                        layer_const = 0.50648
+                    elif self.conf.noise_robust_spike_num==3:
+                        layer_const = 0.45505
+                    elif self.conf.noise_robust_spike_num==4:
+                        layer_const = 0.42866
+                    elif self.conf.noise_robust_spike_num==5:
+                        layer_const = 0.41409
+                    elif self.conf.noise_robust_spike_num==6:
+                        layer_const = 0.40572
+                    elif self.conf.noise_robust_spike_num==7:
+                        layer_const = 0.40081
+                    elif self.conf.noise_robust_spike_num==10:
+                        layer_const = 0.39508
+                    elif self.conf.noise_robust_spike_num==15:
+                        layer_const = 0.39360
+                    elif self.conf.noise_robust_spike_num==20:
+                        layer_const = 0.39348
+                    else:
+                        assert False
                 else:
-                    assert False
+                    if self.conf.noise_robust_spike_num==0:
+                        layer_const = 1.0
+                    else:
+                        assert False
+
+                #layer_const = 1.0
+
+                # compenstation - p
+                if self.conf.noise_robust_comp_pr_en:
+                    if self.conf.noise_type=="DEL":
+                        layer_const = layer_const / (1.0-self.conf.noise_pr)
+                    elif self.conf.noise_type=="JIT" or self.conf.noise_type=="JIT-A" or self.conf.noise_type=="SYN":
+                        layer_const = layer_const
+                        #layer_const = layer_const / (1.0-self.conf.noise_pr/4.0)
+                    else:
+                        assert False
             else:
-                if self.conf.noise_robust_spike_num==0:
-                    layer_const = 1.0
-                else:
-                    assert False
+                layer_const = 1.0
+                bias_const = 1.0
 
-            #layer_const = 1.0
 
-            # compenstation - p
-            if self.conf.noise_robust_comp_pr_en:
-                if self.conf.noise_type=="DEL":
-                    layer_const = layer_const / (1.0-self.conf.noise_pr)
-                elif self.conf.noise_type=="JIT" or self.conf.noise_type=="JIT-A":
-                    layer_const = layer_const
-                else:
-                    assert False
+
+            if self.conf.input_spike_mode=='REAL':
+                self.conv1.kernel = self.conv1.kernel/self.norm['conv1']
+                self.conv1.bias = self.conv1.bias/self.norm_b['conv1']
+                self.conv1_1.kernel = self.conv1_1.kernel/self.norm['conv1_1']
+                self.conv1_1.bias = self.conv1_1.bias/self.norm_b['conv1_1']
+            else:
+                self.conv1.kernel = self.conv1.kernel/self.norm['conv1']*layer_const
+                self.conv1.bias = self.conv1.bias/self.norm_b['conv1']*bias_const
+                self.conv1_1.kernel = self.conv1_1.kernel/self.norm['conv1_1']*layer_const
+                self.conv1_1.bias = self.conv1_1.bias/self.norm_b['conv1_1']*bias_const
+
+
+#            if self.conf.noise_type=="SYN":
+#                rand_2 = tf.random.normal(shape=self.conv2.kernel.shape,mean=0.0,stddev=self.conf.noise_pr)
+#                rand_2_1 = tf.random.normal(shape=self.conv2_1.kernel.shape,mean=0.0,stddev=self.conf.noise_pr)
+#                rand_3 = tf.random.normal(shape=self.conv3.kernel.shape,mean=0.0,stddev=self.conf.noise_pr)
+#                rand_3_1 = tf.random.normal(shape=self.conv3_1.kernel.shape,mean=0.0,stddev=self.conf.noise_pr)
+#                rand_3_2 = tf.random.normal(shape=self.conv3_2.kernel.shape,mean=0.0,stddev=self.conf.noise_pr)
+#                rand_4 = tf.random.normal(shape=self.conv4.kernel.shape,mean=0.0,stddev=self.conf.noise_pr)
+#                rand_4_1 = tf.random.normal(shape=self.conv4_1.kernel.shape,mean=0.0,stddev=self.conf.noise_pr)
+#                rand_4_2 = tf.random.normal(shape=self.conv4_2.kernel.shape,mean=0.0,stddev=self.conf.noise_pr)
+#                rand_5 = tf.random.normal(shape=self.conv5.kernel.shape,mean=0.0,stddev=self.conf.noise_pr)
+#                rand_5_1 = tf.random.normal(shape=self.conv5_1.kernel.shape,mean=0.0,stddev=self.conf.noise_pr)
+#                rand_5_2 = tf.random.normal(shape=self.conv5_2.kernel.shape,mean=0.0,stddev=self.conf.noise_pr)
+#                rand_fc1 = tf.random.normal(shape=self.fc1.kernel.shape,mean=0.0,stddev=self.conf.noise_pr)
+#                rand_fc2 = tf.random.normal(shape=self.fc2.kernel.shape,mean=0.0,stddev=self.conf.noise_pr)
+#                rand_fc3 = tf.random.normal(shape=self.fc3.kernel.shape,mean=0.0,stddev=self.conf.noise_pr)
+#
+#                noise_w_2 = tf.add(1.0,rand_2)
+#                noise_w_2_1 = tf.add(1.0,rand_2_1)
+#                noise_w_3 = tf.add(1.0,rand_3)
+#                noise_w_3_1 = tf.add(1.0,rand_3_1)
+#                noise_w_3_2 = tf.add(1.0,rand_3_2)
+#                noise_w_4 = tf.add(1.0,rand_4)
+#                noise_w_4_1 = tf.add(1.0,rand_4_1)
+#                noise_w_4_2 = tf.add(1.0,rand_4_2)
+#                noise_w_5 = tf.add(1.0,rand_5)
+#                noise_w_5_1 = tf.add(1.0,rand_5_1)
+#                noise_w_5_2 = tf.add(1.0,rand_5_2)
+#                noise_w_fc1 = tf.add(1.0,rand_fc1)
+#                noise_w_fc2 = tf.add(1.0,rand_fc2)
+#                noise_w_fc3 = tf.add(1.0,rand_fc3)
+#            else:
+#                noise_w_2 = 1.0
+#                noise_w_2_1 = 1.0
+#                noise_w_3 = 1.0
+#                noise_w_3_1 = 1.0
+#                noise_w_3_2 = 1.0
+#                noise_w_4 = 1.0
+#                noise_w_4_1 = 1.0
+#                noise_w_4_2 = 1.0
+#                noise_w_5 = 1.0
+#                noise_w_5_1 = 1.0
+#                noise_w_5_2 = 1.0
+#                noise_w_fc1 = 1.0
+#                noise_w_fc2 = 1.0
+#                noise_w_fc3 = 1.0
+
         else:
             layer_const = 1.0
             bias_const = 1.0
 
-        if self.conf.input_spike_mode=='REAL':
-            self.conv1.kernel = self.conv1.kernel/self.norm['conv1']
-            self.conv1.bias = self.conv1.bias/self.norm_b['conv1']
-            self.conv1_1.kernel = self.conv1_1.kernel/self.norm['conv1_1']
-            self.conv1_1.bias = self.conv1_1.bias/self.norm_b['conv1_1']
-        else:
-            self.conv1.kernel = self.conv1.kernel/self.norm['conv1']*layer_const
-            self.conv1.bias = self.conv1.bias/self.norm_b['conv1']*bias_const
-            self.conv1_1.kernel = self.conv1_1.kernel/self.norm['conv1_1']*layer_const
-            self.conv1_1.bias = self.conv1_1.bias/self.norm_b['conv1_1']*bias_const
+            noise_w_2 = 1.0
+            noise_w_2_1 = 1.0
+            noise_w_3 = 1.0
+            noise_w_3_1 = 1.0
+            noise_w_3_2 = 1.0
+            noise_w_4 = 1.0
+            noise_w_4_1 = 1.0
+            noise_w_4_2 = 1.0
+            noise_w_5 = 1.0
+            noise_w_5_1 = 1.0
+            noise_w_5_2 = 1.0
+            noise_w_fc1 = 1.0
+            noise_w_fc2 = 1.0
+            noise_w_fc3 = 1.0
+
 
         depth_const = 1.0
-        self.conv2.kernel = self.conv2.kernel/self.norm['conv2']*layer_const*depth_const
+        self.conv2.kernel = self.conv2.kernel/self.norm['conv2']*layer_const*depth_const*noise_w_2
         self.conv2.bias = self.conv2.bias/self.norm_b['conv2']*bias_const
-        self.conv2_1.kernel = self.conv2_1.kernel/self.norm['conv2_1']*layer_const*depth_const
+        self.conv2_1.kernel = self.conv2_1.kernel/self.norm['conv2_1']*layer_const*depth_const*noise_w_2_1
         self.conv2_1.bias = self.conv2_1.bias/self.norm_b['conv2_1']*bias_const
 
         depth_const = 1.0
-        self.conv3.kernel = self.conv3.kernel/self.norm['conv3']*layer_const*depth_const
+        self.conv3.kernel = self.conv3.kernel/self.norm['conv3']*layer_const*depth_const*noise_w_3
         self.conv3.bias = self.conv3.bias/self.norm_b['conv3']*bias_const
-        self.conv3_1.kernel = self.conv3_1.kernel/self.norm['conv3_1']*layer_const*depth_const
+        self.conv3_1.kernel = self.conv3_1.kernel/self.norm['conv3_1']*layer_const*depth_const*noise_w_3_1
         self.conv3_1.bias = self.conv3_1.bias/self.norm_b['conv3_1']*bias_const
-        self.conv3_2.kernel = self.conv3_2.kernel/self.norm['conv3_2']*layer_const*depth_const
+        self.conv3_2.kernel = self.conv3_2.kernel/self.norm['conv3_2']*layer_const*depth_const*noise_w_3_2
         self.conv3_2.bias = self.conv3_2.bias/self.norm_b['conv3_2']*bias_const
 
         depth_const = 1.0
-        self.conv4.kernel = self.conv4.kernel/self.norm['conv4']*layer_const*depth_const
+        self.conv4.kernel = self.conv4.kernel/self.norm['conv4']*layer_const*depth_const*noise_w_4
         self.conv4.bias = self.conv4.bias/self.norm_b['conv4']*bias_const
-        self.conv4_1.kernel = self.conv4_1.kernel/self.norm['conv4_1']*layer_const*depth_const
+        self.conv4_1.kernel = self.conv4_1.kernel/self.norm['conv4_1']*layer_const*depth_const*noise_w_4_1
         self.conv4_1.bias = self.conv4_1.bias/self.norm_b['conv4_1']*bias_const
-        self.conv4_2.kernel = self.conv4_2.kernel/self.norm['conv4_2']*layer_const*depth_const
+        self.conv4_2.kernel = self.conv4_2.kernel/self.norm['conv4_2']*layer_const*depth_const*noise_w_4_2
         self.conv4_2.bias = self.conv4_2.bias/self.norm_b['conv4_2']*bias_const
 
         depth_const = 1.0
-        self.conv5.kernel = self.conv5.kernel/self.norm['conv5']*layer_const*depth_const
+        self.conv5.kernel = self.conv5.kernel/self.norm['conv5']*layer_const*depth_const*noise_w_5
         self.conv5.bias = self.conv5.bias/self.norm_b['conv5']*bias_const
-        self.conv5_1.kernel = self.conv5_1.kernel/self.norm['conv5_1']*layer_const*depth_const
+        self.conv5_1.kernel = self.conv5_1.kernel/self.norm['conv5_1']*layer_const*depth_const*noise_w_5_1
         self.conv5_1.bias = self.conv5_1.bias/self.norm_b['conv5_1']*bias_const
-        self.conv5_2.kernel = self.conv5_2.kernel/self.norm['conv5_2']*layer_const*depth_const
+        self.conv5_2.kernel = self.conv5_2.kernel/self.norm['conv5_2']*layer_const*depth_const*noise_w_5_2
         self.conv5_2.bias = self.conv5_2.bias/self.norm_b['conv5_2']*bias_const
 
         depth_const = 1.0
-        self.fc1.kernel = self.fc1.kernel/self.norm['fc1']*layer_const*depth_const
+        self.fc1.kernel = self.fc1.kernel/self.norm['fc1']*layer_const*depth_const*noise_w_fc1
         self.fc1.bias = self.fc1.bias/self.norm_b['fc1']*bias_const
-        self.fc2.kernel = self.fc2.kernel/self.norm['fc2']*layer_const*depth_const
+        self.fc2.kernel = self.fc2.kernel/self.norm['fc2']*layer_const*depth_const*noise_w_fc2
         self.fc2.bias = self.fc2.bias/self.norm_b['fc2']*bias_const
-        self.fc3.kernel = self.fc3.kernel/self.norm['fc3']*layer_const*depth_const
+        self.fc3.kernel = self.fc3.kernel/self.norm['fc3']*layer_const*depth_const*noise_w_fc3
         self.fc3.bias = self.fc3.bias/self.norm_b['fc3']*bias_const
 
     #
@@ -1166,6 +1242,8 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
         #f_new = False
         f_new = True
+        if self.conf.model_name=='vgg_cifar100_ro_0':
+            f_new = False
 
         if f_new:
             path_stat=self.conf.path_stat

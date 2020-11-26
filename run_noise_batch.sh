@@ -14,7 +14,7 @@
 # noise_robust_en=${12}
 # noise_robust_comp_pr_en=${13}
 # noise_robust_spike_num=${14}
-# rep=$15
+# rep=$15 
 
 #is_arr=('REAL' 'POISSON' 'WEIGHTED_SPIKE' 'BURST' 'TEMPORAL')
 is_arr=('REAL')
@@ -24,10 +24,11 @@ is_arr=('REAL')
 #nc_arr=('WEIGHTED_SPIKE')
 #nc_arr=('BURST')
 #nc_arr=('TEMPORAL' 'BURST')
-nc_arr=('TEMPORAL')
+#nc_arr=('TEMPORAL', 'BURST')
 #nc_arr=('TEMPORAL' 'BURST' 'WEIGHTED_SPIKE')
 #nc_arr=('RATE' 'BURST' 'TEMPORAL' 'WEIGHTED_SPIKE')
-#nc_arr=('RATE')
+#nc_arr=('RATE' 'TEMPORAL')
+nc_arr=('TEMPORAL')
 
 
 # default
@@ -58,8 +59,8 @@ noise_en=True      #: true
 
 
 # noise robust
-#noise_robust_en=True
-noise_robust_en=False
+noise_robust_en=True
+#noise_robust_en=False
 
 
 
@@ -68,16 +69,27 @@ if [ ${noise_en} = True ]
 then
     # del
     noise_type_arr=('DEL')
-    noise_pr_arr=(0.01 0.05 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9)
+    #noise_pr_arr=(0.01 0.05 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9)
     #noise_pr_arr=(0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9)
+    noise_pr_arr=(0.2 0.5 0.8)
+    #noise_pr_arr=(0.9)
 
     # jit
     #noise_type_arr=('JIT')
-    #noise_pr_arr=(0.3 0.5 0.7 0.9 1.0 2.0 4.0)
+    #noise_pr_arr=(0.5 1.0 2.0 4.0)
+    #noise_pr_arr=(2.0)
+    #noise_pr_arr=(0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0)
+    #noise_pr_arr=(3.5)
+
 
     # jit_na - jit not absolute
     #noise_type_arr=('JIT-A')
     #noise_pr_arr=(0.1 0.3 0.5 0.7 0.9 1.0 2.0 4.0)
+
+    # synaptic noise - Gaussian (0,std^2)
+    #noise_type_arr=('SYN')
+    #noise_pr_arr=(0.1 0.2 0.3 0.4 0.5)
+    #noise_pr_arr=(1.0 2.0)
 else
     noise_type_arr=('NULL')
     noise_pr_arr=(0)
@@ -113,7 +125,6 @@ for ((i_is=0;i_is<${#is_arr[@]};i_is++)) do
             ts_arr=(1000)
             #vth_arr=(0.6 0.8 1.0)
             #vth_arr=(0.2 0.4 0.6 0.8 1.0 1.2)
-            #vth_arr=(0.2 0.4 0.6 0.8 1.0 1.2)
             #vth_arr=(1.0 1.2)
             vth_arr=(1.2)
 
@@ -143,7 +154,7 @@ for ((i_is=0;i_is<${#is_arr[@]};i_is++)) do
             nrs_arr=${nrs_arr_default}
         elif [ ${nc} = 'TEMPORAL' ]
         then
-            ts_arr=(1500)
+            ts_arr=(1000)
             #vth_arr=(0.03125 0.0625 0.0125 0.25 0.4 0.5 0.6 0.8 1.0)
             #vth_arr=(0.03125 0.0625 0.125 0.25 0.4 0.5 0.6 0.8 1.0)
             #vth_arr=(0.2 0.4 0.6 0.8 1.0 1.2)
@@ -153,17 +164,28 @@ for ((i_is=0;i_is<${#is_arr[@]};i_is++)) do
             #tc_arr=(1 2 4 8 16)
             #tc_arr=(1 2 4)
             tc_arr=(2)
+            #tc_arr=(4)                         # CIFAR-100 # tc - 4, tfd_n_tc - 6
             #tfd_n_tc_arr=(2 3 4 5)
             #tfd_n_tc_arr=(4 5 6)
             tfd_n_tc_arr=(6)
+            #tfd_n_tc_arr=(4)                   # MNIST # tc - 2, tfd_n_tc - 4
             #tfs_n_div_tfd_arr=(2 1)
             tfs_n_div_tfd_arr=(2)
 
             # noise robust
             if [ ${noise_robust_en} = True ]
             then
-                nrc_arr=(True False)
-                nrs_arr=(0 1 2 3 4 5 6)
+                if [ ${noise_type_arr[0]} = "DEL" ]
+                then
+                    nrc_arr=(True False)
+                else
+                    nrc_arr=(False)
+                fi
+                #nrs_arr=(0 1 3 5)
+                #nrs_arr=(2 4)
+                #nrs_arr=(0 1 2 3 4 5)
+                #nrs_arr=(0 2)
+                nrs_arr=(5)
             else
                 nrc_arr=${nrc_arr_default}
                 nrs_arr=${nrs_arr_default}

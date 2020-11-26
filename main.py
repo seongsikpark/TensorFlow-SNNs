@@ -351,6 +351,7 @@ if conf.f_write_stat:
     en_gpu=False
 
 def main(_):
+    #tf.random.set_seed(76)
     #pr = cProfile.Profile()
     #pr=pprofile.Profile()
     #pr.enable()
