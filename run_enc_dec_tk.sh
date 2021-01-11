@@ -6,6 +6,19 @@
 # $1: # of epoch for training surrogate model
 # $2:
 
+#epoch=$1
+#epoch_start_train_tk=$2
+#epoch_start_train_t_int=$3
+#epoch_start_train_floor=$4
+#epoch_start_train_clip_tw=$5
+#epoch_start_loss_enc_spike=$6
+#
+#bypass_pr=$7
+#bypass_target_epoch=$8
+#
+#cp_mode=$9
+#training_mode=$10
+
 
 
 #
@@ -47,8 +60,8 @@ en_tensorboard_write=True
 ###############################################################################
 ## Model & Dataset
 ###############################################################################
-nn_mode='ANN'
-#nn_mode='SNN'
+#nn_mode='ANN'
+nn_mode='SNN'
 
 
 #exp_case='CNN_MNIST'
@@ -98,8 +111,9 @@ enc_st_n_tw=2
 ## Run
 ###############################################################################
 
-training_mode=True
+#training_mode=True
 #training_mode=False
+training_mode=$10
 
 #
 # If this flag is False, then the trained model is overwritten
@@ -851,12 +865,13 @@ TRAIN_VGG16_CIFAR-100)
     ann_model='VGG16'
 
     #num_epoch=2000
-    num_epoch=4000
 
     if [ ${f_surrogate_training_model} = True ]
     then
+        num_epoch=$1
         model_name='vgg16_cifar100_train_'${nn_mode}_'surrogate'
     else
+        num_epoch=4000
         model_name='vgg16_cifar100_train_'${nn_mode}
     fi
 
@@ -889,9 +904,9 @@ esac
 
 
 
-###############################################3
+################################################
 ## batch run mode
-###############################################3
+################################################
 if [ ${batch_run_mode} = True ]
 then
     # for temporal coding
@@ -903,8 +918,16 @@ then
     time_step_save_interval=$6
 
 fi
-###############################################3
+################################################
 
+
+################################################
+## batch run mode - SNN training (surrogate model)
+################################################
+if [ ${training_mode} = False ]
+then
+    ${model_name}=${model_name}_${log_file_name}
+fi
 
 
 
@@ -999,6 +1022,7 @@ date=`date +%Y%m%d_%H%M`
 
 path_result_root=${path_result_root}/${model_name}
 time_const_root=${time_const_init_file_name}/${model_name}
+path_log_root=${path_log_root}/${model_name}
 
 #
 mkdir -p ${path_log_root}
@@ -1119,3 +1143,14 @@ tfboard_log_file_name=${log_file_name}
     ; } 2>&1 | tee ${log_file}
 
 echo 'log_file: '${log_file}
+
+#
+cp_model=$9
+
+if [ ${training_mode} = True ]
+then
+    if [ ${cp_model} = True ]
+    then
+        cp -r ${path_models_ckpt}/${model_name} ${path_models_ckpt}/${model_name}_${log_file_name}
+    fi
+fi

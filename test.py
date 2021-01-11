@@ -307,6 +307,7 @@ def test(model, dataset, num_dataset, conf, f_val=False, epoch=0, f_val_snn=Fals
         if conf.verbose_visual:
             model.figure_hold()
 
+    # DNN (ANN) test
     else:
         #accuracy=tfe.metrics.Accuracy('accuracy')
         accuracy=tf.metrics.Accuracy('accuracy')
