@@ -40,7 +40,7 @@ en_tensorboard_write=True
 ## Model & Dataset
 ###############################################################################
 nn_mode='ANN'
-#nn_mode='SNN'
+nn_mode='SNN'
 
 
 #exp_case='CNN_MNIST'
@@ -54,37 +54,34 @@ exp_case='VGG16_CIFAR-10'
 ###############################################################################
 
 
-epoch_start_train_tk=0
-epoch_start_train_t_int=0
-epoch_start_train_floor=0
-epoch_start_train_clip_tw=0
+epoch_start_train_tk=600
+epoch_start_train_t_int=600
+epoch_start_train_floor=800
+epoch_start_train_clip_tw=400
 epoch_start_loss_enc_spike=0
 
 #
-bypass_pr=1
-bypass_target_epoch=500
+bypass_pr=0
+bypass_target_epoch=1000
 
 
 #
 # encoded spike distribution loss
-f_loss_enc_spike=False
-#f_loss_enc_spike=True
+#f_loss_enc_spike=False
+f_loss_enc_spike=True
 
 # weight of loss
 w_loss_enc_spike=10
 
 # coefficient of beta distribution for KL loss
-beta_dist_a=1
-beta_dist_b=0.1
-
 #beta_dist_a=0.1
 #beta_dist_b=0.9
 
 #beta_dist_a=0.9
 #beta_dist_b=0.1
 
-#beta_dist_a=0.5
-#beta_dist_b=0.00001
+beta_dist_a=10000
+beta_dist_b=2
 
 # target max encoded spike time - number of time window
 enc_st_n_tw=2
@@ -94,8 +91,7 @@ enc_st_n_tw=2
 ###############################################################################
 
 training_mode=True
-#training_mode=False
-
+training_mode=False
 
 #
 # If this flag is False, then the trained model is overwritten
@@ -153,7 +149,7 @@ time_step=200
 #time_step=200
 #time_step_save_interval=40
 #time_step_save_interval=20
-time_step_save_interval=100
+time_step_save_interval=10
 #time_step_save_interval=5
 
 
@@ -185,11 +181,11 @@ num_test_dataset=2
 #
 ## input spike mode
 #
-input_spike_mode='REAL'
+#input_spike_mode='REAL'
 #input_spike_mode='POISSON'
 #input_spike_mode='WEIGHTED_SPIKE'
 #input_spike_mode='BURST'
-#input_spike_mode='TEMPORAL'
+input_spike_mode='TEMPORAL'
 
 #
 ## neural coding
