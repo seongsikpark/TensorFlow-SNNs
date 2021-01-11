@@ -645,7 +645,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
                 beta = self.conf.beta_dist_b
 
                 #self.dist = tfd.Beta(alpha,beta)
-                self.dist = tfd.Gamma(alpha,beta)
+                self.dist = tfd.Chi2(alpha)
 
                 self.dist_beta_sample = collections.OrderedDict()
 
@@ -1477,6 +1477,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         #pr = 0.9
         #pr = 1.0
         #target_epoch = 600
+
 
         target_epoch = self.conf.bypass_target_epoch
         pr_target_epoch = tf.cast(tf.divide(tf.add(epoch,1),target_epoch),tf.float32)

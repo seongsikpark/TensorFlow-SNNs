@@ -61,7 +61,7 @@ epoch_start_train_clip_tw=0
 epoch_start_loss_enc_spike=0
 
 #
-bypass_pr=0
+bypass_pr=1
 bypass_target_epoch=500
 
 
@@ -74,14 +74,17 @@ f_loss_enc_spike=False
 w_loss_enc_spike=10
 
 # coefficient of beta distribution for KL loss
+beta_dist_a=1
+beta_dist_b=0.1
+
 #beta_dist_a=0.1
 #beta_dist_b=0.9
 
 #beta_dist_a=0.9
 #beta_dist_b=0.1
 
-beta_dist_a=1
-beta_dist_b=2
+#beta_dist_a=0.5
+#beta_dist_b=0.00001
 
 # target max encoded spike time - number of time window
 enc_st_n_tw=2
@@ -92,6 +95,7 @@ enc_st_n_tw=2
 
 training_mode=True
 #training_mode=False
+
 
 #
 # If this flag is False, then the trained model is overwritten
@@ -149,7 +153,7 @@ time_step=200
 #time_step=200
 #time_step_save_interval=40
 #time_step_save_interval=20
-time_step_save_interval=10
+time_step_save_interval=100
 #time_step_save_interval=5
 
 
@@ -181,11 +185,11 @@ num_test_dataset=2
 #
 ## input spike mode
 #
-#input_spike_mode='REAL'
+input_spike_mode='REAL'
 #input_spike_mode='POISSON'
 #input_spike_mode='WEIGHTED_SPIKE'
 #input_spike_mode='BURST'
-input_spike_mode='TEMPORAL'
+#input_spike_mode='TEMPORAL'
 
 #
 ## neural coding
