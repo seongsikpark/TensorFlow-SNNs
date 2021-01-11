@@ -22,7 +22,7 @@
 
 
 #
-source ../05_SNN/venv/bin/activate
+source ./venv/bin/activate
 #source ./venv/bin/activate
 
 
@@ -1141,6 +1141,14 @@ mkdir -p ${time_const_root}
     ; } 2>&1 | tee ${log_file}
 
 echo 'log_file: '${log_file}
+
+#
+cp_model=$9
+
+if [ ${cp_model} = True ]
+then
+  cp -r ${path_models_ckpt}/${model_name} ${path_models_ckpt}/${model_name}_${log_file_name}
+fi
 
 #
 cp_model=$9

@@ -17,7 +17,7 @@ from datetime import datetime
 #en_gpu=False
 en_gpu=True
 
-gpu_number=0
+gpu_number=2
 os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
 
 #

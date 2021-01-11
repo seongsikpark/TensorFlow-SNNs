@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #
-source ../05_SNN/venv/bin/activate
-#source ./venv/bin/activate
+#source ../05_SNN/venv/bin/activate
+source ./venv/bin/activate
 
 
 ###############################################################################
@@ -54,10 +54,10 @@ exp_case='VGG16_CIFAR-10'
 ###############################################################################
 
 
-epoch_start_train_tk=600
-epoch_start_train_t_int=600
-epoch_start_train_floor=800
-epoch_start_train_clip_tw=400
+epoch_start_train_tk=0
+epoch_start_train_t_int=0
+epoch_start_train_floor=1000
+epoch_start_train_clip_tw=0
 epoch_start_loss_enc_spike=0
 
 #
@@ -67,8 +67,8 @@ bypass_target_epoch=1000
 
 #
 # encoded spike distribution loss
-#f_loss_enc_spike=False
-f_loss_enc_spike=True
+f_loss_enc_spike=False
+#f_loss_enc_spike=True
 
 # weight of loss
 w_loss_enc_spike=10
@@ -80,7 +80,7 @@ w_loss_enc_spike=10
 #beta_dist_a=0.9
 #beta_dist_b=0.1
 
-beta_dist_a=10000
+beta_dist_a=1
 beta_dist_b=2
 
 # target max encoded spike time - number of time window
@@ -147,9 +147,10 @@ time_step=200
 # for MNIST, CNN
 # SNN training
 #time_step=200
+time_step_save_interval=100
 #time_step_save_interval=40
 #time_step_save_interval=20
-time_step_save_interval=10
+#time_step_save_interval=10
 #time_step_save_interval=5
 
 
@@ -159,9 +160,12 @@ time_step_save_interval=10
 
 # for MNIST, CNN
 #batch_size=250
-batch_size=1
+batch_size=25
+#batch_size=1
+
 idx_test_dataset_s=0
-num_test_dataset=2
+num_test_dataset=25
+#num_test_dataset=500
 #num_test_dataset=50000
 #num_test_dataset=10000
 #num_test_dataset=250
@@ -181,11 +185,11 @@ num_test_dataset=2
 #
 ## input spike mode
 #
-#input_spike_mode='REAL'
+input_spike_mode='REAL'
 #input_spike_mode='POISSON'
 #input_spike_mode='WEIGHTED_SPIKE'
 #input_spike_mode='BURST'
-input_spike_mode='TEMPORAL'
+#input_spike_mode='TEMPORAL'
 
 #
 ## neural coding
@@ -755,6 +759,9 @@ INFER_VGG16_CIFAR-10_SUR)
 
 
 
+
+
+
 ###############################################################
 ## Training setup
 ###############################################################
@@ -795,6 +802,10 @@ TRAIN_VGG16_CIFAR-10)
     echo "Training mode - "${nn_mode}", Model: VGG16, Dataset: CIFAR-10"
     dataset='CIFAR-10'
     ann_model='VGG16'
+
+
+    #
+    #model_name='vgg16_cifar_train_ANN_surrogate_88_2'
 
 
     if [ ${f_surrogate_training_model} = True ]
