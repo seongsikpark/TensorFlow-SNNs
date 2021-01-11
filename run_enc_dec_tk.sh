@@ -26,6 +26,8 @@ source ../05_SNN/venv/bin/activate
 #source ./venv/bin/activate
 
 
+
+
 ###############################################################################
 ## Include
 ###############################################################################
@@ -57,11 +59,19 @@ en_tensorboard_write=True
 #en_tensorboard_write=False
 
 
+################################################################################
+## Model & Dataset
+###############################################################################
+log_file_name=ep-$1_tk-$2_int-$3_fl-$4_cl-$5_le-$6_bp-$7_bt-$8
+log_file=${path_log_root}/${log_file_name}.log
+tfboard_log_file_name=${log_file_name}
+
+
 ###############################################################################
 ## Model & Dataset
 ###############################################################################
-nn_mode='ANN'
-#nn_mode='SNN'
+#nn_mode='ANN'
+nn_mode='SNN'
 
 
 #exp_case='CNN_MNIST'
@@ -113,7 +123,7 @@ enc_st_n_tw=2
 
 #training_mode=True
 #training_mode=False
-training_mode=$10
+training_mode=${10}
 
 #
 # If this flag is False, then the trained model is overwritten
@@ -926,7 +936,7 @@ fi
 ################################################
 if [ ${training_mode} = False ]
 then
-    ${model_name}=${model_name}_${log_file_name}
+    model_name=${model_name}_${log_file_name}
 fi
 
 
@@ -1034,18 +1044,6 @@ mkdir -p ${time_const_root}
 
 
 
-#epoch=$1
-#epoch_start_train_tk=$2
-#epoch_start_train_t_int=$3
-#epoch_start_train_floor=$4
-#epoch_start_train_clip_tw=$5
-#epoch_start_loss_enc_spike=$6
-#
-#bypass_pr=$7
-#bypass_target_epoch=$8
-log_file_name=ep-$1_tk-$2_int-$3_fl-$4_cl-$5_le-$6_bp-$7_bt-$8
-log_file=${path_log_root}/${log_file_name}.log
-tfboard_log_file_name=${log_file_name}
 
 #{ unbuffer time kernprof -l main.py \
 #{ CUDA_VISIBLE_DEVICES=0 unbuffer time python main.py \

@@ -27,20 +27,23 @@ ep=500
 #ep=1
 
 #epoch_start_train_tk=$2
-ep_tk_arr=(0 250 500)
-#ep_tk_arr=(0)
+#ep_tk_arr=(0 250 500)
+ep_tk_arr=(0)
 
 #epoch_start_train_t_int=$3
-ep_enc_int_arr=(0 250 500)
+#ep_enc_int_arr=(0 250 500)
+ep_enc_int_arr=(500)
 
 #epoch_start_train_floor=$4
+#ep_enc_int_fl_arr=(0 250 500)
 ep_enc_int_fl_arr=(0 250 500)
 
 #epoch_start_train_clip_tw=$5
 ep_dec_prun_arr=(0 250 500)
 
 #epoch_start_loss_enc_spike=$6
-ep_loss_enc_arr=(1)
+#ep_loss_enc_arr=(1)
+ep_loss_enc_arr=(1000)
 
 #bypass_pr=$7
 bypass_pr_arr=(0 0.5 1)
