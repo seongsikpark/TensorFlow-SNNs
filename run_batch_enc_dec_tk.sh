@@ -45,7 +45,6 @@ ep_loss_enc_arr=(1000)
 
 #bypass_pr=$7
 bypass_pr_arr=(0 0.5 1)
-#bypass_pr_arr=(0 0.5)
 
 #bypass_target_epoch=$8
 bypass_tep_arr=(500)

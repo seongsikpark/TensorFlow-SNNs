@@ -57,11 +57,19 @@ en_tensorboard_write=True
 #en_tensorboard_write=False
 
 
+################################################################################
+## Model & Dataset
+###############################################################################
+log_file_name=ep-$1_tk-$2_int-$3_fl-$4_cl-$5_le-$6_bp-$7_bt-$8
+log_file=${path_log_root}/${log_file_name}.log
+tfboard_log_file_name=${log_file_name}
+
+
 ###############################################################################
 ## Model & Dataset
 ###############################################################################
-nn_mode='ANN'
-#nn_mode='SNN'
+#nn_mode='ANN'
+nn_mode='SNN'
 
 
 #exp_case='CNN_MNIST'
