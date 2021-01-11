@@ -26,28 +26,24 @@ f_training=False
 ep=500
 #ep=1
 
-epoch_start_train_tk=$2
-#ep_tk_arr=(0 250 500)
-ep_tk_arr=(0)
+#epoch_start_train_tk=$2
+ep_tk_arr=(0 250 500)
+#ep_tk_arr=(0)
 
 #epoch_start_train_t_int=$3
 ep_enc_int_arr=(0 250 500)
-ep_enc_int_arr=(0)
 
 #epoch_start_train_floor=$4
 ep_enc_int_fl_arr=(0 250 500)
-ep_enc_int_fl_arr=(0)
 
 #epoch_start_train_clip_tw=$5
 ep_dec_prun_arr=(0 250 500)
-ep_dec_prun_arr=(0)
 
 #epoch_start_loss_enc_spike=$6
-ep_loss_enc_arr=(1000)
+ep_loss_enc_arr=(1)
 
 #bypass_pr=$7
 bypass_pr_arr=(0 0.5 1)
-bypass_pr_arr=(0 0.5)
 
 #bypass_target_epoch=$8
 bypass_tep_arr=(500)
@@ -91,4 +87,12 @@ for ((i_ep_tk=0;i_ep_tk<${#ep_tk_arr[@]};i_ep_tk++)) do
     done
 
 done
+
+
+
+
+
+
+
+
 
