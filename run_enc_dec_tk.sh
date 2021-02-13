@@ -62,7 +62,14 @@ en_tensorboard_write=True
 ################################################################################
 ## Model & Dataset
 ###############################################################################
-log_file_name=ep-$1_tk-$2_int-$3_fl-$4_cl-$5_le-$6_bp-$7_bt-$8
+
+if [ ${1} -eq ${6} ]
+then
+    log_file_name=ep-$1_tk-$2_int-$3_fl-$4_cl-$5_le-$6_bp-$8_bt-$9
+else
+    log_file_name=ep-$1_tk-$2_int-$3_fl-$4_cl-$5_le-$6_lew-$7_bp-$8_bt-$9
+fi
+
 log_file=${path_log_root}/${log_file_name}.log
 tfboard_log_file_name=${log_file_name}
 
@@ -70,8 +77,8 @@ tfboard_log_file_name=${log_file_name}
 ###############################################################################
 ## Model & Dataset
 ###############################################################################
-#nn_mode='ANN'
-nn_mode='SNN'
+nn_mode='ANN'
+#nn_mode='SNN'
 
 
 #exp_case='CNN_MNIST'
@@ -91,9 +98,11 @@ epoch_start_train_floor=$4
 epoch_start_train_clip_tw=$5
 epoch_start_loss_enc_spike=$6
 
+w_loss_enc_spike=$7
+
 #
-bypass_pr=$7
-bypass_target_epoch=$8
+bypass_pr=$8
+bypass_target_epoch=${9}
 
 
 #
@@ -105,14 +114,15 @@ f_loss_enc_spike=False
 w_loss_enc_spike=10
 
 # coefficient of beta distribution for KL loss
-#beta_dist_a=0.1
-#beta_dist_b=0.9
+beta_dist_a=0.1
+beta_dist_b=0.9
 
 #beta_dist_a=0.9
 #beta_dist_b=0.1
 
-beta_dist_a=1
-beta_dist_b=2
+# for horseshoe dist
+#beta_dist_a=1
+#beta_dist_b=2
 
 # target max encoded spike time - number of time window
 enc_st_n_tw=2
@@ -123,7 +133,7 @@ enc_st_n_tw=2
 
 #training_mode=True
 #training_mode=False
-training_mode=${10}
+training_mode=${11}
 
 #
 # If this flag is False, then the trained model is overwritten
@@ -179,11 +189,12 @@ time_step=200
 # for MNIST, CNN
 # SNN training
 #time_step=200
-time_step_save_interval=100
+#time_step_save_interval=100
 #time_step_save_interval=40
 #time_step_save_interval=20
 #time_step_save_interval=10
 #time_step_save_interval=5
+time_step_save_interval=1
 
 
 ###############################################################
@@ -1143,7 +1154,7 @@ mkdir -p ${time_const_root}
 echo 'log_file: '${log_file}
 
 #
-cp_model=$9
+cp_model=${10}
 
 if [ ${cp_model} = True ]
 then

@@ -644,9 +644,9 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
                 alpha = self.conf.beta_dist_a
                 beta = self.conf.beta_dist_b
 
-                #self.dist = tfd.Beta(alpha,beta)
+                self.dist = tfd.Beta(alpha,beta)
                 #self.dist = tfd.Gamma(alpha,beta)
-                self.dist = tfd.Horseshoe(alpha)
+                #self.dist = tfd.Horseshoe(alpha)
 
                 self.dist_beta_sample = collections.OrderedDict()
 
