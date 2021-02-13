@@ -644,8 +644,9 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
                 alpha = self.conf.beta_dist_a
                 beta = self.conf.beta_dist_b
 
-                #self.dist = tfd.Beta(alpha,beta)
-                self.dist = tfd.Gamma(alpha,beta)
+                self.dist = tfd.Beta(alpha,beta)
+                #self.dist = tfd.Gamma(alpha,beta)
+                #self.dist = tfd.Horseshoe(alpha)
 
                 self.dist_beta_sample = collections.OrderedDict()
 
@@ -663,7 +664,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
                 enc_st = tf.reshape(tk.out_enc, [-1])
 
                 samples = self.dist.sample(enc_st.shape)
-                samples = tf.divide(samples,tf.reduce_max(samples))
+                #samples = tf.divide(samples,tf.reduce_max(samples))
                 samples = tf.multiply(samples,self.enc_st_target_end)
                 self.dist_beta_sample[l_name] = tf.histogram_fixed_width(samples, [0,self.enc_st_target_end], nbins=self.enc_st_target_end)
         else:
