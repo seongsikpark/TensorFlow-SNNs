@@ -63,7 +63,7 @@ ep_loss_enc_arr=(0 250 500)
 
 # enc_spike - weight
 #w_loss_enc_arr=(0.01 0.001)
-w_loss_enc_arr=(0.01)
+w_loss_enc_arr=(1.0)
 
 
 #bypass_pr=$7

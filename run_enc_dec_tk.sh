@@ -98,12 +98,11 @@ epoch_start_train_floor=$4
 epoch_start_train_clip_tw=$5
 epoch_start_loss_enc_spike=$6
 
-dist_loss_enc_spike=$7
-w_loss_enc_spike=$8
+w_loss_enc_spike=$7
 
 #
-bypass_pr=$9
-bypass_target_epoch=${10}
+bypass_pr=$8
+bypass_target_epoch=${9}
 
 
 #
@@ -134,7 +133,7 @@ enc_st_n_tw=2
 
 #training_mode=True
 #training_mode=False
-training_mode=${12}
+training_mode=${11}
 
 #
 # If this flag is False, then the trained model is overwritten
@@ -1155,7 +1154,7 @@ mkdir -p ${time_const_root}
 echo 'log_file: '${log_file}
 
 #
-cp_model=$11
+cp_model=${10}
 
 if [ ${training_mode} = True ]
 then
