@@ -63,11 +63,12 @@ en_tensorboard_write=True
 ## Model & Dataset
 ###############################################################################
 
+enc_st_n_tw=2
 if [ ${1} -eq ${6} ]
 then
-    log_file_name=ep-$1_tk-$2_int-$3_fl-$4_cl-$5_le-$6_bp-$8_bt-$9
+    log_file_name=ep-$1_tk-$2_int-$3_fl-$4_cl-$5_le-$6_nt-$8_bp-$9_bt-${10}
 else
-    log_file_name=ep-$1_tk-$2_int-$3_fl-$4_cl-$5_le-$6_lew-$7_bp-$8_bt-$9
+    log_file_name=ep-$1_tk-$2_int-$3_fl-$4_cl-$5_le-$6_lew-$7_nt-$8_bp-$9_bt-${10}
 fi
 
 log_file=${path_log_root}/${log_file_name}.log
