@@ -64,7 +64,7 @@ ep_loss_enc_arr=(250)
 
 # enc_spike - weight
 #w_loss_enc_arr=(0.01 0.001)
-w_loss_enc_arr=(0.1)
+w_loss_enc_arr=(1 0.1 0.01 0.001)
 
 # enc_spike - n_tw
 #nt_loss_enc_arr=(1 2 5 10)

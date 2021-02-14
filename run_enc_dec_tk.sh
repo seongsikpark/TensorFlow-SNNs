@@ -107,8 +107,13 @@ bypass_target_epoch=${9}
 
 #
 # encoded spike distribution loss
-f_loss_enc_spike=False
-#f_loss_enc_spike=True
+if [ ${1} -eq ${6} ]
+then
+    f_loss_enc_spike=False
+else
+    f_loss_enc_spike=True
+fi
+
 
 # weight of loss
 w_loss_enc_spike=10
