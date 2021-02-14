@@ -114,15 +114,15 @@ f_loss_enc_spike=False
 w_loss_enc_spike=10
 
 # coefficient of beta distribution for KL loss
-beta_dist_a=0.1
-beta_dist_b=0.9
+#beta_dist_a=0.1
+#beta_dist_b=0.9
 
 #beta_dist_a=0.9
 #beta_dist_b=0.1
 
 # for horseshoe dist
-#beta_dist_a=1
-#beta_dist_b=2
+beta_dist_a=1
+beta_dist_b=2
 
 # target max encoded spike time - number of time window
 enc_st_n_tw=${8}

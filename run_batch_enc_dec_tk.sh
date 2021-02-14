@@ -64,11 +64,11 @@ ep_loss_enc_arr=(250)
 
 # enc_spike - weight
 #w_loss_enc_arr=(0.01 0.001)
-w_loss_enc_arr=(1.0)
+w_loss_enc_arr=(0.1)
 
 # enc_spike - n_tw
-#nt_loss_enc_arr=(0.5 1 2 5 10)
-nt_loss_enc_arr=(0.5)
+#nt_loss_enc_arr=(1 2 5 10)
+nt_loss_enc_arr=(1)
 
 #bypass_pr=$7
 #bypass_pr_arr=(0 0.5 1)
