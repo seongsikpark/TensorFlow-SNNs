@@ -61,7 +61,6 @@ en_tensorboard_write=True
 ## Model & Dataset
 ###############################################################################
 
-enc_st_n_tw=2
 if [ ${1} -eq ${6} ]
 then
     log_file_name=ep-$1_tk-$2_int-$3_fl-$4_cl-$5_le-$6_nt-$8_bp-$9_bt-${10}
@@ -124,7 +123,7 @@ beta_dist_b=0.9
 #beta_dist_b=2
 
 # target max encoded spike time - number of time window
-enc_st_n_tw=2
+enc_st_n_tw=${8}
 
 ###############################################################################
 ## Run
