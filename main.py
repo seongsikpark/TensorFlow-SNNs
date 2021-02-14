@@ -319,8 +319,8 @@ tf.compat.v1.app.flags.DEFINE_float('beta_dist_a',0.1,'coefficient of beta distr
 tf.compat.v1.app.flags.DEFINE_float('beta_dist_b',0.1,'coefficient of beta distribution - beta')
 
 #
-#tf.compat.v1.app.flags.DEFINE_integer('enc_st_n_tw',10,'target max encoded spike time - number of time window')
-tf.compat.v1.app.flags.DEFINE_float('enc_st_n_tw',10.0,'target max encoded spike time - number of time window')
+tf.compat.v1.app.flags.DEFINE_integer('enc_st_n_tw',10,'target max encoded spike time - number of time window')
+#tf.compat.v1.app.flags.DEFINE_float('enc_st_n_tw',10,'target max encoded spike time - number of time window')
 
 #
 tf.compat.v1.app.flags.DEFINE_string('tfboard_log_file_name',None,'tfboard log file name')
