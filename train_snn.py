@@ -401,13 +401,13 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
 
                         #fig, axs = plt.subplots(1,2)
 
-                        if (not f_plot_done) and (epoch % 10==0) and (l_name=='conv2'):
-                            f_plot_done = True
-                            axs_glob[0].plot(enc_st)
-                            axs_glob[1].plot(dist_sample)
-
-                            plt.draw()
-                            plt.pause(0.0000000000000001)
+                        #if (not f_plot_done) and (epoch % 10==0) and (l_name=='conv2'):
+                        #    f_plot_done = True
+                        #    axs_glob[0].plot(enc_st)
+                        #    axs_glob[1].plot(dist_sample)
+                        #
+                        #    plt.draw()
+                        #    plt.pause(0.0000000000000001)
 
                 loss_list['enc_st'] = loss_tmp
 
