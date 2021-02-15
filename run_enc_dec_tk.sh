@@ -101,8 +101,8 @@ epoch_start_loss_enc_spike=$6
 w_loss_enc_spike=$7
 
 #
-bypass_pr=$8
-bypass_target_epoch=${9}
+bypass_pr=$9
+bypass_target_epoch=${10}
 
 
 #
@@ -1159,7 +1159,7 @@ mkdir -p ${time_const_root}
 echo 'log_file: '${log_file}
 
 #
-cp_model=${10}
+cp_model=${12}
 
 if [ ${cp_model} = True ]
 then
