@@ -99,8 +99,8 @@ epoch_start_loss_enc_spike=$6
 w_loss_enc_spike=$7
 
 #
-bypass_pr=$8
-bypass_target_epoch=${9}
+bypass_pr=$9
+bypass_target_epoch=${10}
 
 
 #
@@ -1162,7 +1162,7 @@ tfboard_log_file_name=${log_file_name}
 echo 'log_file: '${log_file}
 
 #
-cp_model=${10}
+cp_model=${12}
 
 if [ ${training_mode} = True ]
 then

@@ -32,14 +32,14 @@ ep=500
 
 #epoch_start_train_tk=$2
 #ep_tk_arr=(0 250 500)
-#ep_tk_arr=(0)
-ep_tk_arr=(250)
+ep_tk_arr=(0)
+#ep_tk_arr=(250)
 
 #epoch_start_train_t_int=$3
 #ep_enc_int_arr=(0 250 500)
 #ep_enc_int_arr=(500)
 #ep_enc_int_arr=(0 250)
-ep_enc_int_arr=(0)
+#ep_enc_int_arr=(0)
 ep_enc_int_arr=(250)
 
 #epoch_start_train_floor=$4
@@ -50,12 +50,12 @@ ep_enc_int_fl_arr=(500)
 #epoch_start_train_clip_tw=$5
 #ep_dec_prun_arr=(0 250 500)
 #ep_dec_prun_arr=(0 250)
-ep_dec_prun_arr=(500)
+ep_dec_prun_arr=(250)
 
 #epoch_start_loss_enc_spike=$6
 #ep_loss_enc_arr=(0 250 1000)
 #ep_loss_enc_arr=(0 250 500)
-ep_loss_enc_arr=(250)
+ep_loss_enc_arr=(0 250)
 
 # enc_spike - kl loss distribution
 # beta, gamma, horseshoe
@@ -79,7 +79,8 @@ bypass_pr_arr=(0)
 #bypass_target_epoch=$8
 #bypass_tep_arr=(500)
 #bypass_tep_arr=(250 500)
-bypass_tep_arr=(250)
+#bypass_tep_arr=(250)
+bypass_tep_arr=(50)
 
 # copy model - copy trained model
 #cp_model=True

@@ -1490,6 +1490,9 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
         #pr_layer = tf.multiply(pr,pr_target_epoch)
         pr_layer = pr
+        #print("epoch: {}, target_epoch: {}".format(epoch,target_epoch))
+        #print("pr: {}, pr_target_epoch: {}".format(pr_layer,pr_target_epoch))
+        #pr_layer = 2.0
 
 
         if self.f_1st_iter:
@@ -1535,6 +1538,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
         rand = tf.random.uniform(shape=(), minval=0, maxval=1)
         if f_training == False or ((f_training) and (tf.math.less(rand, pr_layer))):
+        #if True:
             v_conv1_1 = s_conv1_1_bn
             t_conv1_1 = self.list_tk['conv1_1'](v_conv1_1,'enc',self.epoch,f_training)
             v_conv1_1_dec = self.list_tk['conv1_1'](t_conv1_1,'dec',self.epoch,f_training)
@@ -1554,6 +1558,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
         rand = tf.random.uniform(shape=(), minval=0, maxval=1)
         if f_training == False or ((f_training) and (tf.math.less(rand, pr_layer))):
+        #if True:
             v_conv2 = s_conv2_bn
             t_conv2 = self.list_tk['conv2'](v_conv2,'enc',self.epoch,f_training)
             v_conv2_dec = self.list_tk['conv2'](t_conv2,'dec',self.epoch,f_training)
@@ -1571,6 +1576,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
         rand = tf.random.uniform(shape=(), minval=0, maxval=1)
         if f_training == False or ((f_training) and (tf.math.less(rand, pr_layer))):
+        #if True:
             v_conv2_1 = s_conv2_1_bn
             t_conv2_1 = self.list_tk['conv2_1'](v_conv2_1,'enc',self.epoch,f_training)
             v_conv2_1_dec = self.list_tk['conv2_1'](t_conv2_1,'dec',self.epoch,f_training)
@@ -1590,6 +1596,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
         rand = tf.random.uniform(shape=(), minval=0, maxval=1)
         if f_training == False or ((f_training) and (tf.math.less(rand, pr_layer))):
+        #if True:
             v_conv3 = s_conv3_bn
             t_conv3 = self.list_tk['conv3'](v_conv3,'enc',self.epoch,f_training)
             v_conv3_dec = self.list_tk['conv3'](t_conv3,'dec',self.epoch,f_training)
@@ -1607,6 +1614,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
         rand = tf.random.uniform(shape=(), minval=0, maxval=1)
         if f_training == False or ((f_training) and (tf.math.less(rand, pr_layer))):
+        #if True:
             v_conv3_1 = s_conv3_1_bn
             t_conv3_1 = self.list_tk['conv3_1'](v_conv3_1,'enc',self.epoch,f_training)
             v_conv3_1_dec = self.list_tk['conv3_1'](t_conv3_1,'dec',self.epoch,f_training)
@@ -1624,6 +1632,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
         rand = tf.random.uniform(shape=(), minval=0, maxval=1)
         if f_training == False or ((f_training) and (tf.math.less(rand, pr_layer))):
+        #if True:
             v_conv3_2 = s_conv3_2_bn
             t_conv3_2 = self.list_tk['conv3_2'](v_conv3_2,'enc',self.epoch,f_training)
             v_conv3_2_dec = self.list_tk['conv3_2'](t_conv3_2,'dec',self.epoch,f_training)
@@ -1643,6 +1652,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
         rand = tf.random.uniform(shape=(), minval=0, maxval=1)
         if f_training == False or ((f_training) and (tf.math.less(rand, pr_layer))):
+        #if True:
             v_conv4 = s_conv4_bn
             t_conv4 = self.list_tk['conv4'](v_conv4,'enc',self.epoch,f_training)
             v_conv4_dec = self.list_tk['conv4'](t_conv4,'dec',self.epoch,f_training)
@@ -1660,6 +1670,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
         rand = tf.random.uniform(shape=(), minval=0, maxval=1)
         if f_training == False or ((f_training) and (tf.math.less(rand, pr_layer))):
+        #if True:
             v_conv4_1 = s_conv4_1_bn
             t_conv4_1 = self.list_tk['conv4_1'](v_conv4_1,'enc',self.epoch,f_training)
             v_conv4_1_dec = self.list_tk['conv4_1'](t_conv4_1,'dec',self.epoch,f_training)
@@ -1677,6 +1688,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
         rand = tf.random.uniform(shape=(), minval=0, maxval=1)
         if f_training == False or ((f_training) and (tf.math.less(rand, pr_layer))):
+        #if True:
             v_conv4_2 = s_conv4_2_bn
             t_conv4_2 = self.list_tk['conv4_2'](v_conv4_2,'enc',self.epoch,f_training)
             v_conv4_2_dec = self.list_tk['conv4_2'](t_conv4_2,'dec',self.epoch,f_training)
@@ -1696,6 +1708,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
         rand = tf.random.uniform(shape=(), minval=0, maxval=1)
         if f_training == False or ((f_training) and (tf.math.less(rand, pr_layer))):
+        #if True:
             v_conv5 = s_conv5_bn
             t_conv5 = self.list_tk['conv5'](v_conv5,'enc',self.epoch,f_training)
             v_conv5_dec = self.list_tk['conv5'](t_conv5,'dec',self.epoch,f_training)
@@ -1713,6 +1726,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
         rand = tf.random.uniform(shape=(), minval=0, maxval=1)
         if f_training == False or ((f_training) and (tf.math.less(rand, pr_layer))):
+        #if True:
             v_conv5_1 = s_conv5_1_bn
             t_conv5_1 = self.list_tk['conv5_1'](v_conv5_1,'enc',self.epoch,f_training)
             v_conv5_1_dec = self.list_tk['conv5_1'](t_conv5_1,'dec',self.epoch,f_training)
@@ -1730,6 +1744,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
         rand = tf.random.uniform(shape=(), minval=0, maxval=1)
         if f_training == False or ((f_training) and (tf.math.less(rand, pr_layer))):
+        #if True:
             v_conv5_2 = s_conv5_2_bn
             t_conv5_2 = self.list_tk['conv5_2'](v_conv5_2,'enc',self.epoch,f_training)
             v_conv5_2_dec = self.list_tk['conv5_2'](t_conv5_2,'dec',self.epoch,f_training)
@@ -1753,6 +1768,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
         rand = tf.random.uniform(shape=(), minval=0, maxval=1)
         if f_training == False or ((f_training) and (tf.math.less(rand, pr_layer))):
+        #if True:
             v_fc1 = s_fc1_bn
             t_fc1 = self.list_tk['fc1'](v_fc1,'enc',self.epoch,f_training)
             v_fc1_dec = self.list_tk['fc1'](t_fc1,'dec',self.epoch,f_training)
@@ -1771,6 +1787,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
         rand = tf.random.uniform(shape=(), minval=0, maxval=1)
         if f_training == False or ((f_training) and (tf.math.less(rand, pr_layer))):
+        #if True:
             v_fc2 = s_fc2_bn
             t_fc2 = self.list_tk['fc2'](v_fc2,'enc',self.epoch,f_training)
             v_fc2_dec = self.list_tk['fc2'](t_fc2,'dec',self.epoch,f_training)
