@@ -644,9 +644,15 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
                 alpha = self.conf.beta_dist_a
                 beta = self.conf.beta_dist_b
 
-                #self.dist = tfd.Beta(alpha,beta)
-                #self.dist = tfd.Gamma(alpha,beta)
-                self.dist = tfd.Horseshoe(alpha)
+
+                if self.conf.d_loss_enc_spike == 'b':
+                    self.dist = tfd.Beta(alpha,beta)
+                elif self.conf.d_loss_enc_spike == 'g':
+                    self.dist = tfd.Gamma(alpha,beta)
+                elif self.conf.d_loss_enc_spike == 'h':
+                    self.dist = tfd.Horseshoe(alpha)
+                else:
+                    assert False, 'not supported distribution {}'.format(self.conf.d_loss_enc_spike)
 
                 self.dist_beta_sample = collections.OrderedDict()
 

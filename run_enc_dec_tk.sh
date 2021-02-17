@@ -65,9 +65,9 @@ en_tensorboard_write=True
 
 if [ ${1} -eq ${6} ]
 then
-    log_file_name=ep-$1_tk-$2_int-$3_fl-$4_cl-$5_le-$6_nt-$8_bp-$9_bt-${10}
+    log_file_name=ep-$1_tk-$2_int-$3_fl-$4_cl-$5_le-$6_bp-${11}_bt-${12}
 else
-    log_file_name=ep-$1_tk-$2_int-$3_fl-$4_cl-$5_le-$6_lew-$7_nt-$8_bp-$9_bt-${10}
+    log_file_name=ep-$1_tk-$2_int-$3_fl-$4_cl-$5_le-$6_lew-$7_nt-$8_led-$9_lem-${10}_bp-${11}_bt-${12}
 fi
 
 log_file=${path_log_root}/${log_file_name}.log
@@ -100,9 +100,12 @@ epoch_start_loss_enc_spike=$6
 
 w_loss_enc_spike=$7
 
+d_loss_enc_spike=${9}
+ems_loss_enc_spike=${10}
+
 #
-bypass_pr=$9
-bypass_target_epoch=${10}
+bypass_pr=${11}
+bypass_target_epoch=${12}
 
 
 #
@@ -116,7 +119,7 @@ fi
 
 
 # weight of loss
-w_loss_enc_spike=10
+#w_loss_enc_spike=10
 
 # coefficient of beta distribution for KL loss
 #beta_dist_a=0.1
@@ -138,7 +141,7 @@ enc_st_n_tw=${8}
 
 #training_mode=True
 #training_mode=False
-training_mode=${11}
+training_mode=${13}
 
 #
 # If this flag is False, then the trained model is overwritten
@@ -1150,6 +1153,8 @@ mkdir -p ${time_const_root}
     -bypass_target_epoch=${bypass_target_epoch}\
     -f_loss_enc_spike=${f_loss_enc_spike}\
     -w_loss_enc_spike=${w_loss_enc_spike}\
+    -d_loss_enc_spike=${d_loss_enc_spike}\
+    -ems_loss_enc_spike=${ems_loss_enc_spike}\
     -beta_dist_a=${beta_dist_a}\
     -beta_dist_b=${beta_dist_b}\
     -enc_st_n_tw=${enc_st_n_tw}\
@@ -1159,7 +1164,7 @@ mkdir -p ${time_const_root}
 echo 'log_file: '${log_file}
 
 #
-cp_model=${12}
+cp_model=${14}
 
 if [ ${training_mode} = True ]
 then
