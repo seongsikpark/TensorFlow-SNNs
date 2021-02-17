@@ -313,6 +313,9 @@ tf.compat.v1.app.flags.DEFINE_bool('f_loss_enc_spike',False,'flag for encoded sp
 
 #
 tf.compat.v1.app.flags.DEFINE_float('w_loss_enc_spike',0.001,'weight of encoded spike loss')
+# TODO: update below two parameters in run.sh (they are only denoted in run_enc_dec_tk.sh)
+tf.compat.v1.app.flags.DEFINE_string('d_loss_enc_spike','b','target distribution of encoded spike loss')
+tf.compat.v1.app.flags.DEFINE_string('ems_loss_enc_spike','n','encoded spike loss - encoding max spike: f (fixed), n (n x time window=nt)')
 
 # coefficient of beta distribution
 tf.compat.v1.app.flags.DEFINE_float('beta_dist_a',0.1,'coefficient of beta distribution - alpha')
