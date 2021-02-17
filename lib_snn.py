@@ -1169,8 +1169,12 @@ class Temporal_kernel(tf.keras.layers.Layer):
         # before this epoch, training with round founction
         self.epoch_start_train_floor = conf.epoch_start_train_floor
 
+
         #
-        self.enc_st_n_tw = conf.enc_st_n_tw
+        #self.enc_st_n_tw = conf.enc_st_n_tw
+        # encoding maximum spike time
+        self.ems_mode = conf.ems_loss_enc_spike
+        self.ems = conf.enc_st_n_tw * conf.time_window
 
 
 
@@ -1299,8 +1303,13 @@ class Temporal_kernel(tf.keras.layers.Layer):
 
     def call_encoding_kernel(self, input):
 
-        eps = 1.0E-36
-        #eps = tf.math.exp(-float(self.enc_st_n_tw))
+        if self.ems_mode== 'f':
+            eps = 1.0E-36
+        elif self.ems_mode == 'n':
+            eps = tf.math.exp(-float(self.ems))
+        else:
+            assert False, 'not supported encoding maximum spike mode - {}'.format(self.ems_mode)
+
 
         #x = tf.nn.relu(input)
         #x = tf.divide(x,self.ta)
