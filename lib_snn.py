@@ -1174,9 +1174,7 @@ class Temporal_kernel(tf.keras.layers.Layer):
         #self.enc_st_n_tw = conf.enc_st_n_tw
         # encoding maximum spike time
         self.ems_mode = conf.ems_loss_enc_spike
-        self.ems = conf.enc_st_n_tw * conf.time_window
-
-
+        self.ems_nt_mult_tw = conf.enc_st_n_tw*conf.time_window
 
 
         # encoding decoding para couple
@@ -1306,7 +1304,8 @@ class Temporal_kernel(tf.keras.layers.Layer):
         if self.ems_mode== 'f':
             eps = 1.0E-36
         elif self.ems_mode == 'n':
-            eps = tf.math.exp(-float(self.ems))
+            #eps = tf.math.exp(-float(self.ems))
+            eps = tf.math.exp(tf.math.divide(tf.math.subtract(self.td,self.ems_nt_mult_tw),self.tc))
         else:
             assert False, 'not supported encoding maximum spike mode - {}'.format(self.ems_mode)
 
