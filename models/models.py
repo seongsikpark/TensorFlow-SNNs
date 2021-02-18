@@ -645,11 +645,11 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
                 beta = self.conf.beta_dist_b
 
 
-                if self.conf.d_loss_enc_spike == 'b':
+                if 'b' in self.conf.d_loss_enc_spike:
                     self.dist = tfd.Beta(alpha,beta)
-                elif self.conf.d_loss_enc_spike == 'g':
+                elif 'g' in self.conf.d_loss_enc_spike:
                     self.dist = tfd.Gamma(alpha,beta)
-                elif self.conf.d_loss_enc_spike == 'h':
+                elif 'h' in self.conf.d_loss_enc_spike:
                     self.dist = tfd.Horseshoe(alpha)
                 else:
                     assert False, 'not supported distribution {}'.format(self.conf.d_loss_enc_spike)
