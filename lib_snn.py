@@ -1372,6 +1372,8 @@ class Temporal_kernel(tf.keras.layers.Layer):
             #
             tk_min = tf.exp(tf.divide(tf.subtract(td,tw_target),tc))
 
+            #print('min: {:}, max:{:}'.format(tf.reduce_min(x),tf.reduce_max(x)))
+
             #print('')
             #print(tw_target)
             #print(tk_min)

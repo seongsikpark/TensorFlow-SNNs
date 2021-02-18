@@ -39,8 +39,8 @@ ep_tk_arr=(0)
 #ep_enc_int_arr=(0 250 500)
 #ep_enc_int_arr=(500)
 #ep_enc_int_arr=(0 250)
-#ep_enc_int_arr=(0)
-ep_enc_int_arr=(250)
+ep_enc_int_arr=(0)
+#ep_enc_int_arr=(250)
 
 #epoch_start_train_floor=$4
 #ep_enc_int_fl_arr=(0 250 500)
@@ -50,7 +50,7 @@ ep_enc_int_fl_arr=(500)
 #epoch_start_train_clip_tw=$5
 #ep_dec_prun_arr=(0 250 500)
 #ep_dec_prun_arr=(0 250)
-ep_dec_prun_arr=(250)
+ep_dec_prun_arr=(0)
 
 #epoch_start_loss_enc_spike=$6
 #ep_loss_enc_arr=(0 250 1000)
@@ -62,6 +62,7 @@ ep_loss_enc_arr=(0)
 #w_loss_enc_arr=(0.01 0.001)
 #w_loss_enc_arr=(1 0.1 0.01 0.001)
 w_loss_enc_arr=(0.1 0.001)
+w_loss_enc_arr=(0.1)
 
 # enc_spike - n_tw
 #nt_loss_enc_arr=(1 2 5 10)
@@ -69,8 +70,9 @@ nt_loss_enc_arr=(1)
 
 # enc_spike - kl loss distribution
 # beta, gamma, horseshoe
-#dist_loss_enc_arr=(b g h)
-dist_loss_enc_arr=(h)
+#dist_loss_enc_arr=(b b2 b3 g h)
+#dist_loss_enc_arr=(h)
+dist_loss_enc_arr=(b2 b3)
 
 # enc_spike - encoding max spike time mode - f(fixed), nt(n times time window=nt)
 #ems_loss_enc_arr=(f n)

@@ -122,15 +122,27 @@ fi
 #w_loss_enc_spike=10
 
 # coefficient of beta distribution for KL loss
-#beta_dist_a=0.1
-#beta_dist_b=0.9
+# TODO: parameterize
+# dist = "b"
+if [ ${d_loss_enc_spike} = 'b' ]
+then
+    beta_dist_a=0.1
+    beta_dist_b=0.9
+elif [ ${d_loss_enc_spike} = 'b2' ]
+then
+    beta_dist_a=0.9
+    beta_dist_b=0.1
+elif [ ${d_loss_enc_spike} = 'b3' ]
+then
+    beta_dist_a=0.1
+    beta_dist_b=0.1
+elif [ ${d_loss_enc_spike} = 'h' ]
+then
+    beta_dist_a=1
+    beta_dist_b=2
+fi
 
-#beta_dist_a=0.9
-#beta_dist_b=0.1
 
-# for horseshoe dist
-beta_dist_a=1
-beta_dist_b=2
 
 # target max encoded spike time - number of time window
 enc_st_n_tw=${8}
