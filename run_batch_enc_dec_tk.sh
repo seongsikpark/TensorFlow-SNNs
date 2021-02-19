@@ -23,7 +23,7 @@
 
 # training / inference mode
 f_training=True
-#f_training=False
+f_training=False
 
 
 #epoch=$1
@@ -62,11 +62,10 @@ ep_loss_enc_arr=(0)
 #w_loss_enc_arr=(0.01 0.001)
 #w_loss_enc_arr=(1 0.1 0.01 0.001)
 w_loss_enc_arr=(0.1 0.001)
-w_loss_enc_arr=(0.1)
 
 # enc_spike - n_tw
 #nt_loss_enc_arr=(1 2 5 10)
-nt_loss_enc_arr=(1)
+nt_loss_enc_arr=(2)
 
 # enc_spike - kl loss distribution
 # beta, gamma, horseshoe

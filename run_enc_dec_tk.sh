@@ -65,7 +65,7 @@ if [ ${1} -eq ${6} ]
 then
     log_file_name=ep-$1_tk-$2_int-$3_fl-$4_cl-$5_le-$6_bp-${11}_bt-${12}
 else
-    log_file_name=ep-$1_tk-$2_int-$3_fl-$4_cl-$5_le-$6_lew-$7_nt-$8_led-$9_lem-${10}_bp-${11}_bt-${12}
+    log_file_name=ep-$1_tk-$2_int-$3_fl-$4_cl-$5_le-$6_lew-$7_nt-$8_led-${9}_lem-${10}_bp-${11}_bt-${12}
 fi
 
 log_file=${path_log_root}/${log_file_name}.log
@@ -76,7 +76,7 @@ tfboard_log_file_name=${log_file_name}
 ## Model & Dataset
 ###############################################################################
 nn_mode='ANN'
-#nn_mode='SNN'
+nn_mode='SNN'
 
 
 #exp_case='CNN_MNIST'
@@ -1072,12 +1072,6 @@ mkdir -p ${time_const_root}
 #log_file=${path_log_root}/log_${model_name}_${nn_mode}_${time_step}_${vth}_999_norm_${f_real_value_input_snn}_${date}
 #log_file=${path_log_root}/${date}.log
 
-
-
-
-log_file_name=ep-$1_tk-$2_int-$3_fl-$4_cl-$5_le-$6_bp-$7_bt-$8
-log_file=${path_log_root}/${log_file_name}.log
-tfboard_log_file_name=${log_file_name}
 
 #{ unbuffer time kernprof -l main.py \
 #{ CUDA_VISIBLE_DEVICES=0 unbuffer time python main.py \
