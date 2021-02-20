@@ -1178,14 +1178,6 @@ echo 'log_file: '${log_file}
 #
 cp_model=${14}
 
-if [ ${cp_model} = True ]
-then
-  cp -r ${path_models_ckpt}/${model_name} ${path_models_ckpt}/${model_name}_${log_file_name}
-fi
-
-#
-cp_model=$9
-
 if [ ${training_mode} = True ]
 then
     if [ ${cp_model} = True ]
