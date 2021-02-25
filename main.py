@@ -299,6 +299,7 @@ tf.compat.v1.app.flags.DEFINE_bool("en_tensorboard_write", False, "Tensorboard w
 # Deep SNNs training w/ tepmoral information - surrogate DNN model
 ################################################################################
 tf.compat.v1.app.flags.DEFINE_integer('epoch_start_train_tk',100,'epoch start train tk')
+tf.compat.v1.app.flags.DEFINE_float('w_train_tk',1,'weight train tk')
 tf.compat.v1.app.flags.DEFINE_integer('epoch_start_train_t_int',100,'epoch start train t_int')
 tf.compat.v1.app.flags.DEFINE_integer('epoch_start_train_floor',100,'epoch start train floor')
 tf.compat.v1.app.flags.DEFINE_integer('epoch_start_train_clip_tw',1,'epoch start train clip tw')

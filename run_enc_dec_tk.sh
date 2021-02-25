@@ -26,6 +26,8 @@ source ../05_SNN/venv/bin/activate
 #source ./venv/bin/activate
 
 
+
+
 ###############################################################################
 ## Include
 ###############################################################################
@@ -61,22 +63,13 @@ en_tensorboard_write=True
 ## Model & Dataset
 ###############################################################################
 
-if [ ${1} -eq ${6} ]
-then
-    log_file_name=ep-$1_tk-$2_int-$3_fl-$4_cl-$5_le-$6_bp-${11}_bt-${12}
-else
-    log_file_name=ep-$1_tk-$2_int-$3_fl-$4_cl-$5_le-$6_lew-$7_nt-$8_led-${9}_lem-${10}_bp-${11}_bt-${12}
-fi
-
-log_file=${path_log_root}/${log_file_name}.log
-tfboard_log_file_name=${log_file_name}
 
 
 ###############################################################################
 ## Model & Dataset
 ###############################################################################
 nn_mode='ANN'
-nn_mode='SNN'
+#nn_mode='SNN'
 
 
 #exp_case='CNN_MNIST'
@@ -89,31 +82,63 @@ exp_case='VGG16_CIFAR-10'
 ## Deep SNNs training w/ temporal information - surrogate DNN model
 ###############################################################################
 
-
+epoch_training=$1
 epoch_start_train_tk=$2
-epoch_start_train_t_int=$3
-epoch_start_train_floor=$4
-epoch_start_train_clip_tw=$5
-epoch_start_loss_enc_spike=$6
+w_train_tk=$3
+epoch_start_train_t_int=$4
+epoch_start_train_floor=$5
+epoch_start_train_clip_tw=$6
+epoch_start_loss_enc_spike=$7
 
-w_loss_enc_spike=$7
+w_loss_enc_spike=$8
 
-d_loss_enc_spike=${9}
-ems_loss_enc_spike=${10}
+# target max encoded spike time - number of time window
+enc_st_n_tw=${9}
+
+d_loss_enc_spike=${10}
+ems_loss_enc_spike=${11}
 
 #
-bypass_pr=${11}
-bypass_target_epoch=${12}
+bypass_pr=${12}
+bypass_target_epoch=${13}
+
+training_mode=${14}
+
+
+
+if [ ${epoch_training} -eq ${epoch_start_loss_enc_spike} ]
+then
+    f_loss_enc_spike=False
+
+    if [ ${w_train_tk} = 1 ]
+    then
+        log_file_name=ep-$1_tk-$2_int-$4_fl-$5_cl-$6_le-$7_bp-${12}_bt-${13}
+    else
+        log_file_name=ep-$1_tk-$2_tkw-$3_int-$4_fl-$5_cl-$6_le-$7_bp-${12}_bt-${13}
+    fi
+else
+    f_loss_enc_spike=True
+
+    if [ ${w_train_tk} = 1 ]
+    then
+        log_file_name=ep-$1_tk-$2_int-$4_fl-$5_cl-$6_le-$7_lew-$8_nt-$9_led-${10}_lem-${11}_bp-${12}_bt-${13}
+    else
+        log_file_name=ep-$1_tk-$2_tkw-$3_int-$4_fl-$5_cl-$6_le-$7_lew-$8_nt-$9_led-${10}_lem-${11}_bp-${12}_bt-${13}
+    fi
+fi
+
+log_file=${path_log_root}/${log_file_name}.log
+tfboard_log_file_name=${log_file_name}
 
 
 #
 # encoded spike distribution loss
-if [ ${1} -eq ${6} ]
-then
-    f_loss_enc_spike=False
-else
-    f_loss_enc_spike=True
-fi
+#if [ ${1} -eq ${6} ]
+#then
+    #f_loss_enc_spike=False
+#else
+    #f_loss_enc_spike=True
+#fi
 
 
 # weight of loss
@@ -142,8 +167,6 @@ fi
 
 
 
-# target max encoded spike time - number of time window
-enc_st_n_tw=${8}
 
 ###############################################################################
 ## Run
@@ -151,7 +174,6 @@ enc_st_n_tw=${8}
 
 #training_mode=True
 #training_mode=False
-training_mode=${13}
 
 #
 # If this flag is False, then the trained model is overwritten
@@ -467,6 +489,7 @@ time_window=${time_fire_duration}
 # TTFS - CIFAR-10
 tc=8
 time_fire_start=32    # integration duration - n x tc
+#time_fire_start=16    # integration duration - n x tc
 time_fire_duration=32   # time window - n x tc
 time_window=${time_fire_duration}
 
@@ -967,7 +990,6 @@ if [ ${training_mode} = False ]
 then
     model_name=${model_name}_${log_file_name}
 fi
-###############################################
 
 
 
@@ -1073,6 +1095,8 @@ mkdir -p ${time_const_root}
 #log_file=${path_log_root}/${date}.log
 
 
+
+
 #{ unbuffer time kernprof -l main.py \
 #{ CUDA_VISIBLE_DEVICES=0 unbuffer time python main.py \
 #{ unbuffer time python -m line_profiler main.py \
@@ -1154,6 +1178,7 @@ mkdir -p ${time_const_root}
     -f_validation_snn=${f_validation_snn}\
     -en_tensorboard_write=${en_tensorboard_write}\
     -epoch_start_train_tk=${epoch_start_train_tk}\
+    -w_train_tk=${w_train_tk}\
     -epoch_start_train_t_int=${epoch_start_train_t_int}\
     -epoch_start_train_floor=${epoch_start_train_floor}\
     -epoch_start_train_clip_tw=${epoch_start_train_clip_tw}\
@@ -1173,7 +1198,7 @@ mkdir -p ${time_const_root}
 echo 'log_file: '${log_file}
 
 #
-cp_model=${14}
+cp_model=${15}
 
 if [ ${training_mode} = True ]
 then
