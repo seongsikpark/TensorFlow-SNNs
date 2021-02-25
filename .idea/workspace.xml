@@ -9,10 +9,9 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a59cc8b6-9dbe-41c8-8d2e-009d3879113f" name="Default" comment="210217">
+    <list default="true" id="a59cc8b6-9dbe-41c8-8d2e-009d3879113f" name="Default" comment="210219">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib_snn.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib_snn.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/run_batch_enc_dec_tk.sh" beforeDir="false" afterPath="$PROJECT_DIR$/run_batch_enc_dec_tk.sh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/run_enc_dec_tk.sh" beforeDir="false" afterPath="$PROJECT_DIR$/run_enc_dec_tk.sh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/train_snn.py" beforeDir="false" afterPath="$PROJECT_DIR$/train_snn.py" afterDir="false" />
@@ -107,16 +106,16 @@
         <counts>
           <entry key="Python Console" value="49" />
           <entry key="conf" value="618" />
-          <entry key="py" value="165931" />
-          <entry key="sh" value="32436" />
-          <entry key="txt" value="345" />
+          <entry key="py" value="167687" />
+          <entry key="sh" value="34583" />
+          <entry key="txt" value="346" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Bash" value="32436" />
-          <entry key="PLAIN_TEXT" value="963" />
-          <entry key="Python" value="165980" />
+          <entry key="Bash" value="34583" />
+          <entry key="PLAIN_TEXT" value="964" />
+          <entry key="Python" value="167736" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -140,14 +139,14 @@
     <favorites_list name="05_SNN" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.52396876">
+    <splitter split-orientation="horizontal" split-proportion="0.4509476">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file pinned="false" current-in-tab="false">
+          <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/main.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="510">
-                  <caret line="316" column="29" selection-start-line="316" selection-start-column="29" selection-end-line="316" selection-end-column="29" />
+                <state relative-caret-position="300">
+                  <caret line="301" column="68" selection-start-line="301" selection-start-column="68" selection-end-line="301" selection-end-column="68" />
                   <folding>
                     <element signature="e#0#38#0" expanded="true" />
                   </folding>
@@ -191,11 +190,11 @@
               </provider>
             </entry>
           </file>
-          <file pinned="false" current-in-tab="true">
+          <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/models/models.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="570">
-                  <caret line="651" column="53" selection-start-line="651" selection-start-column="53" selection-end-line="651" selection-end-column="53" />
+                <state relative-caret-position="450">
+                  <caret line="1811" column="6" selection-start-line="1811" selection-start-column="6" selection-end-line="1811" selection-end-column="6" />
                   <folding>
                     <element signature="e#0#23#0" expanded="true" />
                   </folding>
@@ -229,8 +228,8 @@
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/run_batch_enc_dec_tk.sh">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="480">
-                  <caret line="35" column="4" selection-start-line="35" selection-start-column="4" selection-end-line="35" selection-end-column="4" />
+                <state relative-caret-position="240">
+                  <caret line="38" selection-start-line="38" selection-end-line="38" />
                 </state>
               </provider>
             </entry>
@@ -238,8 +237,8 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/run_enc_dec_tk.sh">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="570">
-                  <caret line="140" column="16" selection-start-line="140" selection-start-column="16" selection-end-line="140" selection-end-column="16" />
+                <state relative-caret-position="330">
+                  <caret line="106" selection-start-line="106" selection-end-line="106" />
                 </state>
               </provider>
             </entry>
@@ -247,12 +246,12 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/train_snn.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="60">
-                  <caret line="370" column="47" selection-start-line="370" selection-start-column="47" selection-end-line="370" selection-end-column="47" />
+                <state relative-caret-position="45">
+                  <caret line="676" selection-start-line="676" selection-end-line="676" />
                   <folding>
                     <element signature="e#0#38#0" expanded="true" />
-                    <marker date="1613662772975" expanded="true" signature="897:935" ph="..." />
-                    <marker date="1613662772975" expanded="true" signature="1159:1280" ph="..." />
+                    <marker date="1614266633176" expanded="true" signature="897:935" ph="..." />
+                    <marker date="1614266633176" expanded="true" signature="1159:1280" ph="..." />
                   </folding>
                 </state>
               </provider>
@@ -261,7 +260,7 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/lib_snn.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="480">
+                <state relative-caret-position="3555">
                   <caret line="1374" column="12" selection-start-line="1374" selection-start-column="12" selection-end-line="1374" selection-end-column="12" />
                   <folding>
                     <element signature="e#0#23#0" expanded="true" />
@@ -352,11 +351,11 @@
         <option value="$PROJECT_DIR$/models/models_legacy.py" />
         <option value="$PROJECT_DIR$/run.sh" />
         <option value="$PROJECT_DIR$/scripts/path.conf" />
+        <option value="$PROJECT_DIR$/models/models.py" />
+        <option value="$PROJECT_DIR$/lib_snn.py" />
         <option value="$PROJECT_DIR$/main.py" />
         <option value="$PROJECT_DIR$/train_snn.py" />
-        <option value="$PROJECT_DIR$/models/models.py" />
         <option value="$PROJECT_DIR$/run_enc_dec_tk.sh" />
-        <option value="$PROJECT_DIR$/lib_snn.py" />
         <option value="$PROJECT_DIR$/run_batch_enc_dec_tk.sh" />
       </list>
     </option>
@@ -880,7 +879,21 @@
       <option name="project" value="LOCAL" />
       <updated>1613544671427</updated>
     </task>
-    <option name="localTasksCounter" value="45" />
+    <task id="LOCAL-00045" summary="210219">
+      <created>1613665169525</created>
+      <option name="number" value="00045" />
+      <option name="presentableId" value="LOCAL-00045" />
+      <option name="project" value="LOCAL" />
+      <updated>1613665169525</updated>
+    </task>
+    <task id="LOCAL-00046" summary="210219">
+      <created>1613665217768</created>
+      <option name="number" value="00046" />
+      <option name="presentableId" value="LOCAL-00046" />
+      <option name="project" value="LOCAL" />
+      <updated>1613665217768</updated>
+    </task>
+    <option name="localTasksCounter" value="47" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
@@ -902,7 +915,7 @@
       <window_info content_ui="combo" id="Project" order="0" weight="0.2003984" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" weight="0.32977587" />
-      <window_info active="true" x="2" y="387" width="1916" height="307" id="Run" order="3" visible="true" weight="0.28525898" />
+      <window_info x="2" y="387" width="1916" height="307" id="Run" order="3" visible="true" weight="0.28525898" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
       <window_info anchor="bottom" id="Debug" order="2" weight="0.2975815" />
@@ -913,7 +926,7 @@
       <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Version Control" order="8" weight="0.32852563" />
       <window_info anchor="bottom" id="Python Console" order="9" weight="0.20512821" />
-      <window_info anchor="bottom" id="Terminal" order="10" sideWeight="0.49721116" visible="true" weight="0.30528846" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="10" sideWeight="0.49721116" visible="true" weight="0.30528846" />
       <window_info anchor="bottom" id="Docker" order="11" show_stripe_button="false" />
       <window_info anchor="bottom" id="Inspection Results" order="12" weight="0.32937366" />
       <window_info anchor="right" id="Coverage" order="0" side_tool="true" />
@@ -1012,7 +1025,8 @@
     <MESSAGE value="210214" />
     <MESSAGE value="210215" />
     <MESSAGE value="210217" />
-    <option name="LAST_COMMIT_MESSAGE" value="210217" />
+    <MESSAGE value="210219" />
+    <option name="LAST_COMMIT_MESSAGE" value="210219" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1286,48 +1300,29 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/main.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="510">
-          <caret line="316" column="29" selection-start-line="316" selection-start-column="29" selection-end-line="316" selection-end-column="29" />
-          <folding>
-            <element signature="e#0#38#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/train_snn.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="60">
-          <caret line="370" column="47" selection-start-line="370" selection-start-column="47" selection-end-line="370" selection-end-column="47" />
-          <folding>
-            <element signature="e#0#38#0" expanded="true" />
-            <marker date="1613662772975" expanded="true" signature="897:935" ph="..." />
-            <marker date="1613662772975" expanded="true" signature="1159:1280" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/models/models.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="570">
-          <caret line="651" column="53" selection-start-line="651" selection-start-column="53" selection-end-line="651" selection-end-column="53" />
+        <state relative-caret-position="450">
+          <caret line="1811" column="6" selection-start-line="1811" selection-start-column="6" selection-end-line="1811" selection-end-column="6" />
           <folding>
             <element signature="e#0#23#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/run_enc_dec_tk.sh">
+    <entry file="file://$PROJECT_DIR$/main.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="570">
-          <caret line="140" column="16" selection-start-line="140" selection-start-column="16" selection-end-line="140" selection-end-column="16" />
+        <state relative-caret-position="300">
+          <caret line="301" column="68" selection-start-line="301" selection-start-column="68" selection-end-line="301" selection-end-column="68" />
+          <folding>
+            <element signature="e#0#38#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/lib_snn.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="480">
+        <state relative-caret-position="3555">
           <caret line="1374" column="12" selection-start-line="1374" selection-start-column="12" selection-end-line="1374" selection-end-column="12" />
           <folding>
             <element signature="e#0#23#0" expanded="true" />
@@ -1340,10 +1335,29 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/train_snn.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="45">
+          <caret line="676" selection-start-line="676" selection-end-line="676" />
+          <folding>
+            <element signature="e#0#38#0" expanded="true" />
+            <marker date="1614266633176" expanded="true" signature="897:935" ph="..." />
+            <marker date="1614266633176" expanded="true" signature="1159:1280" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/run_enc_dec_tk.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="330">
+          <caret line="106" selection-start-line="106" selection-end-line="106" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/run_batch_enc_dec_tk.sh">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="480">
-          <caret line="35" column="4" selection-start-line="35" selection-start-column="4" selection-end-line="35" selection-end-column="4" />
+        <state relative-caret-position="240">
+          <caret line="38" selection-start-line="38" selection-end-line="38" />
         </state>
       </provider>
     </entry>
