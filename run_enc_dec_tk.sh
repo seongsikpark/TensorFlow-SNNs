@@ -104,6 +104,7 @@ bypass_target_epoch=${13}
 
 training_mode=${14}
 
+f_td_training=${15}
 
 
 if [ ${epoch_training} -eq ${epoch_start_loss_enc_spike} ]
@@ -126,6 +127,12 @@ else
         log_file_name=ep-$1_tk-$2_tkw-$3_int-$4_fl-$5_cl-$6_le-$7_lew-$8_nt-$9_led-${10}_lem-${11}_bp-${12}_bt-${13}
     fi
 fi
+
+if [ ${f_td_training} = False ]
+then
+    log_file_name=${log_file_name}_tdt-f
+fi
+
 
 log_file=${path_log_root}/${log_file_name}.log
 tfboard_log_file_name=${log_file_name}
@@ -470,6 +477,7 @@ epoch_train_time_const=1
 #time_fire_duration=20   # time window - n x tc
 #time_window=${time_fire_duration}
 
+# T2FSNN - CIFAR-10
 # TTFS - CIFAR-10 default setting
 #tc=10
 tc=20
@@ -478,16 +486,10 @@ time_fire_start=80    # integration duration - n x tc
 time_fire_duration=80   # time window - n x tc
 time_window=${time_fire_duration}
 
-
-# TTFS - CIFAR-10
-tc=10
-time_fire_start=40    # integration duration - n x tc
-time_fire_duration=40   # time window - n x tc
-time_window=${time_fire_duration}
-
-
+# direct training - CIFAR-10
 # TTFS - CIFAR-10
 tc=8
+#tc=16
 time_fire_start=32    # integration duration - n x tc
 #time_fire_start=16    # integration duration - n x tc
 time_fire_duration=32   # time window - n x tc
@@ -1192,18 +1194,16 @@ mkdir -p ${time_const_root}
     -beta_dist_a=${beta_dist_a}\
     -beta_dist_b=${beta_dist_b}\
     -enc_st_n_tw=${enc_st_n_tw}\
+    -f_td_training=${f_td_training}\
     -tfboard_log_file_name=${tfboard_log_file_name}\
     ; } 2>&1 | tee ${log_file}
 
 echo 'log_file: '${log_file}
 
 #
-cp_model=${15}
+#cp_model=${15}
 
 if [ ${training_mode} = True ]
 then
-    if [ ${cp_model} = True ]
-    then
-        cp -r ${path_models_ckpt}/${model_name} ${path_models_ckpt}/${model_name}_${log_file_name}
-    fi
+    cp -r ${path_models_ckpt}/${model_name} ${path_models_ckpt}/${model_name}_${log_file_name}
 fi

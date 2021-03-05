@@ -1176,6 +1176,9 @@ class Temporal_kernel(tf.keras.layers.Layer):
         self.ems_mode = conf.ems_loss_enc_spike
         self.ems_nt_mult_tw = conf.enc_st_n_tw*conf.time_window
 
+        #
+        self.f_td_training=conf.f_td_training
+
 
         # encoding decoding para couple
         self.f_enc_dec_couple = True
@@ -1192,7 +1195,8 @@ class Temporal_kernel(tf.keras.layers.Layer):
         # a para per layer
         # neuron-wise para
         self.tc = self.add_variable("tc",shape=self.dim_in_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(self.init_tc),trainable=True)
-        self.td = self.add_variable("td",shape=self.dim_in_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(self.init_td),trainable=True)
+        #self.td = self.add_variable("td",shape=self.dim_in_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(self.init_td),trainable=True)
+        self.td = self.add_variable("td",shape=self.dim_in_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(self.init_td),trainable=self.f_td_training)
         #self.ta = self.add_variable("ta",shape=self.dim_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(self.init_ta),trainable=True)
         self.tw = self.add_variable("tw",shape=self.dim_in_one_batch,dtype=tf.float32,initializer=tf.constant_initializer(self.init_tw),trainable=False)
 
