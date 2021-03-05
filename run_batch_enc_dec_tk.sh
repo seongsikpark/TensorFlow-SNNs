@@ -36,7 +36,8 @@ ep=1000
 ep_tk_arr=(0)
 
 #
-w_tk_arr=(1 0.1 0.01 0.001)
+#w_tk_arr=(1 0.1 0.01 0.001)
+w_tk_arr=(1)
 
 #
 #epoch_start_train_t_int=$3
@@ -51,17 +52,19 @@ ep_enc_int_arr=(0)
 #ep_enc_int_fl_arr=(0 250)
 #ep_enc_int_fl_arr=(500)
 ep_enc_int_fl_arr=(1000)
+#ep_enc_int_fl_arr=(900)
 
 #epoch_start_train_clip_tw=$5
 #ep_dec_prun_arr=(0 250 500)
 #ep_dec_prun_arr=(0 250)
 ep_dec_prun_arr=(0)
+#ep_dec_prun_arr=(500)
 
 #epoch_start_loss_enc_spike=$6
 #ep_loss_enc_arr=(0 250 1000)
 #ep_loss_enc_arr=(0 250 500)
 #ep_loss_enc_arr=(0 250)
-#ep_loss_enc_arr=(100)
+#ep_loss_enc_arr=(0)
 ep_loss_enc_arr=(1000)
 
 # enc_spike - weight
@@ -95,10 +98,16 @@ bypass_pr_arr=(0)
 #bypass_tep_arr=(250 500)
 #bypass_tep_arr=(250)
 bypass_tep_arr=(50)
+#bypass_tep_arr=(200)
 
 # copy model - copy trained model
 #cp_model=True
 #cp_model=False
+
+# training td
+#f_td_training=True
+f_td_training=False
+
 
 
 
@@ -144,7 +153,7 @@ for ((i_ep_tk=0;i_ep_tk<${#ep_tk_arr[@]};i_ep_tk++)) do
                                                  echo ep: ${ep}, tk: ${ep_tk}, int: ${ep_enc_int}, fl: ${ep_enc_int_fl}, cl: ${ep_dec_prun}, le: ${ep_loss_enc}, lew: ${w_loss_enc}, nt: ${nt_loss_enc}, led: ${dist_loss_enc}, ems: ${ems_loss_enc}, bp: ${bypass_pr}, bt: ${bypass_tep}
 
                                                 #./run_enc_dec_tk.sh ${ep} ${ep_tk} ${ep_enc_int} ${ep_enc_int_fl} ${ep_dec_prun} ${ep_loss_enc} ${bypass_pr} ${bypass_tep} ${cp_model} ${f_training}
-                                                ./run_enc_dec_tk.sh ${ep} ${ep_tk} ${w_tk} ${ep_enc_int} ${ep_enc_int_fl} ${ep_dec_prun} ${ep_loss_enc} ${w_loss_enc} ${nt_loss_enc} ${dist_loss_enc} ${ems_loss_enc} ${bypass_pr} ${bypass_tep} ${f_training} ${f_training}
+                                                ./run_enc_dec_tk.sh ${ep} ${ep_tk} ${w_tk} ${ep_enc_int} ${ep_enc_int_fl} ${ep_dec_prun} ${ep_loss_enc} ${w_loss_enc} ${nt_loss_enc} ${dist_loss_enc} ${ems_loss_enc} ${bypass_pr} ${bypass_tep} ${f_training} ${f_td_training}
                                             done
                                         done
                                     done
