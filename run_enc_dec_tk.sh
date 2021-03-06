@@ -85,48 +85,81 @@ exp_case='VGG16_CIFAR-10'
 epoch_training=$1
 epoch_start_train_tk=$2
 w_train_tk=$3
-epoch_start_train_t_int=$4
-epoch_start_train_floor=$5
-epoch_start_train_clip_tw=$6
-epoch_start_loss_enc_spike=$7
+w_train_tk_reg=$4
+epoch_start_train_t_int=$5
+epoch_start_train_floor=$6
+epoch_start_train_clip_tw=$7
+epoch_start_loss_enc_spike=$8
 
-w_loss_enc_spike=$8
+w_loss_enc_spike=$9
 
 # target max encoded spike time - number of time window
-enc_st_n_tw=${9}
+enc_st_n_tw=${10}
 
-d_loss_enc_spike=${10}
-ems_loss_enc_spike=${11}
+d_loss_enc_spike=${11}
+ems_loss_enc_spike=${12}
 
 #
-bypass_pr=${12}
-bypass_target_epoch=${13}
+bypass_pr=${13}
+bypass_target_epoch=${14}
 
-training_mode=${14}
+training_mode=${15}
 
-f_td_training=${15}
+f_td_training=${16}
 
 
-if [ ${epoch_training} -eq ${epoch_start_loss_enc_spike} ]
+#
+log_file_name=ep-${epoch_training}_tk-${epoch_start_train_tk}
+
+if [ ${w_train_tk} != 1 ]
+then
+    log_file_name=${log_file_name}_tkw-${w_train_tk}
+fi
+
+if [ ${w_train_tk_reg} = 0 ]
+then
+    f_train_tk_reg=False
+else
+    f_train_tk_reg=True
+    log_file_name=${log_file_name}_tkd-${w_train_tk_reg}
+fi
+
+
+log_file_name=${log_file_name}_int-${epoch_start_train_t_int}_fl-${epoch_start_train_floor}_cl-${epoch_start_train_clip_tw}_le-${epoch_start_loss_enc_spike}
+
+
+if [ ${epoch_training} = ${epoch_start_loss_enc_spike} ]
 then
     f_loss_enc_spike=False
-
-    if [ ${w_train_tk} = 1 ]
-    then
-        log_file_name=ep-$1_tk-$2_int-$4_fl-$5_cl-$6_le-$7_bp-${12}_bt-${13}
-    else
-        log_file_name=ep-$1_tk-$2_tkw-$3_int-$4_fl-$5_cl-$6_le-$7_bp-${12}_bt-${13}
-    fi
 else
     f_loss_enc_spike=True
 
-    if [ ${w_train_tk} = 1 ]
-    then
-        log_file_name=ep-$1_tk-$2_int-$4_fl-$5_cl-$6_le-$7_lew-$8_nt-$9_led-${10}_lem-${11}_bp-${12}_bt-${13}
-    else
-        log_file_name=ep-$1_tk-$2_tkw-$3_int-$4_fl-$5_cl-$6_le-$7_lew-$8_nt-$9_led-${10}_lem-${11}_bp-${12}_bt-${13}
-    fi
+    log_file_name=${log_file_name}_lew-${w_loss_enc_spike}_nt-${enc_st_n_tw}_led-${d_loss_enc_spike}_lem-${ems_loss_enc_spike}
 fi
+
+log_file_name=${log_file_name}_bp-${bypass_pr}_bt-${bypass_target_epoch}
+
+
+#if [ ${epoch_training} -eq ${epoch_start_loss_enc_spike} ]
+#then
+#    f_loss_enc_spike=False
+#
+#    if [ ${w_train_tk} = 1 ]
+#    then
+#        log_file_name=ep-$1_tk-$2_int-$4_fl-$5_cl-$6_le-$7_bp-${12}_bt-${13}
+#    else
+#        log_file_name=ep-$1_tk-$2_tkw-$3_int-$4_fl-$5_cl-$6_le-$7_bp-${12}_bt-${13}
+#    fi
+#else
+#    f_loss_enc_spike=True
+#
+#    if [ ${w_train_tk} = 1 ]
+#    then
+#        log_file_name=ep-$1_tk-$2_int-$4_fl-$5_cl-$6_le-$7_lew-$8_nt-$9_led-${10}_lem-${11}_bp-${12}_bt-${13}
+#    else
+#        log_file_name=ep-$1_tk-$2_tkw-$3_int-$4_fl-$5_cl-$6_le-$7_lew-$8_nt-$9_led-${10}_lem-${11}_bp-${12}_bt-${13}
+#    fi
+#fi
 
 if [ ${f_td_training} = False ]
 then
@@ -1181,6 +1214,8 @@ mkdir -p ${time_const_root}
     -en_tensorboard_write=${en_tensorboard_write}\
     -epoch_start_train_tk=${epoch_start_train_tk}\
     -w_train_tk=${w_train_tk}\
+    -w_train_tk_reg=${w_train_tk_reg}\
+    -f_train_tk_reg=${f_train_tk_reg}\
     -epoch_start_train_t_int=${epoch_start_train_t_int}\
     -epoch_start_train_floor=${epoch_start_train_floor}\
     -epoch_start_train_clip_tw=${epoch_start_train_clip_tw}\
