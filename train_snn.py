@@ -187,6 +187,7 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
     #f_loss_enc_spike = False
 
     f_loss_enc_spike = model.conf.f_loss_enc_spike and (epoch > model.conf.epoch_start_loss_enc_spike)
+    f_reg_tc_para = model.conf.f_train_tk_reg and (epoch > model.conf.epoch_start_train_tk)
 
     #
     if f_loss_enc_spike:
@@ -241,7 +242,7 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
 
             # regularizer - temporal kernel paras.
             #f_reg_tc_para = True
-            f_reg_tc_para = False
+            #f_reg_tc_para = False
             if f_reg_tc_para:
                 loss_name.append('reg_tc_para')
 
@@ -570,7 +571,7 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
                 loss_weight['enc_st']=model.conf.w_loss_enc_spike
 
             if f_reg_tc_para:
-                loss_weight['reg_tc_para']=0.001
+                loss_weight['reg_tc_para']=model.conf.w_train_tk_reg
 
             #loss_weight['max_enc_st']=0.0
             ##loss_weight['min_enc_st']=0.1
