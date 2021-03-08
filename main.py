@@ -302,6 +302,7 @@ tf.compat.v1.app.flags.DEFINE_integer('epoch_start_train_tk',100,'epoch start tr
 tf.compat.v1.app.flags.DEFINE_float('w_train_tk',1,'weight train tk')
 tf.compat.v1.app.flags.DEFINE_float('w_train_tk_reg',0,'weight train tk regularization, lambda')
 tf.compat.v1.app.flags.DEFINE_bool('f_train_tk_reg',False,'flag for tk regularization')
+tf.compat.v1.app.flags.DEFINE_string('train_tk_strategy','N','traing tk strategy')
 
 tf.compat.v1.app.flags.DEFINE_integer('epoch_start_train_t_int',100,'epoch start train t_int')
 tf.compat.v1.app.flags.DEFINE_integer('epoch_start_train_floor',100,'epoch start train floor')

@@ -694,21 +694,74 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
             grads_and_vars = zip(grads,train_vars_w)
             optimizer.apply_gradients(grads_and_vars)
         else:
+
+            f_train_w = False
+            f_train_tk = False
+
             # temporal kernel
-            train_vars_tk = [v for v in model.trainable_variables if ('temporal_kernel' in v.name)]
-            train_vars = train_vars_w + train_vars_tk
+            train_vars_tk = []
+
+            if model.train_tk_strategy == 'N':
+                train_vars_tk = [v for v in model.trainable_variables if ('temporal_kernel' in v.name)]
+
+                f_train_w = True
+                f_train_tk = True
+
+            elif model.train_tk_strategy == 'R':
+                #print(model.train_tk_strategy)
+                #print(model.train_tk_strategy_coeff)
+
+                epoch_mod = int(epoch/model.train_tk_strategy_coeff) % model.train_tk_strategy_coeff_x3
+
+                #print(model.conf.train_tk_strategy)
+                #print(epoch_mod)
+
+                if epoch_mod == 0:
+                    f_train_w = True
+                    f_train_tk = False
+                elif epoch_mod == 1:
+                    train_vars_tk = [v for v in model.trainable_variables if (('temporal_kernel' in v.name) and ('tc' in v.name))]
+                    f_train_w = False
+                    f_train_tk = True
+
+                    #print([v.name for v in model.trainable_variables if (('temporal_kernel' in v.name) and ('tc' in v.name))])
+                elif epoch_mod ==2:
+                    train_vars_tk = [v for v in model.trainable_variables if (('temporal_kernel' in v.name) and ('td' in v.name))]
+                    f_train_w = False
+                    f_train_tk = True
+
+                    #print([v.name for v in model.trainable_variables if (('temporal_kernel' in v.name) and ('tc' in v.name))])
+            else:
+                assert False
+
+            if (f_train_w==True) and (f_train_tk == True):
+                train_vars = train_vars_w + train_vars_tk
+
+                grads_w = tape.gradient(loss_total, train_vars_w)
+                grads_tk = tape.gradient(loss_total, train_vars_tk)
+
+                grads = grads_w + [x*model.conf.w_train_tk for x in grads_tk if x is not None]
+
+            elif (f_train_w==True) and (f_train_tk == False):
+                train_vars = train_vars_w
+                grads = tape.gradient(loss_total, train_vars)
+            elif (f_train_w==False) and (f_train_tk == True):
+                train_vars = train_vars_tk
+                grads = tape.gradient(loss_total, train_vars)
+            else:
+                assert False
+
+            grads_and_vars = zip(grads,train_vars)
+            optimizer.apply_gradients(grads_and_vars)
 
             #grads = tape.gradient(loss_total, train_vars)
             #grads_and_vars = zip(grads,train_vars)
             #optimizer.apply_gradients(grads_and_vars)
 
-            grads_w = tape.gradient(loss_total, train_vars_w)
-            grads_tk = tape.gradient(loss_total, train_vars_tk)
             #print(grads_w[10])
             #print(grads_tk[10])
             #print(grads_tk)
 
-            grads = grads_w + [x*model.conf.w_train_tk for x in grads_tk if x is not None]
 
             #print(grads_tk)
             #print([x*0.1 if x is not None else x for x in grads_tk])
@@ -721,9 +774,7 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
 
             #grads_and_vars_w = zip(grads_w,train_vars_w)
             #grads_and_vars_tk = zip(grads_tk,train_vars_tk)
-            grads_and_vars = zip(grads,train_vars)
 
-            optimizer.apply_gradients(grads_and_vars)
             #optimizer.apply_gradients(grads_and_vars_w)
             #optimizer.apply_gradients(grads_and_vars_tk)
 

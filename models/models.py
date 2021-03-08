@@ -657,7 +657,9 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
                 self.dist_beta_sample = collections.OrderedDict()
 
 
-
+            self.train_tk_strategy = self.conf.train_tk_strategy.split('-')[0]
+            self.train_tk_strategy_coeff = (int)(self.conf.train_tk_strategy.split('-')[1])
+            self.train_tk_strategy_coeff_x3 = self.train_tk_strategy_coeff*3
 
 
         # model loading V2
