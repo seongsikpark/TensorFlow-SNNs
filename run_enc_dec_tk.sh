@@ -86,26 +86,28 @@ epoch_training=$1
 epoch_start_train_tk=$2
 w_train_tk=$3
 w_train_tk_reg=$4
-epoch_start_train_t_int=$5
-epoch_start_train_floor=$6
-epoch_start_train_clip_tw=$7
-epoch_start_loss_enc_spike=$8
+train_tk_strategy=$5
+epoch_start_train_t_int=$6
+epoch_start_train_floor=$7
+epoch_start_train_clip_tw=$8
+epoch_start_loss_enc_spike=$9
 
-w_loss_enc_spike=$9
+w_loss_enc_spike=${10}
 
 # target max encoded spike time - number of time window
-enc_st_n_tw=${10}
+enc_st_n_tw=${11}
 
-d_loss_enc_spike=${11}
-ems_loss_enc_spike=${12}
+d_loss_enc_spike=${12}
+ems_loss_enc_spike=${13}
 
 #
-bypass_pr=${13}
-bypass_target_epoch=${14}
+bypass_pr=${14}
+bypass_target_epoch=${15}
 
-training_mode=${15}
+training_mode=${16}
 
-f_td_training=${16}
+f_td_training=${17}
+
 
 
 #
@@ -121,7 +123,12 @@ then
     f_train_tk_reg=False
 else
     f_train_tk_reg=True
-    log_file_name=${log_file_name}_tkd-${w_train_tk_reg}
+    log_file_name=${log_file_name}_tkr-${w_train_tk_reg}
+fi
+
+if [ ${train_tk_strategy} != 'N' ]
+then
+    log_file_name=${log_file_name}_tks-${train_tk_strategy}
 fi
 
 
@@ -1216,6 +1223,7 @@ mkdir -p ${time_const_root}
     -w_train_tk=${w_train_tk}\
     -w_train_tk_reg=${w_train_tk_reg}\
     -f_train_tk_reg=${f_train_tk_reg}\
+    -train_tk_strategy=${train_tk_strategy}\
     -epoch_start_train_t_int=${epoch_start_train_t_int}\
     -epoch_start_train_floor=${epoch_start_train_floor}\
     -epoch_start_train_clip_tw=${epoch_start_train_clip_tw}\
