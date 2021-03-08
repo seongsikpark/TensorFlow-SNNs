@@ -1155,7 +1155,6 @@ class Temporal_kernel(tf.keras.layers.Layer):
         self.dim_in_one_batch = [1,]+dim_in[1:]
         self.dim_out_one_batch = [1,]+dim_out[1:]
 
-
         #
         self.init_tc = init_tc
         self.init_td = init_td
@@ -1169,7 +1168,6 @@ class Temporal_kernel(tf.keras.layers.Layer):
         # before this epoch, training with round founction
         self.epoch_start_train_floor = conf.epoch_start_train_floor
 
-
         #
         #self.enc_st_n_tw = conf.enc_st_n_tw
         # encoding maximum spike time
@@ -1179,7 +1177,6 @@ class Temporal_kernel(tf.keras.layers.Layer):
         #
         self.f_td_training=conf.f_td_training
 
-
         # encoding decoding para couple
         self.f_enc_dec_couple = True
         #self.f_enc_dec_couple = False
@@ -1187,6 +1184,7 @@ class Temporal_kernel(tf.keras.layers.Layer):
         # double tc
         #self.f_double_tc = True
         self.f_double_tc = False
+
 
     def build(self, _):
 
