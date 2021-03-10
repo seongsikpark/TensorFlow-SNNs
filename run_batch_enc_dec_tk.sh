@@ -28,7 +28,7 @@ f_training=True
 
 #epoch=$1
 #ep=500
-ep=100
+ep=1000
 #ep=1
 
 #epoch_start_train_tk=$2
@@ -41,7 +41,8 @@ w_tk_arr=(1)
 
 # regularization - temporal kernel decay para
 #w_tkr_arr=(0 0.1 0.01 0.001 0.0001)
-w_tkr_arr=(0.00001)
+#w_tkr_arr=(0.00000001)
+w_tkr_arr=(0)
 
 # tk training strategies
 # N: (N)one

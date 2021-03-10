@@ -745,17 +745,26 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
 
                 grads = grads_w + [x*model.conf.w_train_tk for x in grads_tk if x is not None]
 
+                f_all_none = False
+
             elif (f_train_w==True) and (f_train_tk == False):
                 train_vars = train_vars_w
                 grads = tape.gradient(loss_total, train_vars)
+
+                f_all_none = False
+
             elif (f_train_w==False) and (f_train_tk == True):
                 train_vars = train_vars_tk
                 grads = tape.gradient(loss_total, train_vars)
+
+                f_all_none = (grads == [None] * len(grads))
+
             else:
                 assert False
 
-            grads_and_vars = zip(grads,train_vars)
-            optimizer.apply_gradients(grads_and_vars)
+            if not f_all_none:
+                grads_and_vars = zip(grads,train_vars)
+                optimizer.apply_gradients(grads_and_vars)
 
             #grads = tape.gradient(loss_total, train_vars)
             #grads_and_vars = zip(grads,train_vars)
