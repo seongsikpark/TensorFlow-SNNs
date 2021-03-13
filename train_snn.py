@@ -734,6 +734,26 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
                 else:
                     assert False
 
+            elif model.train_tk_strategy == 'I':
+                epoch_mod = int(epoch/model.train_tk_strategy_coeff) % (model.train_tk_strategy_coeff+2)
+
+                if epoch_mod < model.train_tk_strategy_coeff:
+                    f_train_w = True
+                    f_train_tk = False
+                elif epoch_mod == model.train_tk_strategy_coeff:
+                    train_vars_tk = [v for v in model.trainable_variables if (('temporal_kernel' in v.name) and ('tc' in v.name))]
+                    f_train_w = False
+                    f_train_tk = True
+
+                    #print([v.name for v in model.trainable_variables if (('temporal_kernel' in v.name) and ('tc' in v.name))])
+                elif epoch_mod == model.train_tk_strategy_coeff+1:
+                    train_vars_tk = [v for v in model.trainable_variables if (('temporal_kernel' in v.name) and ('td' in v.name))]
+                    f_train_w = False
+                    f_train_tk = True
+
+                else:
+                    assert False
+
             else:
                 assert False
 

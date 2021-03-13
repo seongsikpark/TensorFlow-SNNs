@@ -33,23 +33,25 @@ ep=1000
 
 #epoch_start_train_tk=$2
 #ep_tk_arr=(0 250 500)
-ep_tk_arr=(0)
+ep_tk_arr=(50)
 
 #
 #w_tk_arr=(1 0.1 0.01 0.001)
-w_tk_arr=(1)
+w_tk_arr=(0.0001)
 
 # regularization - temporal kernel decay para
 #w_tkr_arr=(0 0.1 0.01 0.001 0.0001)
 #w_tkr_arr=(0.00000001)
-w_tkr_arr=(0)
+w_tkr_arr=(0.00000001)
 
 # tk training strategies
 # N: (N)one
 # R: (R#)ound robin - weight #, rc #, td #
 # I: (I)rregular round robin - weight #, tc, td
-s_tk_arr=(N R-1 R-10 I-10)
-s_tk_arr=(R-1)
+#s_tk_arr=(N R-1 R-10 I-10)
+#s_tk_arr=(R-1)
+#s_tk_arr=(N)
+s_tk_arr=(I-10)
 
 #
 #epoch_start_train_t_int=$3
