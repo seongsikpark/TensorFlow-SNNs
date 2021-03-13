@@ -658,8 +658,9 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
 
             self.train_tk_strategy = self.conf.train_tk_strategy.split('-')[0]
-            self.train_tk_strategy_coeff = (int)(self.conf.train_tk_strategy.split('-')[1])
-            self.train_tk_strategy_coeff_x3 = self.train_tk_strategy_coeff*3
+            if self.train_tk_strategy != 'N':
+                self.train_tk_strategy_coeff = (int)(self.conf.train_tk_strategy.split('-')[1])
+                self.train_tk_strategy_coeff_x3 = self.train_tk_strategy_coeff*3
 
 
         # model loading V2
