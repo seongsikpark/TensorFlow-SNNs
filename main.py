@@ -185,6 +185,7 @@ tf.compat.v1.app.flags.DEFINE_string('regularizer', 'L2', 'L2 or L1 regularizer'
 
 
 tf.compat.v1.app.flags.DEFINE_string('model_name', 'snn_train_mlp_mnist', 'model name')
+tf.compat.v1.app.flags.DEFINE_string('config_name', '', 'config name')
 
 tf.compat.v1.app.flags.DEFINE_string('n_type', 'LIF', 'LIF or IF: neuron type')
 
@@ -471,11 +472,14 @@ def main(_):
 
     #
     save_target_acc_sel = {
-        'MNIST': 90.0,
+        #'MNIST': 90.0,
+        'MNIST': 95.0,
         #'MNIST': 99.0,
         #'CIFAR-10': 91.0,
-        'CIFAR-10': 20.0,
-        'CIFAR-100': 68.0
+        #'CIFAR-10': 20.0,
+        'CIFAR-10': 80.0,
+        #'CIFAR-100': 68.0
+        'CIFAR-100': 60.0
     }
     save_target_acc = save_target_acc_sel[conf.dataset]
 
@@ -569,8 +573,13 @@ def main(_):
     test_summary_writer = tf.summary.create_file_writer(test_dir,flush_millis=100,name='test')
 
 
-    checkpoint_dir = os.path.join(conf.checkpoint_dir,conf.model_name)
-    checkpoint_load_dir = os.path.join(conf.checkpoint_load_dir,conf.model_name)
+    #checkpoint_dir = os.path.join(conf.checkpoint_dir,conf.model_name)
+    #checkpoint_load_dir = os.path.join(conf.checkpoint_load_dir,conf.model_name)
+
+    ckpt_dir_model_config = os.path.join(conf.model_name,conf.config_name)
+
+    checkpoint_dir = os.path.join(conf.checkpoint_dir,ckpt_dir_model_config)
+    checkpoint_load_dir = os.path.join(conf.checkpoint_load_dir,ckpt_dir_model_config)
 
     print('model load path: %s' % checkpoint_load_dir)
     print('model save path: %s' % checkpoint_dir)
@@ -1024,7 +1033,8 @@ def main(_):
 
                                 checkpoint = tf.train.Checkpoint(model=model, optimizer=optimizer, global_epoch=global_epoch)
                                 #checkpoint = tf.train.Checkpoint(model=model.trainable_variables, optimizer=optimizer, global_epoch=global_epoch)
-                                checkpoint.save(file_prefix=checkpoint_prefix)
+                                checkpoint_prefix_epoch = checkpoint_prefix+'-'+str(epoch)
+                                checkpoint.save(file_prefix=checkpoint_prefix_epoch)
 
                                 #tfe.Saver(all_variables).save(checkpoint_prefix, global_step=epoch)
                                 #print(all_variables)

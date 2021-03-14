@@ -28,7 +28,7 @@ f_training=True
 
 #epoch=$1
 #ep=500
-ep=1000
+ep=10000
 #ep=1
 
 #epoch_start_train_tk=$2
@@ -50,8 +50,8 @@ w_tkr_arr=(0.00000001)
 # I: (I)rregular round robin - weight #, tc, td
 #s_tk_arr=(N R-1 R-10 I-10)
 #s_tk_arr=(R-1)
-#s_tk_arr=(N)
-s_tk_arr=(I-10)
+s_tk_arr=(N)
+#s_tk_arr=(I-10)
 
 #
 #epoch_start_train_t_int=$3
@@ -65,7 +65,7 @@ ep_enc_int_arr=(0)
 #ep_enc_int_fl_arr=(0 250 500)
 #ep_enc_int_fl_arr=(0 250)
 #ep_enc_int_fl_arr=(500)
-ep_enc_int_fl_arr=(1000)
+ep_enc_int_fl_arr=(10000)
 #ep_enc_int_fl_arr=(900)
 
 #epoch_start_train_clip_tw=$5
@@ -79,7 +79,7 @@ ep_dec_prun_arr=(0)
 #ep_loss_enc_arr=(0 250 500)
 #ep_loss_enc_arr=(0 250)
 #ep_loss_enc_arr=(0)
-ep_loss_enc_arr=(1000)
+ep_loss_enc_arr=(10000)
 
 # enc_spike - weight
 #w_loss_enc_arr=(0.01 0.001)
