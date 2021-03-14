@@ -111,7 +111,8 @@ f_td_training=${17}
 
 
 #
-log_file_name=ep-${epoch_training}_tk-${epoch_start_train_tk}
+#log_file_name=ep-${epoch_training}_tk-${epoch_start_train_tk}
+log_file_name=tk-${epoch_start_train_tk}
 
 if [ ${w_train_tk} != 1 ]
 then
@@ -176,6 +177,12 @@ fi
 
 log_file=${path_log_root}/${log_file_name}.log
 tfboard_log_file_name=${log_file_name}
+
+
+#
+# DON'T TOUCH
+#
+config_name=${log_file_name}
 
 
 #
@@ -896,14 +903,15 @@ TRAIN_CNN_MNIST)
     dataset='MNIST'
     ann_model='CNN'
 
-    num_epoch=10000
-
+    #num_epoch=10000
 
     if [ ${f_surrogate_training_model} = True ]
     then
         model_name='cnn_mnist_train_'${nn_mode}_'surrogate'
+        num_epoch=${epoch_training}
     else
         model_name='cnn_mnist_train_'${nn_mode}
+        num_epoch=200
     fi
 
     if [ ${f_full_test} = True ]
@@ -937,7 +945,7 @@ TRAIN_VGG16_CIFAR-10)
     if [ ${f_surrogate_training_model} = True ]
     then
         #num_epoch=5000
-        num_epoch=$1
+        num_epoch=${epoch_training}
         model_name='vgg16_cifar10_train_'${nn_mode}_'surrogate'
     else
         num_epoch=2000
@@ -972,7 +980,8 @@ TRAIN_VGG16_CIFAR-100)
 
     if [ ${f_surrogate_training_model} = True ]
     then
-        num_epoch=$1
+        #num_epoch=$1
+        num_epoch=${epoch_training}
         model_name='vgg16_cifar100_train_'${nn_mode}_'surrogate'
     else
         num_epoch=4000
@@ -1151,6 +1160,7 @@ mkdir -p ${time_const_root}
     -checkpoint_load_dir=${path_models_ckpt}\
 	-checkpoint_dir=${path_models_ckpt}\
 	-model_name=${model_name}\
+	-config_name=${config_name}\
    	-en_train=${en_train}\
 	-save_interval=${save_interval}\
 	-nn_mode=${nn_mode}\
@@ -1246,7 +1256,7 @@ echo 'log_file: '${log_file}
 #
 #cp_model=${15}
 
-if [ ${training_mode} = True ]
-then
-    cp -r ${path_models_ckpt}/${model_name} ${path_models_ckpt}/${model_name}_${log_file_name}
-fi
+#if [ ${training_mode} = True ]
+#then
+    #cp -r ${path_models_ckpt}/${model_name} ${path_models_ckpt}/${model_name}_${log_file_name}
+#fi
