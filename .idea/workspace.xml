@@ -9,10 +9,66 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a59cc8b6-9dbe-41c8-8d2e-009d3879113f" name="Default" comment="210310">
+    <list default="true" id="a59cc8b6-9dbe-41c8-8d2e-009d3879113f" name="Default" comment="210313 - add irregular training mode">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/datasets/cifar10.py" beforeDir="false" afterPath="$PROJECT_DIR$/datasets/cifar10.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/run_batch_enc_dec_tk.sh" beforeDir="false" afterPath="$PROJECT_DIR$/run_batch_enc_dec_tk.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/run_enc_dec_tk.sh" beforeDir="false" afterPath="$PROJECT_DIR$/run_enc_dec_tk.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1519635095.canyon" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1519635114.canyon" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1528615743.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1528630246.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1528630270.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1528630279.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1528636653.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1528637329.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1528637336.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1528637368.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1542117764.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1548055774.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1548055874.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1548055956.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1519635095.canyon" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1519635114.canyon" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1528615743.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1528630246.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1528630270.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1528630279.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1528636653.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1528637329.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1528637336.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1528637368.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1542117764.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1548055774.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1548055874.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1548055956.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1519635095.canyon" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1519635114.canyon" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1528615743.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1528630246.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1528630270.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1528630279.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1528636653.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1528637329.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1528637336.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1528637368.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1542117764.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1548055774.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1548055874.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1548055956.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_ANN/test/events.out.tfevents.1548055993.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_ANN/test/events.out.tfevents.1548056035.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_ANN/test/events.out.tfevents.1548056068.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_ANN/train/events.out.tfevents.1548055993.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_ANN/train/events.out.tfevents.1548056035.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_ANN/train/events.out.tfevents.1548056068.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_ANN/val/events.out.tfevents.1548055993.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_ANN/val/events.out.tfevents.1548056035.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_ANN/val/events.out.tfevents.1548056068.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_SNN/LIF_time_step_10_vth_0.7/test/events.out.tfevents.1548056090.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_SNN/LIF_time_step_10_vth_0.7/train/events.out.tfevents.1548056090.optimus.v2" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_SNN/LIF_time_step_10_vth_0.7/val/events.out.tfevents.1548056090.optimus.v2" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/train_snn.py" beforeDir="false" afterPath="$PROJECT_DIR$/train_snn.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -91,9 +147,9 @@
           <entry key="project.open.time.5" value="1" />
           <entry key="project.open.time.6" value="5" />
           <entry key="project.open.time.7" value="2" />
-          <entry key="project.open.time.8" value="2" />
+          <entry key="project.open.time.8" value="3" />
           <entry key="project.open.time.9" value="1" />
-          <entry key="project.opened" value="27" />
+          <entry key="project.opened" value="28" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.vcs.git.usages">
@@ -105,16 +161,16 @@
         <counts>
           <entry key="Python Console" value="49" />
           <entry key="conf" value="618" />
-          <entry key="py" value="171037" />
-          <entry key="sh" value="38793" />
-          <entry key="txt" value="464" />
+          <entry key="py" value="171978" />
+          <entry key="sh" value="39469" />
+          <entry key="txt" value="521" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Bash" value="38793" />
-          <entry key="PLAIN_TEXT" value="1082" />
-          <entry key="Python" value="171086" />
+          <entry key="Bash" value="39469" />
+          <entry key="PLAIN_TEXT" value="1139" />
+          <entry key="Python" value="172027" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -138,14 +194,14 @@
     <favorites_list name="05_SNN" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.4509476">
+    <splitter split-orientation="horizontal" split-proportion="0.5336986">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file pinned="false" current-in-tab="false">
+          <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/main.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="-705">
-                  <caret line="296" selection-start-line="296" selection-end-line="296" />
+                <state relative-caret-position="495">
+                  <caret line="581" column="4" selection-start-line="581" selection-start-column="4" selection-end-line="581" selection-end-column="4" />
                   <folding>
                     <element signature="e#0#38#0" expanded="true" />
                   </folding>
@@ -156,8 +212,8 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/datasets/cifar10.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="585">
-                  <caret line="119" selection-start-line="119" selection-end-line="119" />
+                <state relative-caret-position="120">
+                  <caret line="52" selection-start-line="52" selection-end-line="52" />
                   <folding>
                     <element signature="e#0#38#0" expanded="true" />
                   </folding>
@@ -189,11 +245,11 @@
               </provider>
             </entry>
           </file>
-          <file pinned="false" current-in-tab="true">
+          <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/models/models.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="1680">
-                  <caret line="661" column="35" selection-start-line="661" selection-start-column="35" selection-end-line="661" selection-end-column="35" />
+                <state relative-caret-position="11205">
+                  <caret line="760" column="46" selection-start-line="760" selection-start-column="46" selection-end-line="760" selection-end-column="46" />
                   <folding>
                     <element signature="e#0#23#0" expanded="true" />
                   </folding>
@@ -227,26 +283,26 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/run_batch_enc_dec_tk.sh">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="660">
-                  <caret line="44" column="20" selection-start-line="44" selection-start-column="20" selection-end-line="44" selection-end-column="20" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/run_enc_dec_tk.sh">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="765">
-                  <caret line="71" selection-start-line="71" selection-end-line="71" />
+                <state relative-caret-position="-1200">
+                  <caret line="31" column="4" selection-start-line="31" selection-start-column="4" selection-end-line="31" selection-end-column="4" />
                 </state>
               </provider>
             </entry>
           </file>
           <file pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/run_enc_dec_tk.sh">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="450">
+                  <caret line="234" selection-start-line="234" selection-end-line="234" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/train_snn.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="90">
-                  <caret line="711" column="29" selection-start-line="711" selection-start-column="29" selection-end-line="711" selection-end-column="29" />
+                <state relative-caret-position="10890">
+                  <caret line="737" column="33" selection-start-line="737" selection-start-column="33" selection-end-line="737" selection-end-column="33" />
                   <folding>
                     <element signature="e#0#38#0" expanded="true" />
                   </folding>
@@ -257,7 +313,7 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/lib_snn.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="15">
+                <state relative-caret-position="17835">
                   <caret line="1198" column="149" selection-start-line="1198" selection-start-column="149" selection-end-line="1198" selection-end-column="149" />
                   <folding>
                     <element signature="e#0#23#0" expanded="true" />
@@ -343,12 +399,12 @@
         <option value="$PROJECT_DIR$/run.sh" />
         <option value="$PROJECT_DIR$/scripts/path.conf" />
         <option value="$PROJECT_DIR$/lib_snn.py" />
-        <option value="$PROJECT_DIR$/main.py" />
-        <option value="$PROJECT_DIR$/datasets/cifar10.py" />
         <option value="$PROJECT_DIR$/models/models.py" />
-        <option value="$PROJECT_DIR$/run_enc_dec_tk.sh" />
-        <option value="$PROJECT_DIR$/run_batch_enc_dec_tk.sh" />
         <option value="$PROJECT_DIR$/train_snn.py" />
+        <option value="$PROJECT_DIR$/datasets/cifar10.py" />
+        <option value="$PROJECT_DIR$/run_batch_enc_dec_tk.sh" />
+        <option value="$PROJECT_DIR$/main.py" />
+        <option value="$PROJECT_DIR$/run_enc_dec_tk.sh" />
       </list>
     </option>
   </component>
@@ -363,10 +419,10 @@
     <detection-done>true</detection-done>
     <sorting>DEFINITION_ORDER</sorting>
   </component>
-  <component name="ProjectFrameBounds">
-    <option name="x" value="1110" />
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="53" />
     <option name="y" value="24" />
-    <option name="width" value="1394" />
+    <option name="width" value="1356" />
     <option name="height" value="1392" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
@@ -376,35 +432,7 @@
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
     </navigator>
-    <panes>
-      <pane id="Scope" />
-      <pane id="ProjectPane">
-        <subPane>
-          <expand>
-            <path>
-              <item name="05_SNN_temporal" type="b2602c69:ProjectViewProjectNode" />
-              <item name="05_SNN_temporal" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="05_SNN_temporal" type="b2602c69:ProjectViewProjectNode" />
-              <item name="05_SNN_temporal" type="462c0819:PsiDirectoryNode" />
-              <item name="datasets" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="05_SNN_temporal" type="b2602c69:ProjectViewProjectNode" />
-              <item name="05_SNN_temporal" type="462c0819:PsiDirectoryNode" />
-              <item name="models" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="05_SNN_temporal" type="b2602c69:ProjectViewProjectNode" />
-              <item name="05_SNN_temporal" type="462c0819:PsiDirectoryNode" />
-              <item name="scripts" type="462c0819:PsiDirectoryNode" />
-            </path>
-          </expand>
-          <select />
-        </subPane>
-      </pane>
-    </panes>
+    <panes />
   </component>
   <component name="PropertiesComponent">
     <property name="SearchEverywhereHistoryKey" value=":w&#9;null&#9;null&#10;rerun&#9;ACTION&#9;Rerun" />
@@ -572,13 +600,6 @@
       <updated>1528615676309</updated>
       <workItem from="1562032834836" duration="1849000" />
       <workItem from="1562904892027" duration="611000" />
-    </task>
-    <task id="LOCAL-00005" summary="improvement run time">
-      <created>1549518180346</created>
-      <option name="number" value="00005" />
-      <option name="presentableId" value="LOCAL-00005" />
-      <option name="project" value="LOCAL" />
-      <updated>1549518180346</updated>
     </task>
     <task id="LOCAL-00006" summary="temporal coding">
       <created>1573190271305</created>
@@ -916,7 +937,14 @@
       <option name="project" value="LOCAL" />
       <updated>1615346146172</updated>
     </task>
-    <option name="localTasksCounter" value="54" />
+    <task id="LOCAL-00054" summary="210313 - add irregular training mode">
+      <created>1615645805384</created>
+      <option name="number" value="00054" />
+      <option name="presentableId" value="LOCAL-00054" />
+      <option name="project" value="LOCAL" />
+      <updated>1615645805384</updated>
+    </task>
+    <option name="localTasksCounter" value="55" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
@@ -932,12 +960,13 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="1110" y="24" width="1394" height="1392" extended-state="0" />
+    <frame x="0" y="22" width="2560" height="1394" extended-state="6" />
+    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" weight="0.2003984" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" weight="0.32977587" />
-      <window_info x="2" y="387" width="1916" height="307" id="Run" order="3" visible="true" weight="0.50967264" />
+      <window_info active="true" x="2" y="387" width="1916" height="307" id="Run" order="3" visible="true" weight="0.27290836" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
       <window_info anchor="bottom" id="Debug" order="2" weight="0.2975815" />
@@ -948,7 +977,7 @@
       <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Version Control" order="8" weight="0.32852563" />
       <window_info anchor="bottom" id="Python Console" order="9" weight="0.20512821" />
-      <window_info active="true" anchor="bottom" id="Terminal" order="10" sideWeight="0.49721116" visible="true" weight="0.3057785" />
+      <window_info anchor="bottom" id="Terminal" order="10" sideWeight="0.49721116" visible="true" weight="0.2940705" />
       <window_info anchor="bottom" id="Docker" order="11" show_stripe_button="false" />
       <window_info anchor="bottom" id="Inspection Results" order="12" weight="0.32937366" />
       <window_info anchor="right" id="Coverage" order="0" side_tool="true" />
@@ -1027,7 +1056,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/tmp/canyon/05_SNN_temporal" />
     </ignored-roots>
-    <MESSAGE value="Init" />
     <MESSAGE value="improvement run time" />
     <MESSAGE value="temporal coding" />
     <MESSAGE value="non-linear integration - PF Neuron sim" />
@@ -1052,7 +1080,8 @@
     <MESSAGE value="210307 - add tk reg" />
     <MESSAGE value="210309 - add train_tk_strategy" />
     <MESSAGE value="210310" />
-    <option name="LAST_COMMIT_MESSAGE" value="210310" />
+    <MESSAGE value="210313 - add irregular training mode" />
+    <option name="LAST_COMMIT_MESSAGE" value="210313 - add irregular training mode" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1280,6 +1309,13 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/../05_SNN/venv/lib/python3.6/site-packages/tensorflow/python/data/ops/iterator_ops.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="295">
+          <caret line="594" selection-start-line="594" selection-end-line="594" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/train.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="915">
@@ -1296,6 +1332,16 @@
           <caret line="220" column="37" selection-start-line="220" selection-start-column="37" selection-end-line="220" selection-end-column="37" />
           <folding>
             <element signature="e#0#38#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/models/models.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="11205">
+          <caret line="760" column="46" selection-start-line="760" selection-start-column="46" selection-end-line="760" selection-end-column="46" />
+          <folding>
+            <element signature="e#0#23#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -1317,58 +1363,27 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/datasets/cifar10.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="585">
-          <caret line="119" selection-start-line="119" selection-end-line="119" />
+        <state relative-caret-position="120">
+          <caret line="52" selection-start-line="52" selection-end-line="52" />
           <folding>
             <element signature="e#0#38#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../05_SNN/venv/lib/python3.6/site-packages/tensorflow/python/data/ops/iterator_ops.py">
+    <entry file="file://$PROJECT_DIR$/train_snn.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="295">
-          <caret line="594" selection-start-line="594" selection-end-line="594" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/main.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-705">
-          <caret line="296" selection-start-line="296" selection-end-line="296" />
+        <state relative-caret-position="10890">
+          <caret line="737" column="33" selection-start-line="737" selection-start-column="33" selection-end-line="737" selection-end-column="33" />
           <folding>
             <element signature="e#0#38#0" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/models/models.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1680">
-          <caret line="661" column="35" selection-start-line="661" selection-start-column="35" selection-end-line="661" selection-end-column="35" />
-          <folding>
-            <element signature="e#0#23#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/run_enc_dec_tk.sh">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="765">
-          <caret line="71" selection-start-line="71" selection-end-line="71" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/run_batch_enc_dec_tk.sh">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="660">
-          <caret line="44" column="20" selection-start-line="44" selection-start-column="20" selection-end-line="44" selection-end-column="20" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/lib_snn.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
+        <state relative-caret-position="17835">
           <caret line="1198" column="149" selection-start-line="1198" selection-start-column="149" selection-end-line="1198" selection-end-column="149" />
           <folding>
             <element signature="e#0#23#0" expanded="true" />
@@ -1376,13 +1391,27 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/train_snn.py">
+    <entry file="file://$PROJECT_DIR$/run_batch_enc_dec_tk.sh">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="90">
-          <caret line="711" column="29" selection-start-line="711" selection-start-column="29" selection-end-line="711" selection-end-column="29" />
+        <state relative-caret-position="-1200">
+          <caret line="31" column="4" selection-start-line="31" selection-start-column="4" selection-end-line="31" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="495">
+          <caret line="581" column="4" selection-start-line="581" selection-start-column="4" selection-end-line="581" selection-end-column="4" />
           <folding>
             <element signature="e#0#38#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/run_enc_dec_tk.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="450">
+          <caret line="234" selection-start-line="234" selection-end-line="234" />
         </state>
       </provider>
     </entry>

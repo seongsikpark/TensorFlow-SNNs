@@ -735,7 +735,7 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
                     assert False
 
             elif model.train_tk_strategy == 'I':
-                epoch_mod = int(epoch/model.train_tk_strategy_coeff) % (model.train_tk_strategy_coeff+2)
+                epoch_mod = epoch % (model.train_tk_strategy_coeff+2)
 
                 if epoch_mod < model.train_tk_strategy_coeff:
                     f_train_w = True

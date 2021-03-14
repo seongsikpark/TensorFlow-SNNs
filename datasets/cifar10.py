@@ -52,6 +52,7 @@ def load(conf):
 
 
     num_train_dataset = 45000
+    #num_train_dataset = 45
     num_val_dataset = 5000
     num_test_dataset = conf.num_test_dataset
 
