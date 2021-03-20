@@ -422,7 +422,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         self.conv_p['conv5_p']=np.empty(self.dict_shape['conv5_p'],dtype=np.float32)
 
         # neurons
-        if self.conf.nn_mode == 'SNN':
+        if self.conf.nn_mode == 'SNN' or self.conf.f_validation_snn:
             print('Neuron setup')
 
             #self.input_shape_snn = [1] + self._input_shape[1:]
@@ -679,7 +679,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         else:
             pass
 
-    #~
+    #
     def load_layer_ann_checkpoint_func(self):
         if self.conf.f_surrogate_training_model:
             load_layer_ann_checkpoint = tf.train.Checkpoint(
@@ -789,6 +789,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             if self.conf.nn_mode=='SNN' and self.conf.f_surrogate_training_model:
                 ret_val = self.call_ann_surrogate_training(inputs,f_training,self.conf.time_step,epoch)
 
+            #ret_val = self.nn_mode_load_model[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
             ret_val = self.nn_mode_load_model[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
             self.f_load_model_done=True
         return ret_val
@@ -811,11 +812,11 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         self.count_accuracy_time_point=0
 
 
-    def reset_neuron(self):
-        self.n_in.reset()
-        self.n_conv1.reset()
-        self.n_conv2.reset()
-        self.n_fc1.reset()
+    #def reset_neuron(self):
+        #self.n_in.reset()
+        #self.n_conv1.reset()
+        #self.n_conv2.reset()
+        #self.n_fc1.reset()
 
 
     def preproc(self, inputs, f_training, f_val_snn=False):
@@ -841,6 +842,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             self.reset_per_run_snn()
             self.preproc_ann_to_snn()
 
+            # snn validation mode
             if self.conf.f_surrogate_training_model:
                 self.load_temporal_kernel_para()
 
@@ -944,6 +946,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
                 if self.conf.f_train_time_const:
                     self.nn_mode['ANN'](inputs,f_training,self.conf.time_step,epoch)
 
+                #
                 ret_val = self.nn_mode[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
 
                 # training time constant
@@ -951,9 +954,13 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
                     self.train_time_const()
             else:
                 # inference - rate, phase burst coding
-                ret_val = self.nn_mode[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
+                #ret_val = self.nn_mode[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
 
-
+                #
+                if f_val_snn:
+                    ret_val = self.call_snn(inputs,f_training,self.conf.time_step,epoch)
+                else:
+                    ret_val = self.nn_mode[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
 
 
             # post-processing
@@ -961,10 +968,17 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         else:
 
             if self.conf.nn_mode=='SNN' and self.conf.f_surrogate_training_model:
-                ret_val = self.call_ann_surrogate_training(inputs,f_training,self.conf.time_step,epoch)
+                ret_val = self.call_ann_surrogate_training(inputs,False,self.conf.time_step,epoch)
 
-            ret_val = self.nn_mode_load_model[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
+            # validation on SNN
+            if self.conf.en_train and self.conf.f_validation_snn:
+                ret_val = self.call_snn(inputs,False,1,0)
+
+            ret_val = self.nn_mode_load_model[self.conf.nn_mode](inputs,False,self.conf.time_step,epoch)
+
             self.f_load_model_done=True
+
+
         return ret_val
 
 
@@ -988,6 +1002,29 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         self.fc_bn_fused(self.fc2, self.fc2_bn, 1.0)
         if ('bn' in self.conf.model_name) or ('ro' in self.conf.model_name):
             self.fc_bn_fused(self.fc3, self.fc3_bn, 1.0)
+
+    def defused_bn(self):
+        print('defused_bn')
+        self.conv_bn_defused(self.conv1, self.conv1_bn, 1.0)
+        self.conv_bn_defused(self.conv1_1, self.conv1_1_bn, 1.0)
+        self.conv_bn_defused(self.conv2, self.conv2_bn, 1.0)
+        self.conv_bn_defused(self.conv2_1, self.conv2_1_bn, 1.0)
+        self.conv_bn_defused(self.conv3, self.conv3_bn, 1.0)
+        self.conv_bn_defused(self.conv3_1, self.conv3_1_bn, 1.0)
+        self.conv_bn_defused(self.conv3_2, self.conv3_2_bn, 1.0)
+        self.conv_bn_defused(self.conv4, self.conv4_bn, 1.0)
+        self.conv_bn_defused(self.conv4_1, self.conv4_1_bn, 1.0)
+        self.conv_bn_defused(self.conv4_2, self.conv4_2_bn, 1.0)
+        self.conv_bn_defused(self.conv5, self.conv5_bn, 1.0)
+        self.conv_bn_defused(self.conv5_1, self.conv5_1_bn, 1.0)
+        self.conv_bn_defused(self.conv5_2, self.conv5_2_bn, 1.0)
+        self.fc_bn_defused(self.fc1, self.fc1_bn, 1.0)
+        self.fc_bn_defused(self.fc2, self.fc2_bn, 1.0)
+        if ('bn' in self.conf.model_name) or ('ro' in self.conf.model_name):
+            self.fc_bn_defused(self.fc3, self.fc3_bn, 1.0)
+
+
+
 
     #
     def w_norm_layer_wise(self):
@@ -1504,7 +1541,8 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         #pr_layer = 2.0
 
 
-        if self.f_1st_iter:
+        #if self.f_1st_iter:
+        if not self.f_load_model_done:
         #if f_training==False or tf.random.uniform(shape=(),minval=0,maxval=1)<pr_layer:
             v_in = x
             t_in = self.list_tk['in'](v_in,'enc', self.epoch, f_training)
@@ -2148,6 +2186,20 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
         #return kernel, bias
 
+    #
+    def conv_bn_defused(self, conv, bn, time_step):
+        gamma=bn.gamma
+        beta=bn.beta
+        mean=bn.moving_mean
+        var=bn.moving_variance
+        ep=bn.epsilon
+        inv=math_ops.rsqrt(var+ep)
+        inv*=gamma
+
+        conv.kernel = conv.kernel/inv
+        conv.bias = (conv.bias-beta)/inv+mean
+
+
     def fc_bn_fused(self, conv, bn, time_step):
         gamma=bn.gamma
         beta=bn.beta
@@ -2161,10 +2213,21 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         conv.kernel = conv.kernel*math_ops.cast(inv,conv.kernel.dtype)
         conv.bias = ((conv.bias-mean)*inv+beta)
 
-        #print(gamma)
-        #print(beta)
-
         #return kernel, bias
+
+    #
+    def fc_bn_defused(self, conv, bn, time_step):
+        gamma=bn.gamma
+        beta=bn.beta
+        mean=bn.moving_mean
+        var=bn.moving_variance
+        ep=bn.epsilon
+        inv=math_ops.rsqrt(var+ep)
+        inv*=gamma
+
+        conv.kernel = conv.kernel/inv
+        conv.bias = (conv.bias-beta)/inv+mean
+
 
 
 #    def preproc_ann_to_snn(self):
