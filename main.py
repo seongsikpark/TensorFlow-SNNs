@@ -488,8 +488,8 @@ def main(_):
     val_snn_target_acc_sel = {
         'MNIST': 99.4,
         #'MNIST': 99.99,
-        'CIFAR-10': 92.0,
-        'CIFAR-100': 68.0
+        'CIFAR-10': 91.0,
+        'CIFAR-100': 66.0
     }
     val_snn_target_acc = val_snn_target_acc_sel[conf.dataset]
 
@@ -819,7 +819,7 @@ def main(_):
                         #save_epoch=0
 
                         #
-                        if conf.en_tensorboard_write:
+                        if conf.en_tensorboard_write and (epoch > 1):
                             #with tf.summary.always_record_summaries():
                             tf.summary.scalar('loss', loss_train, step=epoch)
                             tf.summary.scalar('loss_pred', loss_pred_train, step=epoch)
@@ -830,6 +830,7 @@ def main(_):
                             tf.summary.scalar('accuracy', acc_train, step=epoch)
 
                             #for l_name in model.layer_name[:-1]:
+                            #print(model.list_tk)
                             for l_name, tk in model.list_tk.items():
                                 #scalar_name = 'tc_dec_avg_'+l_name
                                 #tf.contrib.summary.scalar(scalar_name, tf.reduce_mean(model.list_tk[l_name].tc_dec), step=epoch)
@@ -969,7 +970,8 @@ def main(_):
 
 
                     #
-                    f_val_snn_start = (acc_val_best > val_snn_target_acc) and (epoch%5==0)
+                    #f_val_snn_start = (acc_val_best > val_snn_target_acc) and (epoch%5==0)
+                    f_val_snn_start = (acc_val_best > val_snn_target_acc)
                     #f_val_snn_start = acc_val_best > 99.0
                     if conf.f_validation_snn and f_val_snn_start:
 
@@ -1053,7 +1055,8 @@ def main(_):
                 print('[%3d] train(loss: %.3f, acc: %.3f), valid(loss: %.3f, acc: %.3f, best: %.3f)'%(epoch,loss_train,acc_train,loss_val,acc_val,acc_val_best))
 
                 if conf.f_validation_snn and f_val_snn_start:
-                    print('valid_snn(loss: %.3f, acc: %.3f, best: %.3f, spikes: t %e, c1 %e, c2 %e spikes_best: %e)'%(loss_val_snn,acc_val_snn,acc_val_snn_best,model.total_spike_count_int[-1,-1]/num_val_dataset,model.total_spike_count_int[-1,0]/num_val_dataset,model.total_spike_count_int[-1,1]/num_val_dataset,spikes_best))
+                    #print('valid_snn(loss: %.3f, acc: %.3f, best: %.3f, spikes: t %e, c1 %e, c2 %e spikes_best: %e)'%(loss_val_snn,acc_val_snn,acc_val_snn_best,model.total_spike_count_int[-1,-1]/num_val_dataset,model.total_spike_count_int[-1,0]/num_val_dataset,model.total_spike_count_int[-1,1]/num_val_dataset,spikes_best))
+                    print('valid_snn(loss: %.3f, acc: %.3f, best: %.3f, spikes: %e, spikes_best: %e)'%(loss_val_snn,acc_val_snn,acc_val_snn_best,model.total_spike_count_int[-1,-1]/num_val_dataset,spikes_best))
 
 
                 # test test

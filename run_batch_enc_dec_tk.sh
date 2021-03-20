@@ -23,7 +23,7 @@
 
 # training / inference mode
 f_training=True
-f_training=False
+#f_training=False
 
 
 #epoch=$1
@@ -34,6 +34,7 @@ ep=10000
 #epoch_start_train_tk=$2
 #ep_tk_arr=(0 250 500)
 ep_tk_arr=(50)
+#ep_tk_arr=(0)
 
 #
 #w_tk_arr=(1 0.1 0.01 0.001)
