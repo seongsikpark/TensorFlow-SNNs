@@ -69,7 +69,7 @@ en_tensorboard_write=True
 ## Model & Dataset
 ###############################################################################
 nn_mode='ANN'
-#nn_mode='SNN'
+nn_mode='SNN'
 
 
 #exp_case='CNN_MNIST'
@@ -1037,10 +1037,10 @@ fi
 ################################################
 ## batch run mode - SNN training (surrogate model)
 ################################################
-if [ ${training_mode} = False ]
-then
-    model_name=${model_name}_${log_file_name}
-fi
+#if [ ${training_mode} = False ]
+#then
+    #model_name=${model_name}_${log_file_name}
+#fi
 
 
 
@@ -1133,9 +1133,9 @@ fi
 
 date=`date +%Y%m%d_%H%M`
 
-path_result_root=${path_result_root}/${model_name}
-time_const_root=${time_const_init_file_name}/${model_name}
-path_log_root=${path_log_root}/${model_name}
+path_result_root=${path_result_root}/${model_name}/${config_name}
+time_const_root=${time_const_init_file_name}/${model_name}/${config_name}
+path_log_root=${path_log_root}/${model_name}/${config_name}
 
 #
 mkdir -p ${path_log_root}

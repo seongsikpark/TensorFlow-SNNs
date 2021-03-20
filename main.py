@@ -477,7 +477,7 @@ def main(_):
         #'MNIST': 99.0,
         #'CIFAR-10': 91.0,
         #'CIFAR-10': 20.0,
-        'CIFAR-10': 80.0,
+        'CIFAR-10': 85.0,
         #'CIFAR-100': 68.0
         'CIFAR-100': 60.0
     }
@@ -580,6 +580,14 @@ def main(_):
 
     checkpoint_dir = os.path.join(conf.checkpoint_dir,ckpt_dir_model_config)
     checkpoint_load_dir = os.path.join(conf.checkpoint_load_dir,ckpt_dir_model_config)
+
+    #print(conf.model_name)
+    #print(conf.config_name)
+    #print(conf.checkpoint_dir)
+    #print(conf.checkpoint_load_dir)
+    #print(ckpt_dir_model_config)
+
+
 
     print('model load path: %s' % checkpoint_load_dir)
     print('model save path: %s' % checkpoint_dir)

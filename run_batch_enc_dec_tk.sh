@@ -23,7 +23,7 @@
 
 # training / inference mode
 f_training=True
-#f_training=False
+f_training=False
 
 
 #epoch=$1
@@ -37,12 +37,12 @@ ep_tk_arr=(50)
 
 #
 #w_tk_arr=(1 0.1 0.01 0.001)
-w_tk_arr=(0.0001)
+w_tk_arr=(1)
 
 # regularization - temporal kernel decay para
 #w_tkr_arr=(0 0.1 0.01 0.001 0.0001)
 #w_tkr_arr=(0.00000001)
-w_tkr_arr=(0.00000001)
+w_tkr_arr=(0)
 
 # tk training strategies
 # N: (N)one
