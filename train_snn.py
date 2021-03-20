@@ -767,6 +767,9 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
 
                 f_all_none = False
 
+                #print(grads_tk)
+                #print(grads_w[0])
+
             elif (f_train_w==True) and (f_train_tk == False):
                 train_vars = train_vars_w
                 grads = tape.gradient(loss_total, train_vars)

@@ -69,7 +69,7 @@ en_tensorboard_write=True
 ## Model & Dataset
 ###############################################################################
 nn_mode='ANN'
-nn_mode='SNN'
+#nn_mode='SNN'
 
 
 #exp_case='CNN_MNIST'
@@ -108,6 +108,9 @@ training_mode=${16}
 
 f_td_training=${17}
 
+#
+#f_validation_snn=False
+f_validation_snn=True
 
 
 #
@@ -175,14 +178,10 @@ then
 fi
 
 
-log_file=${path_log_root}/${log_file_name}.log
-tfboard_log_file_name=${log_file_name}
-
-
-#
-# DON'T TOUCH
-#
-config_name=${log_file_name}
+if [ ${f_validation_snn} = True ]
+then
+    log_file_name=${log_file_name}_val-snn
+fi
 
 
 #
@@ -234,9 +233,7 @@ fi
 load_and_train=False
 #load_and_train=True
 
-#
-f_validation_snn=False
-#f_validation_snn=True
+
 
 #
 regularizer='L2'
@@ -1128,7 +1125,19 @@ else
 fi
 
 #log_file=${path_log_root}/log_${model_name}_${nn_mode}_${log_file_post_fix}
-#log_file
+
+
+
+#
+log_file=${path_log_root}/${model_name}/${log_file_name}.log
+tfboard_log_file_name=${log_file_name}
+
+
+#
+# DON'T TOUCH
+#
+config_name=${log_file_name}
+
 
 
 date=`date +%Y%m%d_%H%M`
