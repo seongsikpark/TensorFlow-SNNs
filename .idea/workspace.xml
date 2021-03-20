@@ -9,67 +9,11 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a59cc8b6-9dbe-41c8-8d2e-009d3879113f" name="Default" comment="210313 - add irregular training mode">
+    <list default="true" id="a59cc8b6-9dbe-41c8-8d2e-009d3879113f" name="Default" comment="210314 - load model training">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/datasets/cifar10.py" beforeDir="false" afterPath="$PROJECT_DIR$/datasets/cifar10.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/run_batch_enc_dec_tk.sh" beforeDir="false" afterPath="$PROJECT_DIR$/run_batch_enc_dec_tk.sh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/run_enc_dec_tk.sh" beforeDir="false" afterPath="$PROJECT_DIR$/run_enc_dec_tk.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1519635095.canyon" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1519635114.canyon" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1528615743.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1528630246.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1528630270.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1528630279.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1528636653.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1528637329.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1528637336.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1528637368.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1542117764.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1548055774.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1548055874.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/test/events.out.tfevents.1548055956.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1519635095.canyon" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1519635114.canyon" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1528615743.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1528630246.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1528630270.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1528630279.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1528636653.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1528637329.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1528637336.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1528637368.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1542117764.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1548055774.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1548055874.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/train/events.out.tfevents.1548055956.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1519635095.canyon" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1519635114.canyon" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1528615743.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1528630246.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1528630270.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1528630279.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1528636653.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1528637329.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1528637336.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1528637368.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1542117764.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1548055774.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1548055874.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/no_name_ANN/val/events.out.tfevents.1548055956.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_ANN/test/events.out.tfevents.1548055993.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_ANN/test/events.out.tfevents.1548056035.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_ANN/test/events.out.tfevents.1548056068.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_ANN/train/events.out.tfevents.1548055993.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_ANN/train/events.out.tfevents.1548056035.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_ANN/train/events.out.tfevents.1548056068.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_ANN/val/events.out.tfevents.1548055993.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_ANN/val/events.out.tfevents.1548056035.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_ANN/val/events.out.tfevents.1548056068.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_SNN/LIF_time_step_10_vth_0.7/test/events.out.tfevents.1548056090.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_SNN/LIF_time_step_10_vth_0.7/train/events.out.tfevents.1548056090.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tensorboard/snn_train_mlp_mnist_SNN/LIF_time_step_10_vth_0.7/val/events.out.tfevents.1548056090.optimus.v2" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/train_snn.py" beforeDir="false" afterPath="$PROJECT_DIR$/train_snn.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -161,16 +105,16 @@
         <counts>
           <entry key="Python Console" value="49" />
           <entry key="conf" value="618" />
-          <entry key="py" value="171978" />
-          <entry key="sh" value="39469" />
-          <entry key="txt" value="521" />
+          <entry key="py" value="172300" />
+          <entry key="sh" value="39671" />
+          <entry key="txt" value="553" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Bash" value="39469" />
-          <entry key="PLAIN_TEXT" value="1139" />
-          <entry key="Python" value="172027" />
+          <entry key="Bash" value="39671" />
+          <entry key="PLAIN_TEXT" value="1171" />
+          <entry key="Python" value="172349" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -200,8 +144,8 @@
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/main.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="495">
-                  <caret line="581" column="4" selection-start-line="581" selection-start-column="4" selection-end-line="581" selection-end-column="4" />
+                <state relative-caret-position="480">
+                  <caret line="587" column="4" selection-start-line="587" selection-start-column="4" selection-end-line="587" selection-end-column="4" />
                   <folding>
                     <element signature="e#0#38#0" expanded="true" />
                   </folding>
@@ -283,8 +227,8 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/run_batch_enc_dec_tk.sh">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="-1200">
-                  <caret line="31" column="4" selection-start-line="31" selection-start-column="4" selection-end-line="31" selection-end-column="4" />
+                <state relative-caret-position="345">
+                  <caret line="23" column="26" selection-start-line="23" selection-start-column="26" selection-end-line="23" selection-end-column="26" />
                 </state>
               </provider>
             </entry>
@@ -293,7 +237,7 @@
             <entry file="file://$PROJECT_DIR$/run_enc_dec_tk.sh">
               <provider selected="true" editor-type-id="text-editor">
                 <state relative-caret-position="450">
-                  <caret line="234" selection-start-line="234" selection-end-line="234" />
+                  <caret line="1042" selection-start-line="1042" selection-end-line="1042" />
                 </state>
               </provider>
             </entry>
@@ -403,8 +347,8 @@
         <option value="$PROJECT_DIR$/train_snn.py" />
         <option value="$PROJECT_DIR$/datasets/cifar10.py" />
         <option value="$PROJECT_DIR$/run_batch_enc_dec_tk.sh" />
-        <option value="$PROJECT_DIR$/main.py" />
         <option value="$PROJECT_DIR$/run_enc_dec_tk.sh" />
+        <option value="$PROJECT_DIR$/main.py" />
       </list>
     </option>
   </component>
@@ -600,13 +544,6 @@
       <updated>1528615676309</updated>
       <workItem from="1562032834836" duration="1849000" />
       <workItem from="1562904892027" duration="611000" />
-    </task>
-    <task id="LOCAL-00006" summary="temporal coding">
-      <created>1573190271305</created>
-      <option name="number" value="00006" />
-      <option name="presentableId" value="LOCAL-00006" />
-      <option name="project" value="LOCAL" />
-      <updated>1573190271305</updated>
     </task>
     <task id="LOCAL-00007" summary="temporal coding">
       <created>1573266275406</created>
@@ -944,7 +881,14 @@
       <option name="project" value="LOCAL" />
       <updated>1615645805384</updated>
     </task>
-    <option name="localTasksCounter" value="55" />
+    <task id="LOCAL-00055" summary="210314 - load model training">
+      <created>1615731901197</created>
+      <option name="number" value="00055" />
+      <option name="presentableId" value="LOCAL-00055" />
+      <option name="project" value="LOCAL" />
+      <updated>1615731901198</updated>
+    </task>
+    <option name="localTasksCounter" value="56" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
@@ -1056,7 +1000,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/tmp/canyon/05_SNN_temporal" />
     </ignored-roots>
-    <MESSAGE value="improvement run time" />
     <MESSAGE value="temporal coding" />
     <MESSAGE value="non-linear integration - PF Neuron sim" />
     <MESSAGE value="merge temporal coding branch" />
@@ -1081,7 +1024,8 @@
     <MESSAGE value="210309 - add train_tk_strategy" />
     <MESSAGE value="210310" />
     <MESSAGE value="210313 - add irregular training mode" />
-    <option name="LAST_COMMIT_MESSAGE" value="210313 - add irregular training mode" />
+    <MESSAGE value="210314 - load model training" />
+    <option name="LAST_COMMIT_MESSAGE" value="210314 - load model training" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1393,25 +1337,25 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/run_batch_enc_dec_tk.sh">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1200">
-          <caret line="31" column="4" selection-start-line="31" selection-start-column="4" selection-end-line="31" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/main.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="495">
-          <caret line="581" column="4" selection-start-line="581" selection-start-column="4" selection-end-line="581" selection-end-column="4" />
-          <folding>
-            <element signature="e#0#38#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="345">
+          <caret line="23" column="26" selection-start-line="23" selection-start-column="26" selection-end-line="23" selection-end-column="26" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/run_enc_dec_tk.sh">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="450">
-          <caret line="234" selection-start-line="234" selection-end-line="234" />
+          <caret line="1042" selection-start-line="1042" selection-end-line="1042" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="480">
+          <caret line="587" column="4" selection-start-line="587" selection-start-column="4" selection-end-line="587" selection-end-column="4" />
+          <folding>
+            <element signature="e#0#38#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
