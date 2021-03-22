@@ -77,7 +77,6 @@ def load(conf):
     test_dataset = test_dataset.map(preprocess_test, num_parallel_calls=2)
     test_dataset = test_dataset.prefetch(10*conf.batch_size)
 
-
     # for stat of train dataset
     if conf.f_stat_train_mode:
         test_dataset = tf.data.Dataset.from_tensor_slices((img_train,tf.squeeze(tf.one_hot(label_train,10))))
