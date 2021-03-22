@@ -1304,7 +1304,7 @@ class Temporal_kernel(tf.keras.layers.Layer):
     def call_encoding_kernel(self, input):
 
         if self.ems_mode== 'f':
-            eps = 1.0E-36
+            eps = 1.0E-30
         elif self.ems_mode == 'n':
             #eps = tf.math.exp(-float(self.ems))
             eps = tf.math.exp(tf.math.divide(tf.math.subtract(self.td,self.ems_nt_mult_tw),self.tc))

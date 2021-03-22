@@ -984,7 +984,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
     #
     def fused_bn(self):
-        print('fused_bn')
+        #print('fused_bn')
         self.conv_bn_fused(self.conv1, self.conv1_bn, 1.0)
         self.conv_bn_fused(self.conv1_1, self.conv1_1_bn, 1.0)
         self.conv_bn_fused(self.conv2, self.conv2_bn, 1.0)
@@ -1004,7 +1004,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             self.fc_bn_fused(self.fc3, self.fc3_bn, 1.0)
 
     def defused_bn(self):
-        print('defused_bn')
+        #print('defused_bn')
         self.conv_bn_defused(self.conv1, self.conv1_bn, 1.0)
         self.conv_bn_defused(self.conv1_1, self.conv1_1_bn, 1.0)
         self.conv_bn_defused(self.conv2, self.conv2_bn, 1.0)
@@ -1506,6 +1506,8 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         #print(epoch)
         #print(type(inputs))
         #if self.f_1st_iter == False and self.conf.nn_mode=='ANN':
+
+
         if self.f_1st_iter == False:
             #if self.f_done_preproc == False:
                 #self.f_done_preproc=True
@@ -2688,35 +2690,9 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
 
         #
-#        self.count_accuracy_time_point=0
-#
-#        # reset for sample
-#        if self.f_1st_iter == False:
-#            self.reset_neuron()
-#
-#            if self.f_done_preproc == False:
-#                self.f_done_preproc = True
-#                self.print_model_conf()
-#                self.preproc_ann_to_snn()
-#
-#                # for proposed method
-#                #self.bias_norm_proposed_method()
-#                #if self.conf.f_ws:
-#                #    self.bias_norm_weighted_spike()
-#
-#                #if self.f_debug_visual == True:
-#                #    self.print_model()
-#
-#            #spike_count = np.zeros((self.num_accuracy_time_point,)+self.n_fc3.get_spike_count().numpy().shape)
-#            self.spike_count.assign(tf.zeros((self.num_accuracy_time_point,)+tuple(self.n_fc3.dim)))
-#
-#            if self.conf.f_comp_act:
-#                self.save_ann_act(inputs,f_training)
-#            #print((self.num_accuracy_time_point,)+self.n_fc3.get_spike_count().numpy().shape)
-
-        #
         plt.clf()
 
+        #print(self.list_tk['conv1'].tc)
         #
         for t in range(tw):
             if self.verbose == True:
@@ -2727,39 +2703,10 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
             a_in = self.n_in(inputs,t)
 
-
             #if self.conf.f_real_value_input_snn:
             #    a_in = inputs
             #else:
             #    a_in = self.n_in(inputs,t)
-
-            ####################
-            # bias control
-            ####################
-            if self.conf.input_spike_mode == 'WEIGHTED_SPIKE' or self.conf.neural_coding == 'WEIGHTED_SPIKE':
-                #if self.conf.neural_coding == 'WEIGHTED_SPIKE':
-                #if tf.equal(tf.reduce_max(a_in),0.0):
-                if (int)(t%self.conf.p_ws) == 0:
-                    self.bias_enable()
-                else:
-                    self.bias_disable()
-            else:
-                if self.conf.input_spike_mode == 'BURST':
-                    if t==0:
-                        self.bias_enable()
-                    else:
-                        if tf.equal(tf.reduce_max(a_in),0.0):
-                            self.bias_enable()
-                        else:
-                            self.bias_disable()
-
-
-            if self.conf.neural_coding == 'TEMPORAL':
-                #if (int)(t%self.conf.p_ws) == 0:
-                if t == 0:
-                    self.bias_enable()
-                else:
-                    self.bias_disable()
 
 
             ####################

@@ -139,13 +139,21 @@ fi
 log_file_name=${log_file_name}_int-${epoch_start_train_t_int}_fl-${epoch_start_train_floor}_cl-${epoch_start_train_clip_tw}_le-${epoch_start_loss_enc_spike}
 
 
+log_file_name=${log_file_name}_lem-${ems_loss_enc_spike}
+
+if [ ${ems_loss_enc_spike} = 'n' ]
+then
+    log_file_name=${log_file_name}_nt-${enc_st_n_tw}
+fi
+
 if [ ${epoch_training} = ${epoch_start_loss_enc_spike} ]
 then
     f_loss_enc_spike=False
 else
     f_loss_enc_spike=True
 
-    log_file_name=${log_file_name}_lew-${w_loss_enc_spike}_nt-${enc_st_n_tw}_led-${d_loss_enc_spike}_lem-${ems_loss_enc_spike}
+    #log_file_name=${log_file_name}_lew-${w_loss_enc_spike}_nt-${enc_st_n_tw}_led-${d_loss_enc_spike}_lem-${ems_loss_enc_spike}
+    log_file_name=${log_file_name}_lew-${w_loss_enc_spike}_led-${d_loss_enc_spike}
 fi
 
 log_file_name=${log_file_name}_bp-${bypass_pr}_bt-${bypass_target_epoch}
@@ -231,7 +239,7 @@ fi
 #
 # If this flag is False, then the trained model is overwritten
 load_and_train=False
-#load_and_train=True
+load_and_train=True
 
 
 
@@ -874,6 +882,7 @@ INFER_VGG16_CIFAR-10_SUR)
         batch_size=400
         idx_test_dataset_s=0
         num_test_dataset=10000
+        #num_test_dataset=400
     fi
 
     if [ ${neural_coding} = "TEMPORAL" ]
