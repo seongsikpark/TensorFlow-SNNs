@@ -43,7 +43,12 @@ w_tk_arr=(1)
 # regularization - temporal kernel decay para
 #w_tkr_arr=(0 0.1 0.01 0.001 0.0001)
 #w_tkr_arr=(0.00000001)
-w_tkr_arr=(0)
+w_tkr_arr=(0.00001)
+
+# regularization - type
+# L2-Z: L2 nrom - zero based
+# L2-I: L2 norm - init value based
+t_tkr_arr=(L2-I)
 
 # tk training strategies
 # N: (N)one
@@ -100,7 +105,7 @@ dist_loss_enc_arr=(b2)
 
 # enc_spike - encoding max spike time mode - f(fixed), nt(n times time window=nt)
 #ems_loss_enc_arr=(f n)
-ems_loss_enc_arr=(n)
+ems_loss_enc_arr=(f)
 
 #bypass_pr=$7
 #bypass_pr_arr=(0 0.5 1)
@@ -135,44 +140,49 @@ for ((i_ep_tk=0;i_ep_tk<${#ep_tk_arr[@]};i_ep_tk++)) do
         for ((i_w_tkr=0;i_w_tkr<${#w_tkr_arr[@]};i_w_tkr++)) do
             w_tkr=${w_tkr_arr[$i_w_tkr]}
 
-            for ((i_tks=0;i_tks<${#s_tk_arr[@]};i_tks++)) do
-                tks=${s_tk_arr[$i_tks]}
+            for ((i_t_tkr=0;i_t_tkr<${#t_tkr_arr[@]};i_t_tkr++)) do
+                t_tkr=${t_tkr_arr[$i_t_tkr]}
 
-                for ((i_ep_enc_int=0;i_ep_enc_int<${#ep_enc_int_arr[@]};i_ep_enc_int++)) do
-                    ep_enc_int=${ep_enc_int_arr[$i_ep_enc_int]}
 
-                    for ((i_ep_enc_int_fl=0;i_ep_enc_int_fl<${#ep_enc_int_fl_arr[@]};i_ep_enc_int_fl++)) do
-                        ep_enc_int_fl=${ep_enc_int_fl_arr[$i_ep_enc_int_fl]}
+                for ((i_tks=0;i_tks<${#s_tk_arr[@]};i_tks++)) do
+                    tks=${s_tk_arr[$i_tks]}
 
-                        for ((i_ep_dec_prun=0;i_ep_dec_prun<${#ep_dec_prun_arr[@]};i_ep_dec_prun++)) do
-                            ep_dec_prun=${ep_dec_prun_arr[$i_ep_dec_prun]}
+                    for ((i_ep_enc_int=0;i_ep_enc_int<${#ep_enc_int_arr[@]};i_ep_enc_int++)) do
+                        ep_enc_int=${ep_enc_int_arr[$i_ep_enc_int]}
 
-                            for ((i_ep_loss_enc=0;i_ep_loss_enc<${#ep_loss_enc_arr[@]};i_ep_loss_enc++)) do
-                                ep_loss_enc=${ep_loss_enc_arr[$i_ep_loss_enc]}
+                        for ((i_ep_enc_int_fl=0;i_ep_enc_int_fl<${#ep_enc_int_fl_arr[@]};i_ep_enc_int_fl++)) do
+                            ep_enc_int_fl=${ep_enc_int_fl_arr[$i_ep_enc_int_fl]}
 
-                                for ((i_w_loss_enc=0;i_w_loss_enc<${#w_loss_enc_arr[@]};i_w_loss_enc++)) do
-                                    w_loss_enc=${w_loss_enc_arr[$i_w_loss_enc]}
+                            for ((i_ep_dec_prun=0;i_ep_dec_prun<${#ep_dec_prun_arr[@]};i_ep_dec_prun++)) do
+                                ep_dec_prun=${ep_dec_prun_arr[$i_ep_dec_prun]}
 
-                                    for ((i_nt_loss_enc=0;i_nt_loss_enc<${#nt_loss_enc_arr[@]};i_nt_loss_enc++)) do
-                                        nt_loss_enc=${nt_loss_enc_arr[$i_nt_loss_enc]}
+                                for ((i_ep_loss_enc=0;i_ep_loss_enc<${#ep_loss_enc_arr[@]};i_ep_loss_enc++)) do
+                                    ep_loss_enc=${ep_loss_enc_arr[$i_ep_loss_enc]}
 
-                                        for ((i_dist_loss_enc=0;i_dist_loss_enc<${#dist_loss_enc_arr[@]};i_dist_loss_enc++)) do
-                                            dist_loss_enc=${dist_loss_enc_arr[$i_dist_loss_enc]}
+                                    for ((i_w_loss_enc=0;i_w_loss_enc<${#w_loss_enc_arr[@]};i_w_loss_enc++)) do
+                                        w_loss_enc=${w_loss_enc_arr[$i_w_loss_enc]}
 
-                                            for ((i_ems_loss_enc=0;i_ems_loss_enc<${#ems_loss_enc_arr[@]};i_ems_loss_enc++)) do
-                                                ems_loss_enc=${ems_loss_enc_arr[$i_ems_loss_enc]}
+                                        for ((i_nt_loss_enc=0;i_nt_loss_enc<${#nt_loss_enc_arr[@]};i_nt_loss_enc++)) do
+                                            nt_loss_enc=${nt_loss_enc_arr[$i_nt_loss_enc]}
 
-                                                for ((i_bypass_pr=0;i_bypass_pr<${#bypass_pr_arr[@]};i_bypass_pr++)) do
-                                                    bypass_pr=${bypass_pr_arr[$i_bypass_pr]}
+                                            for ((i_dist_loss_enc=0;i_dist_loss_enc<${#dist_loss_enc_arr[@]};i_dist_loss_enc++)) do
+                                                dist_loss_enc=${dist_loss_enc_arr[$i_dist_loss_enc]}
 
-                                                    for ((i_bypass_tep=0;i_bypass_tep<${#bypass_tep_arr[@]};i_bypass_tep++)) do
-                                                        bypass_tep=${bypass_tep_arr[$i_bypass_tep]}
+                                                for ((i_ems_loss_enc=0;i_ems_loss_enc<${#ems_loss_enc_arr[@]};i_ems_loss_enc++)) do
+                                                    ems_loss_enc=${ems_loss_enc_arr[$i_ems_loss_enc]}
 
-                                                         echo training_mode: ${f_training}
-                                                         echo ep: ${ep}, tk: ${ep_tk}, w_tk: ${w_tk}, w_tkr: ${w_tkr}, tks: ${tks}, int: ${ep_enc_int}, fl: ${ep_enc_int_fl}, cl: ${ep_dec_prun}, le: ${ep_loss_enc}, lew: ${w_loss_enc}, nt: ${nt_loss_enc}, led: ${dist_loss_enc}, ems: ${ems_loss_enc}, bp: ${bypass_pr}, bt: ${bypass_tep}
+                                                    for ((i_bypass_pr=0;i_bypass_pr<${#bypass_pr_arr[@]};i_bypass_pr++)) do
+                                                        bypass_pr=${bypass_pr_arr[$i_bypass_pr]}
 
-                                                        #./run_enc_dec_tk.sh ${ep} ${ep_tk} ${ep_enc_int} ${ep_enc_int_fl} ${ep_dec_prun} ${ep_loss_enc} ${bypass_pr} ${bypass_tep} ${cp_model} ${f_training}
-                                                        ./run_enc_dec_tk.sh ${ep} ${ep_tk} ${w_tk} ${w_tkr} ${tks} ${ep_enc_int} ${ep_enc_int_fl} ${ep_dec_prun} ${ep_loss_enc} ${w_loss_enc} ${nt_loss_enc} ${dist_loss_enc} ${ems_loss_enc} ${bypass_pr} ${bypass_tep} ${f_training} ${f_td_training}
+                                                        for ((i_bypass_tep=0;i_bypass_tep<${#bypass_tep_arr[@]};i_bypass_tep++)) do
+                                                            bypass_tep=${bypass_tep_arr[$i_bypass_tep]}
+
+                                                             echo training_mode: ${f_training}
+                                                             echo ep: ${ep}, tk: ${ep_tk}, w_tk: ${w_tk}, w_tkr: ${w_tkr}, t_tkr: ${t_tkr}, tks: ${tks}, int: ${ep_enc_int}, fl: ${ep_enc_int_fl}, cl: ${ep_dec_prun}, le: ${ep_loss_enc}, lew: ${w_loss_enc}, nt: ${nt_loss_enc}, led: ${dist_loss_enc}, ems: ${ems_loss_enc}, bp: ${bypass_pr}, bt: ${bypass_tep}
+
+                                                            #./run_enc_dec_tk.sh ${ep} ${ep_tk} ${ep_enc_int} ${ep_enc_int_fl} ${ep_dec_prun} ${ep_loss_enc} ${bypass_pr} ${bypass_tep} ${cp_model} ${f_training}
+                                                            ./run_enc_dec_tk.sh ${ep} ${ep_tk} ${w_tk} ${w_tkr} ${t_tkr} ${tks} ${ep_enc_int} ${ep_enc_int_fl} ${ep_dec_prun} ${ep_loss_enc} ${w_loss_enc} ${nt_loss_enc} ${dist_loss_enc} ${ems_loss_enc} ${bypass_pr} ${bypass_tep} ${f_training} ${f_td_training}
+                                                        done
                                                     done
                                                 done
                                             done
@@ -187,7 +197,6 @@ for ((i_ep_tk=0;i_ep_tk<${#ep_tk_arr[@]};i_ep_tk++)) do
         done
     done
 done
-
 
 
 

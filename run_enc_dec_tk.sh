@@ -86,31 +86,32 @@ epoch_training=$1
 epoch_start_train_tk=$2
 w_train_tk=$3
 w_train_tk_reg=$4
-train_tk_strategy=$5
-epoch_start_train_t_int=$6
-epoch_start_train_floor=$7
-epoch_start_train_clip_tw=$8
-epoch_start_loss_enc_spike=$9
+t_train_tk_reg=$5
+train_tk_strategy=$6
+epoch_start_train_t_int=$7
+epoch_start_train_floor=$8
+epoch_start_train_clip_tw=$9
+epoch_start_loss_enc_spike=${10}
 
-w_loss_enc_spike=${10}
+w_loss_enc_spike=${11}
 
 # target max encoded spike time - number of time window
-enc_st_n_tw=${11}
+enc_st_n_tw=${12}
 
-d_loss_enc_spike=${12}
-ems_loss_enc_spike=${13}
-
-#
-bypass_pr=${14}
-bypass_target_epoch=${15}
-
-training_mode=${16}
-
-f_td_training=${17}
+d_loss_enc_spike=${13}
+ems_loss_enc_spike=${14}
 
 #
-#f_validation_snn=False
-f_validation_snn=True
+bypass_pr=${15}
+bypass_target_epoch=${16}
+
+training_mode=${17}
+
+f_td_training=${18}
+
+#
+f_validation_snn=False
+#f_validation_snn=True
 
 
 #
@@ -127,7 +128,7 @@ then
     f_train_tk_reg=False
 else
     f_train_tk_reg=True
-    log_file_name=${log_file_name}_tkr-${w_train_tk_reg}
+    log_file_name=${log_file_name}_tkr-${w_train_tk_reg}_tkt-${t_train_tk_reg}
 fi
 
 if [ ${train_tk_strategy} != 'N' ]
@@ -1250,6 +1251,7 @@ mkdir -p ${time_const_root}
     -epoch_start_train_tk=${epoch_start_train_tk}\
     -w_train_tk=${w_train_tk}\
     -w_train_tk_reg=${w_train_tk_reg}\
+    -t_train_tk_reg=${t_train_tk_reg}\
     -f_train_tk_reg=${f_train_tk_reg}\
     -train_tk_strategy=${train_tk_strategy}\
     -epoch_start_train_t_int=${epoch_start_train_t_int}\

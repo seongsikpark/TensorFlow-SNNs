@@ -152,12 +152,42 @@ plt.yscale("log")
 #
 def reg_tc_para(model):
 
+    if model.t_train_tk_reg=='L2':
 
-    train_vars_tk = [v for v in model.trainable_variables if ('temporal_kernel' in v.name)]
-    #print(train_vars_tk)
+        if model.t_train_tk_reg_mode=='I':
 
-    # l2 norm
-    ret = tf.reduce_sum(tf.math.square(train_vars_tk))
+            # l2(tc-tc_init)
+
+            train_vars_tk_tc = [v for v in model.trainable_variables if (('temporal_kernel' in v.name) and ('tc' in v.name))]
+            train_vars_tk_td = [v for v in model.trainable_variables if (('temporal_kernel' in v.name) and ('td' in v.name))]
+
+            l2_tc_w_init = tf.math.square(tf.math.subtract(train_vars_tk_tc,model.init_tc))
+            l2_td_w_init = tf.math.square(tf.math.subtract(train_vars_tk_td,model.init_td_in))
+
+            l2_tc = tf.reduce_sum(l2_tc_w_init)
+            l2_td = tf.reduce_sum(l2_td_w_init)
+
+            l2 = tf.math.add(l2_tc,l2_td)
+
+            ret = l2
+
+        elif model.t_train_tk_reg_mode=='Z':
+
+            # l2(tc)
+
+            train_vars_tk = [v for v in model.trainable_variables if ('temporal_kernel' in v.name)]
+            #print(train_vars_tk)
+            # l2 norm
+            ret = tf.reduce_sum(tf.math.square(train_vars_tk))
+            #print(tf.reduce_sum(tf.math.square(train_vars_tk)))
+
+        else:
+            assert False
+
+
+    else:
+        assert False
+
 
     return ret
 
