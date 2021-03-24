@@ -597,12 +597,15 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
             self.list_tk=collections.OrderedDict()
 
-            init_tc = self.conf.tc
+            self.init_tc = self.conf.tc
+
+            init_tc = self.init_tc
             init_act_target_range=0.5
             init_act_target_range_in=0.5
 
-            init_td=init_tc*np.log(init_act_target_range)
-            init_td_in=init_tc*np.log(init_act_target_range_in)
+            #init_td=init_tc*np.log(init_act_target_range)
+            self.init_td_in=init_tc*np.log(init_act_target_range_in)
+            init_td_in = self.init_td_in
 
             # TODO: removed
             init_ta=10.0
@@ -656,11 +659,15 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
                 self.dist_beta_sample = collections.OrderedDict()
 
-
+            #
             self.train_tk_strategy = self.conf.train_tk_strategy.split('-')[0]
             if self.train_tk_strategy != 'N':
                 self.train_tk_strategy_coeff = (int)(self.conf.train_tk_strategy.split('-')[1])
                 self.train_tk_strategy_coeff_x3 = self.train_tk_strategy_coeff*3
+
+            #
+            self.t_train_tk_reg = self.conf.t_train_tk_reg.split('-')[0]
+            self.t_train_tk_reg_mode = self.conf.t_train_tk_reg.split('-')[1]
 
 
         # model loading V2
