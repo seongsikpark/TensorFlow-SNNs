@@ -1201,7 +1201,9 @@ def main(_):
             #load_model.restore(tf.train.latest_checkpoint(checkpoint_dir)).assert_consumed()
 
             status = load_model.restore(tf.train.latest_checkpoint(checkpoint_dir)).expect_partial()
-            #status=load_model.restore(checkpoint_dir+'/ckpt-556-1')
+            #status=load_model.restore(checkpoint_dir+'/ckpt-2167-1')
+            #status=load_model.restore(checkpoint_dir+'/ckpt-1369-1')
+            #status=load_model.restore(checkpoint_dir+'/ckpt-1055-1')
 
             #status = load_model.restore(tf.train.latest_checkpoint(checkpoint_dir))
             #status.assert_existing_objects_matched()
