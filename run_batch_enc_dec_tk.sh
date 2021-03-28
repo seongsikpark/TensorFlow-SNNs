@@ -23,7 +23,7 @@
 
 # training / inference mode
 f_training=True
-#f_training=False
+f_training=False
 
 
 #epoch=$1
@@ -71,8 +71,8 @@ ep_enc_int_arr=(0)
 #ep_enc_int_fl_arr=(0 250 500)
 #ep_enc_int_fl_arr=(0 250)
 #ep_enc_int_fl_arr=(500)
-ep_enc_int_fl_arr=(10000)
-#ep_enc_int_fl_arr=(900)
+#ep_enc_int_fl_arr=(10000)
+ep_enc_int_fl_arr=(1000)
 
 #epoch_start_train_clip_tw=$5
 #ep_dec_prun_arr=(0 250 500)
