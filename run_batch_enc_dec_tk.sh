@@ -43,12 +43,13 @@ w_tk_arr=(1)
 # regularization - temporal kernel decay para
 #w_tkr_arr=(0 0.1 0.01 0.001 0.0001)
 #w_tkr_arr=(0.00000001)
-w_tkr_arr=(0.00001)
+w_tkr_arr=(0.0001)
 
 # regularization - type
 # L2-Z: L2 nrom - zero based
 # L2-I: L2 norm - init value based
-t_tkr_arr=(L2-I)
+# L1-I: L2 norm - init value based
+t_tkr_arr=(L1-I)
 
 # tk training strategies
 # N: (N)one
@@ -71,8 +72,8 @@ ep_enc_int_arr=(0)
 #ep_enc_int_fl_arr=(0 250 500)
 #ep_enc_int_fl_arr=(0 250)
 #ep_enc_int_fl_arr=(500)
-#ep_enc_int_fl_arr=(10000)
-ep_enc_int_fl_arr=(200)
+ep_enc_int_fl_arr=(10000)
+#ep_enc_int_fl_arr=(50)
 
 #epoch_start_train_clip_tw=$5
 #ep_dec_prun_arr=(0 250 500)

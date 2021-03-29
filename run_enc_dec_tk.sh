@@ -137,8 +137,8 @@ then
 fi
 
 # floor - old
-#log_file_name=${log_file_name}_int-${epoch_start_train_t_int}_fl-${epoch_start_train_floor}_cl-${epoch_start_train_clip_tw}_le-${epoch_start_loss_enc_spike}
-log_file_name=${log_file_name}_int-${epoch_start_train_t_int}_ce-${epoch_start_train_floor}_cl-${epoch_start_train_clip_tw}_le-${epoch_start_loss_enc_spike}
+log_file_name=${log_file_name}_int-${epoch_start_train_t_int}_fl-${epoch_start_train_floor}_cl-${epoch_start_train_clip_tw}_le-${epoch_start_loss_enc_spike}
+#log_file_name=${log_file_name}_int-${epoch_start_train_t_int}_ce-${epoch_start_train_floor}_cl-${epoch_start_train_clip_tw}_le-${epoch_start_loss_enc_spike}
 
 
 log_file_name=${log_file_name}_lem-${ems_loss_enc_spike}
