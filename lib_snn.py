@@ -1263,14 +1263,15 @@ class Temporal_kernel(tf.keras.layers.Layer):
             #    t = tf.quantization.fake_quant_with_min_max_vars(t_float,0,tf.pow(2.0,16.0)-1,16)
             #   #` t=tf.round(t_float)
 
-            t = tf.quantization.fake_quant_with_min_max_vars(t_float, 0, tf.pow(2.0, 16.0) - 1, 16)
 
             #if (epoch < self.epoch_start_train_floor) and not infer_mode:
             if ((f_training==True) and (tf.math.greater(epoch,self.epoch_start_train_floor))) or (f_training==False):
                 #t = tf.quantization.fake_quant_with_min_max_vars(t_float,0,tf.pow(2.0,16.0)-1,16)
                 #t = tf.math.add(tf.math.floor(t_float),1)
-                #t = tf.math.ceil(t_float)
-                t = tf.math.ceil(t)
+                t = tf.math.ceil(t_float)
+                #t = tf.math.ceil(t)
+            else:
+                t = tf.quantization.fake_quant_with_min_max_vars(t_float, 0, tf.pow(2.0, 16.0) - 1, 16)
 
 
             #tmp = tf.where(tf.equal(t,0),100,t)
