@@ -23,7 +23,7 @@
 
 # training / inference mode
 f_training=True
-f_training=False
+#f_training=False
 
 
 #epoch=$1
@@ -43,12 +43,13 @@ w_tk_arr=(1)
 # regularization - temporal kernel decay para
 #w_tkr_arr=(0 0.1 0.01 0.001 0.0001)
 #w_tkr_arr=(0.00000001)
-w_tkr_arr=(0.00001)
+w_tkr_arr=(0.0001)
 
 # regularization - type
 # L2-Z: L2 nrom - zero based
 # L2-I: L2 norm - init value based
-t_tkr_arr=(L2-I)
+# L1-I: L2 norm - init value based
+t_tkr_arr=(L1-I)
 
 # tk training strategies
 # N: (N)one
@@ -71,14 +72,14 @@ ep_enc_int_arr=(0)
 #ep_enc_int_fl_arr=(0 250 500)
 #ep_enc_int_fl_arr=(0 250)
 #ep_enc_int_fl_arr=(500)
-#ep_enc_int_fl_arr=(10000)
-ep_enc_int_fl_arr=(1000)
+ep_enc_int_fl_arr=(10000)
+#ep_enc_int_fl_arr=(50)
 
 #epoch_start_train_clip_tw=$5
 #ep_dec_prun_arr=(0 250 500)
 #ep_dec_prun_arr=(0 250)
 ep_dec_prun_arr=(0)
-#ep_dec_prun_arr=(500)
+#ep_dec_prun_arr=(200)
 
 #epoch_start_loss_enc_spike=$6
 #ep_loss_enc_arr=(0 250 1000)
@@ -178,7 +179,7 @@ for ((i_ep_tk=0;i_ep_tk<${#ep_tk_arr[@]};i_ep_tk++)) do
                                                             bypass_tep=${bypass_tep_arr[$i_bypass_tep]}
 
                                                              echo training_mode: ${f_training}
-                                                             echo ep: ${ep}, tk: ${ep_tk}, w_tk: ${w_tk}, w_tkr: ${w_tkr}, t_tkr: ${t_tkr}, tks: ${tks}, int: ${ep_enc_int}, fl: ${ep_enc_int_fl}, cl: ${ep_dec_prun}, le: ${ep_loss_enc}, lew: ${w_loss_enc}, nt: ${nt_loss_enc}, led: ${dist_loss_enc}, ems: ${ems_loss_enc}, bp: ${bypass_pr}, bt: ${bypass_tep}
+                                                             echo ep: ${ep}, tk: ${ep_tk}, w_tk: ${w_tk}, w_tkr: ${w_tkr}, t_tkr: ${t_tkr}, tks: ${tks}, int: ${ep_enc_int}, ce: ${ep_enc_int_fl}, cl: ${ep_dec_prun}, le: ${ep_loss_enc}, lew: ${w_loss_enc}, nt: ${nt_loss_enc}, led: ${dist_loss_enc}, ems: ${ems_loss_enc}, bp: ${bypass_pr}, bt: ${bypass_tep}
 
                                                             #./run_enc_dec_tk.sh ${ep} ${ep_tk} ${ep_enc_int} ${ep_enc_int_fl} ${ep_dec_prun} ${ep_loss_enc} ${bypass_pr} ${bypass_tep} ${cp_model} ${f_training}
                                                             ./run_enc_dec_tk.sh ${ep} ${ep_tk} ${w_tk} ${w_tkr} ${t_tkr} ${tks} ${ep_enc_int} ${ep_enc_int_fl} ${ep_dec_prun} ${ep_loss_enc} ${w_loss_enc} ${nt_loss_enc} ${dist_loss_enc} ${ems_loss_enc} ${bypass_pr} ${bypass_tep} ${f_training} ${f_td_training}
