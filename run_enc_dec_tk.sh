@@ -82,6 +82,21 @@ exp_case='VGG16_CIFAR-10'
 ## Deep SNNs training w/ temporal information - surrogate DNN model
 ###############################################################################
 
+
+# direct training - CIFAR-10
+# TTFS - CIFAR-10 default
+#tc=8
+#time_fire_start=32    # integration duration - n x tc
+#time_fire_duration=32   # time window - n x tc
+#time_window=${time_fire_duration}
+
+# TTFS - CIFAR-10
+tc=16
+time_fire_start=64      # integration duration - n x tc
+time_fire_duration=64   # time window - n x tc
+time_window=${time_fire_duration}
+
+
 epoch_training=$1
 epoch_start_train_tk=$2
 w_train_tk=$3
@@ -116,7 +131,15 @@ f_validation_snn=False
 
 #
 #log_file_name=ep-${epoch_training}_tk-${epoch_start_train_tk}
-log_file_name=tk-${epoch_start_train_tk}
+
+#
+if [ ${tc} = 8 ] && [ ${time_window} = 32 ]
+then
+    log_file_name=tk-${epoch_start_train_tk}
+else
+    log_file_name=tc-${tc}_tw-${time_window}_tk-${epoch_start_train_tk}
+fi
+
 
 if [ ${w_train_tk} != 1 ]
 then
@@ -525,29 +548,29 @@ epoch_train_time_const=1
 #time_window=100
 
 
-# TTFS - MNIST default setting
-#tc=5
-#time_fire_start=20    # integration duration - n x tc
-#time_fire_duration=20   # time window - n x tc
+## TTFS - MNIST default setting
+##tc=5
+##time_fire_start=20    # integration duration - n x tc
+##time_fire_duration=20   # time window - n x tc
+##time_window=${time_fire_duration}
+#
+## T2FSNN - CIFAR-10
+## TTFS - CIFAR-10 default setting
+##tc=10
+#tc=20
+##tc=16
+#time_fire_start=80    # integration duration - n x tc
+#time_fire_duration=80   # time window - n x tc
 #time_window=${time_fire_duration}
-
-# T2FSNN - CIFAR-10
-# TTFS - CIFAR-10 default setting
-#tc=10
-tc=20
-#tc=16
-time_fire_start=80    # integration duration - n x tc
-time_fire_duration=80   # time window - n x tc
-time_window=${time_fire_duration}
-
-# direct training - CIFAR-10
-# TTFS - CIFAR-10
-tc=8
-#tc=16
-time_fire_start=32    # integration duration - n x tc
-#time_fire_start=16    # integration duration - n x tc
-time_fire_duration=32   # time window - n x tc
-time_window=${time_fire_duration}
+#
+## direct training - CIFAR-10
+## TTFS - CIFAR-10
+#tc=8
+##tc=16
+#time_fire_start=32    # integration duration - n x tc
+##time_fire_start=16    # integration duration - n x tc
+#time_fire_duration=32   # time window - n x tc
+#time_window=${time_fire_duration}
 
 
 #f_tc_based=True
