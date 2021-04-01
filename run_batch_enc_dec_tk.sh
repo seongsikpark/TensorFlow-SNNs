@@ -43,13 +43,13 @@ w_tk_arr=(1)
 # regularization - temporal kernel decay para
 #w_tkr_arr=(0 0.1 0.01 0.001 0.0001)
 #w_tkr_arr=(0.00000001)
-w_tkr_arr=(0.0001)
+w_tkr_arr=(0.00001)
 
 # regularization - type
 # L2-Z: L2 nrom - zero based
 # L2-I: L2 norm - init value based
 # L1-I: L2 norm - init value based
-t_tkr_arr=(L1-I)
+t_tkr_arr=(L2-I)
 
 # tk training strategies
 # N: (N)one
