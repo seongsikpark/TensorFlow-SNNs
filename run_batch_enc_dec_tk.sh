@@ -85,14 +85,16 @@ ep_dec_prun_arr=(0)
 #ep_loss_enc_arr=(0 250 1000)
 #ep_loss_enc_arr=(0 250 500)
 #ep_loss_enc_arr=(0 250)
+ep_loss_enc_arr=(50)
+#ep_loss_enc_arr=(10000)
 #ep_loss_enc_arr=(0)
-ep_loss_enc_arr=(10000)
 
 # enc_spike - weight
 #w_loss_enc_arr=(0.01 0.001)
 #w_loss_enc_arr=(1 0.1 0.01 0.001)
 #w_loss_enc_arr=(0.1 0.001)
-w_loss_enc_arr=(0.001)
+#w_loss_enc_arr=(0.001)
+w_loss_enc_arr=(0.0000001)
 
 # enc_spike - n_tw
 #nt_loss_enc_arr=(1 2 5 10)
@@ -100,9 +102,11 @@ nt_loss_enc_arr=(5)
 
 # enc_spike - kl loss distribution
 # beta, gamma, horseshoe
+# bn - batchnorm (new)
 #dist_loss_enc_arr=(b b2 b3 g h)
 #dist_loss_enc_arr=(h)
-dist_loss_enc_arr=(b2)
+#dist_loss_enc_arr=(b2)
+dist_loss_enc_arr=(bn)
 
 # enc_spike - encoding max spike time mode - f(fixed), nt(n times time window=nt)
 #ems_loss_enc_arr=(f n)

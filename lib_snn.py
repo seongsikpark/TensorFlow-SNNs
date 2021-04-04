@@ -1353,10 +1353,13 @@ class Temporal_kernel(tf.keras.layers.Layer):
             #    tw_target = 1.5*self.tw - self.tw/1000*epoch
 
         else:
-            tw_target = self.tw_dec
-            td = self.td_dec
-            tc = self.tc_dec
+            #tw_target = self.tw_dec
+            #td = self.td_dec
+            #tc = self.tc_dec
 
+            tw_target = self.tw
+            td = self.td
+            tc = self.tc
         #
         if self.f_double_tc:
             x = tf.add(tf.exp(tf.divide(tf.subtract(td,t),tc)),tf.exp(tf.divide(tf.subtract(self.td_1,t),self.tc_1)))
