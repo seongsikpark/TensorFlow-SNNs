@@ -85,16 +85,16 @@ exp_case='VGG16_CIFAR-10'
 
 # direct training - CIFAR-10
 # TTFS - CIFAR-10 default
-#tc=8
-#time_fire_start=32    # integration duration - n x tc
-#time_fire_duration=32   # time window - n x tc
-#time_window=${time_fire_duration}
+tc=8
+time_fire_start=32    # integration duration - n x tc
+time_fire_duration=32   # time window - n x tc
+time_window=${time_fire_duration}
 
 # TTFS - CIFAR-10
-tc=16
-time_fire_start=64      # integration duration - n x tc
-time_fire_duration=64   # time window - n x tc
-time_window=${time_fire_duration}
+#tc=16
+#time_fire_start=64      # integration duration - n x tc
+#time_fire_duration=64   # time window - n x tc
+#time_window=${time_fire_duration}
 
 
 epoch_training=$1
@@ -249,6 +249,10 @@ elif [ ${d_loss_enc_spike} = 'h' ]
 then
     beta_dist_a=1
     beta_dist_b=2
+elif [ ${d_loss_enc_spike} = 'bn' ] # dummy
+then
+    beta_dist_a=0
+    beta_dist_b=0
 fi
 
 
@@ -264,7 +268,7 @@ fi
 #
 # If this flag is False, then the trained model is overwritten
 load_and_train=False
-load_and_train=True
+#load_and_train=True
 
 
 

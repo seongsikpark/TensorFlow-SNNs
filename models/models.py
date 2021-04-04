@@ -62,7 +62,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         self.fanin_conv = self.kernel_size*self.kernel_size
         #self.fanin_conv = self.kernel_size*self.kernel_size/9
 
-        self.tw=conf.time_step
+        self.ts=conf.time_step
 
         self.count_accuracy_time_point=0
         self.accuracy_time_point = list(range(conf.time_step_save_interval,conf.time_step,conf.time_step_save_interval))
@@ -639,7 +639,17 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
             # TODO: parameterize with other file (e.g., train_snn.py)
             #f_loss_dist = True
-            if self.conf.f_loss_enc_spike:
+
+            #
+            if 'bn' in self.conf.d_loss_enc_spike:
+                self.f_loss_enc_spike_dist = False
+                self.f_loss_enc_spike_bn = True
+            else:
+                self.f_loss_enc_spikes_dist = self.conf.f_loss_enc_spike
+                self.f_loss_enc_spike_bn = False
+
+
+            if self.f_loss_enc_spike_dist:
 
                 #alpha = 0.1
                 #beta = 0.9
@@ -675,16 +685,13 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
     #
     def dist_beta_sample_func(self):
-        if self.conf.f_loss_enc_spike:
-            for l_name, tk in self.list_tk.items():
-                enc_st = tf.reshape(tk.out_enc, [-1])
+        for l_name, tk in self.list_tk.items():
+            enc_st = tf.reshape(tk.out_enc, [-1])
 
-                samples = self.dist.sample(enc_st.shape)
-                #samples = tf.divide(samples,tf.reduce_max(samples))
-                samples = tf.multiply(samples,self.enc_st_target_end)
-                self.dist_beta_sample[l_name] = tf.histogram_fixed_width(samples, [0,self.enc_st_target_end], nbins=self.enc_st_target_end)
-        else:
-            pass
+            samples = self.dist.sample(enc_st.shape)
+            #samples = tf.divide(samples,tf.reduce_max(samples))
+            samples = tf.multiply(samples,self.enc_st_target_end)
+            self.dist_beta_sample[l_name] = tf.histogram_fixed_width(samples, [0,self.enc_st_target_end], nbins=self.enc_st_target_end)
 
     #
     def load_layer_ann_checkpoint_func(self):
@@ -896,7 +903,8 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         #self.print_act_after_w_norm()
 
     def preproc_surrogate_training_model(self):
-        self.dist_beta_sample_func()
+        if self.f_loss_enc_spike_dist:
+            self.dist_beta_sample_func()
 
 
 
@@ -1178,11 +1186,11 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         for key, value in self.list_layer.items():
             if self.conf.f_fused_bn:
                 if not ('bn' in key):
-                    value.kernel=value.kernel/self.tw
-                    value.bias=value.bias/self.tw
+                    value.kernel=value.kernel/self.ts
+                    value.bias=value.bias/self.ts
             else:
-                value.kernel=value.kernel/self.tw
-                value.bias=value.bias/self.tw
+                value.kernel=value.kernel/self.ts
+                value.bias=value.bias/self.ts
 
 
     #
@@ -2879,7 +2887,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
                 #self.debug_visual(synapse, neuron, synapse_1, neuron_1, synapse_2, neuron_2, t)
                 self.debug_visual_raster(t)
 
-                #if t==self.tw-1:
+                #if t==self.ts-1:
                 #    plt.figure()
                 #    #plt.show()
 
@@ -3314,7 +3322,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
                 #self.debug_visual(synapse, neuron, synapse_1, neuron_1, synapse_2, neuron_2, t)
                 self.debug_visual_raster(t)
 
-                #if t==self.tw-1:
+                #if t==self.ts-1:
                 #    plt.figure()
                 #    #plt.show()
 
@@ -3814,7 +3822,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         #plt.ylim([0,512])
         plt.ylim([0,neuron.vmem.numpy().flatten()[idx_print_s:idx_print_e].size])
         #plt.ylim([0,int(self.n_fc2.dim[1])])
-        plt.xlim([0,self.tw])
+        plt.xlim([0,self.ts])
         #self.plot(t,np.where(self.n_fc2.out.numpy()==1),'bo')
         #if np.where(self.n_fc2.out.numpy()==1).size == 0:
         idx_fire=np.where(neuron.out.numpy().flatten()[idx_print_s:idx_print_e]!=0.0)
@@ -3839,7 +3847,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         plt.subplot(3,4,8,sharex=ax)
         plt.grid(True)
         plt.ylim([0,neuron_1.vmem.numpy().flatten()[idx_print_s:idx_print_e].size])
-        plt.xlim([0,self.tw])
+        plt.xlim([0,self.ts])
         idx_fire=np.where(neuron_1.out.numpy().flatten()[idx_print_s:idx_print_e]!=0.0)
         #idx_fire=neuron_1.f_fire.numpy().flatten()[idx_print_s:idx_print_e]
         #idx_fire=neuron_1.f_fire.numpy()[0,0,0,0:10]
@@ -3863,7 +3871,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         plt.subplot(3,4,12,sharex=ax)
         plt.grid(True)
         plt.ylim([0,neuron_2.vmem.numpy().flatten()[idx_print_s:idx_print_e].size])
-        plt.xlim([0,self.tw])
+        plt.xlim([0,self.ts])
         idx_fire=np.where(neuron_2.out.numpy().flatten()[idx_print_s:idx_print_e]!=0.0)
         #idx_fire=neuron_2.f_fire.numpy().flatten()[idx_print_s:idx_print_e]
         #idx_fire=neuron_2.f_fire.numpy()[0,0,0,0:10]
@@ -3888,7 +3896,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 #        plt.grid(True)
 #        #plt.ylim([0,self.n_fc3.dim[1]])
 #        plt.ylim([0,self.num_class])
-#        plt.xlim([0,self.tw])
+#        plt.xlim([0,self.ts])
 #        idx_fire=np.where(self.n_fc3.out.numpy()!=0)[1]
 
 
@@ -3928,7 +3936,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
                     axe = self.debug_visual_axes.flatten()[plt_idx]
 
                     axe.set_ylim([0,neuron.out.numpy().flatten()[idx_print_s:idx_print_e].size])
-                    axe.set_xlim([0,self.tw])
+                    axe.set_xlim([0,self.ts])
 
                     axe.grid(True)
 
@@ -3958,7 +3966,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
 
 
-        if t==self.tw-1:
+        if t==self.ts-1:
             plt.figure("dummy")
 
 
