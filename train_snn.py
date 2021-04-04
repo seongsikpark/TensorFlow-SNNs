@@ -16,11 +16,13 @@ import matplotlib.pyplot as plt
 
 from collections import OrderedDict
 
+import math
 
 import functools
 import itertools
 
 #import backprop as bp_sspark
+
 
 #
 import lib_snn
@@ -200,6 +202,37 @@ def reg_tc_para(model):
 
 
 #
+# loss - spike count, batch norm
+def loss_enc_spike_bn(model):
+
+    loss_tmp = 0
+
+    for l_name, tk in model.list_tk.items():
+        if not ('in' in l_name):
+            l_name_bn = l_name+'_bn'
+            bn_beta = model.list_layer[l_name_bn].beta
+            bn_gamma = model.list_layer[l_name_bn].gamma
+
+            tk_tc = tk.tc
+            tk_td = tk.td
+
+            x_0 = tf.math.exp(tf.math.divide(tk_td,tk_tc))
+            x_T = tf.math.exp(-tf.math.divide(tf.math.subtract(model.conf.time_window,tk_td),tk_tc))
+
+            exp_x_0 = tf.math.exp(-tf.math.divide(tf.math.pow(x_0,3),2))
+            exp_x_T = tf.math.exp(-tf.math.divide(tf.math.pow(x_T,3),2))
+
+            A = -tf.math.divide(tf.math.multiply(bn_gamma,2),(3*tf.math.sqrt(2*math.pi)))
+            A = tf.math.multiply(A,tf.math.subtract(exp_x_0,exp_x_T))
+            B = tf.math.multiply(tf.math.subtract(x_0,x_T),bn_beta)
+
+            loss_tmp += tf.reduce_sum(tf.math.add(A,B))
+
+
+    return loss_tmp
+
+
+#
 def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
     #global_step = tf.train.get_or_create_global_step()
 
@@ -227,7 +260,7 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
     f_reg_tc_para = model.conf.f_train_tk_reg and (epoch > model.conf.epoch_start_train_tk)
 
     #
-    if f_loss_enc_spike:
+    if model.f_loss_enc_spike_dist:
         if epoch % 50 == 0:
             model.dist_beta_sample_func()
 
@@ -399,76 +432,89 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
     #            plt.draw()
     #            plt.pause(0.0000000000000001)
                 else:
-
-                    # loss - encoded spike time (KL-divergence)
                     loss_tmp = 0
 
-                    #alpha = 0.1
-                    #beta = 0.9
-
-                    #dist = tfd.Beta(alpha,beta)
-
-                    for l_name, tk in model.list_tk.items():
-                        #print(tk)
-                        #print(l_name)
-                        #enc_st = model.list_tk['conv1'].out_enc
-                        enc_st = tk.out_enc
-                        #enc_st_target_end = 200
-                        #enc_st_target_end = tk.tw*10
-
-                        enc_st = tf.clip_by_value(enc_st,0,model.enc_st_target_end)
-                        #enc_st = tf.round(enc_st)
-
-                        enc_st = tf.reshape(enc_st, [-1])
-
-                        enc_st = tf.histogram_fixed_width(enc_st, [0,model.enc_st_target_end], nbins=model.enc_st_target_end)
-
-                        enc_st = tf.cast(enc_st,tf.float32)
-
-                        #enc_st = tf.cast(enc_st,tf.float32)
-
-                        #dist_sample = dist.sample(enc_st.shape)
-                        #dist_sample = enc_st
-                        dist_sample = model.dist_beta_sample[l_name]
-
-                        loss_tmp += loss_kld(enc_st,dist_sample)
+                    # spike loss - batch norm
+                    if (model.f_loss_enc_spike_dist==False) and (model.f_loss_enc_spike_bn==True):
+                        loss_tmp=loss_enc_spike_bn(model)
 
 
-                        #print(enc_st)
-                        #print(dist_sample)
+                    # distribution based (KL-divergence loss)
+                    elif (model.f_loss_enc_spike_dist==True) and (model.f_loss_enc_spike_bn==False):
 
-                        #fig, axs = plt.subplots(1,2)
+                        # loss - encoded spike time (KL-divergence)
 
-#                        if (not f_plot_done) and (epoch % 1==0) and (l_name=='conv2'):
-#                            f_plot_done = True
-#                            axs_glob[0].plot(enc_st)
-#                            axs_glob[1].plot(dist_sample)
+                        #alpha = 0.1
+                        #beta = 0.9
+
+                        #dist = tfd.Beta(alpha,beta)
+
+                        for l_name, tk in model.list_tk.items():
+                            #print(tk)
+                            #print(l_name)
+                            #enc_st = model.list_tk['conv1'].out_enc
+                            enc_st = tk.out_enc
+                            #enc_st_target_end = 200
+                            #enc_st_target_end = tk.tw*10
+
+                            enc_st = tf.clip_by_value(enc_st,0,model.enc_st_target_end)
+                            #enc_st = tf.round(enc_st)
+
+                            enc_st = tf.reshape(enc_st, [-1])
+
+                            enc_st = tf.histogram_fixed_width(enc_st, [0,model.enc_st_target_end], nbins=model.enc_st_target_end)
+
+                            enc_st = tf.cast(enc_st,tf.float32)
+
+                            #enc_st = tf.cast(enc_st,tf.float32)
+
+                            #dist_sample = dist.sample(enc_st.shape)
+                            #dist_sample = enc_st
+                            dist_sample = model.dist_beta_sample[l_name]
+
+                            loss_tmp += loss_kld(enc_st,dist_sample)
+
+
+                            #print(enc_st)
+                            #print(dist_sample)
+
+
+                            # for debug
+                            #fig, axs = plt.subplots(1,2)
+
+    #                        if (not f_plot_done) and (epoch % 1==0) and (l_name=='conv2'):
+    #                            f_plot_done = True
+    #                            axs_glob[0].plot(enc_st)
+    #                            axs_glob[1].plot(dist_sample)
+    #
+    #
+    #                            plt.draw()
+    #                            plt.pause(0.0000000000000001)
+
+
+                        # for debug
+#                        for l_name, tk in model.list_tk.items():
+#                            if (not f_plot_done) and (epoch % 10 == 0) and (epoch!=0) and (l_name == 'conv2'):
 #
+#                                f_plot_done = True
 #
-#                            plt.draw()
-#                            plt.pause(0.0000000000000001)
+#                                enc_st = tk.out_enc
+#                                enc_st = tf.clip_by_value(enc_st, 0, model.enc_st_target_end)
+#                                enc_st = tf.reshape(enc_st, [-1])
+#                                enc_st = tf.histogram_fixed_width(enc_st, [0, model.enc_st_target_end],
+#                                                                  nbins=model.enc_st_target_end)
+#
+#                                enc_st = tf.cast(enc_st, tf.float32)
+#
+#                                axs_glob[0].plot(enc_st)
+#
+#                                plt.draw()
+#                                plt.pause(0.0000000000000001)
+#
+                    else:
+                        assert False
 
                 loss_list['enc_st'] = loss_tmp
-
-            else:
-                for l_name, tk in model.list_tk.items():
-                    if (not f_plot_done) and (epoch % 10 == 0) and (epoch!=0) and (l_name == 'conv2'):
-
-                        f_plot_done = True
-
-                        enc_st = tk.out_enc
-                        enc_st = tf.clip_by_value(enc_st, 0, model.enc_st_target_end)
-                        enc_st = tf.reshape(enc_st, [-1])
-                        enc_st = tf.histogram_fixed_width(enc_st, [0, model.enc_st_target_end],
-                                                          nbins=model.enc_st_target_end)
-
-                        enc_st = tf.cast(enc_st, tf.float32)
-
-                        axs_glob[0].plot(enc_st)
-
-                        plt.draw()
-                        plt.pause(0.0000000000000001)
-
 
 
 
