@@ -253,6 +253,9 @@ elif [ ${d_loss_enc_spike} = 'bn' ] # dummy
 then
     beta_dist_a=0
     beta_dist_b=0
+else
+    beta_dist_a=0
+    beta_dist_b=0
 fi
 
 

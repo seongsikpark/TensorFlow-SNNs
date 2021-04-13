@@ -9,9 +9,8 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a59cc8b6-9dbe-41c8-8d2e-009d3879113f" name="Default" comment="210331">
+    <list default="true" id="a59cc8b6-9dbe-41c8-8d2e-009d3879113f" name="Default" comment="210404 - add spike loss (batchnorm)">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib_snn.py" beforeDir="false" afterPath="$PROJECT_DIR$/lib_snn.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/models/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/run_batch_enc_dec_tk.sh" beforeDir="false" afterPath="$PROJECT_DIR$/run_batch_enc_dec_tk.sh" afterDir="false" />
@@ -108,16 +107,16 @@
         <counts>
           <entry key="Python Console" value="49" />
           <entry key="conf" value="618" />
-          <entry key="py" value="184483" />
-          <entry key="sh" value="42545" />
-          <entry key="txt" value="609" />
+          <entry key="py" value="186073" />
+          <entry key="sh" value="42965" />
+          <entry key="txt" value="663" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Bash" value="42545" />
-          <entry key="PLAIN_TEXT" value="1227" />
-          <entry key="Python" value="184532" />
+          <entry key="Bash" value="42965" />
+          <entry key="PLAIN_TEXT" value="1281" />
+          <entry key="Python" value="186122" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -147,7 +146,7 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/main.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="360">
+                <state relative-caret-position="345">
                   <caret line="1202" column="12" selection-start-line="1202" selection-start-column="12" selection-end-line="1202" selection-end-column="12" />
                   <folding>
                     <element signature="e#0#38#0" expanded="true" />
@@ -159,8 +158,8 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/datasets/cifar10.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="435">
-                  <caret line="79" selection-start-line="79" selection-end-line="79" />
+                <state relative-caret-position="240">
+                  <caret line="55" column="25" selection-start-line="55" selection-start-column="25" selection-end-line="55" selection-end-column="25" />
                   <folding>
                     <element signature="e#0#38#0" expanded="true" />
                   </folding>
@@ -171,7 +170,7 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/train.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="783">
+                <state relative-caret-position="753">
                   <caret line="72" column="20" selection-start-line="72" selection-start-column="20" selection-end-line="72" selection-end-column="20" />
                   <folding>
                     <element signature="e#0#38#0" expanded="true" />
@@ -195,8 +194,8 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/models/models.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="435">
-                  <caret line="552" column="37" selection-start-line="552" selection-start-column="37" selection-end-line="552" selection-end-column="37" />
+                <state relative-caret-position="315">
+                  <caret line="651" column="52" selection-start-line="651" selection-start-column="52" selection-end-line="651" selection-end-column="52" />
                   <folding>
                     <element signature="e#0#23#0" expanded="true" />
                   </folding>
@@ -207,8 +206,8 @@
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/run_batch_enc_dec_tk.sh">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="675">
-                  <caret line="96" column="24" selection-start-line="96" selection-start-column="24" selection-end-line="96" selection-end-column="24" />
+                <state relative-caret-position="960">
+                  <caret line="95" column="22" selection-start-line="95" selection-start-column="22" selection-end-line="95" selection-end-column="22" />
                 </state>
               </provider>
             </entry>
@@ -236,24 +235,24 @@
       </split-first>
       <split-second>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file pinned="false" current-in-tab="false">
+          <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/run_enc_dec_tk.sh">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="45">
-                  <caret line="567" column="1" selection-start-line="567" selection-start-column="1" selection-end-line="567" selection-end-column="1" />
+                <state relative-caret-position="495">
+                  <caret line="87" column="3" selection-start-line="87" selection-start-column="3" selection-end-line="87" selection-end-column="3" />
                 </state>
               </provider>
             </entry>
           </file>
-          <file pinned="false" current-in-tab="true">
+          <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/train_snn.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="-3120">
-                  <caret line="442" column="33" selection-start-line="442" selection-start-column="33" selection-end-line="442" selection-end-column="33" />
+                <state relative-caret-position="225">
+                  <caret line="674" column="12" selection-start-line="674" selection-start-column="12" selection-end-line="674" selection-end-column="12" />
                   <folding>
                     <element signature="e#0#38#0" expanded="true" />
-                    <marker date="1617529995079" expanded="true" signature="5375:5377" ph="..." />
-                    <marker date="1617529995079" expanded="true" signature="5375:6293" ph="..." />
+                    <marker date="1618305017613" expanded="true" signature="5375:5377" ph="..." />
+                    <marker date="1618305017613" expanded="true" signature="5375:6293" ph="..." />
                   </folding>
                 </state>
               </provider>
@@ -262,8 +261,8 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/lib_snn.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="105">
-                  <caret line="1192" column="25" selection-start-line="1192" selection-start-column="25" selection-end-line="1192" selection-end-column="25" />
+                <state relative-caret-position="75">
+                  <caret line="1190" column="27" selection-start-line="1190" selection-start-column="27" selection-end-line="1190" selection-end-column="27" />
                   <folding>
                     <element signature="e#0#23#0" expanded="true" />
                   </folding>
@@ -349,12 +348,12 @@
         <option value="$PROJECT_DIR$/run.sh" />
         <option value="$PROJECT_DIR$/scripts/path.conf" />
         <option value="$PROJECT_DIR$/datasets/cifar10.py" />
-        <option value="$PROJECT_DIR$/main.py" />
-        <option value="$PROJECT_DIR$/run_enc_dec_tk.sh" />
         <option value="$PROJECT_DIR$/lib_snn.py" />
+        <option value="$PROJECT_DIR$/main.py" />
         <option value="$PROJECT_DIR$/models/models.py" />
         <option value="$PROJECT_DIR$/train_snn.py" />
         <option value="$PROJECT_DIR$/run_batch_enc_dec_tk.sh" />
+        <option value="$PROJECT_DIR$/run_enc_dec_tk.sh" />
       </list>
     </option>
   </component>
@@ -550,13 +549,6 @@
       <updated>1528615676309</updated>
       <workItem from="1562032834836" duration="1849000" />
       <workItem from="1562904892027" duration="611000" />
-    </task>
-    <task id="LOCAL-00016" summary="merge temporal coding branch">
-      <created>1587035759963</created>
-      <option name="number" value="00016" />
-      <option name="presentableId" value="LOCAL-00016" />
-      <option name="project" value="LOCAL" />
-      <updated>1587035759963</updated>
     </task>
     <task id="LOCAL-00017" summary="non-linear integration - PF Neuron sim">
       <created>1587036117533</created>
@@ -894,7 +886,14 @@
       <option name="project" value="LOCAL" />
       <updated>1617177075905</updated>
     </task>
-    <option name="localTasksCounter" value="65" />
+    <task id="LOCAL-00065" summary="210404 - add spike loss (batchnorm)">
+      <created>1617537274153</created>
+      <option name="number" value="00065" />
+      <option name="presentableId" value="LOCAL-00065" />
+      <option name="project" value="LOCAL" />
+      <updated>1617537274154</updated>
+    </task>
+    <option name="localTasksCounter" value="66" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
@@ -916,7 +915,7 @@
       <window_info content_ui="combo" id="Project" order="0" weight="0.2003984" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" weight="0.32977587" />
-      <window_info active="true" x="2" y="387" width="1916" height="307" id="Run" order="3" visible="true" weight="0.2940239" />
+      <window_info active="true" x="2" y="387" width="1916" height="307" id="Run" order="3" visible="true" weight="0.27968127" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
       <window_info anchor="bottom" id="Debug" order="2" weight="0.2975815" />
@@ -1006,7 +1005,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/tmp/canyon/05_SNN_temporal" />
     </ignored-roots>
-    <MESSAGE value="0926" />
     <MESSAGE value="0928 - add tensorboard log enable signal" />
     <MESSAGE value="0930 - training parameters - parameterize" />
     <MESSAGE value="1019 - encoded spike loss" />
@@ -1031,7 +1029,8 @@
     <MESSAGE value="210324" />
     <MESSAGE value="210325 - add L1" />
     <MESSAGE value="210331" />
-    <option name="LAST_COMMIT_MESSAGE" value="210331" />
+    <MESSAGE value="210404 - add spike loss (batchnorm)" />
+    <option name="LAST_COMMIT_MESSAGE" value="210404 - add spike loss (batchnorm)" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1277,16 +1276,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/datasets/cifar10.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="435">
-          <caret line="79" selection-start-line="79" selection-end-line="79" />
-          <folding>
-            <element signature="e#0#38#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../05_SNN/venv/lib/python3.6/site-packages/tensorflow/python/util/dispatch.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="581">
@@ -1296,16 +1285,6 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/run_batch.sh">
       <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/train.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="783">
-          <caret line="72" column="20" selection-start-line="72" selection-start-column="20" selection-end-line="72" selection-end-column="20" />
-          <folding>
-            <element signature="e#0#38#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/test.py">
       <provider selected="true" editor-type-id="text-editor">
@@ -1319,7 +1298,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/main.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="360">
+        <state relative-caret-position="345">
           <caret line="1202" column="12" selection-start-line="1202" selection-start-column="12" selection-end-line="1202" selection-end-column="12" />
           <folding>
             <element signature="e#0#38#0" expanded="true" />
@@ -1327,20 +1306,59 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/lib_snn.py">
+    <entry file="file://$PROJECT_DIR$/datasets/cifar10.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="105">
-          <caret line="1192" column="25" selection-start-line="1192" selection-start-column="25" selection-end-line="1192" selection-end-column="25" />
+        <state relative-caret-position="240">
+          <caret line="55" column="25" selection-start-line="55" selection-start-column="25" selection-end-line="55" selection-end-column="25" />
           <folding>
-            <element signature="e#0#23#0" expanded="true" />
+            <element signature="e#0#38#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/train.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="753">
+          <caret line="72" column="20" selection-start-line="72" selection-start-column="20" selection-end-line="72" selection-end-column="20" />
+          <folding>
+            <element signature="e#0#38#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/models/models.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="435">
-          <caret line="552" column="37" selection-start-line="552" selection-start-column="37" selection-end-line="552" selection-end-column="37" />
+        <state relative-caret-position="315">
+          <caret line="651" column="52" selection-start-line="651" selection-start-column="52" selection-end-line="651" selection-end-column="52" />
+          <folding>
+            <element signature="e#0#23#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/train_snn.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="225">
+          <caret line="674" column="12" selection-start-line="674" selection-start-column="12" selection-end-line="674" selection-end-column="12" />
+          <folding>
+            <element signature="e#0#38#0" expanded="true" />
+            <marker date="1618305017613" expanded="true" signature="5375:5377" ph="..." />
+            <marker date="1618305017613" expanded="true" signature="5375:6293" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/run_batch_enc_dec_tk.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="960">
+          <caret line="95" column="22" selection-start-line="95" selection-start-column="22" selection-end-line="95" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib_snn.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="75">
+          <caret line="1190" column="27" selection-start-line="1190" selection-start-column="27" selection-end-line="1190" selection-end-column="27" />
           <folding>
             <element signature="e#0#23#0" expanded="true" />
           </folding>
@@ -1349,27 +1367,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/run_enc_dec_tk.sh">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="45">
-          <caret line="567" column="1" selection-start-line="567" selection-start-column="1" selection-end-line="567" selection-end-column="1" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/train_snn.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-3120">
-          <caret line="442" column="33" selection-start-line="442" selection-start-column="33" selection-end-line="442" selection-end-column="33" />
-          <folding>
-            <element signature="e#0#38#0" expanded="true" />
-            <marker date="1617529995079" expanded="true" signature="5375:5377" ph="..." />
-            <marker date="1617529995079" expanded="true" signature="5375:6293" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/run_batch_enc_dec_tk.sh">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="675">
-          <caret line="96" column="24" selection-start-line="96" selection-start-column="24" selection-end-line="96" selection-end-column="24" />
+        <state relative-caret-position="495">
+          <caret line="87" column="3" selection-start-line="87" selection-start-column="3" selection-end-line="87" selection-end-column="3" />
         </state>
       </provider>
     </entry>
