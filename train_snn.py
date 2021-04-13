@@ -691,7 +691,7 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
                 loss_total_w = loss_total_w + loss_weight[l_name]*loss_list[l_name]
 
             for l_name in loss_name:
-                if (l_name == 'enc_st') and (model.f_loss_enc_spike_bn_only) :
+                if (l_name == "enc_st") and (model.f_loss_enc_spike_bn_only==True) :
                     continue
                 loss_total_tk = loss_total_tk + loss_weight[l_name]*loss_list[l_name]
 

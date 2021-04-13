@@ -106,7 +106,7 @@ nt_loss_enc_arr=(5)
 #dist_loss_enc_arr=(b b2 b3 g h)
 #dist_loss_enc_arr=(h)
 #dist_loss_enc_arr=(b2)
-dist_loss_enc_arr=(bn)
+#dist_loss_enc_arr=(bn)
 dist_loss_enc_arr=(bno)
 
 # enc_spike - encoding max spike time mode - f(fixed), nt(n times time window=nt)

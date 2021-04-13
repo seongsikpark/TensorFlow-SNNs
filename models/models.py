@@ -645,11 +645,11 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             self.f_loss_enc_spike_bn = False
             self.f_loss_enc_spike_bn_only = False   # loss aginst only BN parameters
 
-            if 'bn' in self.conf.d_loss_enc_spike:
+            if self.conf.d_loss_enc_spike == 'bn':
                 self.f_loss_enc_spike_dist = False
                 self.f_loss_enc_spike_bn = True
                 self.f_loss_enc_spike_bn_only = False
-            elif 'bno' in self.conf.d_loss_enc_spike:
+            elif self.conf.d_loss_enc_spike == 'bno':
                 self.f_loss_enc_spike_dist = False
                 self.f_loss_enc_spike_bn = True
                 self.f_loss_enc_spike_bn_only = True
