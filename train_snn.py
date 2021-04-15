@@ -244,7 +244,7 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
 
     #accuracy = tfe.metrics.Accuracy('accuracy')
 
-    avg_loss = tf.keras.metrics.Mean('loss_total')
+    avg_loss = tf.keras.metrics.Mean('loss_total_w')
     avg_loss_pred = tf.keras.metrics.Mean('loss_pred')
     avg_loss_enc_st = tf.keras.metrics.Mean('loss_enc_st')
 
@@ -685,9 +685,15 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
             #loss_total = loss_pred + loss_enc_st + loss_max_enc_st
             #loss_total = loss_pred + loss_enc_st + loss_max_enc_st + loss_min_enc_st
 
-            loss_total=0
+            loss_total_w=0
+            loss_total_tk=0
             for l_name in loss_name:
-                loss_total = loss_total + loss_weight[l_name]*loss_list[l_name]
+                loss_total_w = loss_total_w + loss_weight[l_name]*loss_list[l_name]
+
+            for l_name in loss_name:
+                if (l_name == "enc_st") and (model.f_loss_enc_spike_bn_only==True) :
+                    continue
+                loss_total_tk = loss_total_tk + loss_weight[l_name]*loss_list[l_name]
 
             #
             #avg_loss(loss_total)
@@ -695,7 +701,7 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
 
 
 
-            avg_loss = loss_total
+            avg_loss = loss_total_w
             avg_loss_pred = loss_list['prediction']
 
             avg_loss_enc_st=0.0
@@ -843,8 +849,8 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
             if (f_train_w==True) and (f_train_tk == True):
                 train_vars = train_vars_w + train_vars_tk
 
-                grads_w = tape.gradient(loss_total, train_vars_w)
-                grads_tk = tape.gradient(loss_total, train_vars_tk)
+                grads_w = tape.gradient(loss_total_w, train_vars_w)
+                grads_tk = tape.gradient(loss_total_tk, train_vars_tk)
 
                 grads = grads_w + [x*model.conf.w_train_tk for x in grads_tk if x is not None]
 
@@ -855,13 +861,13 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
 
             elif (f_train_w==True) and (f_train_tk == False):
                 train_vars = train_vars_w
-                grads = tape.gradient(loss_total, train_vars)
+                grads = tape.gradient(loss_total_tk, train_vars)
 
                 f_all_none = False
 
             elif (f_train_w==False) and (f_train_tk == True):
                 train_vars = train_vars_tk
-                grads = tape.gradient(loss_total, train_vars)
+                grads = tape.gradient(loss_total_tk, train_vars)
 
                 f_all_none = (grads == [None] * len(grads))
 

@@ -43,7 +43,7 @@ w_tk_arr=(1)
 # regularization - temporal kernel decay para
 #w_tkr_arr=(0 0.1 0.01 0.001 0.0001)
 #w_tkr_arr=(0.00000001)
-w_tkr_arr=(0.00001)
+w_tkr_arr=(0.0000001)
 
 # regularization - type
 # L2-Z: L2 nrom - zero based
@@ -94,7 +94,7 @@ ep_loss_enc_arr=(50)
 #w_loss_enc_arr=(1 0.1 0.01 0.001)
 #w_loss_enc_arr=(0.1 0.001)
 #w_loss_enc_arr=(0.001)
-w_loss_enc_arr=(0.0000001)
+w_loss_enc_arr=(0.00001)
 
 # enc_spike - n_tw
 #nt_loss_enc_arr=(1 2 5 10)
@@ -106,7 +106,8 @@ nt_loss_enc_arr=(5)
 #dist_loss_enc_arr=(b b2 b3 g h)
 #dist_loss_enc_arr=(h)
 #dist_loss_enc_arr=(b2)
-dist_loss_enc_arr=(bn)
+#dist_loss_enc_arr=(bn)
+dist_loss_enc_arr=(bno)
 
 # enc_spike - encoding max spike time mode - f(fixed), nt(n times time window=nt)
 #ems_loss_enc_arr=(f n)
