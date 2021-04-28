@@ -201,6 +201,36 @@ def reg_tc_para(model):
     return ret
 
 
+# new version - debugged
+# loss - spike count, batch norm
+def loss_enc_spike_bn_new(model):
+
+    loss_tmp = 0
+
+    for l_name, tk in model.list_tk.items():
+        if not ('in' in l_name):
+            l_name_bn = l_name+'_bn'
+            bn_beta = model.list_layer[l_name_bn].beta
+            bn_gamma = model.list_layer[l_name_bn].gamma
+
+            tk_tc = tk.tc
+            tk_td = tk.td
+
+            x_0 = tf.math.exp(tf.math.divide(tk_td,tk_tc))
+            x_T = tf.math.exp(-tf.math.divide(tf.math.subtract(model.conf.time_window,tk_td),tk_tc))
+
+            exp_x_0 = tf.math.exp(-tf.math.divide(tf.math.pow(x_0,3),2))
+            exp_x_T = tf.math.exp(-tf.math.divide(tf.math.pow(x_T,3),2))
+
+            A = -tf.math.divide(tf.math.multiply(bn_gamma,2),(3*tf.math.sqrt(2*math.pi)))
+            A = tf.math.multiply(A,tf.math.subtract(exp_x_T,exp_x_0))
+            B = tf.math.multiply(tf.math.subtract(x_T,x_0),bn_beta)
+
+            loss_tmp += tf.reduce_sum(tf.math.add(A,B))
+
+    return loss_tmp
+
+
 #
 # loss - spike count, batch norm
 def loss_enc_spike_bn(model):
@@ -228,9 +258,7 @@ def loss_enc_spike_bn(model):
 
             loss_tmp += tf.reduce_sum(tf.math.add(A,B))
 
-
     return loss_tmp
-
 
 #
 def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
@@ -436,7 +464,10 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
 
                     # spike loss - batch norm
                     if (model.f_loss_enc_spike_dist==False) and (model.f_loss_enc_spike_bn==True):
-                        loss_tmp=loss_enc_spike_bn(model)
+                        if (model.f_loss_enc_spike_bn_only_new==True):
+                            loss_tmp=loss_enc_spike_bn_new(model)
+                        else:
+                            loss_tmp=loss_enc_spike_bn(model)
 
 
                     # distribution based (KL-divergence loss)

@@ -87,6 +87,7 @@ exp_case='VGG16_CIFAR-10'
 # TTFS - CIFAR-10 default
 tc=8
 time_fire_start=32    # integration duration - n x tc
+#time_fire_start=16    # integration duration - n x tc
 time_fire_duration=32   # time window - n x tc
 time_window=${time_fire_duration}
 
@@ -271,7 +272,7 @@ fi
 #
 # If this flag is False, then the trained model is overwritten
 load_and_train=False
-#load_and_train=True
+load_and_train=True
 
 
 
