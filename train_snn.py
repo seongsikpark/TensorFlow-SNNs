@@ -219,14 +219,29 @@ def loss_enc_spike_bn_new(model):
             x_0 = tf.math.exp(tf.math.divide(tk_td,tk_tc))
             x_T = tf.math.exp(-tf.math.divide(tf.math.subtract(model.conf.time_window,tk_td),tk_tc))
 
-            exp_x_0 = tf.math.exp(-tf.math.divide(tf.math.pow(x_0,3),2))
-            exp_x_T = tf.math.exp(-tf.math.divide(tf.math.pow(x_T,3),2))
+            x_0_2 = tf.math.pow(x_0,2)
+            x_T_2 = tf.math.pow(x_T,2)
 
-            A = -tf.math.divide(tf.math.multiply(bn_gamma,2),(3*tf.math.sqrt(2*math.pi)))
-            A = tf.math.multiply(A,tf.math.subtract(exp_x_T,exp_x_0))
-            B = tf.math.multiply(tf.math.subtract(x_T,x_0),bn_beta)
+            x_0_3 = tf.math.pow(x_0,3)
+            x_T_3 = tf.math.pow(x_T,3)
 
-            loss_tmp += tf.reduce_sum(tf.math.add(A,B))
+            first = tf.math.subtract(x_0,x_T)
+
+            second = tf.math.subtract(x_0_2,x_T_2)
+            second_t = -0.5*tf.math.multiply(bn_gamma,bn_beta)
+            second = tf.math.multiply(second_t,second)
+
+            third = tf.math.subtract(x_0_3,x_T_3)
+            third_g2 = tf.math.pow(bn_gamma,2)
+            third_g2 = tf.math.divide(third_g2,6.0)
+            third_b2 = tf.math.pow(bn_beta,2)
+            third_b2 = tf.math.subtract(third_b2,1.0)
+            third_t = tf.math.multiply(third_g2,third_b2)
+            third = tf.multiply(third,third_t)
+
+            loss = tf.math.add(tf.math.add(first,second),third)
+
+            loss_tmp += tf.reduce_sum(loss)
 
     return loss_tmp
 
