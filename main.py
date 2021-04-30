@@ -1201,7 +1201,7 @@ def main(_):
             #load_model.restore(tf.train.latest_checkpoint(checkpoint_dir)).assert_consumed()
 
             status = load_model.restore(tf.train.latest_checkpoint(checkpoint_dir)).expect_partial()
-            #status=load_model.restore(checkpoint_dir+'/ckpt-1341-1')
+            #status=load_model.restore(checkpoint_dir+'/ckpt-990-1')
             #status=load_model.restore(checkpoint_dir+'/ckpt-740-1')
             #status=load_model.restore(checkpoint_dir+'/ckpt-681-1')
 
