@@ -200,8 +200,87 @@ def reg_tc_para(model):
 
     return ret
 
+# new version - debugged, linear approx
+# loss - spike count, batch norm
+def loss_enc_spike_bn_new_lin(model):
 
-# new version - debugged
+    loss_tmp = 0
+
+    for l_name, tk in model.list_tk.items():
+        if not ('in' in l_name):
+            l_name_bn = l_name+'_bn'
+            bn_beta = model.list_layer[l_name_bn].beta
+            bn_gamma = model.list_layer[l_name_bn].gamma
+
+            tk_tc = tk.tc
+            tk_td = tk.td
+
+            x_0 = tf.math.exp(tf.math.divide(tk_td,tk_tc))
+            x_T = tf.math.exp(-tf.math.divide(tf.math.subtract(model.conf.time_window,tk_td),tk_tc))
+
+            t_0 = tf.math.multiply(x_0,bn_gamma)
+            t_0 = tf.math.add(t_0,bn_beta)
+            t_0 = -0.5*tf.pow(t_0,2)
+            f_x_0 = tf.math.exp(t_0)
+
+            t_T = tf.math.multiply(x_T,bn_gamma)
+            t_T = tf.math.add(t_T,bn_beta)
+            t_T = -0.5*tf.pow(t_T,2)
+            f_x_T = tf.math.exp(t_T)
+
+            loss_w = tf.math.subtract(x_0,x_T)
+            loss_h = 0.5*tf.math.add(f_x_0,f_x_T)
+            loss = tf.math.multiply(loss_w,loss_h)
+
+            loss_tmp += tf.reduce_sum(loss)
+
+    return loss_tmp
+
+# new version - debugged, taylor expansion, integral, squred
+# loss - spike count, batch norm
+def loss_enc_spike_bn_new_2(model):
+
+    loss_tmp = 0
+
+    for l_name, tk in model.list_tk.items():
+        if not ('in' in l_name):
+            l_name_bn = l_name+'_bn'
+            bn_beta = model.list_layer[l_name_bn].beta
+            bn_gamma = model.list_layer[l_name_bn].gamma
+
+            tk_tc = tk.tc
+            tk_td = tk.td
+
+            x_0 = tf.math.exp(tf.math.divide(tk_td,tk_tc))
+            x_T = tf.math.exp(-tf.math.divide(tf.math.subtract(model.conf.time_window,tk_td),tk_tc))
+
+            x_0_2 = tf.math.pow(x_0,2)
+            x_T_2 = tf.math.pow(x_T,2)
+
+            x_0_3 = tf.math.pow(x_0,3)
+            x_T_3 = tf.math.pow(x_T,3)
+
+            first = tf.math.subtract(x_0,x_T)
+
+            second = tf.math.subtract(x_0_2,x_T_2)
+            second_t = -0.5*tf.math.multiply(bn_gamma,bn_beta)
+            second = tf.math.multiply(second_t,second)
+
+            third = tf.math.subtract(x_0_3,x_T_3)
+            third_g2 = tf.math.pow(bn_gamma,2)
+            third_g2 = tf.math.divide(third_g2,6.0)
+            third_b2 = tf.math.pow(bn_beta,2)
+            third_b2 = tf.math.subtract(third_b2,1.0)
+            third_t = tf.math.multiply(third_g2,third_b2)
+            third = tf.multiply(third,third_t)
+
+            loss = tf.math.add(tf.math.add(first,second),third)
+
+            loss_tmp += tf.pow(tf.reduce_sum(loss),2)
+
+    return loss_tmp
+
+# new version - debugged, taylor expansion, integral
 # loss - spike count, batch norm
 def loss_enc_spike_bn_new(model):
 
@@ -481,6 +560,10 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
                     if (model.f_loss_enc_spike_dist==False) and (model.f_loss_enc_spike_bn==True):
                         if (model.f_loss_enc_spike_bn_only_new==True):
                             loss_tmp=loss_enc_spike_bn_new(model)
+                        elif (model.f_loss_enc_spike_bn_only_new_2==True):
+                            loss_tmp=loss_enc_spike_bn_new_2(model)
+                        elif (model.f_loss_enc_spike_bn_only_new_lin==True):
+                            loss_tmp=loss_enc_spike_bn_new_lin(model)
                         else:
                             loss_tmp=loss_enc_spike_bn(model)
 

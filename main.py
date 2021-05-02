@@ -17,7 +17,7 @@ from datetime import datetime
 #en_gpu=False
 en_gpu=True
 
-gpu_number=0
+gpu_number=1
 os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
 
 #
@@ -722,60 +722,6 @@ def main(_):
                 #    train_dataset_p = train_data_augmentation(train_dataset)
 
                 with summary_writer.as_default():
-                    #
-#                    if epoch < 5 :
-#                        lr.assign(0.1/5*(epoch+1))
-#                    elif epoch > 5 and epoch < 90:
-#                        lr.assign(0.1)
-#                    elif epoch > 90 and epoch < 135:
-#                        lr.assign(0.01)
-#                    elif epoch > 135 and epoch < 180:
-#                        lr.assign(0.01)
-#                    elif epoch > 180 and epoch < 250:
-#                        lr.assign(0.001)
-#                    elif epoch > 250:
-#                        lr.assign(0.0001)
-
-#                    if epoch == 0:
-#                        lr.assign(0.01)
-#                    elif epoch > 0 and epoch < 150 :
-#                    #if epoch < 90 :
-#                        lr.assign(0.01)
-#                    elif epoch > 150 and epoch < 250 :
-#                        lr.assign(0.001)
-#                    elif epoch > 250:
-#                        lr.assign(0.0001)
-
-                    # for resnet, cifar10
-                    #if epoch == 0:
-                    #    lr.assign(0.01)
-                    #elif epoch > 0 and epoch < 80 :
-                    #    lr.assign(0.1)
-                    #elif epoch > 80 and epoch < 135 :
-                    #    lr.assign(0.01)
-                    #elif epoch > 135 and epoch < 180 :
-                    #    lr.assign(0.001)
-                    #elif epoch > 180 and epoch < 280 :
-                    #    lr.assign(0.0001)
-                    #elif epoch > 280:
-                    #    lr.assign(0.00001)
-
-
-
-                    # learning rate decay
-                    #if (epoch%conf.lr_decay_step==0) and (epoch!=0):
-                    #    lr.assign(lr.numpy()*conf.lr_decay)
-                    #    #print('lr_decay) lr: %',optimizer._learning_rate.numpy())
-
-                    #if epoch > 100 and epoch < 250:
-                    #    lr.assign(0.01)
-                    #elif epoch > 250 and epoch < 350:
-                    #    lr.assign(0.001)
-                    #elif epoch > 350 and epoch < 450:
-                    #    lr.assign(0.0001)
-                    #elif epoch > 450:
-                    #    lr.assign(0.00001)
-
 
                     #loss_train, acc_train = train.train_one_epoch(model, optimizer, train_dataset_p)
                     #loss_train, acc_train = train.train_snn_one_epoch(model, optimizer, train_dataset_p, conf)
@@ -822,13 +768,13 @@ def main(_):
                         #
                         if conf.en_tensorboard_write and (epoch > 1):
                             #with tf.summary.always_record_summaries():
-                            tf.summary.scalar('loss', loss_train, step=epoch)
-                            tf.summary.scalar('loss_pred', loss_pred_train, step=epoch)
-                            tf.summary.scalar('loss_enc_st', loss_enc_st_train, step=epoch)
-                            tf.summary.scalar('loss_max_enc_st', loss_max_enc_st_train, step=epoch)
-                            tf.summary.scalar('loss_min_enc_st', loss_min_enc_st_train, step=epoch)
-                            tf.summary.scalar('loss_max_tk_rep', loss_max_tk_rep, step=epoch)
-                            tf.summary.scalar('accuracy', acc_train, step=epoch)
+                            tf.summary.scalar('result/loss_total', loss_train, step=epoch)
+                            tf.summary.scalar('result/loss_pred', loss_pred_train, step=epoch)
+                            tf.summary.scalar('result/loss_enc_st', loss_enc_st_train, step=epoch)
+                            #tf.summary.scalar('loss_max_enc_st', loss_max_enc_st_train, step=epoch)
+                            #tf.summary.scalar('loss_min_enc_st', loss_min_enc_st_train, step=epoch)
+                            #tf.summary.scalar('loss_max_tk_rep', loss_max_tk_rep, step=epoch)
+                            tf.summary.scalar('result/accuracy', acc_train, step=epoch)
 
                             #for l_name in model.layer_name[:-1]:
                             #print(model.list_tk)
@@ -838,17 +784,28 @@ def main(_):
                                 #scalar_name = 'td_dec_avg_'+l_name
                                 #tf.contrib.summary.scalar(scalar_name, tf.reduce_mean(model.list_tk[l_name].td_dec), step=epoch)
 
-                                scalar_name = 'tc_avg_'+l_name
+                                scalar_name = 'tc_avg/'+l_name
                                 #tf.summary.scalar(scalar_name, tf.reduce_mean(model.list_tk[l_name].tc), step=epoch)
                                 tf.summary.scalar(scalar_name, tf.reduce_mean(tk.tc), step=epoch)
-                                scalar_name = 'td_avg_'+l_name
+                                scalar_name = 'td_avg/'+l_name
                                 #tf.summary.scalar(scalar_name, tf.reduce_mean(model.list_tk[l_name].td), step=epoch)
                                 tf.summary.scalar(scalar_name, tf.reduce_mean(tk.td), step=epoch)
 
+                                # bn paras
+                                if not ('in' in l_name):
+                                    l_name_bn = l_name+'_bn'
+                                    bn_beta = model.list_layer[l_name_bn].beta
+                                    bn_gamma = model.list_layer[l_name_bn].gamma
+
+                                    scalar_name_bn = 'bn_beta_avg/'+l_name
+                                    tf.summary.scalar(scalar_name_bn, tf.reduce_mean(bn_beta), step=epoch)
+                                    scalar_name_bn = 'bn_gamma_avg/'+l_name
+                                    tf.summary.scalar(scalar_name_bn, tf.reduce_mean(bn_gamma), step=epoch)
+
                                 if tk.f_double_tc:
-                                    scalar_name = 'tc_1_avg_'+l_name
+                                    scalar_name = 'tc_1_avg/'+l_name
                                     tf.summary.scalar(scalar_name, tf.reduce_mean(tk.tc_1), step=epoch)
-                                    scalar_name = 'td_1_avg_'+l_name
+                                    scalar_name = 'td_1_avg/'+l_name
                                     tf.summary.scalar(scalar_name, tf.reduce_mean(tk.td_1), step=epoch)
 
                                 #scalar_name = 'ta_avg_'+l_name
@@ -1201,7 +1158,7 @@ def main(_):
             #load_model.restore(tf.train.latest_checkpoint(checkpoint_dir)).assert_consumed()
 
             status = load_model.restore(tf.train.latest_checkpoint(checkpoint_dir)).expect_partial()
-            #status=load_model.restore(checkpoint_dir+'/ckpt-990-1')
+            #status=load_model.restore(checkpoint_dir+'/ckpt-669-1')
             #status=load_model.restore(checkpoint_dir+'/ckpt-740-1')
             #status=load_model.restore(checkpoint_dir+'/ckpt-681-1')
 
