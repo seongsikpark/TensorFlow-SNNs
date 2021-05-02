@@ -10,6 +10,10 @@ import tensorflow.keras.regularizers as regularizers
 from tensorflow.python.framework import tensor_shape
 from tensorflow.python.ops import math_ops
 
+
+import tensorflow_probability as tfp
+tfd = tfp.distributions
+
 #
 import util
 import lib_snn
@@ -356,89 +360,55 @@ class MNISTModel_CNN(tf.keras.layers.Layer):
         #
         #if self.conf.neural_coding=='TEMPORAL' and self.conf.en_train:
         #if True:
+        # surrogate DNN model for SNN training w/ TTFS coding
         if self.conf.f_surrogate_training_model:
 
-            #
-            self.list_tk=OrderedDict()
+            self.list_tk=collections.OrderedDict()
 
-            init_tc=self.conf.tc
-            #init_td=0.0
-            init_act_target_range=1.0
+            init_tc = self.conf.tc
+            init_act_target_range=0.5
+            init_act_target_range_in=0.5
+
             init_td=init_tc*np.log(init_act_target_range)
-
-            init_act_target_range_in=1.0
             init_td_in=init_tc*np.log(init_act_target_range_in)
 
             # TODO: removed
             init_ta=10.0
 
 
-            # TODO: removed
-#            self.list_tc=OrderedDict()
-#            self.list_td=OrderedDict()
-#            self.list_ta=OrderedDict()
-
-#            self.list_tc['in'] = tf.Variable(initial_value=tf.constant(init_tc,shape=self.dict_shape_one_batch['in'],dtype=tf.float32),name="tc_in",trainable=True)
-#            self.list_tc['conv1'] = tf.Variable(initial_value=tf.constant(init_tc,shape=self.dict_shape_one_batch['conv1'],dtype=tf.float32),name="tc_conv1",trainable=True)
-#            self.list_tc['conv2'] = tf.Variable(initial_value=tf.constant(init_tc,shape=self.dict_shape_one_batch['conv2'],dtype=tf.float32),name="tc_conv2",trainable=True)
-#            self.list_tc['fc1'] = tf.Variable(initial_value=tf.constant(init_tc,shape=self.dict_shape_one_batch['fc1'],dtype=tf.float32),name="tc_fc1",trainable=True)
-#
-#            self.list_td['in'] = tf.Variable(initial_value=tf.constant(init_td,shape=self.dict_shape_one_batch['in'],dtype=tf.float32),name="td_in",trainable=True)
-#            self.list_td['conv1'] = tf.Variable(initial_value=tf.constant(init_td,shape=self.dict_shape_one_batch['conv1'],dtype=tf.float32),name="td_conv1",trainable=True)
-#            self.list_td['conv2'] = tf.Variable(initial_value=tf.constant(init_td,shape=self.dict_shape_one_batch['conv2'],dtype=tf.float32),name="td_conv2",trainable=True)
-#            self.list_td['fc1'] = tf.Variable(initial_value=tf.constant(init_td,shape=self.dict_shape_one_batch['fc1'],dtype=tf.float32),name="td_fc1",trainable=True)
-#
-#            self.list_ta['in'] = tf.Variable(initial_value=tf.constant(init_a,shape=self.dict_shape_one_batch['in'],dtype=tf.float32),name="ta_in",trainable=True)
-#            self.list_ta['conv1'] = tf.Variable(initial_value=tf.constant(init_a,shape=self.dict_shape_one_batch['conv1'],dtype=tf.float32),name="ta_conv1",trainable=True)
-#            self.list_ta['conv2'] = tf.Variable(initial_value=tf.constant(init_a,shape=self.dict_shape_one_batch['conv2'],dtype=tf.float32),name="ta_conv2",trainable=True)
-#            self.list_ta['fc1'] = tf.Variable(initial_value=tf.constant(init_a,shape=self.dict_shape_one_batch['fc1'],dtype=tf.float32),name="ta_fc1",trainable=True)
-
-
-            # neuron-wise
-#            self.list_tk['in'] = self.track_layer(lib_snn.Temporal_kernel(
-#                self.input_shape_snn, self.input_shape_snn, init_tc, init_td, init_ta,self.conf.time_window))
-#            self.list_tk['conv1'] = self.track_layer(lib_snn.Temporal_kernel(
-#                self.dict_shape['conv1'], self.dict_shape['conv1'], init_tc, init_td, init_ta,self.conf.time_window))
-#            self.list_tk['conv2'] = self.track_layer(lib_snn.Temporal_kernel(
-#                self.dict_shape['conv2'], self.dict_shape['conv2'], init_tc, init_td, init_ta,self.conf.time_window))
-#            self.list_tk['fc1'] = self.track_layer(lib_snn.Temporal_kernel(
-#                self.dict_shape['fc1'], self.dict_shape['fc1'], init_tc, init_td, init_ta,self.conf.time_window))
-
-            # neuron-wise
-            #s = self.dict_shape['conv2_p']
-            #shape_fc1_flat = [s[0],s[1]*s[2]*s[3]]
-
-            #self.list_tk['in'] = self.track_layer(lib_snn.Temporal_kernel(
-            #    self.input_shape_snn, self.dict_shape['conv1'], init_tc, init_td, init_ta,self.conf.time_window))
-            #self.list_tk['conv1'] = self.track_layer(lib_snn.Temporal_kernel(
-            #    self.dict_shape['conv1'], self.dict_shape['conv2'], init_tc, init_td, init_ta,self.conf.time_window))
-            #self.list_tk['conv2'] = self.track_layer(lib_snn.Temporal_kernel(
-            #    self.dict_shape['conv2'], shape_fc1_flat, init_tc, init_td, init_ta,self.conf.time_window))
-            #self.list_tk['fc1'] = self.track_layer(lib_snn.Temporal_kernel(
-            #    self.dict_shape['fc1'], self.dict_shape['fc1'], init_tc, init_td, init_ta,self.conf.time_window))
-
-
-            # layer-wise para
-
-            # TODO: TF-V1
-#            self.list_tk['in'] = self.track_layer(lib_snn.Temporal_kernel(
-#                [], [], init_tc, init_td_in, init_ta,self.conf.time_window))
-#            self.list_tk['conv1'] = self.track_layer(lib_snn.Temporal_kernel(
-#                [], [], init_tc, init_td, init_ta,self.conf.time_window))
-#            self.list_tk['conv2'] = self.track_layer(lib_snn.Temporal_kernel(
-#                [], [], init_tc, init_td, init_ta,self.conf.time_window))
-#            self.list_tk['fc1'] = self.track_layer(lib_snn.Temporal_kernel(
-#                [], [], init_tc, init_td, init_ta,self.conf.time_window))
-
-
             self.list_tk['in'] = lib_snn.Temporal_kernel(
-                [], [], init_tc, init_td_in, init_ta,self.conf.time_window)
+                [], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
             self.list_tk['conv1'] = lib_snn.Temporal_kernel(
-                [], [], init_tc, init_td, init_ta,self.conf.time_window)
+                [], [], init_tc, init_td, init_ta,self.conf.time_window,self.conf)
             self.list_tk['conv2'] = lib_snn.Temporal_kernel(
-                [], [], init_tc, init_td, init_ta,self.conf.time_window)
+                [], [], init_tc, init_td, init_ta,self.conf.time_window,self.conf)
             self.list_tk['fc1'] = lib_snn.Temporal_kernel(
-                [], [], init_tc, init_td, init_ta,self.conf.time_window)
+                [], [], init_tc, init_td, init_ta,self.conf.time_window,self.conf)
+
+
+
+            # TODO: parameterize with other file (e.g., train_snn.py)
+            #f_loss_dist = True
+            if self.conf.f_loss_enc_spike:
+
+                #alpha = 0.1
+                #beta = 0.9
+
+                alpha = self.conf.beta_dist_a
+                beta = self.conf.beta_dist_b
+
+                #self.dist = tfd.Beta(alpha,beta)
+                self.dist = tfd.Horseshoe(alpha)
+
+                self.dist_beta_sample = collections.OrderedDict()
+
+                self.enc_st_n_tw = self.conf.enc_st_n_tw
+
+                #self.enc_st_target_end = self.conf.time_window*10
+                self.enc_st_target_end = self.conf.time_window*self.enc_st_n_tw
+
+
+
 
 
         # load model configuration
@@ -462,8 +432,22 @@ class MNISTModel_CNN(tf.keras.layers.Layer):
 
 
 #
-        self.cmap=matplotlib.cm.get_cmap('viridis')
+        #self.cmap=matplotlib.cm.get_cmap('viridis')
         #self.normalize=matplotlib.colors.Normalize(vmin=min(self.n_fc1.vmem),vmax=max(self.n_fc1.vmem))
+
+
+
+    #
+    def dist_beta_sample_func(self):
+        if self.conf.f_loss_enc_spike:
+            for l_name, tk in self.list_tk.items():
+                enc_st = tf.reshape(tk.out_enc, [-1])
+
+                samples = self.dist.sample(enc_st.shape)
+                self.dist_beta_sample[l_name] = tf.histogram_fixed_width(samples, [0,self.enc_st_target_end], nbins=self.enc_st_target_end)
+        else:
+            pass
+
 
     ###########################################################################
     ## processing
@@ -617,7 +601,7 @@ class MNISTModel_CNN(tf.keras.layers.Layer):
     ###########################################################
     ## call function
     ###########################################################
-    def call(self, inputs, f_training, f_val_snn=False):
+    def call(self, inputs, f_training, epoch=-1, f_val_snn=False):
 
         nn_mode = {
             'ANN': self.call_ann if not self.conf.f_surrogate_training_model else self.call_ann_surrogate_training,
@@ -630,9 +614,9 @@ class MNISTModel_CNN(tf.keras.layers.Layer):
 
             #
             if f_val_snn:
-                ret_val = self.call_snn(inputs,f_training)
+                ret_val = self.call_snn(inputs,f_training,self.conf.time_step,epoch)
             else:
-                ret_val = nn_mode[self.conf.nn_mode](inputs,f_training)
+                ret_val = nn_mode[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
 
 
             # tmp
@@ -651,22 +635,21 @@ class MNISTModel_CNN(tf.keras.layers.Layer):
 
             # dummy run for the eager mode in TF v1
             if self.conf.nn_mode=='SNN' and self.conf.f_surrogate_training_model:
-                ret_val = self.call_ann_surrogate_training(inputs,f_training)
+                ret_val = self.call_ann_surrogate_training(inputs,f_training,self.conf.time_step,epoch)
 
             # validation on SNN
             if self.conf.en_train and self.conf.f_validation_snn:
-                ret_val = self.call_snn(inputs,f_training)
+                ret_val = self.call_snn(inputs,f_training,self.conf.time_step,epoch)
 
-            ret_val = nn_mode[self.conf.nn_mode](inputs,f_training)
+            ret_val = nn_mode[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
 
             self.print_model_conf()
-
             #self.f_1st_iter=False
         return ret_val
 
     #
     #@tf.function -> make the function graph?
-    def call_ann(self,inputs,f_training):
+    def call_ann(self,inputs,f_training,tw,epoch):
 
         x = tf.reshape(inputs,self._input_shape)
         s_conv1 = self.conv1(x)
@@ -732,17 +715,17 @@ class MNISTModel_CNN(tf.keras.layers.Layer):
 
 
     #
-    def call_snn_validation(self,inputs,f_training):
+    def call_snn_validation(inputs,f_training,tw,epoch):
 
         #if self.conf.f_surrogate_training_model:
         #    self.load_temporal_kernel_para()
 
 
-        return self.call_snn(inputs,f_training)
+        return self.call_snn(inputs,f_training,tw,epoch)
 
 
    #
-    def call_ann_surrogate_training(self,inputs,f_training):
+    def call_ann_surrogate_training(self,inputs,f_training,tw,epoch):
         #if not self.f_1st_iter:
             #print(self.list_tk['fc1'].tc)
 
@@ -1201,7 +1184,7 @@ class MNISTModel_CNN(tf.keras.layers.Layer):
 
 
     #
-    def call_snn(self,inputs,f_training):
+    def call_snn(self,inputs,f_training,tw,epoch):
 
         #
         plt.clf()
