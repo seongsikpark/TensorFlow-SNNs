@@ -33,8 +33,8 @@ ep=10000
 
 #epoch_start_train_tk=$2
 #ep_tk_arr=(0 250 500)
-ep_tk_arr=(50)
-#ep_tk_arr=(0)
+#ep_tk_arr=(50)
+ep_tk_arr=(0)
 
 #
 #w_tk_arr=(1 0.1 0.01 0.001)
@@ -87,7 +87,7 @@ ep_dec_prun_arr=(0)
 #ep_loss_enc_arr=(0 250)
 ep_loss_enc_arr=(50)
 #ep_loss_enc_arr=(10000)
-#ep_loss_enc_arr=(0)
+ep_loss_enc_arr=(0)
 
 # enc_spike - weight
 #w_loss_enc_arr=(0.01 0.001)
@@ -109,6 +109,8 @@ nt_loss_enc_arr=(5)
 #dist_loss_enc_arr=(bn)
 #dist_loss_enc_arr=(bno)    # bug in integral
 dist_loss_enc_arr=(bnon)    # new version - debugged
+dist_loss_enc_arr=(bnon2)    #
+dist_loss_enc_arr=(bnonl)    #
 
 # enc_spike - encoding max spike time mode - f(fixed), nt(n times time window=nt)
 #ems_loss_enc_arr=(f n)
