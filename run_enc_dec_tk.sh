@@ -69,7 +69,7 @@ en_tensorboard_write=True
 ## Model & Dataset
 ###############################################################################
 nn_mode='ANN'
-nn_mode='SNN'
+#nn_mode='SNN'
 
 
 #exp_case='CNN_MNIST'
@@ -85,7 +85,7 @@ exp_case='VGG16_CIFAR-10'
 
 # direct training - CIFAR-10
 # TTFS - CIFAR-10 default
-tc=8
+tc=10
 time_fire_start=32    # integration duration - n x tc
 #time_fire_start=16    # integration duration - n x tc
 time_fire_duration=32   # time window - n x tc
@@ -915,7 +915,8 @@ INFER_VGG16_CIFAR-10_SUR)
         batch_size=400
         idx_test_dataset_s=0
         num_test_dataset=10000
-        #num_test_dataset=400
+        num_test_dataset=400
+        #num_test_dataset=1
     fi
 
     if [ ${neural_coding} = "TEMPORAL" ]

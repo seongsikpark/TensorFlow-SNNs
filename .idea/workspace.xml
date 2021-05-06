@@ -40,10 +40,16 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a59cc8b6-9dbe-41c8-8d2e-009d3879113f" name="Default" comment="210111">
+    <list default="true" id="a59cc8b6-9dbe-41c8-8d2e-009d3879113f" name="Default" comment="210220">
+      <change beforePath="$PROJECT_DIR$/.idea/05_SNN.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/05_SNN.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/run_batch_enc_dec_tk.sh" beforeDir="false" afterPath="$PROJECT_DIR$/run_batch_enc_dec_tk.sh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/run_enc_dec_tk.sh" beforeDir="false" afterPath="$PROJECT_DIR$/run_enc_dec_tk.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/utils.conf" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/utils.conf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/train_snn.py" beforeDir="false" afterPath="$PROJECT_DIR$/train_snn.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -106,9 +112,9 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SearchEverywhereHistoryKey" value=":w&#9;null&#9;null&#10;rerun&#9;ACTION&#9;Rerun" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../tensorflow_SNN_1" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../51_SNN_Transformer" />
     <property name="run.code.analysis.last.selected.profile" value="pProject Default" />
-    <property name="settings.editor.selected.configurable" value="editor.preferences.fonts.default" />
+    <property name="settings.editor.selected.configurable" value="preferences.keymap" />
   </component>
   <component name="PyConsoleOptionsProvider">
     <option name="myPythonConsoleState">
@@ -266,7 +272,7 @@
       <workItem from="1605867002679" duration="606000" />
       <workItem from="1605927575200" duration="1204000" />
       <workItem from="1606052547435" duration="15360000" />
-      <workItem from="1610529221937" duration="52194000" />
+      <workItem from="1610529221937" duration="295522000" />
     </task>
     <task id="LOCAL-00001" summary="commit">
       <created>1533311184663</created>
@@ -506,7 +512,14 @@
       <option name="project" value="LOCAL" />
       <updated>1610360311972</updated>
     </task>
-    <option name="localTasksCounter" value="35" />
+    <task id="LOCAL-00035" summary="210220">
+      <created>1613791739779</created>
+      <option name="number" value="00035" />
+      <option name="presentableId" value="LOCAL-00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1613791739779</updated>
+    </task>
+    <option name="localTasksCounter" value="36" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -555,13 +568,14 @@
     <MESSAGE value="0930 - training parameters - parameterize" />
     <MESSAGE value="201105" />
     <MESSAGE value="210111" />
-    <option name="LAST_COMMIT_MESSAGE" value="210111" />
+    <MESSAGE value="210220" />
+    <option name="LAST_COMMIT_MESSAGE" value="210220" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="1060" y="482" width="430" height="514" key="FileChooserDialogImpl" timestamp="1610355569971">
+    <state x="1060" y="482" width="430" height="514" key="FileChooserDialogImpl" timestamp="1615875841716">
       <screen x="0" y="31" width="2560" height="1409" />
     </state>
-    <state x="1060" y="482" width="430" height="514" key="FileChooserDialogImpl/0.31.2560.1409@0.31.2560.1409" timestamp="1610355569971" />
+    <state x="1060" y="482" width="430" height="514" key="FileChooserDialogImpl/0.31.2560.1409@0.31.2560.1409" timestamp="1615875841716" />
     <state width="812" height="1261" key="GridCell.Tab.0.bottom" timestamp="1604681913039">
       <screen x="0" y="31" width="2560" height="1409" />
     </state>
@@ -578,18 +592,22 @@
       <screen x="0" y="31" width="2560" height="1409" />
     </state>
     <state width="812" height="1261" key="GridCell.Tab.0.right/0.31.2560.1409@0.31.2560.1409" timestamp="1604681913038" />
-    <state x="266" y="135" width="2054" height="1159" key="MergeDialog" timestamp="1613665392588">
+    <state x="266" y="135" width="2054" height="1159" key="MergeDialog" timestamp="1620024156309">
       <screen x="0" y="31" width="2560" height="1409" />
     </state>
-    <state x="266" y="135" width="2054" height="1159" key="MergeDialog/0.31.2560.1409@0.31.2560.1409" timestamp="1613665392588" />
-    <state x="913" y="499" width="730" height="478" key="MultipleFileMergeDialog" timestamp="1613665384976">
+    <state x="266" y="135" width="2054" height="1159" key="MergeDialog/0.31.2560.1409@0.31.2560.1409" timestamp="1620024156309" />
+    <state x="913" y="499" width="730" height="478" key="MultipleFileMergeDialog" timestamp="1620024146515">
       <screen x="0" y="31" width="2560" height="1409" />
     </state>
-    <state x="913" y="499" width="730" height="478" key="MultipleFileMergeDialog/0.31.2560.1409@0.31.2560.1409" timestamp="1613665384976" />
-    <state x="1060" y="653" width="439" height="170" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1613665380091">
+    <state x="913" y="499" width="730" height="478" key="MultipleFileMergeDialog/0.31.2560.1409@0.31.2560.1409" timestamp="1620024146515" />
+    <state x="769" y="372" width="1022" height="732" key="SettingsEditor" timestamp="1617931954083">
       <screen x="0" y="31" width="2560" height="1409" />
     </state>
-    <state x="1060" y="653" width="439" height="170" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.31.2560.1409@0.31.2560.1409" timestamp="1613665380091" />
+    <state x="769" y="372" width="1022" height="732" key="SettingsEditor/0.31.2560.1409@0.31.2560.1409" timestamp="1617931954083" />
+    <state x="1060" y="653" width="439" height="170" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1620314704846">
+      <screen x="0" y="31" width="2560" height="1409" />
+    </state>
+    <state x="1060" y="653" width="439" height="170" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.31.2560.1409@0.31.2560.1409" timestamp="1620314704846" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

@@ -602,6 +602,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             init_tc = self.init_tc
             init_act_target_range=0.5
             init_act_target_range_in=0.5
+            #init_act_target_range_in=5.0
 
             #init_td=init_tc*np.log(init_act_target_range)
             self.init_td_in=init_tc*np.log(init_act_target_range_in)
@@ -1952,31 +1953,6 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         #   x = self.dropout(x,training=f_training)
 
 
-        #print("here")
-        # write stat
-        #print(self.conf.f_write_stat)
-        #print(self.f_1st_iter)
-        #print(self.dict_stat_w["fc1"])
-        if (self.conf.f_write_stat) and (not self.f_1st_iter):
-            #self.dict_stat_w['conv1']=np.append(self.dict_stat_w['conv1'],a_conv1.numpy(),axis=0)
-            #self.dict_stat_w['conv1_1']=np.append(self.dict_stat_w['conv1_1'],a_conv1_1.numpy(),axis=0)
-            #self.dict_stat_w['conv2']=np.append(self.dict_stat_w['conv2'],a_conv2.numpy(),axis=0)
-            #self.dict_stat_w['conv2_1']=np.append(self.dict_stat_w['conv2_1'],a_conv2_1.numpy(),axis=0)
-            #self.dict_stat_w['conv3']=np.append(self.dict_stat_w['conv3'],a_conv3.numpy(),axis=0)
-            #self.dict_stat_w['conv3_1']=np.append(self.dict_stat_w['conv3_1'],a_conv3_1.numpy(),axis=0)
-            #self.dict_stat_w['conv3_2']=np.append(self.dict_stat_w['conv3_2'],a_conv3_2.numpy(),axis=0)
-            #self.dict_stat_w['conv4']=np.append(self.dict_stat_w['conv4'],a_conv4.numpy(),axis=0)
-            #self.dict_stat_w['conv4_1']=np.append(self.dict_stat_w['conv4_1'],a_conv4_1.numpy(),axis=0)
-            #self.dict_stat_w['conv4_2']=np.append(self.dict_stat_w['conv4_2'],a_conv4_2.numpy(),axis=0)
-            #self.dict_stat_w['conv5']=np.append(self.dict_stat_w['conv5'],a_conv5.numpy(),axis=0)
-            #self.dict_stat_w['conv5_1']=np.append(self.dict_stat_w['conv5_1'],a_conv5_1.numpy(),axis=0)
-            #self.dict_stat_w['conv5_2']=np.append(self.dict_stat_w['conv5_2'],a_conv5_2.numpy(),axis=0)
-            #self.dict_stat_w['fc1']=np.append(self.dict_stat_w['fc1'],a_fc1.numpy(),axis=0)
-            #self.dict_stat_w['fc2']=np.append(self.dict_stat_w['fc2'],a_fc2.numpy(),axis=0)
-            #self.dict_stat_w['fc3']=np.append(self.dict_stat_w['fc3'],a_fc3.numpy(),axis=0)
-            # test bn activation distribution
-            self.dict_stat_w['fc1']=np.append(self.dict_stat_w['fc1'],s_fc1_bn.numpy(),axis=0)
-
 
         if self.conf.f_comp_act and (not self.f_1st_iter):
             self.dict_stat_w['conv1']=a_conv1.numpy()
@@ -2008,6 +1984,27 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         #print(a_fc3)
 
 
+        #
+        act = a_fc2
+        print('act {}: min - {}, max - {}, avg - {}'.format('fc3',tf.reduce_min(act),tf.reduce_max(act),tf.reduce_mean(act)))
+
+        try:
+            t_fc2
+        except NameError:
+            pass
+        else:
+            act = t_fc2
+            print('enc {}: min - {}, max - {}, avg - {}'.format('fc3',tf.reduce_min(act),tf.reduce_max(act),tf.reduce_mean(act)))
+            plt.hist(act.numpy().flatten(),bins=self.enc_st_target_end)
+            #plt.hist(act.numpy().flatten(),bins=[0,200])
+            plt.xlim([0,self.conf.time_window])
+            #plt.xlim([0,200])
+
+            #print(self.enc_st_target_end)
+            #assert False
+
+            plt.draw()
+            plt.pause(0.0000000001)
 
         if self.f_1st_iter and self.conf.nn_mode=='ANN':
             print('1st iter')
