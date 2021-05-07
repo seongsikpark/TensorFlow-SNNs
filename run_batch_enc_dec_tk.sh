@@ -28,7 +28,7 @@ f_training=True
 
 #epoch=$1
 #ep=500
-ep=1000
+ep=10000
 #ep=1
 
 #epoch_start_train_tk=$2

@@ -82,6 +82,11 @@ exp_case='VGG16_CIFAR-10'
 ## Deep SNNs training w/ temporal information - surrogate DNN model
 ###############################################################################
 
+#
+# temporal kernel loss information
+f_s_dnn_tk_info=False
+f_s_dnn_tk_info=True
+
 
 # direct training - CIFAR-10
 # TTFS - CIFAR-10 default
@@ -90,6 +95,8 @@ time_fire_start=32    # integration duration - n x tc
 #time_fire_start=16    # integration duration - n x tc
 time_fire_duration=32   # time window - n x tc
 time_window=${time_fire_duration}
+#td=0.5
+td=5
 
 # TTFS - CIFAR-10
 #tc=16
@@ -138,7 +145,15 @@ if [ ${tc} = 8 ] && [ ${time_window} = 32 ]
 then
     log_file_name=tk-${epoch_start_train_tk}
 else
-    log_file_name=tc-${tc}_tw-${time_window}_tk-${epoch_start_train_tk}
+    #log_file_name=tc-${tc}_tw-${time_window}_tk-${epoch_start_train_tk}
+    log_file_name=tc-${tc}_tw-${time_window}
+
+    if [ ${td} != 0.5 ]
+    then
+        log_file_name=${log_file_name}_td-${td}
+    fi
+
+    log_file_name=${log_file_name}_tk-${epoch_start_train_tk}
 fi
 
 
@@ -1255,7 +1270,9 @@ mkdir -p ${time_const_root}
     -path_result_root=${path_result_root}\
     -prefix_stat=${prefix_stat}\
     -f_pruning_channel=${f_pruning_channel}\
+    -f_s_dnn_tk_info=${f_s_dnn_tk_info}\
     -tc=${tc}\
+    -td=${td}\
     -time_window=${time_window}\
     -time_fire_start=${time_fire_start}\
     -time_fire_duration=${time_fire_duration}\
