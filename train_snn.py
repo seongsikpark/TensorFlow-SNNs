@@ -147,9 +147,10 @@ def train_one_epoch_ttfs_test(model, optimizer, dataset):
 
 
 
-fig_glob, axs_glob= plt.subplots(1,2)
-axs_glob[0].set_yscale('log')
-plt.yscale("log")
+#fig_glob, axs_glob= plt.subplots(1,2)
+fig_glob, axs_glob= plt.subplots(4,4)
+#axs_glob[0].set_yscale('log')
+#plt.yscale("log")
 
 #
 def reg_tc_para(model):
@@ -606,42 +607,25 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
 
                             #print(enc_st)
                             #print(dist_sample)
+                    #
 
 
-                            # for debug
-                            #fig, axs = plt.subplots(1,2)
+                    # for debug
+                    #fig, axs = plt.subplots(1,2)
 
-    #                        if (not f_plot_done) and (epoch % 1==0) and (l_name=='conv2'):
-    #                            f_plot_done = True
-    #                            axs_glob[0].plot(enc_st)
-    #                            axs_glob[1].plot(dist_sample)
-    #
-    #
-    #                            plt.draw()
-    #                            plt.pause(0.0000000000000001)
+#                    if (not f_plot_done) and (epoch % 1==0) and (l_name=='conv2'):
+#                        f_plot_done = True
+#                        axs_glob[0].plot(enc_st)
+#                        axs_glob[1].plot(dist_sample)
+#
+#                        plt.draw()
+#                        plt.pause(0.0000000000000001)
+
+                    #
 
 
-                        # for debug
-#                        for l_name, tk in model.list_tk.items():
-#                            if (not f_plot_done) and (epoch % 10 == 0) and (epoch!=0) and (l_name == 'conv2'):
-#
-#                                f_plot_done = True
-#
-#                                enc_st = tk.out_enc
-#                                enc_st = tf.clip_by_value(enc_st, 0, model.enc_st_target_end)
-#                                enc_st = tf.reshape(enc_st, [-1])
-#                                enc_st = tf.histogram_fixed_width(enc_st, [0, model.enc_st_target_end],
-#                                                                  nbins=model.enc_st_target_end)
-#
-#                                enc_st = tf.cast(enc_st, tf.float32)
-#
-#                                axs_glob[0].plot(enc_st)
-#
-#                                plt.draw()
-#                                plt.pause(0.0000000000000001)
-#
-                    else:
-                        assert False
+                    # for debug
+                    plt_enc_dist(model)
 
                 loss_list['enc_st'] = loss_tmp
 
@@ -767,11 +751,6 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
             #print(max_tk_rep)
 
             #loss_list['max_tk_rep'] = loss_tmp
-
-
-
-
-
 
 
             #
@@ -987,6 +966,8 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
 
                 #print(grads_tk)
                 #print(grads_w[0])
+                #print(type(grads_w))
+                #print(tf.reduce_mean(grads_w))
 
             elif (f_train_w==True) and (f_train_tk == False):
                 train_vars = train_vars_w
@@ -1045,6 +1026,9 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
         #with tf.GradientTape(persistent=True) as tape:
         #    predictions = model(images, f_training=True)
 
+
+    #
+    #plt_enc_dist(model)
 
 
     #return avg_loss.result(), 100*accuracy.result()
@@ -1545,3 +1529,41 @@ def train_time_const_delay_tmeporal_coding(model, dataset, conf):
 
 
     return avg_loss.result(), 100*accuracy.result()
+
+
+#
+def plt_enc_dist(model):
+    idx_plt = 0
+
+    for l_name, tk in model.list_tk.items():
+
+        #if (not f_plot_done) and (epoch % 10 == 0) and (epoch!=0) and (l_name == 'conv2'):
+
+            #f_plot_done = True
+
+        enc_st = tk.out_enc
+        enc_st = tf.clip_by_value(enc_st, 0, model.enc_st_target_end)
+        enc_st = tf.reshape(enc_st, [-1])
+        enc_st = tf.histogram_fixed_width(enc_st, [0, model.enc_st_target_end],
+                                          nbins=model.enc_st_target_end)
+
+        enc_st = tf.cast(enc_st, tf.float32)
+
+        #min_t = tf.math.exp(tf.math.divide(tk.td,tk.tc))
+        #max_t = tf.math.exp(tf.math.divide(tf.math.subtract(tk.td,model.conf.time_window),tk.tc))
+
+        min_t = 0
+        max_t = model.conf.time_window
+
+        axs_glob[idx_plt//4][idx_plt%4].plot(enc_st)
+        axs_glob[idx_plt//4][idx_plt%4].axvline(x=min_t,color='b')
+        axs_glob[idx_plt//4][idx_plt%4].axvline(x=max_t,color='b')
+        axs_glob[idx_plt//4][idx_plt%4].set_xlim([min_t,max_t])
+
+
+
+        plt.draw()
+        plt.pause(0.0000000000000001)
+
+        idx_plt += 1
+

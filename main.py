@@ -17,7 +17,7 @@ from datetime import datetime
 #en_gpu=False
 en_gpu=True
 
-gpu_number=1
+gpu_number=2
 os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
 
 #
@@ -898,8 +898,8 @@ def main(_):
                         #
                         if conf.en_tensorboard_write:
                             #with tf.summary.always_record_summaries():
-                            tf.summary.scalar('loss', loss_train, step=epoch)
-                            tf.summary.scalar('accuracy', acc_train, step=epoch)
+                            tf.summary.scalar('result/loss_total', loss_train, step=epoch)
+                            tf.summary.scalar('resul/taccuracy', acc_train, step=epoch)
 
                 #end = time.time()
                 #print('\nTrain time for epoch #%d (global step %d): %f' % (epoch, global_step.numpy(), end-start))
@@ -913,8 +913,8 @@ def main(_):
 
                     if conf.en_tensorboard_write:
                         #with tf.summary.always_record_summaries():
-                        tf.summary.scalar('loss', loss_val, step=epoch)
-                        tf.summary.scalar('accuracy', acc_val, step=epoch)
+                        tf.summary.scalar('result/loss_total', loss_val, step=epoch)
+                        tf.summary.scalar('result/accuracy', acc_val, step=epoch)
 
 
 
@@ -1021,9 +1021,7 @@ def main(_):
                 #loss_test, acc_test, _ = test.test(model, test_dataset, conf, f_val=False)
                 #print('[%3d] test(loss: %.3f, acc: %.3f)'%(epoch,loss_test,acc_test))
 
-
                 #gc.collect()
-
 
         print(' Test Phase >')
         #print(model.variables)
@@ -1158,7 +1156,7 @@ def main(_):
             #load_model.restore(tf.train.latest_checkpoint(checkpoint_dir)).assert_consumed()
 
             status = load_model.restore(tf.train.latest_checkpoint(checkpoint_dir)).expect_partial()
-            #status=load_model.restore(checkpoint_dir+'/ckpt-669-1')
+            #status=load_model.restore(checkpoint_dir+'/ckpt-947-1')
             #status=load_model.restore(checkpoint_dir+'/ckpt-740-1')
             #status=load_model.restore(checkpoint_dir+'/ckpt-681-1')
 
@@ -1343,6 +1341,8 @@ def main(_):
 
                     #
                     #plt.hist(model.neuron_list['conv1'].stat_ws.numpy().flatten())
+
+
         print('end')
 
         #os._exit(0)
