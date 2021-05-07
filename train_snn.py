@@ -371,6 +371,11 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
     avg_loss_pred = tf.keras.metrics.Mean('loss_pred')
     avg_loss_enc_st = tf.keras.metrics.Mean('loss_enc_st')
 
+    # for info
+    avg_loss_max_enc = tf.keras.metrics.Mean('loss_max_enc')
+    avg_loss_min_enc = tf.keras.metrics.Mean('loss_min_enc')
+    avg_loss_pre_enc = tf.keras.metrics.Mean('loss_pre_enc')
+
     accuracy = tf.keras.metrics.Accuracy('accuracy')
 
 
@@ -447,6 +452,9 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
             # regularizer temporal kernel paras - reg_tc_para
             if f_reg_tc_para:
                 loss_list['reg_tc_para'] = reg_tc_para(model)
+
+
+
 
 
 #            #
@@ -764,6 +772,8 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
             if f_reg_tc_para:
                 loss_weight['reg_tc_para']=model.conf.w_train_tk_reg
 
+
+
             #loss_weight['max_enc_st']=0.0
             ##loss_weight['min_enc_st']=0.1
             #loss_weight['min_enc_st']=0.0
@@ -803,27 +813,52 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
                     continue
                 loss_total_tk = loss_total_tk + loss_weight[l_name]*loss_list[l_name]
 
+
+
+            # for info
+            # loss - max_enc
+            if model.conf.f_s_dnn_tk_info:
+                loss_max_enc=0
+                loss_min_enc=0
+                loss_pre_enc=0
+                for l_name, tk in model.list_tk.items():
+                    tk_min = tf.exp(tf.divide(tf.subtract(tk.td, tk.tw), tk.tc))
+                    tk_max = tf.exp(tf.divide(tk.td, tk.tc))
+
+                    f_over = tf.greater(tk.in_enc,tk_max)
+                    f_under = tf.less(tk.in_enc,tk_min)
+                    f_between = tf.logical_and(tf.logical_not(f_over),tf.logical_not(f_under))
+
+                    loss_max_enc += tf.reduce_sum(tf.where(f_over,tf.math.subtract(tk.in_enc,tk_max),tf.zeros(tk.in_enc.shape)))
+                    in_enc_pos = tf.where(tf.greater(tk.in_enc,0),tk.in_enc,tf.zeros(tk.in_enc.shape))
+                    loss_min_enc += tf.reduce_sum(tf.where(f_under,tf.math.subtract(tk_min,in_enc_pos),tf.zeros(tk.in_enc.shape)))
+                    #loss_pre_enc += tf.reduce_sum(tf.where(f_between,tf.math.subtract(tk.out_dec,tk.in_enc),tf.zeros(tk.in_enc.shape)))
+                    loss_pre_enc += tf.reduce_sum(tf.where(f_between,tf.math.subtract(tk.in_enc,tk.out_dec),tf.zeros(tk.in_enc.shape)))
+
+
+
             #
             #avg_loss(loss_total)
             #avg_loss_pred(loss_list['prediction'])
 
 
 
-            avg_loss = loss_total_w
-            avg_loss_pred = loss_list['prediction']
+            avg_loss(loss_total_w)
+            avg_loss_pred(loss_list['prediction'])
 
-            avg_loss_enc_st=0.0
-            avg_loss_max_enc_st=0.0
-            avg_loss_min_enc_st=0.0
-            avg_loss_max_tk_rep=0.0
+            #avg_loss_enc_st=0.0
+            avg_loss_max_enc(loss_max_enc)
+            avg_loss_min_enc(loss_min_enc)
+            avg_loss_pre_enc(loss_pre_enc)
 
 
 
             if f_loss_enc_spike:
                 if isinstance(loss_list['enc_st'],int):
-                    avg_loss_enc_st=0.0
+                    pass
                 else:
-                    avg_loss_enc_st=loss_list['enc_st'].numpy()
+                    #avg_loss_enc_st=loss_list['enc_st'].numpy()
+                    avg_loss_enc_st(loss_list['enc_st'])
 
             #avg_loss_max_enc_st=loss_list['max_enc_st'].numpy()
             #avg_loss_min_enc_st=loss_list['min_enc_st'].numpy()
@@ -853,10 +888,6 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
 
 
         #print(tape.gradient(loss_total, model.list_layer['fc1'].kernel))
-
-        #
-        #assert(False)
-
 
         #
         # weight
@@ -1034,8 +1065,8 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
     #return avg_loss.result(), 100*accuracy.result()
     #return avg_loss.result(), avg_loss_pred.result(),avg_loss_enc_st,\
     #       avg_loss_max_enc_st,avg_loss_min_enc_st,avg_loss_max_tk_rep,100*accuracy.result()
-    return avg_loss, avg_loss_pred, avg_loss_enc_st,\
-           avg_loss_max_enc_st,avg_loss_min_enc_st,avg_loss_max_tk_rep,100*accuracy.result()
+    return avg_loss.result(), avg_loss_pred.result(), avg_loss_enc_st.result(),\
+           avg_loss_max_enc.result(),avg_loss_min_enc.result(),avg_loss_pre_enc.result(),100*accuracy.result()
 
 
 

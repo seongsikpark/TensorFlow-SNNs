@@ -255,7 +255,9 @@ tf.compat.v1.app.flags.DEFINE_string('path_result_root','./result/', 'path resul
 #tf.compat.v1.app.flags.DEFINE_float('time_window',20.0,'time window of each layer for temporal coding')
 #tf.compat.v1.app.flags.DEFINE_float('time_fire_start',20.0,'time fire start (integration time before starting fire) for temporal coding')
 #tf.compat.v1.app.flags.DEFINE_float('time_fire_duration',20.0,'time fire duration for temporal coding')
+tf.compat.v1.app.flags.DEFINE_bool('f_s_dnn_tk_info',False,'info - surrogate DNN tk')
 tf.compat.v1.app.flags.DEFINE_integer('tc',10,'time constant for temporal coding')
+tf.compat.v1.app.flags.DEFINE_float('td',0.5,'time delay for temporal coding')
 tf.compat.v1.app.flags.DEFINE_integer('time_window',20,'time window of each layer for temporal coding')
 #tf.compat.v1.app.flags.DEFINE_integer('time_fire_start',20,'time fire start (integration time before starting fire) for temporal coding')
 #tf.compat.v1.app.flags.DEFINE_integer('time_fire_duration',20,'time fire duration for temporal coding')
@@ -731,8 +733,8 @@ def main(_):
                         model.epoch = epoch
                         loss_and_acc_train = train_func(model, optimizer, train_dataset_p, epoch)
 
-                        loss_train, loss_pred_train, loss_enc_st_train, loss_max_enc_st_train,\
-                        loss_min_enc_st_train, loss_max_tk_rep, acc_train = loss_and_acc_train
+                        loss_train, loss_pred_train, loss_enc_st_train, loss_max_enc_train,\
+                        loss_min_enc_train, loss_pre_enc_train, acc_train = loss_and_acc_train
 
                         # TODO: remove
                         # tmp for extract model graph
@@ -771,9 +773,12 @@ def main(_):
                             tf.summary.scalar('result/loss_total', loss_train, step=epoch)
                             tf.summary.scalar('result/loss_pred', loss_pred_train, step=epoch)
                             tf.summary.scalar('result/loss_enc_st', loss_enc_st_train, step=epoch)
-                            #tf.summary.scalar('loss_max_enc_st', loss_max_enc_st_train, step=epoch)
-                            #tf.summary.scalar('loss_min_enc_st', loss_min_enc_st_train, step=epoch)
-                            #tf.summary.scalar('loss_max_tk_rep', loss_max_tk_rep, step=epoch)
+
+                            if model.conf.f_s_dnn_tk_info:
+                                tf.summary.scalar('result/loss_max_enc', loss_max_enc_train, step=epoch)
+                                tf.summary.scalar('result/loss_min_enc', loss_min_enc_train, step=epoch)
+                                tf.summary.scalar('result/loss_pre_enc', loss_pre_enc_train, step=epoch)
+
                             tf.summary.scalar('result/accuracy', acc_train, step=epoch)
 
                             #for l_name in model.layer_name[:-1]:
@@ -899,7 +904,7 @@ def main(_):
                         if conf.en_tensorboard_write:
                             #with tf.summary.always_record_summaries():
                             tf.summary.scalar('result/loss_total', loss_train, step=epoch)
-                            tf.summary.scalar('resul/taccuracy', acc_train, step=epoch)
+                            tf.summary.scalar('result/accuracy', acc_train, step=epoch)
 
                 #end = time.time()
                 #print('\nTrain time for epoch #%d (global step %d): %f' % (epoch, global_step.numpy(), end-start))

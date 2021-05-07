@@ -601,8 +601,9 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
             init_tc = self.init_tc
             init_act_target_range=0.5
-            init_act_target_range_in=0.5
+            #init_act_target_range_in=0.5
             #init_act_target_range_in=5.0
+            init_act_target_range_in=self.conf.td
 
             #init_td=init_tc*np.log(init_act_target_range)
             self.init_td_in=init_tc*np.log(init_act_target_range_in)
@@ -1984,27 +1985,27 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         #print(a_fc3)
 
 
-        #
-        act = a_fc2
-        print('act {}: min - {}, max - {}, avg - {}'.format('fc3',tf.reduce_min(act),tf.reduce_max(act),tf.reduce_mean(act)))
-
-        try:
-            t_fc2
-        except NameError:
-            pass
-        else:
-            act = t_fc2
-            print('enc {}: min - {}, max - {}, avg - {}'.format('fc3',tf.reduce_min(act),tf.reduce_max(act),tf.reduce_mean(act)))
-            plt.hist(act.numpy().flatten(),bins=self.enc_st_target_end)
-            #plt.hist(act.numpy().flatten(),bins=[0,200])
-            plt.xlim([0,self.conf.time_window])
-            #plt.xlim([0,200])
-
-            #print(self.enc_st_target_end)
-            #assert False
-
-            plt.draw()
-            plt.pause(0.0000000001)
+        # debugging
+#        act = a_fc2
+#        print('act {}: min - {}, max - {}, avg - {}'.format('fc3',tf.reduce_min(act),tf.reduce_max(act),tf.reduce_mean(act)))
+#
+#        try:
+#            t_fc2
+#        except NameError:
+#            pass
+#        else:
+#            act = t_fc2
+#            print('enc {}: min - {}, max - {}, avg - {}'.format('fc3',tf.reduce_min(act),tf.reduce_max(act),tf.reduce_mean(act)))
+#            plt.hist(act.numpy().flatten(),bins=self.enc_st_target_end)
+#            #plt.hist(act.numpy().flatten(),bins=[0,200])
+#            plt.xlim([0,self.conf.time_window])
+#            #plt.xlim([0,200])
+#
+#            #print(self.enc_st_target_end)
+#            #assert False
+#
+#            plt.draw()
+#            plt.pause(0.0000000001)
 
         if self.f_1st_iter and self.conf.nn_mode=='ANN':
             print('1st iter')
