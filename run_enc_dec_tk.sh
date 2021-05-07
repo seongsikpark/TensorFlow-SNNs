@@ -22,8 +22,8 @@
 
 
 #
-source ./venv/bin/activate
-#source ./venv/bin/activate
+#source ../05_SNN/venv/bin/activate
+source ../tensorflow_SNN/venv/bin/activate
 
 
 
@@ -85,7 +85,7 @@ exp_case='VGG16_CIFAR-10'
 #
 # temporal kernel loss information
 f_s_dnn_tk_info=False
-f_s_dnn_tk_info=True
+#f_s_dnn_tk_info=True
 
 
 # direct training - CIFAR-10
@@ -95,8 +95,8 @@ time_fire_start=32    # integration duration - n x tc
 #time_fire_start=16    # integration duration - n x tc
 time_fire_duration=32   # time window - n x tc
 time_window=${time_fire_duration}
-#td=0.5
-td=5
+td=0.5
+#td=5
 
 # TTFS - CIFAR-10
 #tc=16
@@ -930,8 +930,7 @@ INFER_VGG16_CIFAR-10_SUR)
         batch_size=400
         idx_test_dataset_s=0
         num_test_dataset=10000
-        num_test_dataset=400
-        #num_test_dataset=1
+        #num_test_dataset=400
     fi
 
     if [ ${neural_coding} = "TEMPORAL" ]

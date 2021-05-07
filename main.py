@@ -17,7 +17,7 @@ from datetime import datetime
 #en_gpu=False
 en_gpu=True
 
-gpu_number=2
+gpu_number=0
 os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
 
 #
@@ -1026,7 +1026,9 @@ def main(_):
                 #loss_test, acc_test, _ = test.test(model, test_dataset, conf, f_val=False)
                 #print('[%3d] test(loss: %.3f, acc: %.3f)'%(epoch,loss_test,acc_test))
 
+
                 #gc.collect()
+
 
         print(' Test Phase >')
         #print(model.variables)
@@ -1346,8 +1348,6 @@ def main(_):
 
                     #
                     #plt.hist(model.neuron_list['conv1'].stat_ws.numpy().flatten())
-
-
         print('end')
 
         #os._exit(0)

@@ -847,9 +847,10 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
             avg_loss_pred(loss_list['prediction'])
 
             #avg_loss_enc_st=0.0
-            avg_loss_max_enc(loss_max_enc)
-            avg_loss_min_enc(loss_min_enc)
-            avg_loss_pre_enc(loss_pre_enc)
+            if model.conf.f_s_dnn_tk_info:
+                avg_loss_max_enc(loss_max_enc)
+                avg_loss_min_enc(loss_min_enc)
+                avg_loss_pre_enc(loss_pre_enc)
 
 
 

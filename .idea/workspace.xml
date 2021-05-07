@@ -1,5 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="BranchesTreeState">
+    <expand>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:dependabot" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:dependabot" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:pip" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </expand>
+    <select />
+  </component>
   <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true">
     <generated />
   </component>
@@ -9,12 +40,13 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a59cc8b6-9dbe-41c8-8d2e-009d3879113f" name="Default" comment="210428 - add bnon (bno function debugging in integral function)">
+    <list default="true" id="a59cc8b6-9dbe-41c8-8d2e-009d3879113f" name="Default" comment="local commit">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/run_batch_enc_dec_tk.sh" beforeDir="false" afterPath="$PROJECT_DIR$/run_batch_enc_dec_tk.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/run_enc_dec_tk.sh" beforeDir="false" afterPath="$PROJECT_DIR$/run_enc_dec_tk.sh" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/train_snn.py" beforeDir="false" afterPath="$PROJECT_DIR$/train_snn.py" afterDir="false" />
     </list>
-    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -43,133 +75,6 @@
   </component>
   <component name="FavoritesManager">
     <favorites_list name="05_SNN" />
-  </component>
-  <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.48758465">
-      <split-first>
-        <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/main.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="216">
-                  <caret line="804" column="41" selection-start-line="804" selection-start-column="41" selection-end-line="804" selection-end-column="41" />
-                  <folding>
-                    <element signature="e#0#38#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/train.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="753">
-                  <caret line="72" column="20" selection-start-line="72" selection-start-column="20" selection-end-line="72" selection-end-column="20" />
-                  <folding>
-                    <element signature="e#0#38#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/test.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="333">
-                  <caret line="192" column="18" selection-start-line="192" selection-start-column="18" selection-end-line="192" selection-end-column="18" />
-                  <folding>
-                    <element signature="e#0#38#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/models/models.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="465">
-                  <caret line="1553" column="16" selection-start-line="1553" selection-start-column="16" selection-end-line="1553" selection-end-column="16" />
-                  <folding>
-                    <element signature="e#0#23#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/run_batch_enc_dec_tk.sh">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="705">
-                  <caret line="47" column="22" selection-start-line="47" selection-start-column="22" selection-end-line="47" selection-end-column="22" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/run_batch.sh">
-              <provider selected="true" editor-type-id="text-editor">
-                <state>
-                  <caret column="10" selection-start-column="10" selection-end-column="10" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/model_cnn_mnist.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="161">
-                  <caret line="1684" column="12" selection-start-line="1684" selection-start-column="12" selection-end-line="1684" selection-end-column="12" />
-                  <folding>
-                    <element signature="e#0#23#0" expanded="true" />
-                    <marker date="1597502888409" expanded="true" signature="792:797" ph="..." />
-                    <marker date="1597502888409" expanded="true" signature="67723:67724" ph="..." />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-        </leaf>
-      </split-first>
-      <split-second>
-        <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/run_enc_dec_tk.sh">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="420">
-                  <caret line="73" lean-forward="true" selection-start-line="73" selection-end-line="73" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/train_snn.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="390">
-                  <caret line="226" selection-start-line="226" selection-end-line="226" />
-                  <folding>
-                    <element signature="e#0#38#0" expanded="true" />
-                    <marker date="1619771399513" expanded="true" signature="5402:5404" ph="..." />
-                    <marker date="1619771399513" expanded="true" signature="5402:7706" ph="..." />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/lib_snn.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="75">
-                  <caret line="1190" column="17" selection-start-line="1190" selection-start-column="17" selection-end-line="1190" selection-end-column="17" />
-                  <folding>
-                    <element signature="e#0#23#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-        </leaf>
-      </split-second>
-    </splitter>
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -210,60 +115,10 @@
       </map>
     </option>
   </component>
-  <component name="IdeDocumentHistory">
-    <option name="CHANGED_PATHS">
-      <list>
-        <option value="$PROJECT_DIR$/data.py" />
-        <option value="$PROJECT_DIR$/models.py" />
-        <option value="$PROJECT_DIR$/train_w_prof.py" />
-        <option value="$PROJECT_DIR$/backprop.py" />
-        <option value="$PROJECT_DIR$/models/cnn.py" />
-        <option value="$PROJECT_DIR$/resnet.py" />
-        <option value="$PROJECT_DIR$/run_mann_ref.sh" />
-        <option value="$PROJECT_DIR$/run_train_tc_batch.sh" />
-        <option value="$PROJECT_DIR$/run_batch.sh" />
-        <option value="$PROJECT_DIR$/train_snn_ttfs.py" />
-        <option value="$PROJECT_DIR$/models/mlp.py" />
-        <option value="$PROJECT_DIR$/scripts/weight_norm.sh" />
-        <option value="$PROJECT_DIR$/scripts/models_descript.conf" />
-        <option value="$PROJECT_DIR$/snn_lib_temporal.py" />
-        <option value="$PROJECT_DIR$/util.py" />
-        <option value="$PROJECT_DIR$/tensorboard.sh" />
-        <option value="$PROJECT_DIR$/scripts/utils.conf" />
-        <option value="$PROJECT_DIR$/datasets/imagenet.py" />
-        <option value="$PROJECT_DIR$/utils_tensornets.py" />
-        <option value="$PROJECT_DIR$/datasets/mnist.py" />
-        <option value="$PROJECT_DIR$/test.py" />
-        <option value="$PROJECT_DIR$/../05_SNN/venv/lib/python3.6/site-packages/tensorflow/python/training/py_checkpoint_reader.py" />
-        <option value="$PROJECT_DIR$/../05_SNN/venv/lib/python3.6/site-packages/tensorflow/python/training/saver.py" />
-        <option value="$PROJECT_DIR$/../05_SNN/venv/lib/python3.6/site-packages/tensorflow/python/ops/resource_variable_ops.py" />
-        <option value="$PROJECT_DIR$/train.py" />
-        <option value="$PROJECT_DIR$/scripts/weight_norm.conf" />
-        <option value="$PROJECT_DIR$/datasets/cifar100.py" />
-        <option value="$PROJECT_DIR$/model_cnn_mnist.py" />
-        <option value="$PROJECT_DIR$/models/models_legacy.py" />
-        <option value="$PROJECT_DIR$/run.sh" />
-        <option value="$PROJECT_DIR$/scripts/path.conf" />
-        <option value="$PROJECT_DIR$/datasets/cifar10.py" />
-        <option value="$PROJECT_DIR$/lib_snn.py" />
-        <option value="$PROJECT_DIR$/main.py" />
-        <option value="$PROJECT_DIR$/models/models.py" />
-        <option value="$PROJECT_DIR$/train_snn.py" />
-        <option value="$PROJECT_DIR$/run_batch_enc_dec_tk.sh" />
-        <option value="$PROJECT_DIR$/run_enc_dec_tk.sh" />
-      </list>
-    </option>
-  </component>
   <component name="InvalidFacetManager">
     <ignored-facets>
       <facet id="05_SNN/invalid/Python facet" />
     </ignored-facets>
-  </component>
-  <component name="JsBuildToolGruntFileManager" detection-done="true" sorting="DEFINITION_ORDER" />
-  <component name="JsBuildToolPackageJson" detection-done="true" sorting="DEFINITION_ORDER" />
-  <component name="JsGulpfileManager">
-    <detection-done>true</detection-done>
-    <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
     <option name="x" value="53" />
@@ -273,40 +128,6 @@
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <ConfirmationsSetting value="2" id="Add" />
-  </component>
-  <component name="ProjectView">
-    <navigator proportions="" version="1">
-      <foldersAlwaysOnTop value="true" />
-    </navigator>
-    <panes>
-      <pane id="ProjectPane">
-        <subPane>
-          <expand>
-            <path>
-              <item name="05_SNN_temporal" type="b2602c69:ProjectViewProjectNode" />
-              <item name="05_SNN_temporal" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="05_SNN_temporal" type="b2602c69:ProjectViewProjectNode" />
-              <item name="05_SNN_temporal" type="462c0819:PsiDirectoryNode" />
-              <item name="datasets" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="05_SNN_temporal" type="b2602c69:ProjectViewProjectNode" />
-              <item name="05_SNN_temporal" type="462c0819:PsiDirectoryNode" />
-              <item name="models" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="05_SNN_temporal" type="b2602c69:ProjectViewProjectNode" />
-              <item name="05_SNN_temporal" type="462c0819:PsiDirectoryNode" />
-              <item name="scripts" type="462c0819:PsiDirectoryNode" />
-            </path>
-          </expand>
-          <select />
-        </subPane>
-      </pane>
-      <pane id="Scope" />
-    </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="SearchEverywhereHistoryKey" value=":w&#9;null&#9;null&#10;rerun&#9;ACTION&#9;Rerun" />
@@ -327,18 +148,6 @@
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/models" />
     </key>
-  </component>
-  <component name="RunDashboard">
-    <option name="ruleStates">
-      <list>
-        <RuleState>
-          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
-        </RuleState>
-        <RuleState>
-          <option name="name" value="StatusDashboardGroupingRule" />
-        </RuleState>
-      </list>
-    </option>
   </component>
   <component name="RunManager" selected="Bash.run_batch_enc_dec_tk.sh">
     <configuration default="true" type="BashConfigurationType" factoryName="Bash">
@@ -455,8 +264,8 @@
       <item itemvalue="Bash.run" />
       <item itemvalue="Bash.run_batch_enc_dec_tk.sh" />
       <item itemvalue="Bash.run_batch.sh" />
-      <item itemvalue="Python.lib_snn" />
       <item itemvalue="Python.main" />
+      <item itemvalue="Python.lib_snn" />
     </list>
     <recent_temporary>
       <list>
@@ -478,13 +287,6 @@
       <updated>1528615676309</updated>
       <workItem from="1562032834836" duration="1849000" />
       <workItem from="1562904892027" duration="611000" />
-    </task>
-    <task id="LOCAL-00020" summary="SNN training w/ TTFS - MNIST">
-      <created>1597378185946</created>
-      <option name="number" value="00020" />
-      <option name="presentableId" value="LOCAL-00020" />
-      <option name="project" value="LOCAL" />
-      <updated>1597378185946</updated>
     </task>
     <task id="LOCAL-00021" summary="SNN training w/ TTFS - MNIST">
       <created>1597502872344</created>
@@ -822,11 +624,15 @@
       <option name="project" value="LOCAL" />
       <updated>1619593007590</updated>
     </task>
-    <option name="localTasksCounter" value="69" />
+    <task id="LOCAL-00069" summary="local commit">
+      <created>1619774328668</created>
+      <option name="number" value="00069" />
+      <option name="presentableId" value="LOCAL-00069" />
+      <option name="project" value="LOCAL" />
+      <updated>1619774328669</updated>
+    </task>
+    <option name="localTasksCounter" value="70" />
     <servers />
-  </component>
-  <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="2460000" />
   </component>
   <component name="TodoView" selected-index="4">
     <todo-panel id="selected-file">
@@ -836,62 +642,6 @@
       <are-packages-shown value="true" />
       <is-autoscroll-to-source value="true" />
     </todo-panel>
-  </component>
-  <component name="ToolWindowManager">
-    <frame x="0" y="22" width="2560" height="1394" extended-state="6" />
-    <editor active="true" />
-    <layout>
-      <window_info content_ui="combo" id="Project" order="0" weight="0.2003984" />
-      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info id="Favorites" order="2" side_tool="true" weight="0.32977587" />
-      <window_info active="true" x="2" y="387" width="1916" height="307" id="Run" order="3" visible="true" weight="0.27968127" />
-      <window_info anchor="bottom" id="Message" order="0" />
-      <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Debug" order="2" weight="0.2975815" />
-      <window_info anchor="bottom" id="Cvs" order="3" weight="0.25" />
-      <window_info anchor="bottom" id="Inspection" order="4" weight="0.4" />
-      <window_info anchor="bottom" id="TODO" order="5" weight="0.32932693" />
-      <window_info anchor="bottom" id="Event Log" order="6" sideWeight="0.50278884" side_tool="true" weight="0.20192307" />
-      <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Version Control" order="8" weight="0.32852563" />
-      <window_info anchor="bottom" id="Python Console" order="9" weight="0.20512821" />
-      <window_info anchor="bottom" id="Terminal" order="10" sideWeight="0.49721116" visible="true" weight="0.2940705" />
-      <window_info anchor="bottom" id="Docker" order="11" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Inspection Results" order="12" weight="0.32937366" />
-      <window_info anchor="right" id="Coverage" order="0" side_tool="true" />
-      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="1" type="SLIDING" weight="0.4" />
-      <window_info anchor="right" id="Ant Build" order="2" weight="0.25" />
-      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="3" weight="0.25" />
-      <window_info anchor="right" id="Database" order="4" weight="0.32992464" />
-      <window_info anchor="right" id="SciView" order="5" weight="0.32938644" />
-      <window_info anchor="right" x="0" y="0" width="430" height="833" id="Documentation" order="6" side_tool="true" weight="0.07450199" />
-    </layout>
-    <layout-to-restore>
-      <window_info content_ui="combo" id="Project" order="0" weight="0.126" />
-      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info id="Favorites" order="2" side_tool="true" weight="0.32977587" />
-      <window_info active="true" x="2" y="387" width="1916" height="307" id="Run" order="3" visible="true" weight="0.23625498" />
-      <window_info anchor="bottom" id="Message" order="0" />
-      <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Debug" order="2" weight="0.2975815" />
-      <window_info anchor="bottom" id="Cvs" order="3" weight="0.25" />
-      <window_info anchor="bottom" id="Inspection" order="4" weight="0.4" />
-      <window_info anchor="bottom" id="TODO" order="5" />
-      <window_info anchor="bottom" id="Event Log" order="6" side_tool="true" weight="0.115384616" />
-      <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Version Control" order="8" />
-      <window_info anchor="bottom" id="Python Console" order="9" weight="0.20592949" />
-      <window_info anchor="bottom" id="Terminal" order="10" weight="0.32746196" />
-      <window_info anchor="bottom" id="Docker" order="11" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Inspection Results" order="12" weight="0.32937366" />
-      <window_info anchor="right" id="Coverage" order="0" side_tool="true" />
-      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="1" type="SLIDING" weight="0.4" />
-      <window_info anchor="right" id="Ant Build" order="2" weight="0.25" />
-      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="3" weight="0.25" />
-      <window_info anchor="right" id="Database" order="4" weight="0.32992464" />
-      <window_info anchor="right" x="0" y="0" width="430" height="833" id="Documentation" order="5" side_tool="true" visible="true" weight="0.07569721" />
-      <window_info anchor="right" id="SciView" order="6" weight="0.32938644" />
-    </layout-to-restore>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
@@ -914,27 +664,17 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State>
-              <option name="RECENTLY_FILTERED_USER_GROUPS">
-                <collection />
-              </option>
-              <option name="RECENTLY_FILTERED_BRANCH_GROUPS">
-                <collection />
-              </option>
-            </State>
+            <State />
           </value>
         </entry>
       </map>
     </option>
-  </component>
-  <component name="VcsContentAnnotationSettings">
-    <option name="myLimit" value="2678400000" />
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
     <ignored-roots>
       <path value="$PROJECT_DIR$/tmp/canyon/05_SNN_temporal" />
     </ignored-roots>
-    <MESSAGE value="1019 - encoded spike loss" />
     <MESSAGE value="1024 - encoded spike loss" />
     <MESSAGE value="1027 - encoded spike loss" />
     <MESSAGE value="1106" />
@@ -959,7 +699,38 @@
     <MESSAGE value="210404 - add spike loss (batchnorm)" />
     <MESSAGE value="210413 - add enc_spike loss only against BN parameters mode (bno)" />
     <MESSAGE value="210428 - add bnon (bno function debugging in integral function)" />
-    <option name="LAST_COMMIT_MESSAGE" value="210428 - add bnon (bno function debugging in integral function)" />
+    <MESSAGE value="local commit" />
+    <option name="LAST_COMMIT_MESSAGE" value="local commit" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state width="703" height="898" key="GridCell.Tab.0.bottom" timestamp="1620395795930">
+      <screen x="0" y="31" width="2560" height="1409" />
+    </state>
+    <state width="703" height="898" key="GridCell.Tab.0.bottom/0.31.2560.1409@0.31.2560.1409" timestamp="1620395795930" />
+    <state width="703" height="898" key="GridCell.Tab.0.center" timestamp="1620395795929">
+      <screen x="0" y="31" width="2560" height="1409" />
+    </state>
+    <state width="703" height="898" key="GridCell.Tab.0.center/0.31.2560.1409@0.31.2560.1409" timestamp="1620395795929" />
+    <state width="703" height="898" key="GridCell.Tab.0.left" timestamp="1620395795929">
+      <screen x="0" y="31" width="2560" height="1409" />
+    </state>
+    <state width="703" height="898" key="GridCell.Tab.0.left/0.31.2560.1409@0.31.2560.1409" timestamp="1620395795929" />
+    <state width="703" height="898" key="GridCell.Tab.0.right" timestamp="1620395795929">
+      <screen x="0" y="31" width="2560" height="1409" />
+    </state>
+    <state width="703" height="898" key="GridCell.Tab.0.right/0.31.2560.1409@0.31.2560.1409" timestamp="1620395795929" />
+    <state x="251" y="158" width="2054" height="1159" key="MergeDialog" timestamp="1620374364192">
+      <screen x="0" y="31" width="2560" height="1409" />
+    </state>
+    <state x="251" y="158" width="2054" height="1159" key="MergeDialog/0.31.2560.1409@0.31.2560.1409" timestamp="1620374364192" />
+    <state x="913" y="499" width="730" height="478" key="MultipleFileMergeDialog" timestamp="1620374443149">
+      <screen x="0" y="31" width="2560" height="1409" />
+    </state>
+    <state x="913" y="499" width="730" height="478" key="MultipleFileMergeDialog/0.31.2560.1409@0.31.2560.1409" timestamp="1620374443149" />
+    <state x="1060" y="653" width="439" height="170" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1620374439497">
+      <screen x="0" y="31" width="2560" height="1409" />
+    </state>
+    <state x="1060" y="653" width="439" height="170" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.31.2560.1409@0.31.2560.1409" timestamp="1620374439497" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -971,340 +742,6 @@
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
-  </component>
-  <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/venv/lib/python3.6/site-packages/matplotlib/figure.py" />
-    <entry file="file://$PROJECT_DIR$/run_mann_ref.sh" />
-    <entry file="file://$PROJECT_DIR$/resnet.py" />
-    <entry file="file://$PROJECT_DIR$/model_cnn_mnist_ori.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2115">
-          <caret line="999" selection-start-line="999" selection-end-line="999" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../05_SNN/venv/lib/python3.6/site-packages/tensorflow/python/framework/dtypes.py" />
-    <entry file="file://$PROJECT_DIR$/../05_SNN/venv/lib/python3.6/site-packages/tensorflow/python/ops/gen_array_ops.py" />
-    <entry file="file://$PROJECT_DIR$/snn_lib_temporal.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
-          <caret line="1" column="37" selection-start-line="1" selection-start-column="37" selection-end-line="1" selection-end-column="37" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/scripts/models_descript.conf">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="720">
-          <caret line="48" selection-start-line="48" selection-end-line="48" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../05_SNN/venv/lib/python3.6/site-packages/tensorflow/python/ops/array_ops.py" />
-    <entry file="file://$PROJECT_DIR$/../05_SNN/venv/lib/python3.6/site-packages/tensorflow/python/ops/check_ops.py" />
-    <entry file="file://$PROJECT_DIR$/tensorboard.sh">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="75">
-          <caret line="5" column="35" selection-start-line="5" selection-start-column="35" selection-end-line="5" selection-end-column="35" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../05_SNN/venv/lib/python3.6/site-packages/tensorflow_probability/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="960">
-          <caret line="64" selection-start-line="64" selection-end-line="64" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../05_SNN/venv/lib/python3.6/site-packages/tensorflow/python/ops/math_ops.py" />
-    <entry file="file://$PROJECT_DIR$/models/mlp.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="45">
-          <caret line="3" column="18" selection-start-line="3" selection-start-column="18" selection-end-line="3" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../05_SNN/venv/lib/python3.6/site-packages/tensorflow/python/util/tf_inspect.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="960">
-          <caret line="74" selection-start-line="74" selection-end-line="74" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/util.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="150">
-          <caret line="10" selection-start-line="10" selection-end-line="10" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../05_SNN/venv/lib/python3.6/site-packages/tensorflow/python/ops/variable_scope.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="62">
-          <caret line="2623" column="32" selection-start-line="2623" selection-start-column="32" selection-end-line="2623" selection-end-column="32" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/utils_tensornets.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="555">
-          <caret line="37" column="18" selection-start-line="37" selection-start-column="18" selection-end-line="37" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/models/cnn.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="75">
-          <caret line="35" column="30" selection-start-line="35" selection-start-column="30" selection-end-line="35" selection-end-column="30" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../05_SNN/venv/lib/python3.6/site-packages/tensorflow/python/training/py_checkpoint_reader.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="975">
-          <caret line="67" column="4" selection-start-line="67" selection-start-column="4" selection-end-line="67" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../05_SNN/venv/lib/python3.6/site-packages/tensorflow/python/ops/gen_io_ops.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="399">
-          <caret line="1491" selection-start-line="1491" selection-end-line="1491" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../05_SNN/venv/lib/python3.6/site-packages/tensorflow/python/training/saver.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="399">
-          <caret line="582" selection-start-line="582" selection-end-line="582" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../05_SNN/venv/lib/python3.6/site-packages/tensorflow/python/framework/tensor_shape.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="407">
-          <caret line="1116" selection-start-line="1116" selection-end-line="1116" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../05_SNN/venv/bin/tensorboard">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="90">
-          <caret line="9" column="23" selection-start-line="9" selection-start-column="23" selection-end-line="9" selection-end-column="23" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../05_SNN/venv/lib/python3.6/site-packages/tensorflow/python/eager/execute.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="690">
-          <caret line="266" selection-start-line="266" selection-end-line="266" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/datasets/mnist.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../05_SNN/venv/lib/python3.6/site-packages/tensorflow/python/ops/resource_variable_ops.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="422">
-          <caret line="308" selection-start-line="308" selection-end-line="308" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/datasets/imagenet.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="135">
-          <caret line="24" column="18" selection-start-line="24" selection-start-column="18" selection-end-line="24" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/models/models_legacy.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="825">
-          <caret line="890" column="12" selection-start-line="890" selection-start-column="12" selection-end-line="890" selection-end-column="12" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../05_SNN/venv/lib/python3.6/site-packages/tensorflow/python/framework/ops.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="274">
-          <caret line="1339" column="18" selection-start-line="1339" selection-start-column="18" selection-end-line="1339" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/run_train_tc_batch.sh">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/scripts/path.conf">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="195">
-          <caret line="13" column="38" selection-start-line="13" selection-start-column="38" selection-end-line="13" selection-end-column="38" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../05_SNN/venv/lib/python3.6/site-packages/tensorflow/python/platform/app.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="450">
-          <caret line="39" selection-start-line="39" selection-end-line="39" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../05_SNN/venv/lib/python3.6/site-packages/absl/app.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3555">
-          <caret line="250" column="23" selection-start-line="250" selection-start-column="23" selection-end-line="250" selection-end-column="23" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/run.sh">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="375">
-          <caret line="401" column="16" selection-start-line="401" selection-start-column="16" selection-end-line="401" selection-end-column="16" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/scripts/weight_norm.conf">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="240">
-          <caret line="16" column="14" selection-start-line="16" selection-start-column="14" selection-end-line="16" selection-end-column="14" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/scripts/utils.conf">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="300">
-          <caret line="20" column="10" selection-start-line="20" selection-start-column="10" selection-end-line="20" selection-end-column="10" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/datasets/cifar100.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="782">
-          <caret line="88" column="104" selection-start-line="88" selection-start-column="104" selection-end-line="88" selection-end-column="104" />
-          <folding>
-            <element signature="e#0#38#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../05_SNN/venv/lib/python3.6/site-packages/tensorflow/python/data/ops/iterator_ops.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="295">
-          <caret line="594" selection-start-line="594" selection-end-line="594" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/model_cnn_mnist.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="161">
-          <caret line="1684" column="12" selection-start-line="1684" selection-start-column="12" selection-end-line="1684" selection-end-column="12" />
-          <folding>
-            <element signature="e#0#23#0" expanded="true" />
-            <marker date="1597502888409" expanded="true" signature="792:797" ph="..." />
-            <marker date="1597502888409" expanded="true" signature="67723:67724" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../05_SNN/venv/lib/python3.6/site-packages/tensorflow/python/util/dispatch.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="581">
-          <caret line="179" selection-start-line="179" selection-end-line="179" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/datasets/cifar10.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="240">
-          <caret line="55" column="25" selection-start-line="55" selection-start-column="25" selection-end-line="55" selection-end-column="25" />
-          <folding>
-            <element signature="e#0#38#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/train.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="753">
-          <caret line="72" column="20" selection-start-line="72" selection-start-column="20" selection-end-line="72" selection-end-column="20" />
-          <folding>
-            <element signature="e#0#38#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="333">
-          <caret line="192" column="18" selection-start-line="192" selection-start-column="18" selection-end-line="192" selection-end-column="18" />
-          <folding>
-            <element signature="e#0#38#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/lib_snn.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="75">
-          <caret line="1190" column="17" selection-start-line="1190" selection-start-column="17" selection-end-line="1190" selection-end-column="17" />
-          <folding>
-            <element signature="e#0#23#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/train_snn.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="390">
-          <caret line="226" selection-start-line="226" selection-end-line="226" />
-          <folding>
-            <element signature="e#0#38#0" expanded="true" />
-            <marker date="1619771399513" expanded="true" signature="5402:5404" ph="..." />
-            <marker date="1619771399513" expanded="true" signature="5402:7706" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/main.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="216">
-          <caret line="804" column="41" selection-start-line="804" selection-start-column="41" selection-end-line="804" selection-end-column="41" />
-          <folding>
-            <element signature="e#0#38#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/models/models.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="465">
-          <caret line="1553" column="16" selection-start-line="1553" selection-start-column="16" selection-end-line="1553" selection-end-column="16" />
-          <folding>
-            <element signature="e#0#23#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/run_batch.sh">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret column="10" selection-start-column="10" selection-end-column="10" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/run_batch_enc_dec_tk.sh">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="705">
-          <caret line="47" column="22" selection-start-line="47" selection-start-column="22" selection-end-line="47" selection-end-column="22" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/run_enc_dec_tk.sh">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="420">
-          <caret line="73" lean-forward="true" selection-start-line="73" selection-end-line="73" />
-        </state>
-      </provider>
-    </entry>
   </component>
   <component name="masterDetails">
     <states>

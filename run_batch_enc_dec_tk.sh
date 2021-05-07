@@ -33,8 +33,8 @@ ep=10000
 
 #epoch_start_train_tk=$2
 #ep_tk_arr=(0 250 500)
-#ep_tk_arr=(50)
-ep_tk_arr=(0)
+ep_tk_arr=(50)
+#ep_tk_arr=(0)
 
 #
 #w_tk_arr=(1 0.1 0.01 0.001)
@@ -43,8 +43,8 @@ w_tk_arr=(1)
 # regularization - temporal kernel decay para
 #w_tkr_arr=(0 0.1 0.01 0.001 0.0001)
 #w_tkr_arr=(0.00000001)
-#w_tkr_arr=(0.000001)
-w_tkr_arr=(0)
+w_tkr_arr=(0.0000001)
+#w_tkr_arr=(0)
 
 # regularization - type
 # L2-Z: L2 nrom - zero based
@@ -86,15 +86,15 @@ ep_dec_prun_arr=(0)
 #ep_loss_enc_arr=(0 250 1000)
 #ep_loss_enc_arr=(0 250 500)
 #ep_loss_enc_arr=(0 250)
-#ep_loss_enc_arr=(50)
-ep_loss_enc_arr=(10000)
+ep_loss_enc_arr=(50)
+#ep_loss_enc_arr=(10000)
 
 # enc_spike - weight
 #w_loss_enc_arr=(0.01 0.001)
 #w_loss_enc_arr=(1 0.1 0.01 0.001)
 #w_loss_enc_arr=(0.1 0.001)
 #w_loss_enc_arr=(0.001)
-w_loss_enc_arr=(0.000001)
+w_loss_enc_arr=(0.0000001)
 
 # enc_spike - n_tw
 #nt_loss_enc_arr=(1 2 5 10)
@@ -108,8 +108,8 @@ nt_loss_enc_arr=(5)
 #dist_loss_enc_arr=(b2)
 #dist_loss_enc_arr=(bn)
 #dist_loss_enc_arr=(bno)    # bug in integral
-dist_loss_enc_arr=(bnon)    # new version - debugged
-#dist_loss_enc_arr=(bnon2)    #
+#dist_loss_enc_arr=(bnon)    # new version - debugged
+dist_loss_enc_arr=(bnon2)    #
 #dist_loss_enc_arr=(bnonl)    #
 
 # enc_spike - encoding max spike time mode - f(fixed), nt(n times time window=nt)
@@ -126,8 +126,8 @@ bypass_pr_arr=(0)
 #bypass_tep_arr=(500)
 #bypass_tep_arr=(250 500)
 #bypass_tep_arr=(250)
-#bypass_tep_arr=(50)
-bypass_tep_arr=(0)
+bypass_tep_arr=(50)
+#bypass_tep_arr=(0)
 #bypass_tep_arr=(200)
 
 # copy model - copy trained model
