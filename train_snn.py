@@ -201,6 +201,54 @@ def reg_tc_para(model):
 
     return ret
 
+
+
+
+# new new version - debugged, taylor expansion, integral
+# loss - spike count, batch norm
+def loss_enc_spike_bn_new_new(model):
+
+    loss_tmp = 0
+
+    for l_name, tk in model.list_tk.items():
+        if not ('in' in l_name):
+            l_name_bn = l_name+'_bn'
+            bn_beta = model.list_layer[l_name_bn].beta
+            bn_gamma = model.list_layer[l_name_bn].gamma
+
+            tk_tc = tk.tc
+            tk_td = tk.td
+
+            #x_0 = tf.math.exp(tf.math.divide(tk_td,tk_tc))
+            x_T = tf.math.exp(-tf.math.divide(tf.math.subtract(model.conf.time_window,tk_td),tk_tc))
+
+            bn_beta_2 = tf.math.pow(bn_beta,2)
+            bn_beta_3 = tf.math.pow(bn_beta,3)
+
+            bn_gamma_2 = tf.math.pow(bn_gamma,2)
+
+            x_T_2 = tf.math.pow(x_T,2)
+
+            beta_3 = 0.5*tf.math.add(tf.math.add(tf.math.divide(bn_gamma_2,3.0),bn_gamma),1.0)
+            beta_3 = tf.math.multiply(beta_3,bn_beta_3)
+
+            beta_2 = -0.5*x_T
+            beta_2 = tf.math.multiply(beta_2,bn_beta_2)
+
+            beta_1 = -0.5*tf.math.add(tf.math.multiply(x_T_2,bn_gamma),2.0)
+            beta_1 = tf.math.multiply(beta_1,bn_beta)
+
+            beta_0 = tf.math.multiply(tf.math.divide(tf.math.add(tf.math.multiply(x_T_2,bn_gamma_2),6.0),-6.0),x_T)
+
+            loss_1 = tf.math.add(beta_3,beta_2)
+            loss_0 = tf.math.add(beta_1,beta_0)
+
+            loss = tf.math.add(loss_1,loss_0)
+
+            loss_tmp += tf.reduce_sum(loss)
+
+    return loss_tmp
+
 # new version - debugged, linear approx
 # loss - spike count, batch norm
 def loss_enc_spike_bn_new_lin(model):
@@ -573,6 +621,8 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
                             loss_tmp=loss_enc_spike_bn_new_2(model)
                         elif (model.f_loss_enc_spike_bn_only_new_lin==True):
                             loss_tmp=loss_enc_spike_bn_new_lin(model)
+                        elif (model.f_loss_enc_spike_bn_only_new_new==True):
+                            loss_tmp=loss_enc_spike_bn_new_new(model)
                         else:
                             loss_tmp=loss_enc_spike_bn(model)
 
@@ -633,7 +683,7 @@ def train_one_epoch_ttfs(model, optimizer, dataset, epoch):
 
 
                     # for debug
-                    plt_enc_dist(model)
+                    #plt_enc_dist(model)
 
                 loss_list['enc_st'] = loss_tmp
 

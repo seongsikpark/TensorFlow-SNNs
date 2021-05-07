@@ -22,8 +22,8 @@
 
 
 #
-#source ../05_SNN/venv/bin/activate
-source ../tensorflow_SNN/venv/bin/activate
+source ../05_SNN/venv/bin/activate
+#source ../tensorflow_SNN/venv/bin/activate
 
 
 
@@ -86,6 +86,7 @@ exp_case='VGG16_CIFAR-10'
 # temporal kernel loss information
 f_s_dnn_tk_info=False
 #f_s_dnn_tk_info=True
+
 
 
 # direct training - CIFAR-10

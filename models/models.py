@@ -649,6 +649,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             self.f_loss_enc_spike_bn_only_new = False   # debug version
             self.f_loss_enc_spike_bn_only_new_2 = False   # squred
             self.f_loss_enc_spike_bn_only_new_lin = False   # linear approx
+            self.f_loss_enc_spike_bn_only_new_new = False   # debug version - new new
 
             if self.conf.d_loss_enc_spike == 'bn':
                 self.f_loss_enc_spike_dist = False
@@ -673,6 +674,11 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
                 self.f_loss_enc_spike_bn = True
                 self.f_loss_enc_spike_bn_only = True
                 self.f_loss_enc_spike_bn_only_new_lin = True
+            elif self.conf.d_loss_enc_spike == 'bnonn':
+                self.f_loss_enc_spike_dist = False
+                self.f_loss_enc_spike_bn = True
+                self.f_loss_enc_spike_bn_only = True
+                self.f_loss_enc_spike_bn_only_new_new = True
             else:
                 self.f_loss_enc_spikes_dist = self.conf.f_loss_enc_spike
                 self.f_loss_enc_spike_bn = False
