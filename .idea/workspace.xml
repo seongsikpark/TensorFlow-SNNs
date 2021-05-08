@@ -9,12 +9,9 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a59cc8b6-9dbe-41c8-8d2e-009d3879113f" name="Default" comment="210503 - add new bno mode - 2 and l">
+    <list default="true" id="a59cc8b6-9dbe-41c8-8d2e-009d3879113f" name="Default" comment="210508 - add bnonn">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/run_batch_enc_dec_tk.sh" beforeDir="false" afterPath="$PROJECT_DIR$/run_batch_enc_dec_tk.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/run_enc_dec_tk.sh" beforeDir="false" afterPath="$PROJECT_DIR$/run_enc_dec_tk.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/train_snn.py" beforeDir="false" afterPath="$PROJECT_DIR$/train_snn.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/utils.conf" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/utils.conf" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -105,22 +102,22 @@
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="Python Console" value="49" />
-          <entry key="conf" value="618" />
+          <entry key="conf" value="623" />
           <entry key="py" value="192244" />
           <entry key="sh" value="43998" />
-          <entry key="txt" value="994" />
+          <entry key="txt" value="1010" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="Bash" value="43998" />
-          <entry key="PLAIN_TEXT" value="1612" />
+          <entry key="PLAIN_TEXT" value="1633" />
           <entry key="Python" value="192293" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
-          <entry key="conf" value="12" />
+          <entry key="conf" value="13" />
           <entry key="py" value="83" />
           <entry key="sh" value="26" />
           <entry key="tensorboard" value="1" />
@@ -129,7 +126,7 @@
       <usages-collector id="statistics.file.types.open">
         <counts>
           <entry key="Bash" value="26" />
-          <entry key="PLAIN_TEXT" value="12" />
+          <entry key="PLAIN_TEXT" value="13" />
           <entry key="Python" value="84" />
         </counts>
       </usages-collector>
@@ -320,7 +317,6 @@
         <option value="$PROJECT_DIR$/snn_lib_temporal.py" />
         <option value="$PROJECT_DIR$/util.py" />
         <option value="$PROJECT_DIR$/tensorboard.sh" />
-        <option value="$PROJECT_DIR$/scripts/utils.conf" />
         <option value="$PROJECT_DIR$/datasets/imagenet.py" />
         <option value="$PROJECT_DIR$/utils_tensornets.py" />
         <option value="$PROJECT_DIR$/datasets/mnist.py" />
@@ -342,6 +338,7 @@
         <option value="$PROJECT_DIR$/train_snn.py" />
         <option value="$PROJECT_DIR$/run_enc_dec_tk.sh" />
         <option value="$PROJECT_DIR$/run_batch_enc_dec_tk.sh" />
+        <option value="$PROJECT_DIR$/scripts/utils.conf" />
       </list>
     </option>
   </component>
@@ -685,13 +682,6 @@
       <workItem from="1562032834836" duration="1849000" />
       <workItem from="1562904892027" duration="611000" />
     </task>
-    <task id="LOCAL-00022" summary="SNN training w/ TTFS - CIFAR-10">
-      <created>1599453292206</created>
-      <option name="number" value="00022" />
-      <option name="presentableId" value="LOCAL-00022" />
-      <option name="project" value="LOCAL" />
-      <updated>1599453292206</updated>
-    </task>
     <task id="LOCAL-00023" summary="0926">
       <created>1601083900683</created>
       <option name="number" value="00023" />
@@ -1028,7 +1018,14 @@
       <option name="project" value="LOCAL" />
       <updated>1619981202535</updated>
     </task>
-    <option name="localTasksCounter" value="71" />
+    <task id="LOCAL-00071" summary="210508 - add bnonn">
+      <created>1620410573280</created>
+      <option name="number" value="00071" />
+      <option name="presentableId" value="LOCAL-00071" />
+      <option name="project" value="LOCAL" />
+      <updated>1620410573280</updated>
+    </task>
+    <option name="localTasksCounter" value="72" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
@@ -1045,7 +1042,6 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="22" width="2560" height="1394" extended-state="6" />
-    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" weight="0.2003984" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -1140,7 +1136,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/tmp/canyon/05_SNN_temporal" />
     </ignored-roots>
-    <MESSAGE value="1027 - encoded spike loss" />
     <MESSAGE value="1106" />
     <MESSAGE value="210111" />
     <MESSAGE value="210214" />
@@ -1165,7 +1160,8 @@
     <MESSAGE value="210428 - add bnon (bno function debugging in integral function)" />
     <MESSAGE value="210430 - dubugged integral function - talyer expansion" />
     <MESSAGE value="210503 - add new bno mode - 2 and l" />
-    <option name="LAST_COMMIT_MESSAGE" value="210503 - add new bno mode - 2 and l" />
+    <MESSAGE value="210508 - add bnonn" />
+    <option name="LAST_COMMIT_MESSAGE" value="210508 - add bnonn" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1375,13 +1371,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/scripts/utils.conf">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="300">
-          <caret line="20" column="10" selection-start-line="20" selection-start-column="10" selection-end-line="20" selection-end-column="10" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/datasets/cifar100.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="782">
@@ -1498,6 +1487,13 @@
       <provider selected="true" editor-type-id="text-editor">
         <state>
           <caret column="10" selection-start-column="10" selection-end-column="10" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scripts/utils.conf">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="315">
+          <caret line="21" selection-start-line="21" selection-end-line="21" />
         </state>
       </provider>
     </entry>
