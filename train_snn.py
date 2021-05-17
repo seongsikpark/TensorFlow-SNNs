@@ -245,7 +245,7 @@ def loss_enc_spike_bn_new_new(model):
 
             loss = tf.math.add(loss_1,loss_0)
 
-            loss_tmp += tf.reduce_sum(loss)
+            loss_tmp -= tf.reduce_sum(loss)
 
     return loss_tmp
 

@@ -265,6 +265,9 @@ def test(model, dataset, num_dataset, conf, f_val=False, epoch=0, f_val_snn=Fals
                 if conf.f_train_time_const:
                     f_name_result += '_train-tc'
 
+                if conf.ckpt_epoch!=0:
+                    f_name_result += '_ckpt-'+str(conf.ckpt_epoch)
+
 
                 f_name_result = f_name_result+'.xlsx'
 
@@ -274,7 +277,7 @@ def test(model, dataset, num_dataset, conf, f_val=False, epoch=0, f_val_snn=Fals
 
             if conf.f_train_time_const and print_loss:
                 df=pd.DataFrame({'loss_prec': list_loss_prec, 'loss_min': list_loss_min, 'loss_max': list_loss_max})
-                fname="./time-const-train-loss_b-"+str(conf.batch_size)+"_d-"+str(conf.num_test_dataset)+"_tc-"+str(conf.tc)+"_tw-"+str(conf.time_window)+".xlsx"
+                fname="./time-const-train-loss_b-"+str(conf.batch_size)+"_d-"+str(conf.num_test_dataset)+"_tc-"+str(conf.tc)+"_tw-"+str(conf.time_window)+"_ckpt-"+str(conf.ckpt_epoch)+".xlsx"
                 df.to_excel(fname)
 
 

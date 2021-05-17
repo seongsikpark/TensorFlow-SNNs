@@ -17,7 +17,7 @@ from datetime import datetime
 #en_gpu=False
 en_gpu=True
 
-gpu_number=0
+gpu_number=2
 os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
 
 #
@@ -134,6 +134,7 @@ tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'SNN', 'ANN: Analog Neural Netwo
 tf.compat.v1.app.flags.DEFINE_string('output_dir', './tensorboard', 'Directory to write TensorBoard summaries')
 tf.compat.v1.app.flags.DEFINE_string('checkpoint_dir', './models_ckpt', 'Directory to save checkpoints')
 tf.compat.v1.app.flags.DEFINE_string('checkpoint_load_dir', './models_ckpt', 'Directory to load checkpoints')
+tf.compat.v1.app.flags.DEFINE_integer('ckpt_epoch', 0, 'saved ckpt epoch')
 tf.compat.v1.app.flags.DEFINE_bool('en_load_model', False, 'Enable to load model')
 
 #
@@ -1162,8 +1163,14 @@ def main(_):
             # start here - restore code
             #load_model.restore(tf.train.latest_checkpoint(checkpoint_dir)).assert_consumed()
 
-            status = load_model.restore(tf.train.latest_checkpoint(checkpoint_dir)).expect_partial()
-            #status=load_model.restore(checkpoint_dir+'/ckpt-947-1')
+
+            if conf.ckpt_epoch==0:
+                status = load_model.restore(tf.train.latest_checkpoint(checkpoint_dir)).expect_partial()
+            else:
+                ckpt_name='/ckpt-'+str(conf.ckpt_epoch)+'-1'
+                #status=load_model.restore(checkpoint_dir+'/ckpt-1445-1')
+                status=load_model.restore(checkpoint_dir+ckpt_name)
+
             #status=load_model.restore(checkpoint_dir+'/ckpt-740-1')
             #status=load_model.restore(checkpoint_dir+'/ckpt-681-1')
 

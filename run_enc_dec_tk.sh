@@ -22,8 +22,8 @@
 
 
 #
-source ../05_SNN/venv/bin/activate
-#source ../tensorflow_SNN/venv/bin/activate
+#source ../05_SNN/venv/bin/activate
+source ../tensorflow_SNN/venv/bin/activate
 
 
 
@@ -85,7 +85,7 @@ exp_case='VGG16_CIFAR-10'
 #
 # temporal kernel loss information
 f_s_dnn_tk_info=False
-#f_s_dnn_tk_info=True
+f_s_dnn_tk_info=True
 
 
 
@@ -96,8 +96,8 @@ time_fire_start=32    # integration duration - n x tc
 #time_fire_start=16    # integration duration - n x tc
 time_fire_duration=32   # time window - n x tc
 time_window=${time_fire_duration}
-td=0.5
-#td=5
+#td=0.5
+td=1
 
 # TTFS - CIFAR-10
 #tc=16
@@ -132,6 +132,8 @@ bypass_target_epoch=${16}
 training_mode=${17}
 
 f_td_training=${18}
+
+ckpt_epoch=${19}
 
 #
 f_validation_snn=False
@@ -232,6 +234,8 @@ if [ ${f_validation_snn} = True ]
 then
     log_file_name=${log_file_name}_val-snn
 fi
+
+
 
 
 #
@@ -1226,6 +1230,7 @@ mkdir -p ${time_const_root}
     -en_load_model=${en_load_model}\
     -checkpoint_load_dir=${path_models_ckpt}\
 	-checkpoint_dir=${path_models_ckpt}\
+	-ckpt_epoch=${ckpt_epoch}\
 	-model_name=${model_name}\
 	-config_name=${config_name}\
    	-en_train=${en_train}\

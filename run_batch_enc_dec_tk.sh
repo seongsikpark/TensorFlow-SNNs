@@ -25,6 +25,11 @@
 f_training=True
 #f_training=False
 
+#
+ckpt_epoch_arr=(0)
+#ckpt_epoch_arr=(1428 1303 1229 1004 864 815 694 555 541)
+
+
 
 #epoch=$1
 #ep=500
@@ -86,16 +91,16 @@ ep_dec_prun_arr=(0)
 #ep_loss_enc_arr=(0 250 1000)
 #ep_loss_enc_arr=(0 250 500)
 #ep_loss_enc_arr=(0 250)
-ep_loss_enc_arr=(50)
+#ep_loss_enc_arr=(50)
 #ep_loss_enc_arr=(0)
-#ep_loss_enc_arr=(10000)
+ep_loss_enc_arr=(10000)
 
 # enc_spike - weight
 #w_loss_enc_arr=(0.01 0.001)
 #w_loss_enc_arr=(1 0.1 0.01 0.001)
 #w_loss_enc_arr=(0.1 0.001)
 #w_loss_enc_arr=(0.001)
-w_loss_enc_arr=(0.000001)
+w_loss_enc_arr=(0.0000001)
 
 # enc_spike - n_tw
 #nt_loss_enc_arr=(1 2 5 10)
@@ -189,11 +194,15 @@ for ((i_ep_tk=0;i_ep_tk<${#ep_tk_arr[@]};i_ep_tk++)) do
                                                         for ((i_bypass_tep=0;i_bypass_tep<${#bypass_tep_arr[@]};i_bypass_tep++)) do
                                                             bypass_tep=${bypass_tep_arr[$i_bypass_tep]}
 
-                                                             echo training_mode: ${f_training}
-                                                             echo ep: ${ep}, tk: ${ep_tk}, w_tk: ${w_tk}, w_tkr: ${w_tkr}, t_tkr: ${t_tkr}, tks: ${tks}, int: ${ep_enc_int}, ce: ${ep_enc_int_fl}, cl: ${ep_dec_prun}, le: ${ep_loss_enc}, lew: ${w_loss_enc}, nt: ${nt_loss_enc}, led: ${dist_loss_enc}, ems: ${ems_loss_enc}, bp: ${bypass_pr}, bt: ${bypass_tep}
+                                                          for ((i_ckpt_epoch=0;i_ckpt_epoch<${#ckpt_epoch_arr[@]};i_ckpt_epoch++)) do
+                                                              ckpt_epoch=${ckpt_epoch_arr[$i_ckpt_epoch]}
 
-                                                            #./run_enc_dec_tk.sh ${ep} ${ep_tk} ${ep_enc_int} ${ep_enc_int_fl} ${ep_dec_prun} ${ep_loss_enc} ${bypass_pr} ${bypass_tep} ${cp_model} ${f_training}
-                                                            ./run_enc_dec_tk.sh ${ep} ${ep_tk} ${w_tk} ${w_tkr} ${t_tkr} ${tks} ${ep_enc_int} ${ep_enc_int_fl} ${ep_dec_prun} ${ep_loss_enc} ${w_loss_enc} ${nt_loss_enc} ${dist_loss_enc} ${ems_loss_enc} ${bypass_pr} ${bypass_tep} ${f_training} ${f_td_training}
+                                                               echo training_mode: ${f_training}
+                                                               echo ep: ${ep}, tk: ${ep_tk}, w_tk: ${w_tk}, w_tkr: ${w_tkr}, t_tkr: ${t_tkr}, tks: ${tks}, int: ${ep_enc_int}, ce: ${ep_enc_int_fl}, cl: ${ep_dec_prun}, le: ${ep_loss_enc}, lew: ${w_loss_enc}, nt: ${nt_loss_enc}, led: ${dist_loss_enc}, ems: ${ems_loss_enc}, bp: ${bypass_pr}, bt: ${bypass_tep}, ckpt_e: ${ckpt_epoch}
+
+                                                              #./run_enc_dec_tk.sh ${ep} ${ep_tk} ${ep_enc_int} ${ep_enc_int_fl} ${ep_dec_prun} ${ep_loss_enc} ${bypass_pr} ${bypass_tep} ${cp_model} ${f_training}
+                                                              ./run_enc_dec_tk.sh ${ep} ${ep_tk} ${w_tk} ${w_tkr} ${t_tkr} ${tks} ${ep_enc_int} ${ep_enc_int_fl} ${ep_dec_prun} ${ep_loss_enc} ${w_loss_enc} ${nt_loss_enc} ${dist_loss_enc} ${ems_loss_enc} ${bypass_pr} ${bypass_tep} ${f_training} ${f_td_training} ${ckpt_epoch}
+                                                              done
                                                         done
                                                     done
                                                 done
