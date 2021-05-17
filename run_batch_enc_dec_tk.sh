@@ -91,9 +91,9 @@ ep_dec_prun_arr=(0)
 #ep_loss_enc_arr=(0 250 1000)
 #ep_loss_enc_arr=(0 250 500)
 #ep_loss_enc_arr=(0 250)
-#ep_loss_enc_arr=(50)
+ep_loss_enc_arr=(50)
 #ep_loss_enc_arr=(0)
-ep_loss_enc_arr=(10000)
+#ep_loss_enc_arr=(10000)
 
 # enc_spike - weight
 #w_loss_enc_arr=(0.01 0.001)
