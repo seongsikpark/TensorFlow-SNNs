@@ -17,7 +17,7 @@ from datetime import datetime
 #en_gpu=False
 en_gpu=True
 
-gpu_number=2
+gpu_number=0
 os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
 
 #
@@ -336,6 +336,9 @@ tf.compat.v1.app.flags.DEFINE_integer('enc_st_n_tw',10,'target max encoded spike
 #tf.compat.v1.app.flags.DEFINE_float('enc_st_n_tw',10,'target max encoded spike time - number of time window')
 
 tf.compat.v1.app.flags.DEFINE_bool('f_td_training',True,'flag td training')
+
+# quantization-aware vth - TTFS coding, surrogate training model
+tf.compat.v1.app.flags.DEFINE_bool('f_qvth',False,'quantization-aware vth, rounding function')
 
 #
 tf.compat.v1.app.flags.DEFINE_string('tfboard_log_file_name',None,'tfboard log file name')

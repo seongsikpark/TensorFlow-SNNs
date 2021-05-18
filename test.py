@@ -268,6 +268,8 @@ def test(model, dataset, num_dataset, conf, f_val=False, epoch=0, f_val_snn=Fals
                 if conf.ckpt_epoch!=0:
                     f_name_result += '_ckpt-'+str(conf.ckpt_epoch)
 
+                if conf.f_qvth:
+                    f_name_result += '_qvth'
 
                 f_name_result = f_name_result+'.xlsx'
 

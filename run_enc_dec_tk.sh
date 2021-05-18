@@ -22,8 +22,8 @@
 
 
 #
-#source ../05_SNN/venv/bin/activate
-source ../tensorflow_SNN/venv/bin/activate
+source ../05_SNN/venv/bin/activate
+#source ../tensorflow_SNN/venv/bin/activate
 
 
 
@@ -69,7 +69,7 @@ en_tensorboard_write=True
 ## Model & Dataset
 ###############################################################################
 nn_mode='ANN'
-#nn_mode='SNN'
+nn_mode='SNN'
 
 
 #exp_case='CNN_MNIST'
@@ -134,6 +134,9 @@ training_mode=${17}
 f_td_training=${18}
 
 ckpt_epoch=${19}
+
+# quantization-aware vth
+f_qvth=${20}
 
 #
 f_validation_snn=False
@@ -1323,6 +1326,7 @@ mkdir -p ${time_const_root}
     -beta_dist_b=${beta_dist_b}\
     -enc_st_n_tw=${enc_st_n_tw}\
     -f_td_training=${f_td_training}\
+    -f_qvth=${f_qvth}
     -tfboard_log_file_name=${tfboard_log_file_name}\
     ; } 2>&1 | tee ${log_file}
 

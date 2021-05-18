@@ -248,6 +248,9 @@ class Neuron(tf.keras.layers.Layer):
         #self.vth = tf.constant(tf.exp(-t/self.conf.tc),tf.float32,self.out.shape)
         time = tf.subtract(t,self.time_delay_fire)
 
+        if self.conf.f_qvth:
+            time = tf.add(time,0.5)
+
         #print(self.vth.shape)
         #print(self.time_const_fire.shape)
         #self.vth = tf.constant(tf.exp(tf.divide(-time,self.time_const_fire)),tf.float32,self.out.shape)
@@ -654,6 +657,8 @@ class Neuron(tf.keras.layers.Layer):
         if self.conf.f_refractory:
             #self.f_fire = (self.vmem >= self.vth) & \
             #                tf.equal(self.refractory,tf.zeros(self.refractory.shape))
+
+
             self.f_fire = (self.vmem >= self.vth) & \
                               tf.equal(self.refractory,tf.constant(0.0,tf.float32,self.refractory.shape))
         else:
