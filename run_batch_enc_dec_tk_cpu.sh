@@ -23,11 +23,14 @@
 
 # training / inference mode
 f_training=True
-#f_training=False
+f_training=False
 
 #
 ckpt_epoch_arr=(0)
-#ckpt_epoch_arr=(1217 1188 895 839)
+#ckpt_epoch_arr=(1906) # SM (2)
+#ckpt_epoch_arr=(1926) # SR
+#ckpt_epoch_arr=(2029) # SR+TR
+ckpt_epoch_arr=(1010) # SR+TR+TKBN
 
 
 
@@ -48,7 +51,7 @@ w_tk_arr=(1)
 # regularization - temporal kernel decay para
 #w_tkr_arr=(0 0.1 0.01 0.001 0.0001)
 #w_tkr_arr=(0.00000001)
-w_tkr_arr=(0.00001)
+w_tkr_arr=(0.0001)
 #w_tkr_arr=(0)
 
 # regularization - type
@@ -100,7 +103,7 @@ ep_loss_enc_arr=(50)
 #w_loss_enc_arr=(1 0.1 0.01 0.001)
 #w_loss_enc_arr=(0.1 0.001)
 #w_loss_enc_arr=(0.001)
-w_loss_enc_arr=(0.00001)
+w_loss_enc_arr=(0.0001)
 
 # enc_spike - n_tw
 #nt_loss_enc_arr=(1 2 5 10)
@@ -206,7 +209,7 @@ for ((i_ep_tk=0;i_ep_tk<${#ep_tk_arr[@]};i_ep_tk++)) do
                                                                echo ep: ${ep}, tk: ${ep_tk}, w_tk: ${w_tk}, w_tkr: ${w_tkr}, t_tkr: ${t_tkr}, tks: ${tks}, int: ${ep_enc_int}, ce: ${ep_enc_int_fl}, cl: ${ep_dec_prun}, le: ${ep_loss_enc}, lew: ${w_loss_enc}, nt: ${nt_loss_enc}, led: ${dist_loss_enc}, ems: ${ems_loss_enc}, bp: ${bypass_pr}, bt: ${bypass_tep}, ckpt_e: ${ckpt_epoch}, f_qvth: ${f_qvth}
 
                                                               #./run_enc_dec_tk.sh ${ep} ${ep_tk} ${ep_enc_int} ${ep_enc_int_fl} ${ep_dec_prun} ${ep_loss_enc} ${bypass_pr} ${bypass_tep} ${cp_model} ${f_training}
-                                                              ./run_enc_dec_tk.sh ${ep} ${ep_tk} ${w_tk} ${w_tkr} ${t_tkr} ${tks} ${ep_enc_int} ${ep_enc_int_fl} ${ep_dec_prun} ${ep_loss_enc} ${w_loss_enc} ${nt_loss_enc} ${dist_loss_enc} ${ems_loss_enc} ${bypass_pr} ${bypass_tep} ${f_training} ${f_td_training} ${ckpt_epoch} ${f_qvth}
+                                                              ./run_enc_dec_tk_cpu.sh ${ep} ${ep_tk} ${w_tk} ${w_tkr} ${t_tkr} ${tks} ${ep_enc_int} ${ep_enc_int_fl} ${ep_dec_prun} ${ep_loss_enc} ${w_loss_enc} ${nt_loss_enc} ${dist_loss_enc} ${ems_loss_enc} ${bypass_pr} ${bypass_tep} ${f_training} ${f_td_training} ${ckpt_epoch} ${f_qvth}
                                                               done
                                                         done
                                                     done

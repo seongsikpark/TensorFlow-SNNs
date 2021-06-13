@@ -37,6 +37,9 @@ from operator import itemgetter
 
 from functools import partial
 
+
+import pandas as pd
+
 #import tfplot
 import threading
 
@@ -1912,52 +1915,384 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             a_fc3 = s_fc3_bn
 
 
-#        if not self.f_1st_iter:
-#
-#            fig, axs = plt.subplots(4,5)
-#            axs=axs.ravel()
-#
-#            axs[0].hist(x.numpy().flatten())
-#            axs[1].hist(s_conv1_bn.numpy().flatten())
-#            axs[2].hist(s_conv1_1_bn.numpy().flatten())
-#            axs[3].hist(s_conv2_bn.numpy().flatten())
-#            axs[4].hist(s_conv2_1_bn.numpy().flatten())
-#            axs[5].hist(s_conv3_bn.numpy().flatten())
-#            axs[6].hist(s_conv3_1_bn.numpy().flatten())
-#            axs[7].hist(s_conv3_2_bn.numpy().flatten())
-#            axs[8].hist(s_conv4_bn.numpy().flatten())
-#            axs[9].hist(s_conv4_1_bn.numpy().flatten())
-#            axs[10].hist(s_conv4_2_bn.numpy().flatten())
-#            axs[11].hist(s_conv5_bn.numpy().flatten())
-#            axs[12].hist(s_conv5_1_bn.numpy().flatten())
-#            axs[13].hist(s_conv5_2_bn.numpy().flatten())
-#            axs[14].hist(s_fc1_bn.numpy().flatten())
-#            axs[15].hist(s_fc2_bn.numpy().flatten())
-#            axs[16].hist(s_fc3_bn.numpy().flatten())
-#
-#
-#            plt.show()
-#
-#            assert False
+        # print - activation histogram
+        #if not self.f_1st_iter:
+        if False:
 
-#        print('a_conv5_2')
-#        print(a_conv5_2[0])
-#        print('')
-#
-#        print('a_fc1')
-#        print(a_fc1[0])
-#        print('')
-#
-#        print('a_fc2')
-#        print(a_fc2[0])
-#        print('')
-#
-#        print('a_fc3')
-#        print(a_fc3[0])
-#        print('')
+            fig, axs = plt.subplots(4,5)
+            axs=axs.ravel()
 
-        #if f_training:
-        #   x = self.dropout(x,training=f_training)
+            list_hist_count=[]
+            list_hist_bins=[]
+            list_hist_bars=[]
+            list_beta=[]
+            list_x_M=[]
+            list_x_m=[]
+
+            #
+            counts, bins, bars = axs[0].hist(x.numpy().flatten(),bins=1000)
+            list_hist_count.append(counts)
+            list_hist_bins.append(bins)
+            list_hist_bars.append(bars)
+            list_beta.append(0)
+            list_x_M.append(0)
+            list_x_m.append(0)
+
+            #
+            counts, bins, bars = axs[1].hist(s_conv1_bn.numpy().flatten(),bins=1000)
+            layer_name = 'conv1'
+            beta = tf.math.reduce_mean(self.list_layer[layer_name+'_bn'].beta)
+            x_M = tf.math.exp(tf.math.divide(self.list_tk[layer_name].td,self.list_tk[layer_name].tc))
+            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk[layer_name].tc)))
+            axs[1].vlines(beta,0, np.max(counts), color='k')
+            axs[1].vlines(x_m,0, np.max(counts), color='r')
+            axs[1].vlines(x_M,0, np.max(counts), color='m')
+            list_hist_count.append(counts)
+            list_hist_bins.append(bins)
+            list_hist_bars.append(bars)
+            list_beta.append(beta.numpy())
+            list_x_M.append(x_M.numpy()[0])
+            list_x_m.append(x_m.numpy()[0])
+
+            #
+            counts, bins, bars = axs[2].hist(s_conv1_1_bn.numpy().flatten(),bins=1000)
+
+            layer_name = 'conv1_1'
+            beta = tf.math.reduce_mean(self.list_layer[layer_name+'_bn'].beta)
+            x_M = tf.math.exp(tf.math.divide(self.list_tk[layer_name].td,self.list_tk[layer_name].tc))
+            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk[layer_name].tc)))
+            axs[2].vlines(beta,0, np.max(counts), color='k')
+            axs[2].vlines(x_m,0, np.max(counts), color='r')
+            axs[2].vlines(x_M,0, np.max(counts), color='m')
+            list_hist_count.append(counts)
+            list_hist_bins.append(bins)
+            list_hist_bars.append(bars)
+            list_beta.append(beta.numpy())
+            list_x_M.append(x_M.numpy()[0])
+            list_x_m.append(x_m.numpy()[0])
+
+            #
+            counts, bins, bars = axs[3].hist(s_conv2_bn.numpy().flatten(),bins=1000)
+
+            layer_name = 'conv2'
+            beta = tf.math.reduce_mean(self.list_layer[layer_name+'_bn'].beta)
+            x_M = tf.math.exp(tf.math.divide(self.list_tk[layer_name].td,self.list_tk[layer_name].tc))
+            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk[layer_name].tc)))
+            axs[3].vlines(beta,0, np.max(counts), color='k')
+            axs[3].vlines(x_m,0, np.max(counts), color='r')
+            axs[3].vlines(x_M,0, np.max(counts), color='m')
+            list_hist_count.append(counts)
+            list_hist_bins.append(bins)
+            list_hist_bars.append(bars)
+            list_beta.append(beta.numpy())
+            list_x_M.append(x_M.numpy()[0])
+            list_x_m.append(x_m.numpy()[0])
+
+            #
+            counts, bins, bars = axs[4].hist(s_conv2_1_bn.numpy().flatten(),bins=1000)
+
+            layer_name = 'conv2_1'
+            beta = tf.math.reduce_mean(self.list_layer[layer_name+'_bn'].beta)
+            x_M = tf.math.exp(tf.math.divide(self.list_tk[layer_name].td,self.list_tk[layer_name].tc))
+            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk[layer_name].tc)))
+            axs[4].vlines(beta,0, np.max(counts), color='k')
+            axs[4].vlines(x_m,0, np.max(counts), color='r')
+            axs[4].vlines(x_M,0, np.max(counts), color='m')
+            list_hist_count.append(counts)
+            list_hist_bins.append(bins)
+            list_hist_bars.append(bars)
+            list_beta.append(beta.numpy())
+            list_x_M.append(x_M.numpy()[0])
+            list_x_m.append(x_m.numpy()[0])
+
+            #
+            counts, bins, bars = axs[5].hist(s_conv3_bn.numpy().flatten(),bins=1000)
+
+            layer_name = 'conv3'
+            beta = tf.math.reduce_mean(self.list_layer[layer_name+'_bn'].beta)
+            x_M = tf.math.exp(tf.math.divide(self.list_tk[layer_name].td,self.list_tk[layer_name].tc))
+            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk[layer_name].tc)))
+            axs[5].vlines(beta,0, np.max(counts), color='k')
+            axs[5].vlines(x_m,0, np.max(counts), color='r')
+            axs[5].vlines(x_M,0, np.max(counts), color='m')
+            list_hist_count.append(counts)
+            list_hist_bins.append(bins)
+            list_hist_bars.append(bars)
+            list_beta.append(beta.numpy())
+            list_x_M.append(x_M.numpy()[0])
+            list_x_m.append(x_m.numpy()[0])
+
+            #
+
+
+            counts, bins, bars = axs[6].hist(s_conv3_1_bn.numpy().flatten(),bins=1000)
+
+            layer_name = 'conv3_1'
+            beta = tf.math.reduce_mean(self.list_layer[layer_name+'_bn'].beta)
+            x_M = tf.math.exp(tf.math.divide(self.list_tk[layer_name].td,self.list_tk[layer_name].tc))
+            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk[layer_name].tc)))
+            axs[6].vlines(beta,0, np.max(counts), color='k')
+            axs[6].vlines(x_m,0, np.max(counts), color='r')
+            axs[6].vlines(x_M,0, np.max(counts), color='m')
+            list_hist_count.append(counts)
+            list_hist_bins.append(bins)
+            list_hist_bars.append(bars)
+            list_beta.append(beta.numpy())
+            list_x_M.append(x_M.numpy()[0])
+            list_x_m.append(x_m.numpy()[0])
+
+            #
+
+
+            counts, bins, bars = axs[7].hist(s_conv3_2_bn.numpy().flatten(),bins=1000)
+
+            layer_name = 'conv3_2'
+            beta = tf.math.reduce_mean(self.list_layer[layer_name+'_bn'].beta)
+            x_M = tf.math.exp(tf.math.divide(self.list_tk[layer_name].td,self.list_tk[layer_name].tc))
+            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk[layer_name].tc)))
+            axs[7].vlines(beta,0, np.max(counts), color='k')
+            axs[7].vlines(x_m,0, np.max(counts), color='r')
+            axs[7].vlines(x_M,0, np.max(counts), color='m')
+            list_hist_count.append(counts)
+            list_hist_bins.append(bins)
+            list_hist_bars.append(bars)
+            list_beta.append(beta.numpy())
+            list_x_M.append(x_M.numpy()[0])
+            list_x_m.append(x_m.numpy()[0])
+
+            #
+
+
+            counts, bins, bars = axs[8].hist(s_conv4_bn.numpy().flatten(),bins=1000)
+
+            layer_name = 'conv4'
+            beta = tf.math.reduce_mean(self.list_layer[layer_name+'_bn'].beta)
+            x_M = tf.math.exp(tf.math.divide(self.list_tk[layer_name].td,self.list_tk[layer_name].tc))
+            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk[layer_name].tc)))
+            axs[8].vlines(beta,0, np.max(counts), color='k')
+            axs[8].vlines(x_m,0, np.max(counts), color='r')
+            axs[8].vlines(x_M,0, np.max(counts), color='m')
+            list_hist_count.append(counts)
+            list_hist_bins.append(bins)
+            list_hist_bars.append(bars)
+            list_beta.append(beta.numpy())
+            list_x_M.append(x_M.numpy()[0])
+            list_x_m.append(x_m.numpy()[0])
+
+            #
+
+
+            counts, bins, bars = axs[9].hist(s_conv4_1_bn.numpy().flatten(),bins=1000)
+
+            layer_name = 'conv4_1'
+            beta = tf.math.reduce_mean(self.list_layer[layer_name+'_bn'].beta)
+            x_M = tf.math.exp(tf.math.divide(self.list_tk[layer_name].td,self.list_tk[layer_name].tc))
+            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk[layer_name].tc)))
+            axs[9].vlines(beta,0, np.max(counts), color='k')
+            axs[9].vlines(x_m,0, np.max(counts), color='r')
+            axs[9].vlines(x_M,0, np.max(counts), color='m')
+            list_hist_count.append(counts)
+            list_hist_bins.append(bins)
+            list_hist_bars.append(bars)
+            list_beta.append(beta.numpy())
+            list_x_M.append(x_M.numpy()[0])
+            list_x_m.append(x_m.numpy()[0])
+
+            #
+
+
+            counts, bins, bars = axs[10].hist(s_conv4_2_bn.numpy().flatten(),bins=1000)
+
+            layer_name = 'conv4_2'
+            beta = tf.math.reduce_mean(self.list_layer[layer_name+'_bn'].beta)
+            x_M = tf.math.exp(tf.math.divide(self.list_tk[layer_name].td,self.list_tk[layer_name].tc))
+            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk[layer_name].tc)))
+            axs[10].vlines(beta,0, np.max(counts), color='k')
+            axs[10].vlines(x_m,0, np.max(counts), color='r')
+            axs[10].vlines(x_M,0, np.max(counts), color='m')
+            list_hist_count.append(counts)
+            list_hist_bins.append(bins)
+            list_hist_bars.append(bars)
+            list_beta.append(beta.numpy())
+            list_x_M.append(x_M.numpy()[0])
+            list_x_m.append(x_m.numpy()[0])
+
+            #
+
+
+            counts, bins, bars = axs[11].hist(s_conv5_bn.numpy().flatten(),bins=1000)
+
+            layer_name = 'conv5'
+            beta = tf.math.reduce_mean(self.list_layer[layer_name+'_bn'].beta)
+            x_M = tf.math.exp(tf.math.divide(self.list_tk[layer_name].td,self.list_tk[layer_name].tc))
+            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk[layer_name].tc)))
+            axs[11].vlines(beta,0, np.max(counts), color='k')
+            axs[11].vlines(x_m,0, np.max(counts), color='r')
+            axs[11].vlines(x_M,0, np.max(counts), color='m')
+
+            list_hist_count.append(counts)
+            list_hist_bins.append(bins)
+            list_hist_bars.append(bars)
+            list_beta.append(beta.numpy())
+            list_x_M.append(x_M.numpy()[0])
+            list_x_m.append(x_m.numpy()[0])
+
+            #
+
+            counts, bins, bars = axs[12].hist(s_conv5_1_bn.numpy().flatten(),bins=1000)
+
+            layer_name = 'conv5_1'
+            beta = tf.math.reduce_mean(self.list_layer[layer_name+'_bn'].beta)
+            x_M = tf.math.exp(tf.math.divide(self.list_tk[layer_name].td,self.list_tk[layer_name].tc))
+            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk[layer_name].tc)))
+            axs[12].vlines(beta,0, np.max(counts), color='k')
+            axs[12].vlines(x_m,0, np.max(counts), color='r')
+            axs[12].vlines(x_M,0, np.max(counts), color='m')
+            list_hist_count.append(counts)
+            list_hist_bins.append(bins)
+            list_hist_bars.append(bars)
+            list_beta.append(beta.numpy())
+            list_x_M.append(x_M.numpy()[0])
+            list_x_m.append(x_m.numpy()[0])
+
+            #
+
+
+            counts, bins, bars = axs[13].hist(s_conv5_2_bn.numpy().flatten(),bins=1000)
+
+            layer_name = 'conv5_2'
+            beta = tf.math.reduce_mean(self.list_layer[layer_name+'_bn'].beta)
+            x_M = tf.math.exp(tf.math.divide(self.list_tk[layer_name].td,self.list_tk[layer_name].tc))
+            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk[layer_name].tc)))
+            axs[13].vlines(beta,0, np.max(counts), color='k')
+            axs[13].vlines(x_m,0, np.max(counts), color='r')
+            axs[13].vlines(x_M,0, np.max(counts), color='m')
+
+            list_hist_count.append(counts)
+            list_hist_bins.append(bins)
+            list_hist_bars.append(bars)
+            list_beta.append(beta.numpy())
+            list_x_M.append(x_M.numpy()[0])
+            list_x_m.append(x_m.numpy()[0])
+
+            #
+
+            counts, bins, bars = axs[14].hist(s_fc1_bn.numpy().flatten(),bins=1000)
+
+            layer_name = 'fc1'
+            beta = tf.math.reduce_mean(self.list_layer[layer_name+'_bn'].beta)
+            x_M = tf.math.exp(tf.math.divide(self.list_tk[layer_name].td,self.list_tk[layer_name].tc))
+            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk[layer_name].tc)))
+            axs[14].vlines(beta,0, np.max(counts), color='k')
+            axs[14].vlines(x_m,0, np.max(counts), color='r')
+            axs[14].vlines(x_M,0, np.max(counts), color='m')
+            list_hist_count.append(counts)
+            list_hist_bins.append(bins)
+            list_hist_bars.append(bars)
+            list_beta.append(beta.numpy())
+            list_x_M.append(x_M.numpy()[0])
+            list_x_m.append(x_m.numpy()[0])
+
+            #
+
+
+            counts, bins, bars = axs[15].hist(s_fc2_bn.numpy().flatten(),bins=1000)
+
+            layer_name = 'fc2'
+            beta = tf.math.reduce_mean(self.list_layer[layer_name+'_bn'].beta)
+            x_M = tf.math.exp(tf.math.divide(self.list_tk[layer_name].td,self.list_tk[layer_name].tc))
+            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk[layer_name].tc)))
+            axs[15].vlines(beta,0, np.max(counts), color='k')
+            axs[15].vlines(x_m,0, np.max(counts), color='r')
+            axs[15].vlines(x_M,0, np.max(counts), color='m')
+            list_hist_count.append(counts)
+            list_hist_bins.append(bins)
+            list_hist_bars.append(bars)
+            list_beta.append(beta.numpy())
+            list_x_M.append(x_M.numpy()[0])
+            list_x_m.append(x_m.numpy()[0])
+
+            #
+
+
+            counts, bins, bars = axs[16].hist(s_fc3_bn.numpy().flatten(),bins=1000)
+
+
+
+            #
+            #output_xlsx_name='bn_act_hist_SM-2.xlsx'
+            #output_xlsx_name='bn_act_hist_SR.xlsx'
+            #output_xlsx_name='bn_act_hist_TR.xlsx'
+            output_xlsx_name='bn_act_hist_TB.xlsx'
+            df=pd.DataFrame(list_hist_count).T
+            #            #df=pd.DataFrame({'loss_prec': list_loss_prec, 'loss_min': list_loss_min, 'loss_max': list_loss_max})
+            df.to_excel(output_xlsx_name,sheet_name='count')
+
+            with pd.ExcelWriter(output_xlsx_name,mode='a') as writer:
+                df=pd.DataFrame(list_hist_bins).T
+                df.to_excel(writer,sheet_name='bins')
+
+                df=pd.DataFrame(list_hist_bars).T
+                df.to_excel(writer,sheet_name='bars')
+
+                print(list_beta)
+                df=pd.DataFrame(list_beta).T
+                df.to_excel(writer,sheet_name='beta')
+
+                df=pd.DataFrame(list_x_M).T
+                df.to_excel(writer,sheet_name='x_M')
+
+                df=pd.DataFrame(list_x_m).T
+                df.to_excel(writer,sheet_name='x_m')
+
+
+            # for data write
+#            #
+##            col_x = x.numpy().flatten()
+##            col_conv1_bn   = s_conv1_bn.numpy().flatten()
+##            col_conv1_1_bn = s_conv1_1_bn.numpy().flatten()
+##            col_conv2_bn   = s_conv2_bn.numpy().flatten()
+##            col_conv2_1_bn = s_conv2_1_bn.numpy().flatten()
+##            col_conv2_2_bn = s_conv2_2_bn.numpy().flatten()
+##            col_conv3_bn   = s_conv3_bn.numpy().flatten()
+##            col_conv3_1_bn = s_conv3_1_bn.numpy().flatten()
+##            col_conv3_2_bn = s_conv3_2_bn.numpy().flatten()
+##            col_conv4_bn   = s_conv4_bn.numpy().flatten()
+##            col_conv4_1_bn = s_conv4_1_bn.numpy().flatten()
+##            col_conv4_2_bn = s_conv4_2_bn.numpy().flatten()
+##            col_conv5_bn   = s_conv5_bn.numpy().flatten()
+##            col_conv5_1_bn = s_conv5_1_bn.numpy().flatten()
+##            col_conv5_2_bn = s_conv5_2_bn.numpy().flatten()
+##            col_fc1_bn     = s_fc1_bn.numpy().flatten()
+##            col_fc2_bn     = s_fc2_bn.numpy().flatten()
+##            col_fc3_bn     = s_fc3_bn.numpy().flatten()
+#
+#            #
+#            list_df=[]
+#            list_df.append(x.numpy().flatten())
+#            list_df.append(s_conv1_bn.numpy().flatten())
+#            list_df.append(s_conv1_1_bn.numpy().flatten())
+#
+#            df=pd.DataFrame(list_df)
+#            #df=pd.DataFrame({'loss_prec': list_loss_prec, 'loss_min': list_loss_min, 'loss_max': list_loss_max})
+#            df.to_excel('test.xlsx')
+#
+#            print(n)
+#            print(bins)
+#            print(patches)
+#
+#            print(tf.math.reduce_mean(self.list_layer['conv1_bn'].gamma))
+#            print(tf.math.reduce_mean(self.list_layer['conv1_bn'].beta))
+#            print(self.list_tk['conv1'].tc)
+#            print(self.list_tk['conv1'].td)
+#            x_M = tf.math.exp(tf.math.divide(self.list_tk['conv1'].td,self.list_tk['conv1'].tc))
+#            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk['conv1'].tc)))
+#            print(x_M)
+#            print(x_m)
+
+            plt.show()
+
+            assert False
 
 
 

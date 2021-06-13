@@ -91,10 +91,10 @@ f_s_dnn_tk_info=True
 
 # direct training - CIFAR-10
 # TTFS - CIFAR-10 default
-tc=2
-time_fire_start=8    # integration duration - n x tc
+tc=10
+time_fire_start=32    # integration duration - n x tc
 #time_fire_start=16    # integration duration - n x tc
-time_fire_duration=8   # time window - n x tc
+time_fire_duration=32   # time window - n x tc
 time_window=${time_fire_duration}
 #td=0.5
 td=1
