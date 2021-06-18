@@ -3,6 +3,7 @@
 .xlsx
 .png
 .pyc
+.idea/
 models_ckpt/
 logs_before_181010/
 logs/
