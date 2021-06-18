@@ -1,8 +1,31 @@
 #!/bin/bash
 
+###############################################################################
+## Aguments
+###############################################################################
+# $1: # of epoch for training surrogate model
+# $2:
+
+#epoch=$1
+#epoch_start_train_tk=$2
+#epoch_start_train_t_int=$3
+#epoch_start_train_floor=$4
+#epoch_start_train_clip_tw=$5
+#epoch_start_loss_enc_spike=$6
 #
-#source ../05_SNN/venv/bin/activate
-source ./venv/bin/activate
+#bypass_pr=$7
+#bypass_target_epoch=$8
+#
+#cp_mode=$9
+#training_mode=$10
+
+
+
+#
+source ../05_SNN/venv/bin/activate
+#source ../tensorflow_SNN/venv/bin/activate
+
+
 
 
 ###############################################################################
@@ -36,11 +59,17 @@ en_tensorboard_write=True
 #en_tensorboard_write=False
 
 
+################################################################################
+## Model & Dataset
+###############################################################################
+
+
+
 ###############################################################################
 ## Model & Dataset
 ###############################################################################
 nn_mode='ANN'
-nn_mode='SNN'
+#nn_mode='SNN'
 
 
 #exp_case='CNN_MNIST'
@@ -53,54 +82,222 @@ exp_case='VGG16_CIFAR-10'
 ## Deep SNNs training w/ temporal information - surrogate DNN model
 ###############################################################################
 
+#
+# temporal kernel loss information
+f_s_dnn_tk_info=False
+f_s_dnn_tk_info=True
 
-epoch_start_train_tk=0
-epoch_start_train_t_int=0
-epoch_start_train_floor=1000
-epoch_start_train_clip_tw=0
-epoch_start_loss_enc_spike=0
+
+
+# direct training - CIFAR-10
+# TTFS - CIFAR-10 default
+tc=10
+time_fire_start=32    # integration duration - n x tc
+#time_fire_start=16    # integration duration - n x tc
+time_fire_duration=32   # time window - n x tc
+time_window=${time_fire_duration}
+#td=0.5
+td=1
+
+# TTFS - CIFAR-10
+#tc=16
+#time_fire_start=64      # integration duration - n x tc
+#time_fire_duration=64   # time window - n x tc
+#time_window=${time_fire_duration}
+
+
+epoch_training=$1
+epoch_start_train_tk=$2
+w_train_tk=$3
+w_train_tk_reg=$4
+t_train_tk_reg=$5
+train_tk_strategy=$6
+epoch_start_train_t_int=$7
+epoch_start_train_floor=$8
+epoch_start_train_clip_tw=$9
+epoch_start_loss_enc_spike=${10}
+
+w_loss_enc_spike=${11}
+
+# target max encoded spike time - number of time window
+enc_st_n_tw=${12}
+
+d_loss_enc_spike=${13}
+ems_loss_enc_spike=${14}
 
 #
-bypass_pr=0
-bypass_target_epoch=1000
+bypass_pr=${15}
+bypass_target_epoch=${16}
+
+training_mode=${17}
+
+f_td_training=${18}
+
+ckpt_epoch=${19}
+
+# quantization-aware vth
+f_qvth=${20}
+
+#
+f_validation_snn=False
+#f_validation_snn=True
+
+
+#
+#log_file_name=ep-${epoch_training}_tk-${epoch_start_train_tk}
+
+#
+if [ ${tc} = 8 ] && [ ${time_window} = 32 ]
+then
+    log_file_name=tk-${epoch_start_train_tk}
+else
+    #log_file_name=tc-${tc}_tw-${time_window}_tk-${epoch_start_train_tk}
+    log_file_name=tc-${tc}_tw-${time_window}
+
+    if [ ${td} != 0.5 ]
+    then
+        log_file_name=${log_file_name}_td-${td}
+    fi
+
+    log_file_name=${log_file_name}_tk-${epoch_start_train_tk}
+fi
+
+
+if [ ${w_train_tk} != 1 ]
+then
+    log_file_name=${log_file_name}_tkw-${w_train_tk}
+fi
+
+if [ ${w_train_tk_reg} = 0 ]
+then
+    f_train_tk_reg=False
+else
+    f_train_tk_reg=True
+    log_file_name=${log_file_name}_tkr-${w_train_tk_reg}_tkt-${t_train_tk_reg}
+fi
+
+if [ ${train_tk_strategy} != 'N' ]
+then
+    log_file_name=${log_file_name}_tks-${train_tk_strategy}
+fi
+
+# floor - old
+log_file_name=${log_file_name}_int-${epoch_start_train_t_int}_fl-${epoch_start_train_floor}_cl-${epoch_start_train_clip_tw}_le-${epoch_start_loss_enc_spike}
+#log_file_name=${log_file_name}_int-${epoch_start_train_t_int}_ce-${epoch_start_train_floor}_cl-${epoch_start_train_clip_tw}_le-${epoch_start_loss_enc_spike}
+
+
+log_file_name=${log_file_name}_lem-${ems_loss_enc_spike}
+
+if [ ${ems_loss_enc_spike} = 'n' ]
+then
+    log_file_name=${log_file_name}_nt-${enc_st_n_tw}
+fi
+
+if [ ${epoch_training} = ${epoch_start_loss_enc_spike} ]
+then
+    f_loss_enc_spike=False
+else
+    f_loss_enc_spike=True
+
+    #log_file_name=${log_file_name}_lew-${w_loss_enc_spike}_nt-${enc_st_n_tw}_led-${d_loss_enc_spike}_lem-${ems_loss_enc_spike}
+    log_file_name=${log_file_name}_lew-${w_loss_enc_spike}_led-${d_loss_enc_spike}
+fi
+
+log_file_name=${log_file_name}_bp-${bypass_pr}_bt-${bypass_target_epoch}
+
+
+#if [ ${epoch_training} -eq ${epoch_start_loss_enc_spike} ]
+#then
+#    f_loss_enc_spike=False
+#
+#    if [ ${w_train_tk} = 1 ]
+#    then
+#        log_file_name=ep-$1_tk-$2_int-$4_fl-$5_cl-$6_le-$7_bp-${12}_bt-${13}
+#    else
+#        log_file_name=ep-$1_tk-$2_tkw-$3_int-$4_fl-$5_cl-$6_le-$7_bp-${12}_bt-${13}
+#    fi
+#else
+#    f_loss_enc_spike=True
+#
+#    if [ ${w_train_tk} = 1 ]
+#    then
+#        log_file_name=ep-$1_tk-$2_int-$4_fl-$5_cl-$6_le-$7_lew-$8_nt-$9_led-${10}_lem-${11}_bp-${12}_bt-${13}
+#    else
+#        log_file_name=ep-$1_tk-$2_tkw-$3_int-$4_fl-$5_cl-$6_le-$7_lew-$8_nt-$9_led-${10}_lem-${11}_bp-${12}_bt-${13}
+#    fi
+#fi
+
+if [ ${f_td_training} = False ]
+then
+    log_file_name=${log_file_name}_tdt-f
+fi
+
+
+if [ ${f_validation_snn} = True ]
+then
+    log_file_name=${log_file_name}_val-snn
+fi
+
+
 
 
 #
 # encoded spike distribution loss
-f_loss_enc_spike=False
-#f_loss_enc_spike=True
+#if [ ${1} -eq ${6} ]
+#then
+    #f_loss_enc_spike=False
+#else
+    #f_loss_enc_spike=True
+#fi
+
 
 # weight of loss
-w_loss_enc_spike=10
+#w_loss_enc_spike=10
 
 # coefficient of beta distribution for KL loss
-#beta_dist_a=0.1
-#beta_dist_b=0.9
+# TODO: parameterize
+# dist = "b"
+if [ ${d_loss_enc_spike} = 'b' ]
+then
+    beta_dist_a=0.1
+    beta_dist_b=0.9
+elif [ ${d_loss_enc_spike} = 'b2' ]
+then
+    beta_dist_a=0.9
+    beta_dist_b=0.1
+elif [ ${d_loss_enc_spike} = 'b3' ]
+then
+    beta_dist_a=0.1
+    beta_dist_b=0.1
+elif [ ${d_loss_enc_spike} = 'h' ]
+then
+    beta_dist_a=1
+    beta_dist_b=2
+elif [ ${d_loss_enc_spike} = 'bn' ] # dummy
+then
+    beta_dist_a=0
+    beta_dist_b=0
+else
+    beta_dist_a=0
+    beta_dist_b=0
+fi
 
-#beta_dist_a=0.9
-#beta_dist_b=0.1
 
-beta_dist_a=1
-beta_dist_b=2
 
-# target max encoded spike time - number of time window
-enc_st_n_tw=2
 
 ###############################################################################
 ## Run
 ###############################################################################
 
-training_mode=True
-training_mode=False
+#training_mode=True
+#training_mode=False
 
 #
 # If this flag is False, then the trained model is overwritten
 load_and_train=False
-#load_and_train=True
+load_and_train=True
 
-#
-f_validation_snn=False
-#f_validation_snn=True
+
 
 #
 regularizer='L2'
@@ -147,11 +344,12 @@ time_step=200
 # for MNIST, CNN
 # SNN training
 #time_step=200
-time_step_save_interval=100
+#time_step_save_interval=100
 #time_step_save_interval=40
 #time_step_save_interval=20
 #time_step_save_interval=10
 #time_step_save_interval=5
+time_step_save_interval=1
 
 
 ###############################################################
@@ -381,33 +579,29 @@ epoch_train_time_const=1
 #time_window=100
 
 
-# TTFS - MNIST default setting
-#tc=5
-#time_fire_start=20    # integration duration - n x tc
-#time_fire_duration=20   # time window - n x tc
+## TTFS - MNIST default setting
+##tc=5
+##time_fire_start=20    # integration duration - n x tc
+##time_fire_duration=20   # time window - n x tc
+##time_window=${time_fire_duration}
+#
+## T2FSNN - CIFAR-10
+## TTFS - CIFAR-10 default setting
+##tc=10
+#tc=20
+##tc=16
+#time_fire_start=80    # integration duration - n x tc
+#time_fire_duration=80   # time window - n x tc
 #time_window=${time_fire_duration}
-
-# TTFS - CIFAR-10 default setting
-#tc=10
-tc=20
-#tc=16
-time_fire_start=80    # integration duration - n x tc
-time_fire_duration=80   # time window - n x tc
-time_window=${time_fire_duration}
-
-
-# TTFS - CIFAR-10
-tc=10
-time_fire_start=40    # integration duration - n x tc
-time_fire_duration=40   # time window - n x tc
-time_window=${time_fire_duration}
-
-
-# TTFS - CIFAR-10
-tc=8
-time_fire_start=32    # integration duration - n x tc
-time_fire_duration=32   # time window - n x tc
-time_window=${time_fire_duration}
+#
+## direct training - CIFAR-10
+## TTFS - CIFAR-10
+#tc=8
+##tc=16
+#time_fire_start=32    # integration duration - n x tc
+##time_fire_start=16    # integration duration - n x tc
+#time_fire_duration=32   # time window - n x tc
+#time_window=${time_fire_duration}
 
 
 #f_tc_based=True
@@ -744,6 +938,34 @@ INFER_VGG16_CIFAR-10_SUR)
         batch_size=400
         idx_test_dataset_s=0
         num_test_dataset=10000
+        #num_test_dataset=400
+    fi
+
+    if [ ${neural_coding} = "TEMPORAL" ]
+    then
+        if [ ${f_tc_based} = True ]
+        then
+            time_step="$((18*${n_tau_fire_start}*${tc} + ${n_tau_fire_duration}*${tc}))"
+        else
+            time_step="$((16*${time_fire_start} + ${time_fire_duration}))"
+        fi
+    fi
+    ;;
+
+
+INFER_VGG16_CIFAR-100_SUR)
+    echo "Inference mode - "${nn_mode}", Model: VGG16 (surrogate), Dataset: CIFAR-100"
+    dataset='CIFAR-100'
+    ann_model='VGG16'
+
+    model_name='vgg16_cifar100_train_ANN_surrogate'
+
+    if [ ${f_full_test} = True ]
+    then
+        batch_size=400
+        idx_test_dataset_s=0
+        num_test_dataset=10000
+        #num_test_dataset=400
     fi
 
     if [ ${neural_coding} = "TEMPORAL" ]
@@ -760,8 +982,6 @@ INFER_VGG16_CIFAR-10_SUR)
 
 
 
-
-
 ###############################################################
 ## Training setup
 ###############################################################
@@ -770,14 +990,15 @@ TRAIN_CNN_MNIST)
     dataset='MNIST'
     ann_model='CNN'
 
-    num_epoch=10000
-
+    #num_epoch=10000
 
     if [ ${f_surrogate_training_model} = True ]
     then
         model_name='cnn_mnist_train_'${nn_mode}_'surrogate'
+        num_epoch=${epoch_training}
     else
         model_name='cnn_mnist_train_'${nn_mode}
+        num_epoch=200
     fi
 
     if [ ${f_full_test} = True ]
@@ -810,7 +1031,8 @@ TRAIN_VGG16_CIFAR-10)
 
     if [ ${f_surrogate_training_model} = True ]
     then
-        num_epoch=5000
+        #num_epoch=5000
+        num_epoch=${epoch_training}
         model_name='vgg16_cifar10_train_'${nn_mode}_'surrogate'
     else
         num_epoch=2000
@@ -842,18 +1064,21 @@ TRAIN_VGG16_CIFAR-100)
     ann_model='VGG16'
 
     #num_epoch=2000
-    num_epoch=4000
 
     if [ ${f_surrogate_training_model} = True ]
     then
+        #num_epoch=$1
+        num_epoch=${epoch_training}
         model_name='vgg16_cifar100_train_'${nn_mode}_'surrogate'
     else
+        num_epoch=4000
         model_name='vgg16_cifar100_train_'${nn_mode}
     fi
 
     if [ ${f_full_test} = True ]
     then
-        batch_size=400
+        #batch_size=400
+        batch_size=250
         idx_test_dataset_s=0
         num_test_dataset=10000
     fi
@@ -880,9 +1105,9 @@ esac
 
 
 
-###############################################3
+################################################
 ## batch run mode
-###############################################3
+################################################
 if [ ${batch_run_mode} = True ]
 then
     # for temporal coding
@@ -894,8 +1119,16 @@ then
     time_step_save_interval=$6
 
 fi
-###############################################3
+################################################
 
+
+################################################
+## batch run mode - SNN training (surrogate model)
+################################################
+#if [ ${training_mode} = False ]
+#then
+    #model_name=${model_name}_${log_file_name}
+#fi
 
 
 
@@ -982,13 +1215,27 @@ else
     log_file_post_fix=_${n_type}_time_step_${time_step}_vth_${vth}_c_infer
 fi
 
-log_file=${path_log_root}/log_${model_name}_${nn_mode}_${log_file_post_fix}
+#log_file=${path_log_root}/log_${model_name}_${nn_mode}_${log_file_post_fix}
+
+
+
+#
+log_file=${path_log_root}/${model_name}/${log_file_name}.log
+tfboard_log_file_name=${log_file_name}
+
+
+#
+# DON'T TOUCH
+#
+config_name=${log_file_name}
+
 
 
 date=`date +%Y%m%d_%H%M`
 
-path_result_root=${path_result_root}/${model_name}
-time_const_root=${time_const_init_file_name}/${model_name}
+path_result_root=${path_result_root}/${model_name}/${config_name}
+time_const_root=${time_const_init_file_name}/${model_name}/${config_name}
+path_log_root=${path_log_root}/${model_name}/${config_name}
 
 #
 mkdir -p ${path_log_root}
@@ -996,7 +1243,10 @@ mkdir -p ${path_result_root}
 mkdir -p ${time_const_root}
 
 #log_file=${path_log_root}/log_${model_name}_${nn_mode}_${time_step}_${vth}_999_norm_${f_real_value_input_snn}_${date}
-log_file=${path_log_root}/${date}.log
+#log_file=${path_log_root}/${date}.log
+
+
+
 
 #{ unbuffer time kernprof -l main.py \
 #{ CUDA_VISIBLE_DEVICES=0 unbuffer time python main.py \
@@ -1009,7 +1259,9 @@ log_file=${path_log_root}/${date}.log
     -en_load_model=${en_load_model}\
     -checkpoint_load_dir=${path_models_ckpt}\
 	-checkpoint_dir=${path_models_ckpt}\
+	-ckpt_epoch=${ckpt_epoch}\
 	-model_name=${model_name}\
+	-config_name=${config_name}\
    	-en_train=${en_train}\
 	-save_interval=${save_interval}\
 	-nn_mode=${nn_mode}\
@@ -1052,7 +1304,9 @@ log_file=${path_log_root}/${date}.log
     -path_result_root=${path_result_root}\
     -prefix_stat=${prefix_stat}\
     -f_pruning_channel=${f_pruning_channel}\
+    -f_s_dnn_tk_info=${f_s_dnn_tk_info}\
     -tc=${tc}\
+    -td=${td}\
     -time_window=${time_window}\
     -time_fire_start=${time_fire_start}\
     -time_fire_duration=${time_fire_duration}\
@@ -1079,6 +1333,11 @@ log_file=${path_log_root}/${date}.log
     -f_validation_snn=${f_validation_snn}\
     -en_tensorboard_write=${en_tensorboard_write}\
     -epoch_start_train_tk=${epoch_start_train_tk}\
+    -w_train_tk=${w_train_tk}\
+    -w_train_tk_reg=${w_train_tk_reg}\
+    -t_train_tk_reg=${t_train_tk_reg}\
+    -f_train_tk_reg=${f_train_tk_reg}\
+    -train_tk_strategy=${train_tk_strategy}\
     -epoch_start_train_t_int=${epoch_start_train_t_int}\
     -epoch_start_train_floor=${epoch_start_train_floor}\
     -epoch_start_train_clip_tw=${epoch_start_train_clip_tw}\
@@ -1087,9 +1346,22 @@ log_file=${path_log_root}/${date}.log
     -bypass_target_epoch=${bypass_target_epoch}\
     -f_loss_enc_spike=${f_loss_enc_spike}\
     -w_loss_enc_spike=${w_loss_enc_spike}\
+    -d_loss_enc_spike=${d_loss_enc_spike}\
+    -ems_loss_enc_spike=${ems_loss_enc_spike}\
     -beta_dist_a=${beta_dist_a}\
     -beta_dist_b=${beta_dist_b}\
     -enc_st_n_tw=${enc_st_n_tw}\
+    -f_td_training=${f_td_training}\
+    -f_qvth=${f_qvth}\
+    -tfboard_log_file_name=${tfboard_log_file_name}\
     ; } 2>&1 | tee ${log_file}
 
 echo 'log_file: '${log_file}
+
+#
+#cp_model=${15}
+
+#if [ ${training_mode} = True ]
+#then
+    #cp -r ${path_models_ckpt}/${model_name} ${path_models_ckpt}/${model_name}_${log_file_name}
+#fi

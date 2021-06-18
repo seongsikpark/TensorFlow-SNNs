@@ -9,7 +9,8 @@ from . import cifar10
 
 def load(conf):
     print("load CIFAR100 dataset")
-    (img_train,label_train), (img_test, label_test) = tf.contrib.keras.datasets.cifar100.load_data()
+    #(img_train,label_train), (img_test, label_test) = tf.contrib.keras.datasets.cifar100.load_data()
+    (img_train,label_train), (img_test, label_test) = tf.keras.datasets.cifar100.load_data()
 
     #print(type(img_train))
     img_train = img_train.astype(float)
@@ -35,15 +36,30 @@ def load(conf):
     #img_test[:,:,:,2] = (img_test[:,:,:,2]-np.mean(img_test[:,:,:,2]))/np.std(img_test[:,:,:,2])
 
 
-    print(tf.reduce_min(img_train))
-    print(tf.reduce_min(img_test))
+    #print(tf.reduce_min(img_train))
+    #print(tf.reduce_min(img_test))
 
-    label_test=label_test[:conf.num_test_dataset]
-    img_test=img_test[:conf.num_test_dataset,:,:,:]
+    #label_test=label_test[:conf.num_test_dataset]
+    #img_test=img_test[:conf.num_test_dataset,:,:,:]
+
+
+    num_train_dataset = 45000
+    num_val_dataset = 5000
+    num_test_dataset = conf.num_test_dataset
+
+    img_val = img_train[num_train_dataset:,:,:,:]
+    label_val = label_train[num_train_dataset:,:]
+
+    img_train = img_train[:num_train_dataset,:,:,:]
+    label_train = label_train[:num_train_dataset,:]
+
+
+    label_test=label_test[conf.idx_test_dataset_s:conf.idx_test_dataset_s+conf.num_test_dataset]
+    img_test=img_test[conf.idx_test_dataset_s:conf.idx_test_dataset_s+conf.num_test_dataset,:,:,:]
 
     train_dataset = tf.data.Dataset.from_tensor_slices((img_train,tf.squeeze(tf.one_hot(label_train,100))))
 
-    val_dataset = tf.data.Dataset.from_tensor_slices((img_test,tf.squeeze(tf.one_hot(label_test,100))))
+    val_dataset = tf.data.Dataset.from_tensor_slices((img_val,tf.squeeze(tf.one_hot(label_val,100))))
     val_dataset = val_dataset.map(cifar10.preprocess_test, num_parallel_calls=2)
     val_dataset = val_dataset.prefetch(10*conf.batch_size)
 
@@ -69,7 +85,8 @@ def load(conf):
     val_dataset = val_dataset.batch(conf.batch_size)
     test_dataset = test_dataset.batch(conf.batch_size)
 
-    return train_dataset, val_dataset, test_dataset
+    #return train_dataset, val_dataset, test_dataset
+    return train_dataset, val_dataset, test_dataset, num_train_dataset, num_val_dataset, num_test_dataset
 
 
 def train_data_augmentation(train_dataset, batch_size):

@@ -4,30 +4,33 @@ from __future__ import print_function
 
 import numpy as np
 import tensorflow as tf
-import tensorflow.contrib.eager as tfe
+#import tensorflow.contrib.eager as tfe
 
 from tensorflow.python.framework import ops
 
 import functools
 import itertools
 
-import backprop as bp_sspark
+#import backprop as bp_sspark
 
 #
 
 #
 
+#
+cce = tf.keras.losses.CategoricalCrossentropy()
 
-
+# TODO: remove
 def loss(predictions, labels):
     return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=predictions,labels=labels))
 
 
 def loss_cross_entoropy(predictions, labels):
-    loss_value = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=predictions,labels=labels))
-    delta = tf.softmax(predictions) - labels
 
-    return loss_value, delta
+    logits = tf.nn.softmax(predictions)
+    loss_value = cce(labels,logits)
+
+    return loss_value
 
 
 
@@ -50,11 +53,16 @@ def compute_accuracy(predictions, labels):
                 )
             ) / float(predictions.shape[0].value)
 
+
+
 #@profile
-def train_one_epoch(model, optimizer, dataset):
-    tf.train.get_or_create_global_step()
-    avg_loss = tfe.metrics.Mean('loss')
-    accuracy = tfe.metrics.Accuracy('accuracy')
+def train_one_epoch_original_ref(model, optimizer, dataset):
+    #tf.train.get_or_create_global_step()
+    #avg_loss = tfe.metrics.Mean('loss')
+    #accuracy = tfe.metrics.Accuracy('accuracy')
+
+    avg_loss = tf.keras.metrics.Mean('loss')
+    accuracy = tf.keras.metrics.Accuracy('accuracy')
 
     def model_loss(labels, images):
         prediction = model(images, f_training=True)
@@ -68,7 +76,9 @@ def train_one_epoch(model, optimizer, dataset):
     #builder = tf.profiler.ProfileOptionBuilder
     #opts = builder(builder.time_and_memory()).order_by('micros').build()
 
-    for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
+    #for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
+    #for (batch, (images, labels)) in enumerate(tf.Iterator(dataset)):
+    for (images, labels) in dataset:
         #print(batch)
         #print(images)
         #print(labels)
@@ -85,12 +95,95 @@ def train_one_epoch(model, optimizer, dataset):
 
 
 
-def train_ann_one_epoch_mnist_cnn(model, optimizer, dataset, conf):
-    tf.train.get_or_create_global_step()
-    avg_loss = tfe.metrics.Mean('loss')
-    accuracy = tfe.metrics.Accuracy('accuracy')
+#
+def train_one_epoch(mode_tmp):
 
-    for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
+    # Todo: choose training function depending on dataset and model
+    train_func_sel = {
+        'ANN': train_one_epoch_mnist_cnn
+        #'ANN': train_one_epoch_original_ref
+    }
+    train_func=train_func_sel[mode_tmp]
+
+    return train_func
+
+
+
+###############################################################################
+##
+###############################################################################
+def train_one_epoch_mnist_cnn(model, optimizer, dataset):
+    #tf.train.get_or_create_global_step()
+    #avg_loss = tfe.metrics.Mean('loss')
+    #accuracy = tfe.metrics.Accuracy('accuracy')
+
+    avg_loss = tf.keras.metrics.Mean('loss')
+    accuracy = tf.keras.metrics.Accuracy('accuracy')
+
+
+    #for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
+    #for (batch, (images, labels)) in enumerate(tf.Iterator(dataset)):
+    for (images, labels) in dataset:
+        grads_and_vars = []
+
+        with tf.GradientTape(persistent=True) as tape:
+
+            #tape.watch(images)
+            #tape.watch(model.fc1.kernel)
+
+            predictions = model(images, f_training=True)
+
+            #loss_value = loss(predictions, labels)
+            loss_value = loss_cross_entoropy(predictions, labels)
+            avg_loss(loss_value)
+
+            accuracy(tf.argmax(predictions,axis=1,output_type=tf.int64), tf.argmax(labels,axis=1,output_type=tf.int64))
+
+        #print(grad)
+
+
+
+        if False:
+            for layer_name in model.layer_name:
+
+                layer=model.list_layer[layer_name]
+
+                grad = tape.gradient(loss_value, layer.kernel)
+                grad_b = tape.gradient(loss_value, layer.bias)
+
+                grads_and_vars.append((grad,layer.kernel))
+                grads_and_vars.append((grad_b,layer.bias))
+
+        trainable_vars = model.trainable_variables
+        grads = tape.gradient(loss_value, trainable_vars)
+        #print(trainable_vars)
+
+        grads_and_vars = zip(grads,trainable_vars)
+
+        optimizer.apply_gradients(grads_and_vars)
+
+
+
+
+    return avg_loss.result(), 100*accuracy.result()
+
+
+###############################################################################
+##
+###############################################################################
+
+
+def train_one_epoch_mnist_mlp(model, optimizer, dataset):
+    tf.train.get_or_create_global_step()
+    #avg_loss = tfe.metrics.Mean('loss')
+    #accuracy = tfe.metrics.Accuracy('accuracy')
+
+    avg_loss = tf.keras.metrics.Mean('loss')
+    accuracy = tf.keras.metrics.Accuracy('accuracy')
+
+    #for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
+    #for (batch, (images, labels)) in enumerate(tf.Iterator(dataset)):
+    for (images, labels) in dataset:
         grads_and_vars = []
 
         with tf.GradientTape(persistent=True) as tape:
@@ -143,8 +236,8 @@ def train_ann_one_epoch_mnist_cnn(model, optimizer, dataset, conf):
         #3print(grad_b)
 
         #diff = grad_t - grad
-        diff = grad_b_t - grad_t
-        print('max: %.3f, sum: %.3f'%(tf.reduce_max(diff),tf.reduce_sum(diff)))
+        #diff = grad_b_t - grad_t
+        #print('max: %.3f, sum: %.3f'%(tf.reduce_max(diff),tf.reduce_sum(diff)))
 
 
 
@@ -190,10 +283,16 @@ def train_snn_one_epoch_mnist_cnn(model, optimizer, dataset, conf):
 
 def train_ann_one_epoch_mnist(model, optimizer, dataset, conf):
     tf.train.get_or_create_global_step()
-    avg_loss = tfe.metrics.Mean('loss')
-    accuracy = tfe.metrics.Accuracy('accuracy')
+    #avg_loss = tfe.metrics.Mean('loss')
+    #accuracy = tfe.metrics.Accuracy('accuracy')
 
-    for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
+    avg_loss = tf.keras.metrics.Mean('loss')
+    accuracy = tf.keras.metrics.Accuracy('accuracy')
+
+
+    #for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
+    #for (batch, (images, labels)) in enumerate(tf.Iterator(dataset)):
+    for (images, labels) in dataset:
         grads_and_vars = []
 
         with tf.GradientTape(persistent=True) as tape:
@@ -264,10 +363,15 @@ def train_ann_one_epoch_mnist(model, optimizer, dataset, conf):
 
 def train_snn_one_epoch_mnist_psp_ver(model, optimizer, dataset, conf):
     tf.train.get_or_create_global_step()
-    avg_loss = tfe.metrics.Mean('loss')
-    accuracy = tfe.metrics.Accuracy('accuracy')
+    #avg_loss = tfe.metrics.Mean('loss')
+    #accuracy = tfe.metrics.Accuracy('accuracy')
 
-    for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
+    avg_loss = tf.keras.metrics.Mean('loss')
+    accuracy = tf.keras.metrics.Accuracy('accuracy')
+
+    #for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
+    #for (batch, (images, labels)) in enumerate(tf.Iterator(dataset)):
+    for (images, labels) in dataset:
         grads_and_vars = []
 
         #with tf.GradientTape(persistent=True) as tape:
@@ -366,10 +470,15 @@ def train_snn_one_epoch_mnist_psp_ver(model, optimizer, dataset, conf):
 
 def train_snn_one_epoch_mnist(model, optimizer, dataset, conf):
     tf.train.get_or_create_global_step()
-    avg_loss = tfe.metrics.Mean('loss')
-    accuracy = tfe.metrics.Accuracy('accuracy')
+    #avg_loss = tfe.metrics.Mean('loss')
+    #accuracy = tfe.metrics.Accuracy('accuracy')
 
-    for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
+    avg_loss = tf.keras.metrics.Mean('loss')
+    accuracy = tf.keras.metrics.Accuracy('accuracy')
+
+    #for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
+    #for (batch, (images, labels)) in enumerate(tf.Iterator(dataset)):
+    for (images, labels) in dataset:
         grads_and_vars = []
 
         with tf.GradientTape(persistent=True) as tape:
@@ -473,10 +582,15 @@ def grad_Dense(layer, delta, d_local):
 # temporal coding - trainting time_const, time_delay
 def train_time_const_delay_tmeporal_coding(model, dataset, conf):
     tf.train.get_or_create_global_step()
-    avg_loss = tfe.metrics.Mean('loss')
-    accuracy = tfe.metrics.Accuracy('accuracy')
+    #avg_loss = tfe.metrics.Mean('loss')
+    #accuracy = tfe.metrics.Accuracy('accuracy')
 
-    for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
+    avg_loss = tf.keras.metrics.Mean('loss')
+    accuracy = tf.keras.metrics.Accuracy('accuracy')
+
+    #for (batch, (images, labels)) in enumerate(tfe.Iterator(dataset)):
+    #for (batch, (images, labels)) in enumerate(tf.Iterator(dataset)):
+    for (images, labels) in dataset:
 
         #with tf.GradientTape(persistent=True) as tape:
         predictions_times = model(images, f_training=True)

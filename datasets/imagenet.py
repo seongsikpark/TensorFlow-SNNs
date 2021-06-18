@@ -9,7 +9,6 @@ import numpy as np
 from os.path import isfile, join
 
 import tensorflow as tf
-import tensorflow.contrib.eager as tfe
 
 from utils_tensornets import *
 
@@ -179,8 +178,6 @@ def load_batch(data_dir, data_name, batch_size, resize_wh,
         batch_idx += 1
 
 
-        #yield tfe.Variable(X.reshape((-1, crop_wh, crop_wh, 3))), tfe.Variable(labels[batch_start:batch_start+batch_size])
-        #yield tfe.Variable(X), tfe.Variable(labels[batch_start:batch_start+batch_size])
 
         del X
 

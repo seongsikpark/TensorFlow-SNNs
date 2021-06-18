@@ -8,15 +8,16 @@ import tensorflow as tf
 
 def load(conf):
     print("load CIFAR10 dataset")
-    (img_train,label_train), (img_test, label_test) = tf.contrib.keras.datasets.cifar10.load_data()
+    #(img_train,label_train), (img_test, label_test) = tf.contrib.keras.datasets.cifar10.load_data()
+    (img_train,label_train), (img_test, label_test) = tf.keras.datasets.cifar10.load_data()
 
     #print(type(img_train))
     img_train = img_train.astype(float)
     img_test = img_test.astype(float)
 
     #print(img_train[0])
-    print(tf.reduce_min(img_train))
-    print(tf.reduce_min(img_test))
+    #print(tf.reduce_min(img_train))
+    #print(tf.reduce_min(img_test))
 
     img_train = img_train / 255.0
     img_test = img_test / 255.0
@@ -50,19 +51,31 @@ def load(conf):
     #img_test=img_test[:conf.num_test_dataset,:,:,:]
 
 
+    num_train_dataset = 45000
+    #num_train_dataset = 45
+    num_val_dataset = 5000
+    num_test_dataset = conf.num_test_dataset
+
+    img_val = img_train[num_train_dataset:,:,:,:]
+    label_val = label_train[num_train_dataset:,:]
+
+    img_train = img_train[:num_train_dataset,:,:,:]
+    label_train = label_train[:num_train_dataset,:]
+
+
     label_test=label_test[conf.idx_test_dataset_s:conf.idx_test_dataset_s+conf.num_test_dataset]
     img_test=img_test[conf.idx_test_dataset_s:conf.idx_test_dataset_s+conf.num_test_dataset,:,:,:]
 
     train_dataset = tf.data.Dataset.from_tensor_slices((img_train,tf.squeeze(tf.one_hot(label_train,10))))
 
-    val_dataset = tf.data.Dataset.from_tensor_slices((img_test,tf.squeeze(tf.one_hot(label_test,10))))
+    #val_dataset = tf.data.Dataset.from_tensor_slices((img_test,tf.squeeze(tf.one_hot(label_test,10))))
+    val_dataset = tf.data.Dataset.from_tensor_slices((img_val,tf.squeeze(tf.one_hot(label_val,10))))
     val_dataset = val_dataset.map(preprocess_test, num_parallel_calls=2)
     val_dataset = val_dataset.prefetch(10*conf.batch_size)
 
     test_dataset = tf.data.Dataset.from_tensor_slices((img_test,tf.squeeze(tf.one_hot(label_test,10))))
     test_dataset = test_dataset.map(preprocess_test, num_parallel_calls=2)
     test_dataset = test_dataset.prefetch(10*conf.batch_size)
-
 
     # for stat of train dataset
     if conf.f_stat_train_mode:
@@ -82,7 +95,11 @@ def load(conf):
     val_dataset = val_dataset.batch(conf.batch_size)
     test_dataset = test_dataset.batch(conf.batch_size)
 
-    return train_dataset, val_dataset, test_dataset
+
+
+
+
+    return train_dataset, val_dataset, test_dataset, num_train_dataset, num_val_dataset, num_test_dataset
 
 
 def preprocess_train(img, label):
@@ -96,8 +113,9 @@ def preprocess_train(img, label):
     #img_p = tf.image.random_brightness(img_p,max_delta=103)
 
 
-    img_p = tf.image.resize_image_with_crop_or_pad(img_p,36,36)
-    img_p = tf.random_crop(img_p,[32,32,3])
+    #img_p = tf.image.resize_image_with_crop_or_pad(img_p,36,36)
+    img_p = tf.image.resize_with_crop_or_pad(img_p,36,36)
+    img_p = tf.image.random_crop(img_p,[32,32,3])
 
 
     #img_p = tf.cast(img,tf.float32)

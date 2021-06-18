@@ -37,9 +37,6 @@ from operator import itemgetter
 
 from functools import partial
 
-
-import pandas as pd
-
 #import tfplot
 import threading
 
@@ -65,7 +62,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         self.fanin_conv = self.kernel_size*self.kernel_size
         #self.fanin_conv = self.kernel_size*self.kernel_size/9
 
-        self.ts=conf.time_step
+        self.tw=conf.time_step
 
         self.count_accuracy_time_point=0
         self.accuracy_time_point = list(range(conf.time_step_save_interval,conf.time_step,conf.time_step_save_interval))
@@ -77,7 +74,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         if self.f_debug_visual:
             #self.debug_visual_threads = []
             self.debug_visual_axes = []
-            self.debug_visual_list_neuron = collections.OrderedDict()
+            self.debug_visual_neuron_list = collections.OrderedDict()
 
         #
         self.f_skip_bn = self.conf.f_fused_bn
@@ -200,47 +197,47 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         kernel_initializer = initializers.GlorotUniform()
         #kernel_initializer = initializers.variance_scaling_initializer(factor=2.0,mode='FAN_IN')    # MSRA init. = He init
 
-        self.list_layer=collections.OrderedDict()
-        self.list_layer['conv1'] = tf.keras.layers.Conv2D(64,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
-        self.list_layer['conv1_bn'] = tf.keras.layers.BatchNormalization()
-        self.list_layer['conv1_1'] = tf.keras.layers.Conv2D(64,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
-        self.list_layer['conv1_1_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list=collections.OrderedDict()
+        self.layer_list['conv1'] = tf.keras.layers.Conv2D(64,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv1_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv1_1'] = tf.keras.layers.Conv2D(64,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv1_1_bn'] = tf.keras.layers.BatchNormalization()
 
-        self.list_layer['conv2'] = tf.keras.layers.Conv2D(128,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
-        self.list_layer['conv2_bn'] = tf.keras.layers.BatchNormalization()
-        self.list_layer['conv2_1'] = tf.keras.layers.Conv2D(128,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
-        self.list_layer['conv2_1_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv2'] = tf.keras.layers.Conv2D(128,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv2_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv2_1'] = tf.keras.layers.Conv2D(128,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv2_1_bn'] = tf.keras.layers.BatchNormalization()
 
-        self.list_layer['conv3'] = tf.keras.layers.Conv2D(256,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
-        self.list_layer['conv3_bn'] = tf.keras.layers.BatchNormalization()
-        self.list_layer['conv3_1'] = tf.keras.layers.Conv2D(256,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
-        self.list_layer['conv3_1_bn'] = tf.keras.layers.BatchNormalization()
-        self.list_layer['conv3_2'] = tf.keras.layers.Conv2D(256,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
-        self.list_layer['conv3_2_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv3'] = tf.keras.layers.Conv2D(256,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv3_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv3_1'] = tf.keras.layers.Conv2D(256,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv3_1_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv3_2'] = tf.keras.layers.Conv2D(256,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv3_2_bn'] = tf.keras.layers.BatchNormalization()
 
-        self.list_layer['conv4'] = tf.keras.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
-        self.list_layer['conv4_bn'] = tf.keras.layers.BatchNormalization()
-        self.list_layer['conv4_1'] = tf.keras.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
-        self.list_layer['conv4_1_bn'] = tf.keras.layers.BatchNormalization()
-        self.list_layer['conv4_2'] = tf.keras.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
-        self.list_layer['conv4_2_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv4'] = tf.keras.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv4_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv4_1'] = tf.keras.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv4_1_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv4_2'] = tf.keras.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv4_2_bn'] = tf.keras.layers.BatchNormalization()
 
-        self.list_layer['conv5'] = tf.keras.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
-        self.list_layer['conv5_bn'] = tf.keras.layers.BatchNormalization()
-        self.list_layer['conv5_1'] = tf.keras.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
-        self.list_layer['conv5_1_bn'] = tf.keras.layers.BatchNormalization()
-        self.list_layer['conv5_2'] = tf.keras.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
-        self.list_layer['conv5_2_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv5'] = tf.keras.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv5_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv5_1'] = tf.keras.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv5_1_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['conv5_2'] = tf.keras.layers.Conv2D(512,self.kernel_size,data_format=data_format,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer,padding='SAME')
+        self.layer_list['conv5_2_bn'] = tf.keras.layers.BatchNormalization()
 
-        self.list_layer['fc1'] = tf.keras.layers.Dense(512,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer)
+        self.layer_list['fc1'] = tf.keras.layers.Dense(512,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer)
 
-        self.list_layer['fc1_bn'] = tf.keras.layers.BatchNormalization()
-        self.list_layer['fc2'] = tf.keras.layers.Dense(512,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer)
-        self.list_layer['fc2_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['fc1_bn'] = tf.keras.layers.BatchNormalization()
+        self.layer_list['fc2'] = tf.keras.layers.Dense(512,activation=activation,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer)
+        self.layer_list['fc2_bn'] = tf.keras.layers.BatchNormalization()
 
-        #self.list_layer['fc3'] = tf.keras.layers.Dense(self.num_class,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer))
-        self.list_layer['fc3'] = tf.keras.layers.Dense(self.num_class,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer)
-        self.list_layer['fc3_bn'] = tf.keras.layers.BatchNormalization()
+        #self.layer_list['fc3'] = tf.keras.layers.Dense(self.num_class,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer))
+        self.layer_list['fc3'] = tf.keras.layers.Dense(self.num_class,use_bias=use_bias,kernel_regularizer=kernel_regularizer,kernel_initializer=kernel_initializer)
+        self.layer_list['fc3_bn'] = tf.keras.layers.BatchNormalization()
 
         self.dropout_conv = tf.keras.layers.Dropout(0.3)
         self.dropout_conv2 = tf.keras.layers.Dropout(0.4)
@@ -248,38 +245,38 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
 
         # remove later
-        self.conv1=self.list_layer['conv1']
-        self.conv1_bn=self.list_layer['conv1_bn']
-        self.conv1_1=self.list_layer['conv1_1']
-        self.conv1_1_bn=self.list_layer['conv1_1_bn']
-        self.conv2=self.list_layer['conv2']
-        self.conv2_bn=self.list_layer['conv2_bn']
-        self.conv2_1=self.list_layer['conv2_1']
-        self.conv2_1_bn=self.list_layer['conv2_1_bn']
-        self.conv3=self.list_layer['conv3']
-        self.conv3_bn=self.list_layer['conv3_bn']
-        self.conv3_1=self.list_layer['conv3_1']
-        self.conv3_1_bn=self.list_layer['conv3_1_bn']
-        self.conv3_2=self.list_layer['conv3_2']
-        self.conv3_2_bn=self.list_layer['conv3_2_bn']
-        self.conv4=self.list_layer['conv4']
-        self.conv4_bn=self.list_layer['conv4_bn']
-        self.conv4_1=self.list_layer['conv4_1']
-        self.conv4_1_bn=self.list_layer['conv4_1_bn']
-        self.conv4_2=self.list_layer['conv4_2']
-        self.conv4_2_bn=self.list_layer['conv4_2_bn']
-        self.conv5=self.list_layer['conv5']
-        self.conv5_bn=self.list_layer['conv5_bn']
-        self.conv5_1=self.list_layer['conv5_1']
-        self.conv5_1_bn=self.list_layer['conv5_1_bn']
-        self.conv5_2=self.list_layer['conv5_2']
-        self.conv5_2_bn=self.list_layer['conv5_2_bn']
-        self.fc1=self.list_layer['fc1']
-        self.fc1_bn=self.list_layer['fc1_bn']
-        self.fc2=self.list_layer['fc2']
-        self.fc2_bn=self.list_layer['fc2_bn']
-        self.fc3=self.list_layer['fc3']
-        self.fc3_bn=self.list_layer['fc3_bn']
+        self.conv1=self.layer_list['conv1']
+        self.conv1_bn=self.layer_list['conv1_bn']
+        self.conv1_1=self.layer_list['conv1_1']
+        self.conv1_1_bn=self.layer_list['conv1_1_bn']
+        self.conv2=self.layer_list['conv2']
+        self.conv2_bn=self.layer_list['conv2_bn']
+        self.conv2_1=self.layer_list['conv2_1']
+        self.conv2_1_bn=self.layer_list['conv2_1_bn']
+        self.conv3=self.layer_list['conv3']
+        self.conv3_bn=self.layer_list['conv3_bn']
+        self.conv3_1=self.layer_list['conv3_1']
+        self.conv3_1_bn=self.layer_list['conv3_1_bn']
+        self.conv3_2=self.layer_list['conv3_2']
+        self.conv3_2_bn=self.layer_list['conv3_2_bn']
+        self.conv4=self.layer_list['conv4']
+        self.conv4_bn=self.layer_list['conv4_bn']
+        self.conv4_1=self.layer_list['conv4_1']
+        self.conv4_1_bn=self.layer_list['conv4_1_bn']
+        self.conv4_2=self.layer_list['conv4_2']
+        self.conv4_2_bn=self.layer_list['conv4_2_bn']
+        self.conv5=self.layer_list['conv5']
+        self.conv5_bn=self.layer_list['conv5_bn']
+        self.conv5_1=self.layer_list['conv5_1']
+        self.conv5_1_bn=self.layer_list['conv5_1_bn']
+        self.conv5_2=self.layer_list['conv5_2']
+        self.conv5_2_bn=self.layer_list['conv5_2_bn']
+        self.fc1=self.layer_list['fc1']
+        self.fc1_bn=self.layer_list['fc1_bn']
+        self.fc2=self.layer_list['fc2']
+        self.fc2_bn=self.layer_list['fc2_bn']
+        self.fc3=self.layer_list['fc3']
+        self.fc3_bn=self.layer_list['fc3_bn']
 
         pooling_type= {
             'max': tf.keras.layers.MaxPooling2D((2,2),(2,2),padding='SAME',data_format=data_format),
@@ -425,7 +422,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         self.conv_p['conv5_p']=np.empty(self.dict_shape['conv5_p'],dtype=np.float32)
 
         # neurons
-        if self.conf.nn_mode == 'SNN' or self.conf.f_validation_snn:
+        if self.conf.nn_mode == 'SNN':
             print('Neuron setup')
 
             #self.input_shape_snn = [1] + self._input_shape[1:]
@@ -449,72 +446,69 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             n_type = self.conf.n_type
             nc = self.conf.neural_coding
 
-            self.list_neuron=collections.OrderedDict()
+            self.neuron_list=collections.OrderedDict()
 
-            #self.list_neuron['in'] = lib_snn.Neuron(self.input_shape_snn,'IN',1,self.conf)
-            self.list_neuron['in'] = lib_snn.Neuron(self.input_shape_snn,'IN',1,self.conf,nc,0,'in')
-
-
-            self.list_neuron['conv1'] = lib_snn.Neuron(self.shape_out_conv1,n_type,self.fanin_conv,self.conf,nc,1,'conv1')
-            self.list_neuron['conv1_1'] = lib_snn.Neuron(self.shape_out_conv1_1,n_type,self.fanin_conv,self.conf,nc,2,'conv1_1')
+            #self.neuron_list['in'] = lib_snn.Neuron(self.input_shape_snn,'IN',1,self.conf)
+            self.neuron_list['in'] = lib_snn.Neuron(self.input_shape_snn,'IN',1,self.conf,nc,0,'in')
 
 
-            self.list_neuron['conv2'] = lib_snn.Neuron(self.shape_out_conv2,n_type,self.fanin_conv,self.conf,nc,3,'conv2')
-            self.list_neuron['conv2_1'] = lib_snn.Neuron(self.shape_out_conv2_1,n_type,self.fanin_conv,self.conf,nc,4,'conv2_1')
+            self.neuron_list['conv1'] = lib_snn.Neuron(self.shape_out_conv1,n_type,self.fanin_conv,self.conf,nc,1,'conv1')
+            self.neuron_list['conv1_1'] = lib_snn.Neuron(self.shape_out_conv1_1,n_type,self.fanin_conv,self.conf,nc,2,'conv1_1')
 
-            self.list_neuron['conv3'] = lib_snn.Neuron(self.shape_out_conv3,n_type,self.fanin_conv,self.conf,nc,5,'conv3')
-            self.list_neuron['conv3_1'] = lib_snn.Neuron(self.shape_out_conv3_1,n_type,self.fanin_conv,self.conf,nc,6,'conv3_1')
-            self.list_neuron['conv3_2'] = lib_snn.Neuron(self.shape_out_conv3_2,n_type,self.fanin_conv,self.conf,nc,7,'conv3_2')
+
+            self.neuron_list['conv2'] = lib_snn.Neuron(self.shape_out_conv2,n_type,self.fanin_conv,self.conf,nc,3,'conv2')
+            self.neuron_list['conv2_1'] = lib_snn.Neuron(self.shape_out_conv2_1,n_type,self.fanin_conv,self.conf,nc,4,'conv2_1')
+
+            self.neuron_list['conv3'] = lib_snn.Neuron(self.shape_out_conv3,n_type,self.fanin_conv,self.conf,nc,5,'conv3')
+            self.neuron_list['conv3_1'] = lib_snn.Neuron(self.shape_out_conv3_1,n_type,self.fanin_conv,self.conf,nc,6,'conv3_1')
+            self.neuron_list['conv3_2'] = lib_snn.Neuron(self.shape_out_conv3_2,n_type,self.fanin_conv,self.conf,nc,7,'conv3_2')
 
             #nc = 'BURST'
             #self.conf.n_init_vth=0.125
 
-            self.list_neuron['conv4'] = lib_snn.Neuron(self.shape_out_conv4,n_type,self.fanin_conv,self.conf,nc,8,'conv4')
-            self.list_neuron['conv4_1'] = lib_snn.Neuron(self.shape_out_conv4_1,n_type,self.fanin_conv,self.conf,nc,9,'conv4_1')
-            self.list_neuron['conv4_2'] = lib_snn.Neuron(self.shape_out_conv4_2,n_type,self.fanin_conv,self.conf,nc,10,'conv4_2')
+            self.neuron_list['conv4'] = lib_snn.Neuron(self.shape_out_conv4,n_type,self.fanin_conv,self.conf,nc,8,'conv4')
+            self.neuron_list['conv4_1'] = lib_snn.Neuron(self.shape_out_conv4_1,n_type,self.fanin_conv,self.conf,nc,9,'conv4_1')
+            self.neuron_list['conv4_2'] = lib_snn.Neuron(self.shape_out_conv4_2,n_type,self.fanin_conv,self.conf,nc,10,'conv4_2')
 
             #self.conf.n_init_vth=0.125/2.0
 
-            self.list_neuron['conv5'] = lib_snn.Neuron(self.shape_out_conv5,n_type,self.fanin_conv,self.conf,nc,11,'conv5')
-            self.list_neuron['conv5_1'] = lib_snn.Neuron(self.shape_out_conv5_1,n_type,self.fanin_conv,self.conf,nc,12,'conv5_1')
-            self.list_neuron['conv5_2'] = lib_snn.Neuron(self.shape_out_conv5_2,n_type,self.fanin_conv,self.conf,nc,13,'conv5_2')
+            self.neuron_list['conv5'] = lib_snn.Neuron(self.shape_out_conv5,n_type,self.fanin_conv,self.conf,nc,11,'conv5')
+            self.neuron_list['conv5_1'] = lib_snn.Neuron(self.shape_out_conv5_1,n_type,self.fanin_conv,self.conf,nc,12,'conv5_1')
+            self.neuron_list['conv5_2'] = lib_snn.Neuron(self.shape_out_conv5_2,n_type,self.fanin_conv,self.conf,nc,13,'conv5_2')
 
-            self.list_neuron['fc1'] = lib_snn.Neuron(self.shape_out_fc1,n_type,512,self.conf,nc,14,'fc1')
-            self.list_neuron['fc2'] = lib_snn.Neuron(self.shape_out_fc2,n_type,512,self.conf,nc,15,'fc2')
-            #self.list_neuron['fc3'] = lib_snn.Neuron(self.shape_out_fc3,n_type,512,self.conf)
-            self.list_neuron['fc3'] = lib_snn.Neuron(self.shape_out_fc3,'OUT',512,self.conf,nc,16,'fc3')
+            self.neuron_list['fc1'] = lib_snn.Neuron(self.shape_out_fc1,n_type,512,self.conf,nc,14,'fc1')
+            self.neuron_list['fc2'] = lib_snn.Neuron(self.shape_out_fc2,n_type,512,self.conf,nc,15,'fc2')
+            #self.neuron_list['fc3'] = lib_snn.Neuron(self.shape_out_fc3,n_type,512,self.conf)
+            self.neuron_list['fc3'] = lib_snn.Neuron(self.shape_out_fc3,'OUT',512,self.conf,nc,16,'fc3')
 
 
             # modify later
-            self.n_in = self.list_neuron['in']
+            self.n_in = self.neuron_list['in']
 
-            self.n_conv1 = self.list_neuron['conv1']
-            self.n_conv1_1 = self.list_neuron['conv1_1']
-            #self.n_conv1_1 = tf.contrib.eager.defun(self.list_neuron['conv1_1'])
+            self.n_conv1 = self.neuron_list['conv1']
+            self.n_conv1_1 = self.neuron_list['conv1_1']
+            #self.n_conv1_1 = tf.contrib.eager.defun(self.neuron_list['conv1_1'])
 
-            self.n_conv2 = self.list_neuron['conv2']
-            self.n_conv2_1 = self.list_neuron['conv2_1']
+            self.n_conv2 = self.neuron_list['conv2']
+            self.n_conv2_1 = self.neuron_list['conv2_1']
 
-            self.n_conv3 = self.list_neuron['conv3']
-            self.n_conv3_1 = self.list_neuron['conv3_1']
-            self.n_conv3_2 = self.list_neuron['conv3_2']
+            self.n_conv3 = self.neuron_list['conv3']
+            self.n_conv3_1 = self.neuron_list['conv3_1']
+            self.n_conv3_2 = self.neuron_list['conv3_2']
 
-            self.n_conv4 = self.list_neuron['conv4']
-            self.n_conv4_1 = self.list_neuron['conv4_1']
-            self.n_conv4_2 = self.list_neuron['conv4_2']
+            self.n_conv4 = self.neuron_list['conv4']
+            self.n_conv4_1 = self.neuron_list['conv4_1']
+            self.n_conv4_2 = self.neuron_list['conv4_2']
 
-            self.n_conv5 = self.list_neuron['conv5']
-            self.n_conv5_1 = self.list_neuron['conv5_1']
-            self.n_conv5_2 = self.list_neuron['conv5_2']
+            self.n_conv5 = self.neuron_list['conv5']
+            self.n_conv5_1 = self.neuron_list['conv5_1']
+            self.n_conv5_2 = self.neuron_list['conv5_2']
 
-            self.n_fc1 = self.list_neuron['fc1']
-            self.n_fc2 = self.list_neuron['fc2']
-            self.n_fc3 = self.list_neuron['fc3']
+            self.n_fc1 = self.neuron_list['fc1']
+            self.n_fc2 = self.neuron_list['fc2']
+            self.n_fc3 = self.neuron_list['fc3']
 
-            #
-            self.snn_output_layer = self.n_fc3
 
-            self.snn_output = tf.Variable(initial_value=tf.zeros((self.num_accuracy_time_point,)+tuple(self.snn_output_layer.dim)),dtype=tf.float32,trainable=False)
             #
             if self.conf.f_train_time_const:
                 self.dnn_act_list=collections.OrderedDict()
@@ -551,19 +545,19 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
                     if (type=='tc') :
 
-                        self.list_neuron[name].set_time_const_init_fire(val)
+                        self.neuron_list[name].set_time_const_init_fire(val)
 
                         if not ('in' in name):
-                            self.list_neuron[name].set_time_const_init_integ(self.list_neuron[name_prev].time_const_init_fire)
+                            self.neuron_list[name].set_time_const_init_integ(self.neuron_list[name_prev].time_const_init_fire)
 
                         name_prev = name
 
                     elif (type=='td'):
 
-                        self.list_neuron[name].set_time_delay_init_fire(val)
+                        self.neuron_list[name].set_time_delay_init_fire(val)
 
                         if not ('in' in name):
-                            self.list_neuron[name].set_time_delay_init_integ(self.list_neuron[name_prev].time_delay_init_fire)
+                            self.neuron_list[name].set_time_delay_init_integ(self.neuron_list[name_prev].time_delay_init_fire)
 
                         name_prev = name
 
@@ -600,122 +594,46 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
             self.list_tk=collections.OrderedDict()
 
-            self.init_tc = self.conf.tc
+            init_tc = self.conf.tc
+            init_act_target_range=1.0
+            init_td=init_tc*np.log(init_act_target_range)
 
-            init_tc = self.init_tc
-            init_act_target_range=0.5
-            #init_act_target_range_in=0.5
-            #init_act_target_range_in=5.0
-            init_act_target_range_in=self.conf.td
-
-            #init_td=init_tc*np.log(init_act_target_range)
-            self.init_td_in=init_tc*np.log(init_act_target_range_in)
-            init_td_in = self.init_td_in
+            init_act_target_range_in=1.0
+            init_td_in=init_tc*np.log(init_act_target_range_in)
 
             # TODO: removed
             init_ta=10.0
 
             #
-            self.list_tk['in'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
-            self.list_tk['conv1'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
-            self.list_tk['conv1_1'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
-            self.list_tk['conv2'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
-            self.list_tk['conv2_1'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
-            self.list_tk['conv3'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
-            self.list_tk['conv3_1'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
-            self.list_tk['conv3_2'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
-            self.list_tk['conv4'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
-            self.list_tk['conv4_1'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
-            self.list_tk['conv4_2'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
-            self.list_tk['conv5'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
-            self.list_tk['conv5_1'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
-            self.list_tk['conv5_2'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
-            self.list_tk['fc1'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
-            self.list_tk['fc2'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window,self.conf)
+            self.list_tk['in'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
+            self.list_tk['conv1'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
+            self.list_tk['conv1_1'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
+            self.list_tk['conv2'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
+            self.list_tk['conv2_1'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
+            self.list_tk['conv3'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
+            self.list_tk['conv3_1'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
+            self.list_tk['conv3_2'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
+            self.list_tk['conv4'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
+            self.list_tk['conv4_1'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
+            self.list_tk['conv4_2'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
+            self.list_tk['conv5'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
+            self.list_tk['conv5_1'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
+            self.list_tk['conv5_2'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
+            self.list_tk['fc1'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
+            self.list_tk['fc2'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
             #self.list_tk['fc3'] = lib_snn.Temporal_kernel([], [], init_tc, init_td_in, init_ta,self.conf.time_window)
 
-
-
-            #
-            self.enc_st_n_tw = self.conf.enc_st_n_tw
-
-            #self.enc_st_target_end = self.conf.time_window*10
-            self.enc_st_target_end = self.conf.time_window*self.enc_st_n_tw
-
             # TODO: parameterize with other file (e.g., train_snn.py)
-            #f_loss_dist = True
+            f_loss_dist = True
+            if f_loss_dist:
 
-            #
-            self.f_loss_enc_spike_dist = False
-            self.f_loss_enc_spike_bn = False
-            self.f_loss_enc_spike_bn_only = False   # loss aginst only BN parameters
-            self.f_loss_enc_spike_bn_only_new = False   # debug version
-            self.f_loss_enc_spike_bn_only_new_2 = False   # squred
-            self.f_loss_enc_spike_bn_only_new_lin = False   # linear approx
-            self.f_loss_enc_spike_bn_only_new_new = False   # debug version - new new
+                alpha = 0.1
+                beta = 0.9
 
-            if self.conf.d_loss_enc_spike == 'bn':
-                self.f_loss_enc_spike_dist = False
-                self.f_loss_enc_spike_bn = True
-                self.f_loss_enc_spike_bn_only = False
-            elif self.conf.d_loss_enc_spike == 'bno':
-                self.f_loss_enc_spike_dist = False
-                self.f_loss_enc_spike_bn = True
-                self.f_loss_enc_spike_bn_only = True
-            elif self.conf.d_loss_enc_spike == 'bnon':
-                self.f_loss_enc_spike_dist = False
-                self.f_loss_enc_spike_bn = True
-                self.f_loss_enc_spike_bn_only = True
-                self.f_loss_enc_spike_bn_only_new = True
-            elif self.conf.d_loss_enc_spike == 'bnon2':
-                self.f_loss_enc_spike_dist = False
-                self.f_loss_enc_spike_bn = True
-                self.f_loss_enc_spike_bn_only = True
-                self.f_loss_enc_spike_bn_only_new_2 = True
-            elif self.conf.d_loss_enc_spike == 'bnonl':
-                self.f_loss_enc_spike_dist = False
-                self.f_loss_enc_spike_bn = True
-                self.f_loss_enc_spike_bn_only = True
-                self.f_loss_enc_spike_bn_only_new_lin = True
-            elif self.conf.d_loss_enc_spike == 'bnonn':
-                self.f_loss_enc_spike_dist = False
-                self.f_loss_enc_spike_bn = True
-                self.f_loss_enc_spike_bn_only = True
-                self.f_loss_enc_spike_bn_only_new_new = True
-            else:
-                self.f_loss_enc_spikes_dist = self.conf.f_loss_enc_spike
-                self.f_loss_enc_spike_bn = False
-                self.f_loss_enc_spike_bn_only = False
-
-            if self.f_loss_enc_spike_dist:
-
-                #alpha = 0.1
-                #beta = 0.9
-
-                alpha = self.conf.beta_dist_a
-                beta = self.conf.beta_dist_b
-
-
-                if 'b' in self.conf.d_loss_enc_spike:
-                    self.dist = tfd.Beta(alpha,beta)
-                elif 'g' in self.conf.d_loss_enc_spike:
-                    self.dist = tfd.Gamma(alpha,beta)
-                elif 'h' in self.conf.d_loss_enc_spike:
-                    self.dist = tfd.Horseshoe(alpha)
-                else:
-                    assert False, 'not supported distribution {}'.format(self.conf.d_loss_enc_spike)
+                self.dist = tfd.Beta(alpha,beta)
 
                 self.dist_beta_sample = collections.OrderedDict()
 
-            #
-            self.train_tk_strategy = self.conf.train_tk_strategy.split('-')[0]
-            if self.train_tk_strategy != 'N':
-                self.train_tk_strategy_coeff = (int)(self.conf.train_tk_strategy.split('-')[1])
-                self.train_tk_strategy_coeff_x3 = self.train_tk_strategy_coeff*3
-
-            #
-            self.t_train_tk_reg = self.conf.t_train_tk_reg.split('-')[0]
-            self.t_train_tk_reg_mode = self.conf.t_train_tk_reg.split('-')[1]
 
 
         # model loading V2
@@ -724,14 +642,10 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
     #
     def dist_beta_sample_func(self):
         for l_name, tk in self.list_tk.items():
-            enc_st = tf.reshape(tk.out_enc, [-1])
+            enc_st = tk.out_enc
+            self.dist_beta_sample[l_name] = self.dist.sample(enc_st.shape)
 
-            samples = self.dist.sample(enc_st.shape)
-            #samples = tf.divide(samples,tf.reduce_max(samples))
-            samples = tf.multiply(samples,self.enc_st_target_end)
-            self.dist_beta_sample[l_name] = tf.histogram_fixed_width(samples, [0,self.enc_st_target_end], nbins=self.enc_st_target_end)
-
-    #
+    #~
     def load_layer_ann_checkpoint_func(self):
         if self.conf.f_surrogate_training_model:
             load_layer_ann_checkpoint = tf.train.Checkpoint(
@@ -841,7 +755,6 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             if self.conf.nn_mode=='SNN' and self.conf.f_surrogate_training_model:
                 ret_val = self.call_ann_surrogate_training(inputs,f_training,self.conf.time_step,epoch)
 
-            #ret_val = self.nn_mode_load_model[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
             ret_val = self.nn_mode_load_model[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
             self.f_load_model_done=True
         return ret_val
@@ -860,15 +773,15 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
     def reset_per_sample_snn(self):
         self.reset_neuron()
         #self.snn_output = np.zeros((self.num_accuracy_time_point,)+self.n_fc1.get_spike_count().numpy().shape)
-        self.snn_output.assign(tf.zeros((self.num_accuracy_time_point,)+tuple(self.snn_output_layer.dim)))
+        self.snn_output.assign(tf.zeros((self.num_accuracy_time_point,)+tuple(self.n_fc1.dim)))
         self.count_accuracy_time_point=0
 
 
-    #def reset_neuron(self):
-        #self.n_in.reset()
-        #self.n_conv1.reset()
-        #self.n_conv2.reset()
-        #self.n_fc1.reset()
+    def reset_neuron(self):
+        self.n_in.reset()
+        self.n_conv1.reset()
+        self.n_conv2.reset()
+        self.n_fc1.reset()
 
 
     def preproc(self, inputs, f_training, f_val_snn=False):
@@ -894,7 +807,6 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             self.reset_per_run_snn()
             self.preproc_ann_to_snn()
 
-            # snn validation mode
             if self.conf.f_surrogate_training_model:
                 self.load_temporal_kernel_para()
 
@@ -908,12 +820,8 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
     def preproc_ann(self, inputs, f_training):
         if self.f_done_preproc == False:
             self.f_done_preproc=True
-            self.print_model_conf()
+            #self.print_model_conf()
             self.preproc_ann_norm()
-
-            # surrogate DNN model for training SNN with temporal information
-            if self.conf.f_surrogate_training_model:
-                self.preproc_surrogate_training_model()
 
         self.f_skip_bn=self.conf.f_fused_bn
 
@@ -940,18 +848,10 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
         #self.print_act_after_w_norm()
 
-    def preproc_surrogate_training_model(self):
-        if self.f_loss_enc_spike_dist:
-            self.dist_beta_sample_func()
-
-
 
     #
     # TODO: input neuron ?
     def load_temporal_kernel_para(self):
-        if self.conf.verbose:
-            print('preprocessing: load_temporal_kernel_para')
-
         for l_name in self.layer_name:
 
             if l_name != self.layer_name[-1]:
@@ -988,7 +888,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         if self.f_load_model_done:
 
             # pre-processing
-            self.preproc(inputs,f_training,f_val_snn)
+            #self.preproc(inputs,f_training,f_val_snn)
 
             # run
             if (self.conf.nn_mode=='SNN' and self.conf.neural_coding=="TEMPORAL" and self.conf.f_train_time_const):
@@ -999,7 +899,6 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
                 if self.conf.f_train_time_const:
                     self.nn_mode['ANN'](inputs,f_training,self.conf.time_step,epoch)
 
-                #
                 ret_val = self.nn_mode[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
 
                 # training time constant
@@ -1007,13 +906,9 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
                     self.train_time_const()
             else:
                 # inference - rate, phase burst coding
-                #ret_val = self.nn_mode[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
+                ret_val = self.nn_mode[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
 
-                #
-                if f_val_snn:
-                    ret_val = self.call_snn(inputs,f_training,self.conf.time_step,epoch)
-                else:
-                    ret_val = self.nn_mode[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
+
 
 
             # post-processing
@@ -1021,23 +916,16 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         else:
 
             if self.conf.nn_mode=='SNN' and self.conf.f_surrogate_training_model:
-                ret_val = self.call_ann_surrogate_training(inputs,False,self.conf.time_step,epoch)
+                ret_val = self.call_ann_surrogate_training(inputs,f_training,self.conf.time_step,epoch)
 
-            # validation on SNN
-            if self.conf.en_train and self.conf.f_validation_snn:
-                ret_val = self.call_snn(inputs,False,1,0)
-
-            ret_val = self.nn_mode_load_model[self.conf.nn_mode](inputs,False,self.conf.time_step,epoch)
-
+            ret_val = self.nn_mode_load_model[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
             self.f_load_model_done=True
-
-
         return ret_val
 
 
     #
     def fused_bn(self):
-        #print('fused_bn')
+        print('fused_bn')
         self.conv_bn_fused(self.conv1, self.conv1_bn, 1.0)
         self.conv_bn_fused(self.conv1_1, self.conv1_1_bn, 1.0)
         self.conv_bn_fused(self.conv2, self.conv2_bn, 1.0)
@@ -1056,29 +944,6 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         if ('bn' in self.conf.model_name) or ('ro' in self.conf.model_name):
             self.fc_bn_fused(self.fc3, self.fc3_bn, 1.0)
 
-    def defused_bn(self):
-        #print('defused_bn')
-        self.conv_bn_defused(self.conv1, self.conv1_bn, 1.0)
-        self.conv_bn_defused(self.conv1_1, self.conv1_1_bn, 1.0)
-        self.conv_bn_defused(self.conv2, self.conv2_bn, 1.0)
-        self.conv_bn_defused(self.conv2_1, self.conv2_1_bn, 1.0)
-        self.conv_bn_defused(self.conv3, self.conv3_bn, 1.0)
-        self.conv_bn_defused(self.conv3_1, self.conv3_1_bn, 1.0)
-        self.conv_bn_defused(self.conv3_2, self.conv3_2_bn, 1.0)
-        self.conv_bn_defused(self.conv4, self.conv4_bn, 1.0)
-        self.conv_bn_defused(self.conv4_1, self.conv4_1_bn, 1.0)
-        self.conv_bn_defused(self.conv4_2, self.conv4_2_bn, 1.0)
-        self.conv_bn_defused(self.conv5, self.conv5_bn, 1.0)
-        self.conv_bn_defused(self.conv5_1, self.conv5_1_bn, 1.0)
-        self.conv_bn_defused(self.conv5_2, self.conv5_2_bn, 1.0)
-        self.fc_bn_defused(self.fc1, self.fc1_bn, 1.0)
-        self.fc_bn_defused(self.fc2, self.fc2_bn, 1.0)
-        if ('bn' in self.conf.model_name) or ('ro' in self.conf.model_name):
-            self.fc_bn_defused(self.fc3, self.fc3_bn, 1.0)
-
-
-
-
     #
     def w_norm_layer_wise(self):
         f_norm=np.max
@@ -1094,9 +959,9 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
         if self.conf.f_vth_conp:
             for idx_l, l in enumerate(self.layer_name):
-                #self.list_neuron[l].set_vth(np.broadcast_to(self.conf.n_init_vth*1.0 + 0.1*self.dict_stat_r[l]/f_norm(self.dict_stat_r[l]),self.dict_shape[l]))
-                self.list_neuron[l].set_vth(np.broadcast_to(self.dict_stat_r[l]/f_norm(self.dict_stat_r[l]),self.dict_shape[l]))
-                #self.list_neuron[l].set_vth(np.broadcast_to(self.dict_stat_r[l]/np.broadcast_to(f_norm(self.dict_stat_r[l]),self.dict_stat_r[l].shape)   ,self.dict_shape[l]))
+                #self.neuron_list[l].set_vth(np.broadcast_to(self.conf.n_init_vth*1.0 + 0.1*self.dict_stat_r[l]/f_norm(self.dict_stat_r[l]),self.dict_shape[l]))
+                self.neuron_list[l].set_vth(np.broadcast_to(self.dict_stat_r[l]/f_norm(self.dict_stat_r[l]),self.dict_shape[l]))
+                #self.neuron_list[l].set_vth(np.broadcast_to(self.dict_stat_r[l]/np.broadcast_to(f_norm(self.dict_stat_r[l]),self.dict_stat_r[l].shape)   ,self.dict_shape[l]))
 
         #self.print_act_d()
         # print
@@ -1221,14 +1086,14 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
     def temporal_norm(self):
         print('Temporal normalization')
-        for key, value in self.list_layer.items():
+        for key, value in self.layer_list.items():
             if self.conf.f_fused_bn:
                 if not ('bn' in key):
-                    value.kernel=value.kernel/self.ts
-                    value.bias=value.bias/self.ts
+                    value.kernel=value.kernel/self.tw
+                    value.bias=value.bias/self.tw
             else:
-                value.kernel=value.kernel/self.ts
-                value.bias=value.bias/self.ts
+                value.kernel=value.kernel/self.tw
+                value.bias=value.bias/self.tw
 
 
     #
@@ -1487,33 +1352,6 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         #print(a_fc2)
         #print(a_fc3)
 
-#        if not self.f_1st_iter:
-#
-#            fig, axs = plt.subplots(4,5)
-#            axs=axs.ravel()
-#
-#            axs[0].hist(x.numpy().flatten())
-#            axs[1].hist(s_conv1_bn.numpy().flatten())
-#            axs[2].hist(s_conv1_1_bn.numpy().flatten())
-#            axs[3].hist(s_conv2_bn.numpy().flatten())
-#            axs[4].hist(s_conv2_1_bn.numpy().flatten())
-#            axs[5].hist(s_conv3_bn.numpy().flatten())
-#            axs[6].hist(s_conv3_1_bn.numpy().flatten())
-#            axs[7].hist(s_conv3_2_bn.numpy().flatten())
-#            axs[8].hist(s_conv4_bn.numpy().flatten())
-#            axs[9].hist(s_conv4_1_bn.numpy().flatten())
-#            axs[10].hist(s_conv4_2_bn.numpy().flatten())
-#            axs[11].hist(s_conv5_bn.numpy().flatten())
-#            axs[12].hist(s_conv5_1_bn.numpy().flatten())
-#            axs[13].hist(s_conv5_2_bn.numpy().flatten())
-#            axs[14].hist(s_fc1_bn.numpy().flatten())
-#            axs[15].hist(s_fc2_bn.numpy().flatten())
-#            axs[16].hist(s_fc3_bn.numpy().flatten())
-#
-#            plt.show()
-#
-#            assert False
-
 
 
         if self.f_1st_iter and self.conf.nn_mode=='ANN':
@@ -1559,13 +1397,13 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         #print(epoch)
         #print(type(inputs))
         #if self.f_1st_iter == False and self.conf.nn_mode=='ANN':
-
-
         if self.f_1st_iter == False:
-            #if self.f_done_preproc == False:
-                #self.f_done_preproc=True
-                #self.print_model_conf()
-                #self.preproc_ann_norm()
+            if self.f_done_preproc == False:
+                self.f_done_preproc=True
+                self.print_model_conf()
+                self.preproc_ann_norm()
+
+
             self.f_skip_bn=self.conf.f_fused_bn
         else:
             self.f_skip_bn=False
@@ -1576,28 +1414,18 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
         #pr = 0.1
         #pr = 0.6
-        #pr = 0.9
+        pr = 0.9
         #pr = 1.0
-        #target_epoch = 600
+        target_epoch = 200
 
-        target_epoch = self.conf.bypass_target_epoch
-        pr_target_epoch = tf.cast(tf.divide(tf.add(epoch,1),target_epoch),tf.float32)
-        pr = tf.multiply(tf.subtract(1.0,self.conf.bypass_pr),pr_target_epoch)
-
-
+        pr_target_epoch = pr*epoch/target_epoch
         #if epoch==-1 or epoch > 100:
         #if epoch==-1 or tf.random.uniform(shape=(),minval=0,maxval=1)<pr:
         #pr_layer = pr*(5/5)*pr_target_epoch
+        pr_layer = pr_target_epoch
+        #pr_layer = 0.5
 
-        #pr_layer = tf.multiply(pr,pr_target_epoch)
-        pr_layer = pr
-        #print("epoch: {}, target_epoch: {}".format(epoch,target_epoch))
-        #print("pr: {}, pr_target_epoch: {}".format(pr_layer,pr_target_epoch))
-        #pr_layer = 2.0
-
-
-        #if self.f_1st_iter:
-        if not self.f_load_model_done:
+        if self.f_1st_iter:
         #if f_training==False or tf.random.uniform(shape=(),minval=0,maxval=1)<pr_layer:
             v_in = x
             t_in = self.list_tk['in'](v_in,'enc', self.epoch, f_training)
@@ -1615,11 +1443,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
         #if epoch==-1 or epoch > 100:
         #if epoch==-1 or tf.random.uniform(shape=(),minval=0,maxval=1)<pr:
-        #if f_training==False or ((f_training) and (tf.random.uniform(shape=(),minval=0,maxval=1)<pr_layer)):
-        #if f_training==False or ((f_training) and (rand<pr_layer)):
-        rand = tf.random.uniform(shape=(),minval=0,maxval=1)
-        if f_training==False or ((f_training==True) and (tf.math.less(rand,pr_layer))):
-        #if True:
+        if f_training==False or tf.random.uniform(shape=(),minval=0,maxval=1)<pr_layer:
             v_conv1 = s_conv1_bn
             t_conv1 = self.list_tk['conv1'](v_conv1,'enc',self.epoch,f_training)
             v_conv1_dec = self.list_tk['conv1'](t_conv1,'dec',self.epoch,f_training)
@@ -1638,9 +1462,9 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         else:
             s_conv1_1_bn = self.conv1_1_bn(s_conv1_1,training=f_training)
 
-        rand = tf.random.uniform(shape=(), minval=0, maxval=1)
-        if f_training == False or ((f_training) and (tf.math.less(rand, pr_layer))):
-        #if True:
+        #if epoch==-1 or epoch > 100:
+        #if epoch==-1 or tf.random.uniform(shape=(),minval=0,maxval=1)<pr:
+        if f_training==False or tf.random.uniform(shape=(),minval=0,maxval=1)<pr_layer:
             v_conv1_1 = s_conv1_1_bn
             t_conv1_1 = self.list_tk['conv1_1'](v_conv1_1,'enc',self.epoch,f_training)
             v_conv1_1_dec = self.list_tk['conv1_1'](t_conv1_1,'dec',self.epoch,f_training)
@@ -1658,9 +1482,13 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         else:
             s_conv2_bn = self.conv2_bn(s_conv2,training=f_training)
 
-        rand = tf.random.uniform(shape=(), minval=0, maxval=1)
-        if f_training == False or ((f_training) and (tf.math.less(rand, pr_layer))):
-        #if True:
+        #if epoch==-1 or epoch > 100:
+        #if epoch==-1 or tf.random.uniform(shape=(),minval=0,maxval=1)<pr:
+        #pr_layer = pr*(0.9+0.1*4/5)*pr_target_epoch
+        #pr_layer = pr*(4/5)*pr_target_epoch
+        #pr_layer = pr_target_epoch
+        #pr_layer = 0.5
+        if f_training==False or tf.random.uniform(shape=(),minval=0,maxval=1)<pr_layer:
             v_conv2 = s_conv2_bn
             t_conv2 = self.list_tk['conv2'](v_conv2,'enc',self.epoch,f_training)
             v_conv2_dec = self.list_tk['conv2'](t_conv2,'dec',self.epoch,f_training)
@@ -1676,9 +1504,9 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         else:
             s_conv2_1_bn = self.conv2_1_bn(s_conv2_1,training=f_training)
 
-        rand = tf.random.uniform(shape=(), minval=0, maxval=1)
-        if f_training == False or ((f_training) and (tf.math.less(rand, pr_layer))):
-        #if True:
+        #if epoch==-1 or epoch > 100:
+        #if epoch==-1 or tf.random.uniform(shape=(),minval=0,maxval=1)<pr:
+        if f_training==False or tf.random.uniform(shape=(),minval=0,maxval=1)<pr_layer:
             v_conv2_1 = s_conv2_1_bn
             t_conv2_1 = self.list_tk['conv2_1'](v_conv2_1,'enc',self.epoch,f_training)
             v_conv2_1_dec = self.list_tk['conv2_1'](t_conv2_1,'dec',self.epoch,f_training)
@@ -1696,9 +1524,14 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         else:
             s_conv3_bn = self.conv3_bn(s_conv3,training=f_training)
 
-        rand = tf.random.uniform(shape=(), minval=0, maxval=1)
-        if f_training == False or ((f_training) and (tf.math.less(rand, pr_layer))):
-        #if True:
+        #if epoch==-10 or self.f_1st_iter:
+        #if epoch==-1 or epoch > 100:
+        #if epoch==-1 or tf.random.uniform(shape=(),minval=0,maxval=1)<pr:
+        #pr_layer = pr*(0.9+0.1*3/5)*pr_target_epoch
+        #pr_layer = pr*(3/5)*pr_target_epoch
+        #pr_layer = pr_target_epoch
+        #pr_layer = 0.5
+        if f_training==False or tf.random.uniform(shape=(),minval=0,maxval=1)<pr_layer:
             v_conv3 = s_conv3_bn
             t_conv3 = self.list_tk['conv3'](v_conv3,'enc',self.epoch,f_training)
             v_conv3_dec = self.list_tk['conv3'](t_conv3,'dec',self.epoch,f_training)
@@ -1714,9 +1547,10 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         else:
             s_conv3_1_bn = self.conv3_1_bn(s_conv3_1,training=f_training)
 
-        rand = tf.random.uniform(shape=(), minval=0, maxval=1)
-        if f_training == False or ((f_training) and (tf.math.less(rand, pr_layer))):
-        #if True:
+        #if epoch==-10 or self.f_1st_iter:
+        #if epoch==-1 or epoch > 100:
+        #if epoch==-1 or tf.random.uniform(shape=(),minval=0,maxval=1)<pr:
+        if f_training==False or tf.random.uniform(shape=(),minval=0,maxval=1)<pr_layer:
             v_conv3_1 = s_conv3_1_bn
             t_conv3_1 = self.list_tk['conv3_1'](v_conv3_1,'enc',self.epoch,f_training)
             v_conv3_1_dec = self.list_tk['conv3_1'](t_conv3_1,'dec',self.epoch,f_training)
@@ -1732,9 +1566,10 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         else:
             s_conv3_2_bn = self.conv3_2_bn(s_conv3_2,training=f_training)
 
-        rand = tf.random.uniform(shape=(), minval=0, maxval=1)
-        if f_training == False or ((f_training) and (tf.math.less(rand, pr_layer))):
-        #if True:
+        #if epoch==-10 or self.f_1st_iter:
+        #if epoch==-1 or epoch > 100:
+        #if epoch==-1 or tf.random.uniform(shape=(),minval=0,maxval=1)<pr:
+        if f_training==False or tf.random.uniform(shape=(),minval=0,maxval=1)<pr_layer:
             v_conv3_2 = s_conv3_2_bn
             t_conv3_2 = self.list_tk['conv3_2'](v_conv3_2,'enc',self.epoch,f_training)
             v_conv3_2_dec = self.list_tk['conv3_2'](t_conv3_2,'dec',self.epoch,f_training)
@@ -1752,9 +1587,14 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         else:
             s_conv4_bn = self.conv4_bn(s_conv4,training=f_training)
 
-        rand = tf.random.uniform(shape=(), minval=0, maxval=1)
-        if f_training == False or ((f_training) and (tf.math.less(rand, pr_layer))):
-        #if True:
+        #if epoch==-10 or self.f_1st_iter:
+        #if epoch==-1 or epoch > 100:
+        #if epoch==-1 or tf.random.uniform(shape=(),minval=0,maxval=1)<pr:
+        #pr_layer = pr*(0.9+0.1*2/5)*pr_target_epoch
+        #pr_layer = pr*(2/5)*pr_target_epoch
+        #pr_layer = pr_target_epoch
+        #pr_layer = 0.5
+        if f_training==False or tf.random.uniform(shape=(),minval=0,maxval=1)<pr_layer:
             v_conv4 = s_conv4_bn
             t_conv4 = self.list_tk['conv4'](v_conv4,'enc',self.epoch,f_training)
             v_conv4_dec = self.list_tk['conv4'](t_conv4,'dec',self.epoch,f_training)
@@ -1770,9 +1610,10 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         else:
             s_conv4_1_bn = self.conv4_1_bn(s_conv4_1,training=f_training)
 
-        rand = tf.random.uniform(shape=(), minval=0, maxval=1)
-        if f_training == False or ((f_training) and (tf.math.less(rand, pr_layer))):
-        #if True:
+        #if epoch==-10 or self.f_1st_iter:
+        #if epoch==-1 or epoch > 100:
+        #if epoch==-1 or tf.random.uniform(shape=(),minval=0,maxval=1)<pr:
+        if f_training==False or tf.random.uniform(shape=(),minval=0,maxval=1)<pr_layer:
             v_conv4_1 = s_conv4_1_bn
             t_conv4_1 = self.list_tk['conv4_1'](v_conv4_1,'enc',self.epoch,f_training)
             v_conv4_1_dec = self.list_tk['conv4_1'](t_conv4_1,'dec',self.epoch,f_training)
@@ -1788,9 +1629,10 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         else:
             s_conv4_2_bn = self.conv4_2_bn(s_conv4_2,training=f_training)
 
-        rand = tf.random.uniform(shape=(), minval=0, maxval=1)
-        if f_training == False or ((f_training) and (tf.math.less(rand, pr_layer))):
-        #if True:
+        #if epoch==-10 or self.f_1st_iter:
+        #if epoch==-1 or epoch > 100:
+        #if epoch==-1 or tf.random.uniform(shape=(),minval=0,maxval=1)<pr:
+        if f_training==False or tf.random.uniform(shape=(),minval=0,maxval=1)<pr_layer:
             v_conv4_2 = s_conv4_2_bn
             t_conv4_2 = self.list_tk['conv4_2'](v_conv4_2,'enc',self.epoch,f_training)
             v_conv4_2_dec = self.list_tk['conv4_2'](t_conv4_2,'dec',self.epoch,f_training)
@@ -1808,9 +1650,14 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         else:
             s_conv5_bn = self.conv5_bn(s_conv5,training=f_training)
 
-        rand = tf.random.uniform(shape=(), minval=0, maxval=1)
-        if f_training == False or ((f_training) and (tf.math.less(rand, pr_layer))):
-        #if True:
+        #if epoch==-10 or self.f_1st_iter:
+        #if epoch==-1 or epoch > 100:
+        #if epoch==-1 or tf.random.uniform(shape=(),minval=0,maxval=1)<pr:
+        #pr_layer = pr*(0.9+0.1*1/5)*pr_target_epoch
+        #pr_layer = pr*(1/5)*pr_target_epoch
+        #pr_layer = pr_target_epoch
+        #pr_layer = 0.5
+        if f_training==False or tf.random.uniform(shape=(),minval=0,maxval=1)<pr_layer:
             v_conv5 = s_conv5_bn
             t_conv5 = self.list_tk['conv5'](v_conv5,'enc',self.epoch,f_training)
             v_conv5_dec = self.list_tk['conv5'](t_conv5,'dec',self.epoch,f_training)
@@ -1826,9 +1673,10 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         else:
             s_conv5_1_bn = self.conv5_1_bn(s_conv5_1,training=f_training)
 
-        rand = tf.random.uniform(shape=(), minval=0, maxval=1)
-        if f_training == False or ((f_training) and (tf.math.less(rand, pr_layer))):
-        #if True:
+        #if epoch==-10 or self.f_1st_iter:
+        #if epoch==-1 or epoch > 100:
+        #if epoch==-1 or tf.random.uniform(shape=(),minval=0,maxval=1)<pr:
+        if f_training==False or tf.random.uniform(shape=(),minval=0,maxval=1)<pr_layer:
             v_conv5_1 = s_conv5_1_bn
             t_conv5_1 = self.list_tk['conv5_1'](v_conv5_1,'enc',self.epoch,f_training)
             v_conv5_1_dec = self.list_tk['conv5_1'](t_conv5_1,'dec',self.epoch,f_training)
@@ -1844,9 +1692,10 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         else:
             s_conv5_2_bn = self.conv5_2_bn(s_conv5_2,training=f_training)
 
-        rand = tf.random.uniform(shape=(), minval=0, maxval=1)
-        if f_training == False or ((f_training) and (tf.math.less(rand, pr_layer))):
-        #if True:
+        #if epoch==-10 or self.f_1st_iter:
+        #if epoch==-1 or epoch > 100:
+        #if epoch==-1 or tf.random.uniform(shape=(),minval=0,maxval=1)<pr:
+        if f_training==False or tf.random.uniform(shape=(),minval=0,maxval=1)<pr_layer:
             v_conv5_2 = s_conv5_2_bn
             t_conv5_2 = self.list_tk['conv5_2'](v_conv5_2,'enc',self.epoch,f_training)
             v_conv5_2_dec = self.list_tk['conv5_2'](t_conv5_2,'dec',self.epoch,f_training)
@@ -1868,9 +1717,10 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         else:
             s_fc1_bn = self.fc1_bn(s_fc1,training=f_training)
 
-        rand = tf.random.uniform(shape=(), minval=0, maxval=1)
-        if f_training == False or ((f_training) and (tf.math.less(rand, pr_layer))):
-        #if True:
+        #if epoch==-10 or self.f_1st_iter:
+        #if epoch==-1 or epoch > 100:
+        #if epoch==-1 or tf.random.uniform(shape=(),minval=0,maxval=1)<pr:
+        if f_training==False or tf.random.uniform(shape=(),minval=0,maxval=1)<pr_layer:
             v_fc1 = s_fc1_bn
             t_fc1 = self.list_tk['fc1'](v_fc1,'enc',self.epoch,f_training)
             v_fc1_dec = self.list_tk['fc1'](t_fc1,'dec',self.epoch,f_training)
@@ -1887,9 +1737,10 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         else:
             s_fc2_bn = self.fc2_bn(s_fc2,training=f_training)
 
-        rand = tf.random.uniform(shape=(), minval=0, maxval=1)
-        if f_training == False or ((f_training) and (tf.math.less(rand, pr_layer))):
-        #if True:
+        #if epoch==-10 or self.f_1st_iter:
+        #if epoch==-1 or epoch > 100:
+        #if epoch==-1 or tf.random.uniform(shape=(),minval=0,maxval=1)<#pr:
+        if f_training==False or tf.random.uniform(shape=(),minval=0,maxval=1)<pr_layer:
             v_fc2 = s_fc2_bn
             t_fc2 = self.list_tk['fc2'](v_fc2,'enc',self.epoch,f_training)
             v_fc2_dec = self.list_tk['fc2'](t_fc2,'dec',self.epoch,f_training)
@@ -1915,385 +1766,52 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             a_fc3 = s_fc3_bn
 
 
-        # print - activation histogram
-        #if not self.f_1st_iter:
-        if False:
 
-            fig, axs = plt.subplots(4,5)
-            axs=axs.ravel()
 
-            list_hist_count=[]
-            list_hist_bins=[]
-            list_hist_bars=[]
-            list_beta=[]
-            list_x_M=[]
-            list_x_m=[]
-
-            #
-            counts, bins, bars = axs[0].hist(x.numpy().flatten(),bins=1000)
-            list_hist_count.append(counts)
-            list_hist_bins.append(bins)
-            list_hist_bars.append(bars)
-            list_beta.append(0)
-            list_x_M.append(0)
-            list_x_m.append(0)
-
-            #
-            counts, bins, bars = axs[1].hist(s_conv1_bn.numpy().flatten(),bins=1000)
-            layer_name = 'conv1'
-            beta = tf.math.reduce_mean(self.list_layer[layer_name+'_bn'].beta)
-            x_M = tf.math.exp(tf.math.divide(self.list_tk[layer_name].td,self.list_tk[layer_name].tc))
-            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk[layer_name].tc)))
-            axs[1].vlines(beta,0, np.max(counts), color='k')
-            axs[1].vlines(x_m,0, np.max(counts), color='r')
-            axs[1].vlines(x_M,0, np.max(counts), color='m')
-            list_hist_count.append(counts)
-            list_hist_bins.append(bins)
-            list_hist_bars.append(bars)
-            list_beta.append(beta.numpy())
-            list_x_M.append(x_M.numpy()[0])
-            list_x_m.append(x_m.numpy()[0])
-
-            #
-            counts, bins, bars = axs[2].hist(s_conv1_1_bn.numpy().flatten(),bins=1000)
-
-            layer_name = 'conv1_1'
-            beta = tf.math.reduce_mean(self.list_layer[layer_name+'_bn'].beta)
-            x_M = tf.math.exp(tf.math.divide(self.list_tk[layer_name].td,self.list_tk[layer_name].tc))
-            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk[layer_name].tc)))
-            axs[2].vlines(beta,0, np.max(counts), color='k')
-            axs[2].vlines(x_m,0, np.max(counts), color='r')
-            axs[2].vlines(x_M,0, np.max(counts), color='m')
-            list_hist_count.append(counts)
-            list_hist_bins.append(bins)
-            list_hist_bars.append(bars)
-            list_beta.append(beta.numpy())
-            list_x_M.append(x_M.numpy()[0])
-            list_x_m.append(x_m.numpy()[0])
-
-            #
-            counts, bins, bars = axs[3].hist(s_conv2_bn.numpy().flatten(),bins=1000)
-
-            layer_name = 'conv2'
-            beta = tf.math.reduce_mean(self.list_layer[layer_name+'_bn'].beta)
-            x_M = tf.math.exp(tf.math.divide(self.list_tk[layer_name].td,self.list_tk[layer_name].tc))
-            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk[layer_name].tc)))
-            axs[3].vlines(beta,0, np.max(counts), color='k')
-            axs[3].vlines(x_m,0, np.max(counts), color='r')
-            axs[3].vlines(x_M,0, np.max(counts), color='m')
-            list_hist_count.append(counts)
-            list_hist_bins.append(bins)
-            list_hist_bars.append(bars)
-            list_beta.append(beta.numpy())
-            list_x_M.append(x_M.numpy()[0])
-            list_x_m.append(x_m.numpy()[0])
-
-            #
-            counts, bins, bars = axs[4].hist(s_conv2_1_bn.numpy().flatten(),bins=1000)
-
-            layer_name = 'conv2_1'
-            beta = tf.math.reduce_mean(self.list_layer[layer_name+'_bn'].beta)
-            x_M = tf.math.exp(tf.math.divide(self.list_tk[layer_name].td,self.list_tk[layer_name].tc))
-            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk[layer_name].tc)))
-            axs[4].vlines(beta,0, np.max(counts), color='k')
-            axs[4].vlines(x_m,0, np.max(counts), color='r')
-            axs[4].vlines(x_M,0, np.max(counts), color='m')
-            list_hist_count.append(counts)
-            list_hist_bins.append(bins)
-            list_hist_bars.append(bars)
-            list_beta.append(beta.numpy())
-            list_x_M.append(x_M.numpy()[0])
-            list_x_m.append(x_m.numpy()[0])
-
-            #
-            counts, bins, bars = axs[5].hist(s_conv3_bn.numpy().flatten(),bins=1000)
-
-            layer_name = 'conv3'
-            beta = tf.math.reduce_mean(self.list_layer[layer_name+'_bn'].beta)
-            x_M = tf.math.exp(tf.math.divide(self.list_tk[layer_name].td,self.list_tk[layer_name].tc))
-            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk[layer_name].tc)))
-            axs[5].vlines(beta,0, np.max(counts), color='k')
-            axs[5].vlines(x_m,0, np.max(counts), color='r')
-            axs[5].vlines(x_M,0, np.max(counts), color='m')
-            list_hist_count.append(counts)
-            list_hist_bins.append(bins)
-            list_hist_bars.append(bars)
-            list_beta.append(beta.numpy())
-            list_x_M.append(x_M.numpy()[0])
-            list_x_m.append(x_m.numpy()[0])
-
-            #
-
-
-            counts, bins, bars = axs[6].hist(s_conv3_1_bn.numpy().flatten(),bins=1000)
-
-            layer_name = 'conv3_1'
-            beta = tf.math.reduce_mean(self.list_layer[layer_name+'_bn'].beta)
-            x_M = tf.math.exp(tf.math.divide(self.list_tk[layer_name].td,self.list_tk[layer_name].tc))
-            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk[layer_name].tc)))
-            axs[6].vlines(beta,0, np.max(counts), color='k')
-            axs[6].vlines(x_m,0, np.max(counts), color='r')
-            axs[6].vlines(x_M,0, np.max(counts), color='m')
-            list_hist_count.append(counts)
-            list_hist_bins.append(bins)
-            list_hist_bars.append(bars)
-            list_beta.append(beta.numpy())
-            list_x_M.append(x_M.numpy()[0])
-            list_x_m.append(x_m.numpy()[0])
-
-            #
-
-
-            counts, bins, bars = axs[7].hist(s_conv3_2_bn.numpy().flatten(),bins=1000)
-
-            layer_name = 'conv3_2'
-            beta = tf.math.reduce_mean(self.list_layer[layer_name+'_bn'].beta)
-            x_M = tf.math.exp(tf.math.divide(self.list_tk[layer_name].td,self.list_tk[layer_name].tc))
-            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk[layer_name].tc)))
-            axs[7].vlines(beta,0, np.max(counts), color='k')
-            axs[7].vlines(x_m,0, np.max(counts), color='r')
-            axs[7].vlines(x_M,0, np.max(counts), color='m')
-            list_hist_count.append(counts)
-            list_hist_bins.append(bins)
-            list_hist_bars.append(bars)
-            list_beta.append(beta.numpy())
-            list_x_M.append(x_M.numpy()[0])
-            list_x_m.append(x_m.numpy()[0])
-
-            #
-
-
-            counts, bins, bars = axs[8].hist(s_conv4_bn.numpy().flatten(),bins=1000)
-
-            layer_name = 'conv4'
-            beta = tf.math.reduce_mean(self.list_layer[layer_name+'_bn'].beta)
-            x_M = tf.math.exp(tf.math.divide(self.list_tk[layer_name].td,self.list_tk[layer_name].tc))
-            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk[layer_name].tc)))
-            axs[8].vlines(beta,0, np.max(counts), color='k')
-            axs[8].vlines(x_m,0, np.max(counts), color='r')
-            axs[8].vlines(x_M,0, np.max(counts), color='m')
-            list_hist_count.append(counts)
-            list_hist_bins.append(bins)
-            list_hist_bars.append(bars)
-            list_beta.append(beta.numpy())
-            list_x_M.append(x_M.numpy()[0])
-            list_x_m.append(x_m.numpy()[0])
-
-            #
-
-
-            counts, bins, bars = axs[9].hist(s_conv4_1_bn.numpy().flatten(),bins=1000)
-
-            layer_name = 'conv4_1'
-            beta = tf.math.reduce_mean(self.list_layer[layer_name+'_bn'].beta)
-            x_M = tf.math.exp(tf.math.divide(self.list_tk[layer_name].td,self.list_tk[layer_name].tc))
-            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk[layer_name].tc)))
-            axs[9].vlines(beta,0, np.max(counts), color='k')
-            axs[9].vlines(x_m,0, np.max(counts), color='r')
-            axs[9].vlines(x_M,0, np.max(counts), color='m')
-            list_hist_count.append(counts)
-            list_hist_bins.append(bins)
-            list_hist_bars.append(bars)
-            list_beta.append(beta.numpy())
-            list_x_M.append(x_M.numpy()[0])
-            list_x_m.append(x_m.numpy()[0])
-
-            #
-
-
-            counts, bins, bars = axs[10].hist(s_conv4_2_bn.numpy().flatten(),bins=1000)
-
-            layer_name = 'conv4_2'
-            beta = tf.math.reduce_mean(self.list_layer[layer_name+'_bn'].beta)
-            x_M = tf.math.exp(tf.math.divide(self.list_tk[layer_name].td,self.list_tk[layer_name].tc))
-            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk[layer_name].tc)))
-            axs[10].vlines(beta,0, np.max(counts), color='k')
-            axs[10].vlines(x_m,0, np.max(counts), color='r')
-            axs[10].vlines(x_M,0, np.max(counts), color='m')
-            list_hist_count.append(counts)
-            list_hist_bins.append(bins)
-            list_hist_bars.append(bars)
-            list_beta.append(beta.numpy())
-            list_x_M.append(x_M.numpy()[0])
-            list_x_m.append(x_m.numpy()[0])
-
-            #
-
-
-            counts, bins, bars = axs[11].hist(s_conv5_bn.numpy().flatten(),bins=1000)
-
-            layer_name = 'conv5'
-            beta = tf.math.reduce_mean(self.list_layer[layer_name+'_bn'].beta)
-            x_M = tf.math.exp(tf.math.divide(self.list_tk[layer_name].td,self.list_tk[layer_name].tc))
-            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk[layer_name].tc)))
-            axs[11].vlines(beta,0, np.max(counts), color='k')
-            axs[11].vlines(x_m,0, np.max(counts), color='r')
-            axs[11].vlines(x_M,0, np.max(counts), color='m')
-
-            list_hist_count.append(counts)
-            list_hist_bins.append(bins)
-            list_hist_bars.append(bars)
-            list_beta.append(beta.numpy())
-            list_x_M.append(x_M.numpy()[0])
-            list_x_m.append(x_m.numpy()[0])
-
-            #
-
-            counts, bins, bars = axs[12].hist(s_conv5_1_bn.numpy().flatten(),bins=1000)
-
-            layer_name = 'conv5_1'
-            beta = tf.math.reduce_mean(self.list_layer[layer_name+'_bn'].beta)
-            x_M = tf.math.exp(tf.math.divide(self.list_tk[layer_name].td,self.list_tk[layer_name].tc))
-            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk[layer_name].tc)))
-            axs[12].vlines(beta,0, np.max(counts), color='k')
-            axs[12].vlines(x_m,0, np.max(counts), color='r')
-            axs[12].vlines(x_M,0, np.max(counts), color='m')
-            list_hist_count.append(counts)
-            list_hist_bins.append(bins)
-            list_hist_bars.append(bars)
-            list_beta.append(beta.numpy())
-            list_x_M.append(x_M.numpy()[0])
-            list_x_m.append(x_m.numpy()[0])
-
-            #
-
-
-            counts, bins, bars = axs[13].hist(s_conv5_2_bn.numpy().flatten(),bins=1000)
-
-            layer_name = 'conv5_2'
-            beta = tf.math.reduce_mean(self.list_layer[layer_name+'_bn'].beta)
-            x_M = tf.math.exp(tf.math.divide(self.list_tk[layer_name].td,self.list_tk[layer_name].tc))
-            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk[layer_name].tc)))
-            axs[13].vlines(beta,0, np.max(counts), color='k')
-            axs[13].vlines(x_m,0, np.max(counts), color='r')
-            axs[13].vlines(x_M,0, np.max(counts), color='m')
-
-            list_hist_count.append(counts)
-            list_hist_bins.append(bins)
-            list_hist_bars.append(bars)
-            list_beta.append(beta.numpy())
-            list_x_M.append(x_M.numpy()[0])
-            list_x_m.append(x_m.numpy()[0])
-
-            #
-
-            counts, bins, bars = axs[14].hist(s_fc1_bn.numpy().flatten(),bins=1000)
-
-            layer_name = 'fc1'
-            beta = tf.math.reduce_mean(self.list_layer[layer_name+'_bn'].beta)
-            x_M = tf.math.exp(tf.math.divide(self.list_tk[layer_name].td,self.list_tk[layer_name].tc))
-            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk[layer_name].tc)))
-            axs[14].vlines(beta,0, np.max(counts), color='k')
-            axs[14].vlines(x_m,0, np.max(counts), color='r')
-            axs[14].vlines(x_M,0, np.max(counts), color='m')
-            list_hist_count.append(counts)
-            list_hist_bins.append(bins)
-            list_hist_bars.append(bars)
-            list_beta.append(beta.numpy())
-            list_x_M.append(x_M.numpy()[0])
-            list_x_m.append(x_m.numpy()[0])
-
-            #
-
-
-            counts, bins, bars = axs[15].hist(s_fc2_bn.numpy().flatten(),bins=1000)
-
-            layer_name = 'fc2'
-            beta = tf.math.reduce_mean(self.list_layer[layer_name+'_bn'].beta)
-            x_M = tf.math.exp(tf.math.divide(self.list_tk[layer_name].td,self.list_tk[layer_name].tc))
-            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk[layer_name].tc)))
-            axs[15].vlines(beta,0, np.max(counts), color='k')
-            axs[15].vlines(x_m,0, np.max(counts), color='r')
-            axs[15].vlines(x_M,0, np.max(counts), color='m')
-            list_hist_count.append(counts)
-            list_hist_bins.append(bins)
-            list_hist_bars.append(bars)
-            list_beta.append(beta.numpy())
-            list_x_M.append(x_M.numpy()[0])
-            list_x_m.append(x_m.numpy()[0])
-
-            #
-
-
-            counts, bins, bars = axs[16].hist(s_fc3_bn.numpy().flatten(),bins=1000)
-
-
-
-            #
-            #output_xlsx_name='bn_act_hist_SM-2.xlsx'
-            #output_xlsx_name='bn_act_hist_SR.xlsx'
-            #output_xlsx_name='bn_act_hist_TR.xlsx'
-            output_xlsx_name='bn_act_hist_TB.xlsx'
-            df=pd.DataFrame(list_hist_count).T
-            #            #df=pd.DataFrame({'loss_prec': list_loss_prec, 'loss_min': list_loss_min, 'loss_max': list_loss_max})
-            df.to_excel(output_xlsx_name,sheet_name='count')
-
-            with pd.ExcelWriter(output_xlsx_name,mode='a') as writer:
-                df=pd.DataFrame(list_hist_bins).T
-                df.to_excel(writer,sheet_name='bins')
-
-                df=pd.DataFrame(list_hist_bars).T
-                df.to_excel(writer,sheet_name='bars')
-
-                print(list_beta)
-                df=pd.DataFrame(list_beta).T
-                df.to_excel(writer,sheet_name='beta')
-
-                df=pd.DataFrame(list_x_M).T
-                df.to_excel(writer,sheet_name='x_M')
-
-                df=pd.DataFrame(list_x_m).T
-                df.to_excel(writer,sheet_name='x_m')
-
-
-            # for data write
-#            #
-##            col_x = x.numpy().flatten()
-##            col_conv1_bn   = s_conv1_bn.numpy().flatten()
-##            col_conv1_1_bn = s_conv1_1_bn.numpy().flatten()
-##            col_conv2_bn   = s_conv2_bn.numpy().flatten()
-##            col_conv2_1_bn = s_conv2_1_bn.numpy().flatten()
-##            col_conv2_2_bn = s_conv2_2_bn.numpy().flatten()
-##            col_conv3_bn   = s_conv3_bn.numpy().flatten()
-##            col_conv3_1_bn = s_conv3_1_bn.numpy().flatten()
-##            col_conv3_2_bn = s_conv3_2_bn.numpy().flatten()
-##            col_conv4_bn   = s_conv4_bn.numpy().flatten()
-##            col_conv4_1_bn = s_conv4_1_bn.numpy().flatten()
-##            col_conv4_2_bn = s_conv4_2_bn.numpy().flatten()
-##            col_conv5_bn   = s_conv5_bn.numpy().flatten()
-##            col_conv5_1_bn = s_conv5_1_bn.numpy().flatten()
-##            col_conv5_2_bn = s_conv5_2_bn.numpy().flatten()
-##            col_fc1_bn     = s_fc1_bn.numpy().flatten()
-##            col_fc2_bn     = s_fc2_bn.numpy().flatten()
-##            col_fc3_bn     = s_fc3_bn.numpy().flatten()
+#        print('a_conv5_2')
+#        print(a_conv5_2[0])
+#        print('')
 #
-#            #
-#            list_df=[]
-#            list_df.append(x.numpy().flatten())
-#            list_df.append(s_conv1_bn.numpy().flatten())
-#            list_df.append(s_conv1_1_bn.numpy().flatten())
+#        print('a_fc1')
+#        print(a_fc1[0])
+#        print('')
 #
-#            df=pd.DataFrame(list_df)
-#            #df=pd.DataFrame({'loss_prec': list_loss_prec, 'loss_min': list_loss_min, 'loss_max': list_loss_max})
-#            df.to_excel('test.xlsx')
+#        print('a_fc2')
+#        print(a_fc2[0])
+#        print('')
 #
-#            print(n)
-#            print(bins)
-#            print(patches)
-#
-#            print(tf.math.reduce_mean(self.list_layer['conv1_bn'].gamma))
-#            print(tf.math.reduce_mean(self.list_layer['conv1_bn'].beta))
-#            print(self.list_tk['conv1'].tc)
-#            print(self.list_tk['conv1'].td)
-#            x_M = tf.math.exp(tf.math.divide(self.list_tk['conv1'].td,self.list_tk['conv1'].tc))
-#            x_m = tf.math.multiply(x_M,tf.math.exp(tf.math.divide(-self.conf.time_window,self.list_tk['conv1'].tc)))
-#            print(x_M)
-#            print(x_m)
+#        print('a_fc3')
+#        print(a_fc3[0])
+#        print('')
 
-            plt.show()
+        #if f_training:
+        #   x = self.dropout(x,training=f_training)
 
-            assert False
 
+        #print("here")
+        # write stat
+        #print(self.conf.f_write_stat)
+        #print(self.f_1st_iter)
+        #print(self.dict_stat_w["fc1"])
+        if (self.conf.f_write_stat) and (not self.f_1st_iter):
+            #self.dict_stat_w['conv1']=np.append(self.dict_stat_w['conv1'],a_conv1.numpy(),axis=0)
+            #self.dict_stat_w['conv1_1']=np.append(self.dict_stat_w['conv1_1'],a_conv1_1.numpy(),axis=0)
+            #self.dict_stat_w['conv2']=np.append(self.dict_stat_w['conv2'],a_conv2.numpy(),axis=0)
+            #self.dict_stat_w['conv2_1']=np.append(self.dict_stat_w['conv2_1'],a_conv2_1.numpy(),axis=0)
+            #self.dict_stat_w['conv3']=np.append(self.dict_stat_w['conv3'],a_conv3.numpy(),axis=0)
+            #self.dict_stat_w['conv3_1']=np.append(self.dict_stat_w['conv3_1'],a_conv3_1.numpy(),axis=0)
+            #self.dict_stat_w['conv3_2']=np.append(self.dict_stat_w['conv3_2'],a_conv3_2.numpy(),axis=0)
+            #self.dict_stat_w['conv4']=np.append(self.dict_stat_w['conv4'],a_conv4.numpy(),axis=0)
+            #self.dict_stat_w['conv4_1']=np.append(self.dict_stat_w['conv4_1'],a_conv4_1.numpy(),axis=0)
+            #self.dict_stat_w['conv4_2']=np.append(self.dict_stat_w['conv4_2'],a_conv4_2.numpy(),axis=0)
+            #self.dict_stat_w['conv5']=np.append(self.dict_stat_w['conv5'],a_conv5.numpy(),axis=0)
+            #self.dict_stat_w['conv5_1']=np.append(self.dict_stat_w['conv5_1'],a_conv5_1.numpy(),axis=0)
+            #self.dict_stat_w['conv5_2']=np.append(self.dict_stat_w['conv5_2'],a_conv5_2.numpy(),axis=0)
+            #self.dict_stat_w['fc1']=np.append(self.dict_stat_w['fc1'],a_fc1.numpy(),axis=0)
+            #self.dict_stat_w['fc2']=np.append(self.dict_stat_w['fc2'],a_fc2.numpy(),axis=0)
+            #self.dict_stat_w['fc3']=np.append(self.dict_stat_w['fc3'],a_fc3.numpy(),axis=0)
+            # test bn activation distribution
+            self.dict_stat_w['fc1']=np.append(self.dict_stat_w['fc1'],s_fc1_bn.numpy(),axis=0)
 
 
         if self.conf.f_comp_act and (not self.f_1st_iter):
@@ -2326,66 +1844,11 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         #print(a_fc3)
 
 
-        # debugging
-#        act = a_fc2
-#        print('act {}: min - {}, max - {}, avg - {}'.format('fc3',tf.reduce_min(act),tf.reduce_max(act),tf.reduce_mean(act)))
-#
-#        try:
-#            t_fc2
-#        except NameError:
-#            pass
-#        else:
-#            act = t_fc2
-#            print('enc {}: min - {}, max - {}, avg - {}'.format('fc3',tf.reduce_min(act),tf.reduce_max(act),tf.reduce_mean(act)))
-#            plt.hist(act.numpy().flatten(),bins=self.enc_st_target_end)
-#            #plt.hist(act.numpy().flatten(),bins=[0,200])
-#            plt.xlim([0,self.conf.time_window])
-#            #plt.xlim([0,200])
-#
-#            #print(self.enc_st_target_end)
-#            #assert False
-#
-#            plt.draw()
-#            plt.pause(0.0000000001)
 
         if self.f_1st_iter and self.conf.nn_mode=='ANN':
             print('1st iter')
             self.f_1st_iter = False
             self.f_skip_bn = (not self.f_1st_iter) and (self.conf.f_fused_bn)
-
-            #
-#            if self.conf.f_surrogate_training_model:
-#                # TODO: init init range as the sum of initial weights
-#
-#
-#                target_range = 1.0
-#                self.list_tk['in'].set_init_td_by_target_range(target_range)
-#
-#                fig, axs = plt.subplots(4,5)
-#                axs=axs.ravel()
-#
-#                for idx, n_layer in enumerate(self.layer_name):
-#                    if not n_layer=='in':
-#                        print(n_layer)
-#
-#                        layer = self.list_layer[n_layer]
-#                        l_type = type(layer)
-#
-#                        print(l_type)
-#                        print(tf.reduce_sum(layer.kernel))
-#                        print(tf.reduce_mean(layer.kernel))
-#
-#                        # herehere
-#
-#                        axs[idx].hist(layer.kernel.numpy().flatten())
-#
-#
-#                #plt.hist(self.conv1.kernel.numpy().flatten())
-#
-#                plt.show()
-#
-#                assert False
-
 
 
         if not self.f_1st_iter and self.conf.f_train_time_const:
@@ -2569,20 +2032,6 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
         #return kernel, bias
 
-    #
-    def conv_bn_defused(self, conv, bn, time_step):
-        gamma=bn.gamma
-        beta=bn.beta
-        mean=bn.moving_mean
-        var=bn.moving_variance
-        ep=bn.epsilon
-        inv=math_ops.rsqrt(var+ep)
-        inv*=gamma
-
-        conv.kernel = conv.kernel/inv
-        conv.bias = (conv.bias-beta)/inv+mean
-
-
     def fc_bn_fused(self, conv, bn, time_step):
         gamma=bn.gamma
         beta=bn.beta
@@ -2596,43 +2045,32 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         conv.kernel = conv.kernel*math_ops.cast(inv,conv.kernel.dtype)
         conv.bias = ((conv.bias-mean)*inv+beta)
 
+        #print(gamma)
+        #print(beta)
+
         #return kernel, bias
 
-    #
-    def fc_bn_defused(self, conv, bn, time_step):
-        gamma=bn.gamma
-        beta=bn.beta
-        mean=bn.moving_mean
-        var=bn.moving_variance
-        ep=bn.epsilon
-        inv=math_ops.rsqrt(var+ep)
-        inv*=gamma
 
-        conv.kernel = conv.kernel/inv
-        conv.bias = (conv.bias-beta)/inv+mean
+    def preproc_ann_to_snn(self):
+        print('preprocessing: ANN to SNN')
+        if self.conf.f_fused_bn:
+            self.fused_bn()
+
+        #self.print_model()
+        #print(np.max(list(self.layer_list.values())[0].kernel))
+        #self.temporal_norm()
+        #print(np.max(list(self.layer_list.values())[0].kernel))
 
 
+        #self.print_model()
+        # weight normalization - data based
+        if self.conf.f_w_norm_data:
+            self.data_based_w_norm()
 
-#    def preproc_ann_to_snn(self):
-#        print('preprocessing: ANN to SNN')
-#        if self.conf.f_fused_bn:
-#            self.fused_bn()
-#
-#        #self.print_model()
-#        #print(np.max(list(self.list_layer.values())[0].kernel))
-#        #self.temporal_norm()
-#        #print(np.max(list(self.list_layer.values())[0].kernel))
-#
-#
-#        #self.print_model()
-#        # weight normalization - data based
-#        if self.conf.f_w_norm_data:
-#            self.data_based_w_norm()
-#
-#        #if self.conf.f_comp_act:
-#        #    self.load_act_after_w_norm()
-#
-#        #self.print_act_after_w_norm()
+        #if self.conf.f_comp_act:
+        #    self.load_act_after_w_norm()
+
+        #self.print_act_after_w_norm()
 
     def _model_based_norm(self, layer, axis):
         w_in_sum = tf.reduce_sum(tf.maximum(layer.kernel,0),axis=axis)
@@ -2815,7 +2253,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
     def get_total_residual_vmem(self):
         len=self.total_residual_vmem.shape[0]
-        for idx_n, (nn, n) in enumerate(self.list_neuron.items()):
+        for idx_n, (nn, n) in enumerate(self.neuron_list.items()):
             idx=idx_n-1
             if nn!='in' or nn!='fc3':
                 self.total_residual_vmem[idx]+=tf.reduce_sum(tf.abs(n.vmem))
@@ -2824,7 +2262,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
     def get_total_isi(self):
         isi_count=np.zeros(self.conf.time_step)
 
-        for idx_n, (nn, n) in enumerate(self.list_neuron.items()):
+        for idx_n, (nn, n) in enumerate(self.neuron_list.items()):
             if nn!='in' or nn!='fc3':
                 isi_count_n = np.bincount(np.int32(n.isi.numpy().flatten()))
                 isi_count_n.resize(self.conf.time_step)
@@ -2834,7 +2272,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
 
     def f_out_isi(self,t):
-        for idx_n, (nn, n) in enumerate(self.list_neuron.items()):
+        for idx_n, (nn, n) in enumerate(self.neuron_list.items()):
             if nn!='in' or nn!='fc3':
                 f_name = './isi/'+nn+'_'+self.conf.model_name+'_'+self.conf.input_spike_mode+'_'+self.conf.neural_coding+'_'+str(self.conf.time_step)+'.csv'
 
@@ -2859,7 +2297,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         #print(range(0,self.spike_amp_kind)[::-1])
         #print(np.power(0.5,range(0,self.spike_amp_kind)))
 
-        for idx_n, (nn, n) in enumerate(self.list_neuron.items()):
+        for idx_n, (nn, n) in enumerate(self.neuron_list.items()):
             if nn!='in' or nn!='fc3':
                 spike_amp_n = np.histogram(n.out.numpy().flatten(),self.spike_amp_bin)
                 #spike_amp = spike_amp + spike_amp_n[0]
@@ -2877,8 +2315,8 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         spike_count = np.zeros([len,])
         spike_count_int = np.zeros([len,])
 
-        #for idx_n, (nn, n) in enumerate(self.list_neuron.items()):
-        for idx_n, (nn, n) in enumerate(self.list_neuron.items()):
+        #for idx_n, (nn, n) in enumerate(self.neuron_list.items()):
+        for idx_n, (nn, n) in enumerate(self.neuron_list.items()):
             idx=idx_n-1
             if nn!='in':
                 spike_count_int[idx]=tf.reduce_sum(n.get_spike_count_int())
@@ -2894,26 +2332,26 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         return [spike_count_int, spike_count]
 
     #def bias_norm_weighted_spike(self):
-        #for k, l in self.list_layer.items():
+        #for k, l in self.layer_list.items():
         #    if not 'bn' in k:
         #        l.bias = l.bias/(1-1/np.power(2,8))
         #        #l.bias = l.bias/8.0
-        #self.list_layer['conv1'].bias=self.list_layer['conv1'].bias/8.0
+        #self.layer_list['conv1'].bias=self.layer_list['conv1'].bias/8.0
 
     def bias_norm_proposed_method(self):
-        for k, l in self.list_layer.items():
+        for k, l in self.layer_list.items():
             if not 'bn' in k:
                 l.bias = l.bias*self.conf.n_init_vth
                 #l.bias = l.bias/200
                 #l.bias = l.bias*0.0
 
     def bias_enable(self):
-        for k, l in self.list_layer.items():
+        for k, l in self.layer_list.items():
             if not 'bn' in k:
                 l.use_bias = True
 
     def bias_disable(self):
-        for k, l in self.list_layer.items():
+        for k, l in self.layer_list.items():
             if not 'bn' in k:
                 l.use_bias = False
 
@@ -2922,20 +2360,20 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         self.total_comp_act[t,-1]=0.0
         for idx_l, l in enumerate(self.layer_name):
             if l !='fc3':
-                self.total_comp_act[t,idx_l]=np.mean(np.abs(self.list_neuron[l].spike_counter.numpy().flatten()/(float)(t+1)-self.dict_stat_w[l].flatten()))
+                self.total_comp_act[t,idx_l]=np.mean(np.abs(self.neuron_list[l].spike_counter.numpy().flatten()/(float)(t+1)-self.dict_stat_w[l].flatten()))
                 self.total_comp_act[t,-1]+=self.total_comp_act[t,idx_l]
 
 
         #l='conv1'
-        #print(self.list_neuron[l].spike_counter.numpy().flatten())
+        #print(self.neuron_list[l].spike_counter.numpy().flatten())
         #print(self.dict_stat_w[l].flatten())
 
     def comp_act_ws(self,t):
         self.total_comp_act[t,-1]=0.0
         for idx_l, l in enumerate(self.layer_name):
             if l !='fc3':
-                #self.total_comp_act[t,idx_l]=np.mean(np.abs(self.list_neuron[l].spike_counter.numpy().flatten()/((float)(t+1)/(float)(self.conf.p_ws))-self.dict_stat_w[l].flatten()))
-                self.total_comp_act[t,idx_l]=np.mean(np.abs(self.list_neuron[l].spike_counter.numpy().flatten()/((float)(t+1)/(float)(self.conf.p_ws))-self.dict_stat_w[l].flatten()))
+                #self.total_comp_act[t,idx_l]=np.mean(np.abs(self.neuron_list[l].spike_counter.numpy().flatten()/((float)(t+1)/(float)(self.conf.p_ws))-self.dict_stat_w[l].flatten()))
+                self.total_comp_act[t,idx_l]=np.mean(np.abs(self.neuron_list[l].spike_counter.numpy().flatten()/((float)(t+1)/(float)(self.conf.p_ws))-self.dict_stat_w[l].flatten()))
                 self.total_comp_act[t,-1]+=self.total_comp_act[t,idx_l]
 
 
@@ -3004,452 +2442,24 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         #print(self.dict_stat_w[l].shape)
 
 
-    ###########################################
-    # bias control
-    ###########################################
-    def bias_control(self,t):
-        if self.conf.input_spike_mode == 'WEIGHTED_SPIKE' or self.conf.neural_coding == 'WEIGHTED_SPIKE':
-            #if self.conf.neural_coding == 'WEIGHTED_SPIKE':
-            #if tf.equal(tf.reduce_max(a_in),0.0):
-            if (int)(t%self.conf.p_ws) == 0:
-                self.bias_enable()
-            else:
-                self.bias_disable()
-        else:
-            if self.conf.input_spike_mode == 'BURST':
-                if t==0:
-                    self.bias_enable()
-                else:
-                    if tf.equal(tf.reduce_max(a_in),0.0):
-                        self.bias_enable()
-                    else:
-                        self.bias_disable()
 
 
-        if self.conf.neural_coding == 'TEMPORAL':
-            #if (int)(t%self.conf.p_ws) == 0:
-            if t == 0:
-                self.bias_enable()
-            else:
-                self.bias_disable()
 
-    def bias_norm_weighted_spike(self):
-        for k, l in self.list_layer.items():
-            if not 'bn' in k:
-            #if (not 'bn' in k) and (not 'fc1' in k) :
-                #l.bias = l.bias/(1-1/np.power(2,8))
-                l.bias = l.bias/8.0
-
-    def bias_norm_proposed_method(self):
-        for k, l in self.list_layer.items():
-            if not 'bn' in k:
-                l.bias = l.bias*self.conf.n_init_vth
-                #l.bias = l.bias/200
-                #l.bias = l.bias*0.0
-
-    def bias_enable(self):
-        for k, l in self.list_layer.items():
-            if not 'bn' in k:
-                l.use_bias = True
-
-    def bias_disable(self):
-        for k, l in self.list_layer.items():
-            if not 'bn' in k:
-                l.use_bias = False
-
-    def bias_restore(self):
-        if self.conf.use_bias:
-            self.bias_enable()
-        else:
-            self.bias_disable()
-
-
-    ######################################################################
-    # SNN call
-    ######################################################################
+#####
     def call_snn(self,inputs,f_training,tw,epoch):
 
-
+        #####
+        #print("inputs: ")
+        #print(inputs.shape)
         #
-        plt.clf()
-
-        #print(self.list_tk['conv1'].tc)
+        #_, axes = plt.subplots(1,4)
         #
-        for t in range(tw):
-            if self.verbose == True:
-                print('time: '+str(t))
-            #x = tf.reshape(inputs,self._input_shape)
+        #axes[0].imshow(inputs[0,:,:,:])
+        #axes[1].imshow(inputs[0,:,:,0])
+        #axes[2].imshow(inputs[0,:,:,1])
+        #axes[3].imshow(inputs[0,:,:,2])
+        #plt.show()
 
-            self.bias_control(t)
-
-            a_in = self.n_in(inputs,t)
-
-            #if self.conf.f_real_value_input_snn:
-            #    a_in = inputs
-            #else:
-            #    a_in = self.n_in(inputs,t)
-
-
-            ####################
-            #
-            ####################
-            s_conv1 = self.conv1(a_in)
-            a_conv1 = self.n_conv1(s_conv1,t)
-
-            s_conv1_1 = self.conv1_1(a_conv1)
-            a_conv1_1 = self.n_conv1_1(s_conv1_1,t)
-
-            if self.conf.f_spike_max_pool:
-                p_conv1_1 = lib_snn.spike_max_pool(
-                    a_conv1_1,
-                    self.n_conv1_1.get_spike_count(),
-                    self.dict_shape['conv1_p']
-                )
-            else:
-                p_conv1_1 = self.pool2d(a_conv1_1)
-
-            s_conv2 = self.conv2(p_conv1_1)
-            a_conv2 = self.n_conv2(s_conv2,t)
-            s_conv2_1 = self.conv2_1(a_conv2)
-            a_conv2_1 = self.n_conv2_1(s_conv2_1,t)
-
-            if self.conf.f_spike_max_pool:
-                p_conv2_1 = lib_snn.spike_max_pool(
-                    a_conv2_1,
-                    self.n_conv2_1.get_spike_count(),
-                    self.dict_shape['conv2_p']
-                )
-            else:
-                p_conv2_1 = self.pool2d(a_conv2_1)
-
-            s_conv3 = self.conv3(p_conv2_1)
-            a_conv3 = self.n_conv3(s_conv3,t)
-            s_conv3_1 = self.conv3_1(a_conv3)
-            a_conv3_1 = self.n_conv3_1(s_conv3_1,t)
-            s_conv3_2 = self.conv3_2(a_conv3_1)
-            a_conv3_2 = self.n_conv3_2(s_conv3_2,t)
-
-            if self.conf.f_spike_max_pool:
-                p_conv3_2 = lib_snn.spike_max_pool(
-                    a_conv3_2,
-                    self.n_conv3_2.get_spike_count(),
-                    self.dict_shape['conv3_p']
-                )
-            else:
-                p_conv3_2 = self.pool2d(a_conv3_2)
-
-
-            s_conv4 = self.conv4(p_conv3_2)
-            a_conv4 = self.n_conv4(s_conv4,t)
-            s_conv4_1 = self.conv4_1(a_conv4)
-            a_conv4_1 = self.n_conv4_1(s_conv4_1,t)
-            s_conv4_2 = self.conv4_2(a_conv4_1)
-            a_conv4_2 = self.n_conv4_2(s_conv4_2,t)
-
-            if self.conf.f_spike_max_pool:
-                p_conv4_2 = lib_snn.spike_max_pool(
-                    a_conv4_2,
-                    self.n_conv4_2.get_spike_count(),
-                    self.dict_shape['conv4_p']
-                )
-            else:
-                p_conv4_2 = self.pool2d(a_conv4_2)
-
-            s_conv5 = self.conv5(p_conv4_2)
-            a_conv5 = self.n_conv5(s_conv5,t)
-            s_conv5_1 = self.conv5_1(a_conv5)
-            a_conv5_1 = self.n_conv5_1(s_conv5_1,t)
-            s_conv5_2 = self.conv5_2(a_conv5_1)
-            a_conv5_2 = self.n_conv5_2(s_conv5_2,t)
-
-            if self.conf.f_spike_max_pool:
-                p_conv5_2 = lib_snn.spike_max_pool(
-                    a_conv5_2,
-                    self.n_conv5_2.get_spike_count(),
-                    self.dict_shape['conv5_p']
-                )
-            else:
-                p_conv5_2 = self.pool2d(a_conv5_2)
-
-            flat = tf.compat.v1.layers.flatten(p_conv5_2)
-
-            s_fc1 = self.fc1(flat)
-            #s_fc1_bn = self.fc1_bn(s_fc1,training=f_training)
-            #a_fc1 = self.n_fc1(s_fc1_bn,t)
-            a_fc1 = self.n_fc1(s_fc1,t)
-
-            s_fc2 = self.fc2(a_fc1)
-            #s_fc2_bn = self.fc2_bn(s_fc2,training=f_training)
-            #a_fc2 = self.n_fc2(s_fc2_bn,t)
-            a_fc2 = self.n_fc2(s_fc2,t)
-
-            s_fc3 = self.fc3(a_fc2)
-            #print('a_fc3')
-            a_fc3 = self.n_fc3(s_fc3,t)
-
-
-            #print(str(t)+" : "+str(self.n_fc3.vmem.numpy()))
-
-
-
-            ###
-#            idx_print=0,10,10,0
-#            print("time: {time:} - input: {input:0.5f}, vmem: {vmem:0.5f}, spk: {spike:f} {spike_bool:}\n"
-#                  .format(
-#                        time=t,
-#                        input=inputs.numpy()[idx_print],
-#                        vmem=self.n_in.vmem.numpy()[idx_print],
-#                        spike=self.n_in.out.numpy()[idx_print],
-#                        spike_bool= (self.n_in.out.numpy()[idx_print]>0.0))
-#                  )
-
-
-
-
-            #print('synapse')
-            #print(s_conv1[0,15,15,0])
-            #print('vmem')
-            #print(self.n_conv1.vmem[0,15,15,0])
-            #print('vth')
-            #print(self.n_conv1.vth[0,15,15,0])
-            #print('')
-
-
-            #
-            #if self.f_1st_iter == False:
-            #    plt_idx=0
-            #    subplot_x=4
-            #    subplot_y=4
-            #    for layer_name, layer in self.list_layer.items():
-            #        if not ('bn' in layer_name):
-            #            print('subplot {}, {}'.format(int(plt_idx/subplot_x+1),int(plt_idx%subplot_x+1)))
-            #            #plt.subplot(subplot_x*subplot_y,int(plt_idx/subplot_x+1),int(plt_idx%subplot_x+1))
-            #            #plt.subplot(int(plt_idx/subplot_x+1),int(plt_idx%subplot_x+1),plt_idx+1)
-            #            plt.subplot(subplot_y,subplot_y,plt_idx+1)
-            #            plt.hist(np.abs(layer.kernel.numpy().flatten()),bins=100)
-            #            plt_idx+=1
-            #
-            #            print("{} - max: {}, mean: {}".format(layer_name,np.max(np.abs(layer.kernel.numpy())),np.mean(np.abs(layer.kernel.numpy()))))
-            #
-            #    plt.show()
-
-            if self.f_1st_iter == False and self.f_debug_visual == True:
-                #self.visual(t)
-
-
-                synapse=s_conv1
-                neuron=self.n_in
-
-                #synapse=s_fc2
-                #neuron=self.n_fc2
-
-                synapse_1=s_conv1
-                neuron_1=self.n_conv1
-
-                synapse_2 = s_conv1_1
-                neuron_2 = self.n_conv1_1
-
-
-                #self.debug_visual(synapse, neuron, synapse_1, neuron_1, synapse_2, neuron_2, t)
-                self.debug_visual_raster(t)
-
-                #if t==self.ts-1:
-                #    plt.figure()
-                #    #plt.show()
-
-            ##########
-            #
-            ##########
-
-            if self.f_1st_iter == False:
-                if self.conf.f_comp_act:
-                    if self.conf.neural_coding=='RATE':
-                        self.comp_act_rate(t)
-                    elif self.conf.neural_coding=='WEIGHTED_SPIKE':
-                        self.comp_act_ws(t)
-                    elif self.conf.neural_coding=='BURST':
-                        self.comp_act_pro(t)
-
-                if self.conf.f_isi:
-                    self.total_isi += self.get_total_isi()
-                    self.total_spike_amp += self.get_total_spike_amp()
-
-                    self.f_out_isi(t)
-
-
-                if self.conf.f_entropy:
-                    #print(a_conv1.numpy().shape)
-                    #print(self.n_conv1.out.numpy().shape)
-                    #print(self.dict_stat_w['conv1'].shape)
-                    #self.dict_stat_w['conv4'][t]=self.n_conv4.out.numpy()
-                    #self.dict_stat_w['fc2'][t]=self.n_fc2.out.numpy()
-
-                    for idx_l, l in enumerate(self.layer_name):
-                        if l !='fc3':
-                            self.dict_stat_w[l][t] = self.list_neuron[l].out.numpy()
-
-
-                    #print(self.dict_stat_w['conv1'])
-
-                if t==self.accuracy_time_point[self.count_accuracy_time_point]-1:
-                    output=self.n_fc3.vmem
-                    self.recoding_ret_val()
-
-
-                    #num_spike_count = tf.cast(tf.reduce_sum(self.spike_count,axis=[2]),tf.int32)
-                    #num_spike_count = tf.reduce_sum(self.spike_count,axis=[2])
-
-            #print(t, self.n_fc3.last_spike_time.numpy())
-            #print(t, self.n_fc3.isi.numpy())
-
-        if self.conf.f_entropy and (not self.f_1st_iter):
-            self.cal_entropy()
-
-
-        if self.f_1st_iter:
-            self.f_1st_iter = False
-
-            self.conv1_bn(s_conv1,training=f_training)
-            self.conv1_1_bn(s_conv1_1,training=f_training)
-
-            self.conv2_bn(s_conv2,training=f_training)
-            self.conv2_1_bn(s_conv2_1,training=f_training)
-
-            self.conv3_bn(s_conv3,training=f_training)
-            self.conv3_1_bn(s_conv3_1,training=f_training)
-            self.conv3_2_bn(s_conv3_2,training=f_training)
-
-            self.conv4_bn(s_conv4,training=f_training)
-            self.conv4_1_bn(s_conv4_1,training=f_training)
-            self.conv4_2_bn(s_conv4_2,training=f_training)
-
-            self.conv5_bn(s_conv5,training=f_training)
-            self.conv5_1_bn(s_conv5_1,training=f_training)
-            self.conv5_2_bn(s_conv5_2,training=f_training)
-
-            self.fc1_bn(s_fc1,training=f_training)
-            self.fc2_bn(s_fc2,training=f_training)
-            self.fc3_bn(s_fc3,training=f_training)
-
-            return 0
-
-
-        else:
-
-            if not self.conf.f_pruning_channel:
-                self.get_total_residual_vmem()
-
-                #spike_zero = tf.reduce_sum(self.spike_count,axis=[0,2])
-                spike_zero = tf.reduce_sum(self.snn_output,axis=[0,2])
-                #spike_zero = tf.count_nonzero(self.spike_count,axis=[0,2])
-
-                if np.any(spike_zero.numpy() == 0.0):
-                #if num_spike_count==0.0:
-                    print('spike count 0')
-                    #print(num_spike_count.numpy())
-                    #a = input("press any key to exit")
-                    #os.system("Pause")
-                    #raw_input("Press any key to exit")
-                    #sys.exit(0)
-
-            #plt.hist(self.n_conv1.vmem.numpy().flatten())
-            #plt.show()
-
-            if self.conf.f_pruning_channel:
-                for idx_l, l in enumerate(self.layer_name):
-                    if 'conv' in l:
-                        neuron = self.list_neuron[l]
-                        kernel_name = self.layer_name[idx_l+1]
-
-                        if 'conv' in kernel_name:
-                            self.idx_pruning_channel[kernel_name] =\
-                                self.get_pruning_channel_idx(neuron.get_spike_count())
-
-
-                            n_remain_channel = tf.shape(self.idx_pruning_channel[kernel_name])[-1]
-                            n_original_channel = tf.shape(neuron.get_spike_count())[-1]
-                            remain_ratio = n_remain_channel/n_original_channel
-
-                            print('%3d / %3d : %.4f'%(n_remain_channel,n_original_channel,remain_ratio))
-
-                            self.f_idx_pruning_channel[kernel_name]=remain_ratio < self.th_idx_pruning_channel
-                            #print(self.f_idx_pruning_channel)
-
-            # first_spike_time visualization
-            if self.conf.f_record_first_spike_time and self.conf.f_visual_record_first_spike_time:
-                print('first spike time')
-                _, axes = plt.subplots(4,4)
-                idx_plot=0
-                for n_name, n in self.list_neuron.items():
-                    if not ('fc3' in n_name):
-                        #positive = n.first_spike_time > 0
-                        #print(n_name+'] min: '+str(tf.reduce_min(n.first_spike_time[positive]))+', mean: '+str(tf.reduce_mean(n.first_spike_time[positive])))
-                        #print(tf.reduce_min(n.first_spike_time[positive]))
-
-                        #positive=n.first_spike_time.numpy().flatten() > 0
-                        positive=tf.boolean_mask(n.first_spike_time,n.first_spike_time>0)
-
-                        if not tf.equal(tf.size(positive),0):
-
-                            #min=np.min(n.first_spike_time.numpy().flatten()[positive,])
-                            #print(positive.shape)
-                            #min=np.min(n.first_spike_time.numpy().flatten()[positive])
-                            min=tf.reduce_min(positive)
-                            #mean=np.mean(n.first_spike_time.numpy().flatten()[positive,])
-
-                            #if self.conf.f_tc_based:
-                            #    fire_s=idx_plot*self.conf.time_fire_start
-                            #    fire_e=idx_plot*self.conf.time_fire_start+self.conf.time_fire_duration
-                            #else:
-                            #    fire_s=idx_plot*self.conf.time_fire_start
-                            #    fire_e=idx_plot*self.conf.time_fire_start+self.conf.time_fire_duration
-
-                            #fire_s = n.time_start_fire
-                            #fire_e = n.time_end_fire
-
-                            fire_s = idx_plot * self.conf.time_fire_start
-                            fire_e = idx_plot * self.conf.time_fire_start + self.conf.time_fire_duration
-
-                            axe=axes.flatten()[idx_plot]
-                            #axe.hist(n.first_spike_time.numpy().flatten()[positive],bins=range(fire_s,fire_e,1))
-                            axe.hist(positive.numpy().flatten(),bins=range(fire_s,fire_e,1))
-
-                            axe.axvline(x=min.numpy(),color='b', linestyle='dashed')
-
-                            axe.axvline(x=fire_s)
-                            axe.axvline(x=fire_e)
-
-
-                        idx_plot+=1
-
-
-
-                # file write raw data
-                for n_name, n in self.list_neuron.items():
-                    if not ('fc3' in n_name):
-                        positive=tf.boolean_mask(n.first_spike_time,n.first_spike_time>0).numpy()
-
-                        fname = './spike_time/spike-time'
-                        if self.conf.f_load_time_const:
-                            fname += '_train-'+str(self.conf.time_const_num_trained_data)+'_tc-'+str(self.conf.tc)+'_tw-'+str(self.conf.time_window)
-
-                        fname += '_'+n_name+'.csv'
-                        f = open(fname,'w')
-                        wr = csv.writer(f)
-                        wr.writerow(positive)
-                        f.close()
-
-
-                plt.show()
-
-
-        #return self.spike_count
-        return self.snn_output
-
-    ######################################################################
-    # SNN call - backup
-    ######################################################################
-    def call_snn_bck(self,inputs,f_training,tw,epoch):
 
 
         #
@@ -3655,7 +2665,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             #    plt_idx=0
             #    subplot_x=4
             #    subplot_y=4
-            #    for layer_name, layer in self.list_layer.items():
+            #    for layer_name, layer in self.layer_list.items():
             #        if not ('bn' in layer_name):
             #            print('subplot {}, {}'.format(int(plt_idx/subplot_x+1),int(plt_idx%subplot_x+1)))
             #            #plt.subplot(subplot_x*subplot_y,int(plt_idx/subplot_x+1),int(plt_idx%subplot_x+1))
@@ -3688,7 +2698,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
                 #self.debug_visual(synapse, neuron, synapse_1, neuron_1, synapse_2, neuron_2, t)
                 self.debug_visual_raster(t)
 
-                #if t==self.ts-1:
+                #if t==self.tw-1:
                 #    plt.figure()
                 #    #plt.show()
 
@@ -3721,15 +2731,14 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
                     for idx_l, l in enumerate(self.layer_name):
                         if l !='fc3':
-                            self.dict_stat_w[l][t] = self.list_neuron[l].out.numpy()
+                            self.dict_stat_w[l][t] = self.neuron_list[l].out.numpy()
 
 
                     #print(self.dict_stat_w['conv1'])
 
                 if t==self.accuracy_time_point[self.count_accuracy_time_point]-1:
                     output=self.n_fc3.vmem
-                    #self.recoding_ret_val(output)
-                    self.recoding_ret_val()
+                    self.recoding_ret_val(output)
 
 
                     #num_spike_count = tf.cast(tf.reduce_sum(self.spike_count,axis=[2]),tf.int32)
@@ -3793,7 +2802,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             if self.conf.f_pruning_channel:
                 for idx_l, l in enumerate(self.layer_name):
                     if 'conv' in l:
-                        neuron = self.list_neuron[l]
+                        neuron = self.neuron_list[l]
                         kernel_name = self.layer_name[idx_l+1]
 
                         if 'conv' in kernel_name:
@@ -3815,7 +2824,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
                 print('first spike time')
                 _, axes = plt.subplots(4,4)
                 idx_plot=0
-                for n_name, n in self.list_neuron.items():
+                for n_name, n in self.neuron_list.items():
                     if not ('fc3' in n_name):
                         #positive = n.first_spike_time > 0
                         #print(n_name+'] min: '+str(tf.reduce_min(n.first_spike_time[positive]))+', mean: '+str(tf.reduce_mean(n.first_spike_time[positive])))
@@ -3860,7 +2869,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
 
                 # file write raw data
-                for n_name, n in self.list_neuron.items():
+                for n_name, n in self.neuron_list.items():
                     if not ('fc3' in n_name):
                         positive=tf.boolean_mask(n.first_spike_time,n.first_spike_time>0).numpy()
 
@@ -3882,50 +2891,24 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
 
 
-    ###########################################################
-    ## SNN output
-    ###########################################################
-
-    #
-    def recoding_ret_val(self):
-        output=self.snn_output_func()
-        self.snn_output.scatter_nd_update([self.count_accuracy_time_point],tf.expand_dims(output,0))
+    def recoding_ret_val(self, output):
+        self.spike_count.scatter_nd_update([self.count_accuracy_time_point],tf.expand_dims(output,0))
 
         tc_int, tc = self.get_total_spike_count()
-        self.total_spike_count_int[self.count_accuracy_time_point]+=tc_int
-        self.total_spike_count[self.count_accuracy_time_point]+=tc
+        #self.total_spike_count_int[self.count_accuracy_time_point]+=tc_int
+        #self.total_spike_count[self.count_accuracy_time_point]+=tc
+
+        self.total_spike_count_int[self.count_accuracy_time_point] = self.total_spike_count_int[self.count_accuracy_time_point]+tc_int
+        self.total_spike_count[self.count_accuracy_time_point] = self.total_spike_count[self.count_accuracy_time_point]+tc
+
+
+
+        #self.total_spike_count_int[self.count_accuracy_time_point]=tc_int
+        #self.total_spike_count[self.count_accuracy_time_point]=tc
+
+        #print(self.total_spike_count_int[self.count_accuracy_time_point][0])
 
         self.count_accuracy_time_point+=1
-
-        #num_spike_count = tf.cast(tf.reduce_sum(self.snn_output,axis=[2]),tf.int32)
-
-    def snn_output_func(self):
-        snn_output_func_sel = {
-            "SPIKE": self.snn_output_layer.spike_counter,
-            "VMEM": self.snn_output_layer.vmem,
-            "FIRST_SPIKE_TIME": self.snn_output_layer.first_spike_time
-        }
-        return snn_output_func_sel[self.conf.snn_output_type]
-
-
-
-
-#    def recoding_ret_val(self, output):
-#        self.spike_count.scatter_nd_update([self.count_accuracy_time_point],tf.expand_dims(output,0))
-#
-#        tc_int, tc = self.get_total_spike_count()
-#        #self.total_spike_count_int[self.count_accuracy_time_point]+=tc_int
-#        #self.total_spike_count[self.count_accuracy_time_point]+=tc
-#
-#        self.total_spike_count_int[self.count_accuracy_time_point] = self.total_spike_count_int[self.count_accuracy_time_point]+tc_int
-#        self.total_spike_count[self.count_accuracy_time_point] = self.total_spike_count[self.count_accuracy_time_point]+tc
-#
-#        #self.total_spike_count_int[self.count_accuracy_time_point]=tc_int
-#        #self.total_spike_count[self.count_accuracy_time_point]=tc
-#
-#        #print(self.total_spike_count_int[self.count_accuracy_time_point][0])
-#
-#        self.count_accuracy_time_point+=1
 
 
 #####
@@ -3961,12 +2944,12 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         for k, v in self.idx_pruning_channel.items():
             if self.f_idx_pruning_channel[k]:
                 print(k)
-                print(tf.shape(self.list_layer[k].kernel))
+                print(tf.shape(self.layer_list[k].kernel))
                 print(tf.shape(tuple(v.flatten())))
-                self.kernel_pruning_channel[k] = self.list_layer[k].kernel.numpy()[:,:,tuple(v.flatten()),:]
+                self.kernel_pruning_channel[k] = self.layer_list[k].kernel.numpy()[:,:,tuple(v.flatten()),:]
                 self.conv_pruning_channel[k] = partial(self.conv_channel_wise_pruning,name=k)
             else:
-                self.conv_pruning_channel[k] = self.list_layer[k]
+                self.conv_pruning_channel[k] = self.layer_list[k]
 
 
 
@@ -4120,7 +3103,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             if self.conf.f_entropy:
                 for idx_l, l in enumerate(self.layer_name):
                     if l !='fc3':
-                        self.dict_stat_w[l][t] = self.list_neuron[l].out.numpy()
+                        self.dict_stat_w[l][t] = self.neuron_list[l].out.numpy()
 
 
             if t==self.accuracy_time_point[self.count_accuracy_time_point]-1:
@@ -4157,7 +3140,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
 
     def reset_neuron(self):
-        for idx, l in self.list_neuron.items():
+        for idx, l in self.neuron_list.items():
             l.reset()
 
     def debug_visual(self, synapse, neuron, synapse_1, neuron_1, synapse_2, neuron_2, t):
@@ -4188,7 +3171,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         #plt.ylim([0,512])
         plt.ylim([0,neuron.vmem.numpy().flatten()[idx_print_s:idx_print_e].size])
         #plt.ylim([0,int(self.n_fc2.dim[1])])
-        plt.xlim([0,self.ts])
+        plt.xlim([0,self.tw])
         #self.plot(t,np.where(self.n_fc2.out.numpy()==1),'bo')
         #if np.where(self.n_fc2.out.numpy()==1).size == 0:
         idx_fire=np.where(neuron.out.numpy().flatten()[idx_print_s:idx_print_e]!=0.0)
@@ -4213,7 +3196,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         plt.subplot(3,4,8,sharex=ax)
         plt.grid(True)
         plt.ylim([0,neuron_1.vmem.numpy().flatten()[idx_print_s:idx_print_e].size])
-        plt.xlim([0,self.ts])
+        plt.xlim([0,self.tw])
         idx_fire=np.where(neuron_1.out.numpy().flatten()[idx_print_s:idx_print_e]!=0.0)
         #idx_fire=neuron_1.f_fire.numpy().flatten()[idx_print_s:idx_print_e]
         #idx_fire=neuron_1.f_fire.numpy()[0,0,0,0:10]
@@ -4237,7 +3220,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         plt.subplot(3,4,12,sharex=ax)
         plt.grid(True)
         plt.ylim([0,neuron_2.vmem.numpy().flatten()[idx_print_s:idx_print_e].size])
-        plt.xlim([0,self.ts])
+        plt.xlim([0,self.tw])
         idx_fire=np.where(neuron_2.out.numpy().flatten()[idx_print_s:idx_print_e]!=0.0)
         #idx_fire=neuron_2.f_fire.numpy().flatten()[idx_print_s:idx_print_e]
         #idx_fire=neuron_2.f_fire.numpy()[0,0,0,0:10]
@@ -4262,7 +3245,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 #        plt.grid(True)
 #        #plt.ylim([0,self.n_fc3.dim[1]])
 #        plt.ylim([0,self.num_class])
-#        plt.xlim([0,self.ts])
+#        plt.xlim([0,self.tw])
 #        idx_fire=np.where(self.n_fc3.out.numpy()!=0)[1]
 
 
@@ -4295,14 +3278,14 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             plt.close("dummy")
             _, self.debug_visual_axes = plt.subplots(subplot_y,subplot_x)
 
-            for neuron_name, neuron in self.list_neuron.items():
+            for neuron_name, neuron in self.neuron_list.items():
                 if not ('fc3' in neuron_name):
-                    self.debug_visual_list_neuron[neuron_name]=neuron
+                    self.debug_visual_neuron_list[neuron_name]=neuron
 
                     axe = self.debug_visual_axes.flatten()[plt_idx]
 
                     axe.set_ylim([0,neuron.out.numpy().flatten()[idx_print_s:idx_print_e].size])
-                    axe.set_xlim([0,self.ts])
+                    axe.set_xlim([0,self.tw])
 
                     axe.grid(True)
 
@@ -4315,7 +3298,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
         else:
             plt_idx=0
-            for neuron_name, neuron in self.debug_visual_list_neuron.items():
+            for neuron_name, neuron in self.debug_visual_neuron_list.items():
 
                 t_fire_s = plt_idx*self.conf.time_fire_start
                 t_fire_e = t_fire_s + self.conf.time_fire_duration
@@ -4332,7 +3315,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
 
 
-        if t==self.ts-1:
+        if t==self.tw-1:
             plt.figure("dummy")
 
 
@@ -4415,7 +3398,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
     def conv_channel_wise_pruning(self, act, name):
         kernel_p = self.kernel_pruning_channel[name]
-        bias = self.list_layer[name].bias
+        bias = self.layer_list[name].bias
         idx_channel = self.idx_pruning_channel[name]
 
 
@@ -4456,26 +3439,26 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
         # train_time_const
         name_layer_prev=''
-        for name_layer, layer in self.list_neuron.items():
+        for name_layer, layer in self.neuron_list.items():
             if not ('fc3' in name_layer):
                 dnn_act = self.dnn_act_list[name_layer]
-                self.list_neuron[name_layer].train_time_const_fire(dnn_act)
+                self.neuron_list[name_layer].train_time_const_fire(dnn_act)
 
             if not ('in' in name_layer):
-                self.list_neuron[name_layer].set_time_const_integ(self.list_neuron[name_layer_prev].time_const_fire)
+                self.neuron_list[name_layer].set_time_const_integ(self.neuron_list[name_layer_prev].time_const_fire)
 
             name_layer_prev = name_layer
 
 
         # train_time_delay
         name_layer_prev=''
-        for name_layer, layer in self.list_neuron.items():
+        for name_layer, layer in self.neuron_list.items():
             if not ('fc3' in name_layer or 'in' in name_layer):
                 dnn_act = self.dnn_act_list[name_layer]
-                self.list_neuron[name_layer].train_time_delay_fire(dnn_act)
+                self.neuron_list[name_layer].train_time_delay_fire(dnn_act)
 
             if not ('in' in name_layer or 'conv1' in name_layer):
-                self.list_neuron[name_layer].set_time_delay_integ(self.list_neuron[name_layer_prev].time_delay_fire)
+                self.neuron_list[name_layer].set_time_delay_integ(self.neuron_list[name_layer_prev].time_delay_fire)
 
             name_layer_prev = name_layer
 
@@ -4483,12 +3466,12 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 #        if self.conf.f_tc_based:
 #            # update integ and fire time
 #            name_layer_prev=''
-#            for name_layer, layer in self.list_neuron.items():
+#            for name_layer, layer in self.neuron_list.items():
 #                if not ('fc3' in name_layer):
-#                    self.list_neuron[name_layer].set_time_fire(self.list_neuron[name_layer].time_const_fire*self.conf.n_tau_fire_start)
+#                    self.neuron_list[name_layer].set_time_fire(self.neuron_list[name_layer].time_const_fire*self.conf.n_tau_fire_start)
 #
 #                if not ('in' in name_layer):
-#                    self.list_neuron[name_layer].set_time_integ(self.list_neuron[name_layer_prev].time_const_integ*self.conf.n_tau_fire_start)
+#                    self.neuron_list[name_layer].set_time_integ(self.neuron_list[name_layer_prev].time_const_integ*self.conf.n_tau_fire_start)
 #
 #                name_layer_prev = name_layer
 
@@ -4499,11 +3482,11 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         loss_min=0
         loss_max=0
 
-        for name_layer, layer in self.list_neuron.items():
+        for name_layer, layer in self.neuron_list.items():
             if not ('fc3' in name_layer):
-                loss_prec += self.list_neuron[name_layer].loss_prec
-                loss_min += self.list_neuron[name_layer].loss_min
-                loss_max += self.list_neuron[name_layer].loss_max
+                loss_prec += self.neuron_list[name_layer].loss_prec
+                loss_min += self.neuron_list[name_layer].loss_min
+                loss_max += self.neuron_list[name_layer].loss_max
 
         return [loss_prec, loss_min, loss_max]
 

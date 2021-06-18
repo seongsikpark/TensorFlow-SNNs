@@ -4,7 +4,7 @@ from __future__ import print_function
 
 import numpy as np
 import tensorflow as tf
-import tensorflow.contrib.eager as tfe
+#import tensorflow.contrib.eager as tfe
 
 import math
 
@@ -14,10 +14,12 @@ from tqdm import tqdm
 import pandas as pd
 
 #
-def test(model, dataset, conf, f_val=False, epoch=0):
-    avg_loss = tfe.metrics.Mean('loss')
+def test(model, dataset, num_dataset, conf, f_val=False, epoch=0, f_val_snn=False):
+    #avg_loss = tfe.metrics.Mean('loss')
+    avg_loss = tf.keras.metrics.Mean('loss')
 
-    if conf.nn_mode=='SNN':
+    #if conf.nn_mode=='SNN':
+    if conf.nn_mode=='SNN' or f_val_snn:
         #accuracy_times = np.array((2,))
         accuracy_times = []
         accuracy_result = []
@@ -37,14 +39,20 @@ def test(model, dataset, conf, f_val=False, epoch=0):
             print('accuracy_time_point')
             print(accuracy_time_point)
 
+            print('num_accuracy_time_point: {:d}'.format(model.num_accuracy_time_point))
+
         for i in range(num_accuracy_time_point):
-            accuracy_times.append(tfe.metrics.Accuracy('accuracy'))
+            #accuracy_times.append(tfe.metrics.Accuracy('accuracy'))
+            accuracy_times.append(tf.keras.metrics.Accuracy('accuracy'))
 
             if conf.dataset == 'ImageNet':
-                accuracy_times_top5.append(tfe.metrics.Mean('accuracy_top5'))
+                #accuracy_times_top5.append(tfe.metrics.Mean('accuracy_top5'))
+                accuracy_times_top5.append(tf.keras.metrics.Mean('accuracy_top5'))
 
 
-        num_batch=int(math.ceil(float(conf.num_test_dataset)/float(conf.batch_size)))
+        #num_batch=int(math.ceil(float(conf.num_test_dataset)/float(conf.batch_size)))
+
+        num_batch=int(math.ceil(float(num_dataset)/float(conf.batch_size)))
 
         print_loss = True
         if conf.f_train_time_const and print_loss:
@@ -61,21 +69,40 @@ def test(model, dataset, conf, f_val=False, epoch=0):
             pbar = tqdm(range(1,num_batch+1),ncols=80)
             pbar.set_description("batch")
 
-        for (idx_batch, (images, labels_one_hot)) in enumerate(tfe.Iterator(dataset)):
-            #print('idx: %d'%(idx_batch))
-            #print('image')
-            #print(images.shape)
-            #print(images)
-            #print('label')
-            #print(labels)
+        if f_val_snn:
+            model.f_done_preproc = False
+
+        idx_batch=0
+        #for (idx_batch, (images, labels_one_hot)) in enumerate(tfe.Iterator(dataset)):
+        #for (idx_batch, (images, labels_one_hot)) in enumerate(tf.Iterator(dataset)):
+        for (images, labels_one_hot) in dataset:
             labels = tf.argmax(labels_one_hot,axis=1,output_type=tf.int32)
+
+            f_resize_output = False
+            if conf.batch_size != labels.shape:
+                concat_dim = conf.batch_size-labels.numpy().shape[0]
+                f_resize_output = True
+
+                #labels = tf.concat([labels,tf.zeros(shape=[conf.batch_size-labels.shape[0]],dtype=tf.int32)],0)
+                labels = tf.concat([labels,tf.zeros(shape=[concat_dim],dtype=tf.int32)],0)
+                images = tf.concat([images,tf.zeros(shape=(concat_dim,)+tuple(images.shape[1:]),dtype=images.dtype)],0)
+                #images = tf.concat([images,tf.zeros(shape=(200,)+tuple(images.shape[1:]),dtype=tf.float32)],0)
+                #labels = tf.concat([labels,tf.zeros(shape=[200],dtype=tf.int32)],0)
+
 
             if idx_batch!=-1:
                 #if conf.f_train_time_const:
                     #for itr_train_time_const in range(0,10):
                     #    model(images, f_training=False)
 
-                predictions_times = model(images, f_training=False)
+                # predictions_times - [saved time step, batch, output dim]
+                predictions_times = model(images, f_training=False, f_val_snn=f_val_snn, epoch=epoch)
+
+                if f_resize_output:
+                    labels = labels[0:conf.batch_size-concat_dim]
+                    predictions_times = predictions_times[:,0:conf.batch_size-concat_dim,:]
+
+
 
                 #print('shape')
                 #print(predictions_times.shape)
@@ -104,10 +131,12 @@ def test(model, dataset, conf, f_val=False, epoch=0):
                                 accuracy_top5(tf.cast(tf.nn.in_top_k(predictions,labels,5),tf.int32))
 
                 predictions = predictions_times[-1]
-                avg_loss(train.loss(predictions,labels_one_hot))
+                avg_loss(train.loss_cross_entoropy(predictions,labels_one_hot))
 
-                if conf.verbose:
-                    print(predictions-labels*conf.time_step)
+                # TODO: decide remove?
+                # syntax error
+                #if conf.verbose:
+                #    print(predictions-labels*conf.time_step)
 
                 if conf.f_train_time_const and print_loss:
                     [loss_prec, loss_min, loss_max] = model.get_time_const_train_loss()
@@ -157,6 +186,12 @@ def test(model, dataset, conf, f_val=False, epoch=0):
 
                     f.close()
 
+            idx_batch += 1
+
+        #
+        if f_val_snn:
+            model.defused_bn()
+
 
         if f_val == False:
             for i in range(num_accuracy_time_point):
@@ -197,9 +232,12 @@ def test(model, dataset, conf, f_val=False, epoch=0):
             #print(model.total_residual_vmem)
 
 
+            pd.set_option('display.float_format','{:.4g}'.format)
+
             #
             #df=pd.DataFrame({'time step': model.accuracy_time_point, 'spike count': list(model.total_spike_count[:,-1]),'accuracy': accuracy_result})
-            df=pd.DataFrame({'time step': model.accuracy_time_point, 'accuracy': accuracy_result, 'spike count': model.total_spike_count_int[:,-1]})
+            #df=pd.DataFrame({'time step': model.accuracy_time_point, 'accuracy': accuracy_result, 'spike count': model.total_spike_count_int[:,-1]})
+            df=pd.DataFrame({'time step': model.accuracy_time_point, 'accuracy': accuracy_result, 'spike count': model.total_spike_count_int[:,-1]/num_dataset, 'spike_count_c1':model.total_spike_count_int[:,0]/num_dataset, 'spike_count_c2':model.total_spike_count_int[:,1]/num_dataset})
             df.set_index('time step', inplace=True)
             print(df)
 
@@ -227,6 +265,11 @@ def test(model, dataset, conf, f_val=False, epoch=0):
                 if conf.f_train_time_const:
                     f_name_result += '_train-tc'
 
+                if conf.ckpt_epoch!=0:
+                    f_name_result += '_ckpt-'+str(conf.ckpt_epoch)
+
+                if conf.f_qvth:
+                    f_name_result += '_qvth'
 
                 f_name_result = f_name_result+'.xlsx'
 
@@ -236,7 +279,7 @@ def test(model, dataset, conf, f_val=False, epoch=0):
 
             if conf.f_train_time_const and print_loss:
                 df=pd.DataFrame({'loss_prec': list_loss_prec, 'loss_min': list_loss_min, 'loss_max': list_loss_max})
-                fname="./time-const-train-loss_b-"+str(conf.batch_size)+"_d-"+str(conf.num_test_dataset)+"_tc-"+str(conf.tc)+"_tw-"+str(conf.time_window)+".xlsx"
+                fname="./time-const-train-loss_b-"+str(conf.batch_size)+"_d-"+str(conf.num_test_dataset)+"_tc-"+str(conf.tc)+"_tw-"+str(conf.time_window)+"_ckpt-"+str(conf.ckpt_epoch)+".xlsx"
                 df.to_excel(fname)
 
 
@@ -269,11 +312,14 @@ def test(model, dataset, conf, f_val=False, epoch=0):
         if conf.verbose_visual:
             model.figure_hold()
 
+    # DNN (ANN) test
     else:
-        accuracy=tfe.metrics.Accuracy('accuracy')
+        #accuracy=tfe.metrics.Accuracy('accuracy')
+        accuracy=tf.metrics.Accuracy('accuracy')
 
         if conf.dataset == 'ImageNet':
-            accuracy_top5=tfe.metrics.Mean('accuracy_top5')
+            #accuracy_top5=tfe.metrics.Mean('accuracy_top5')
+            accuracy_top5=tf.metrics.Mean('accuracy_top5')
 
 
         if f_val==False:
@@ -282,8 +328,11 @@ def test(model, dataset, conf, f_val=False, epoch=0):
             pbar.set_description("batch")
 
 
-        for (idx_batch, (images, labels_one_hot)) in enumerate(tfe.Iterator(dataset)):
+        #for (idx_batch, (images, labels_one_hot)) in enumerate(tfe.Iterator(dataset)):
+        #for (idx_batch, (images, labels_one_hot)) in enumerate(tf.Iterator(dataset)):
         #for idx_batch in range(0,2):
+        idx_batch = 0
+        for (images, labels_one_hot) in dataset:
             #images, labels = tfe.Iterator(dataset).next()
             #print('idx: %d'%(idx_batch))
             #print('image')
@@ -298,7 +347,7 @@ def test(model, dataset, conf, f_val=False, epoch=0):
 
             if idx_batch!=-1:
                 #model=tfe.defun(model)
-                predictions = model(images, f_training=False)
+                predictions = model(images, f_training=False, epoch=epoch)
 
                 #print(predictions.shape)
                 #print(str(tf.argmax(predictions,axis=1))+' : '+str(tf.argmax(labels,axis=1)))
@@ -310,10 +359,12 @@ def test(model, dataset, conf, f_val=False, epoch=0):
                     with tf.device('/cpu:0'):
                         #accuracy_top5(tf.cast(tf.nn.in_top_k(predictions,labels,5),tf.int32))
                         accuracy_top5(tf.cast(tf.nn.in_top_k(predictions, tf.argmax(labels_one_hot,axis=1,output_type=tf.int32),5),tf.int32))
-                avg_loss(train.loss(predictions,labels_one_hot))
+                avg_loss(train.loss_cross_entoropy(predictions,labels_one_hot))
 
             if f_val==False:
                 pbar.update()
+
+            idx_batch += 1
 
         ret_accu = 100*accuracy.result()
         if conf.dataset == 'ImageNet':
