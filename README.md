@@ -1,6 +1,6 @@
 # Readme
 
-Spiking Neural Network library based on Tensorflow
+Spiking Neural Network library based on Tensorflow & Python
 
 
 # Sequence (?)
