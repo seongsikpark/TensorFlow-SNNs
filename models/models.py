@@ -89,7 +89,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         #
         self.layer_name=[
             # TODO: 'in' check - why commented out 'in'?
-            'in',
+            #'in',
             'conv1',
             'conv1_1',
             'conv2',

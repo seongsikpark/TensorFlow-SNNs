@@ -9,16 +9,16 @@ source ../05_SNN/venv/bin/activate
 ## Include
 ###############################################################################
 # path
-source ./scripts/path.conf
+source ./configs/path.conf
 
 # weight normalization
-source ./scripts/weight_norm.conf
+source ./configs/weight_norm.conf
 
 # utils
-source ./scripts/utils.conf
+source ./configs/utils.conf
 
 # model description
-source ./scripts/models_descript.conf
+source ./configs/models_descript.conf
 
 
 
@@ -42,9 +42,21 @@ en_tensorboard_write=True
 nn_mode='ANN'
 #nn_mode='SNN'
 
+# model
+#model='CNN' # for MNIST
+model='VGG16'
+#model='ResNet50'
 
+# dataset
+#dataset='MNIST'
+dataset='CIFAR-10'
+#dataset='CIFAR-100'
+#dataset='ImageNet'
+
+
+#
 #exp_case='CNN_MNIST'
-exp_case='VGG16_CIFAR-10'
+#exp_case='VGG16_CIFAR-10'
 #exp_case='VGG16_CIFAR-100'
 #exp_case='ResNet50_ImageNet'
 
@@ -559,6 +571,9 @@ f_pruning_channel=False
 ## DO NOT TOUCH
 ###############################################################################
 
+#
+exp_case=${model}_${dataset}
+
 if [ ${training_mode} = True ]
 then
     _exp_case=TRAIN_${exp_case}
@@ -572,8 +587,7 @@ else
 fi
 
 
-
-
+# setup for training
 if [ ${training_mode} = True ]
 then
 
@@ -583,7 +597,6 @@ then
     else
         en_load_model=False
     fi
-
 
     en_train=True
 
@@ -1037,6 +1050,12 @@ path_result_root=${path_result_root}/${model_name}
 time_const_root=${time_const_init_file_name}/${model_name}
 #
 path_stat=${path_stat_root}/${model_name}
+
+
+#
+echo path_log: ${path_log_root}
+echo path_result: ${path_result_root}
+echo path_stat: ${path_stat}
 
 #
 mkdir -p ${path_log_root}

@@ -32,16 +32,16 @@ source ../05_SNN/venv/bin/activate
 ## Include
 ###############################################################################
 # path
-source ./scripts/path.conf
+source ./configs/path.conf
 
 # weight normalization
-source ./scripts/weight_norm.conf
+source ./configs/weight_norm.conf
 
 # utils
-source ./scripts/utils.conf
+source ./configs/utils.conf
 
 # model description
-source ./scripts/models_descript.conf
+source ./configs/models_descript.conf
 
 
 
