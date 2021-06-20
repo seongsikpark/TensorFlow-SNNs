@@ -211,7 +211,7 @@ tf.compat.v1.app.flags.DEFINE_bool('f_vth_conp',False,'f_vth_conp')
 tf.compat.v1.app.flags.DEFINE_bool('f_spike_max_pool',False,'f_spike_max_pool')
 tf.compat.v1.app.flags.DEFINE_bool('f_w_norm_data',False,'f_w_norm_data')
 tf.compat.v1.app.flags.DEFINE_bool('f_ws',False,'wieghted synapse')
-tf.compat.v1.app.flags.DEFINE_integer('p_ws',8,'period of wieghted synapse')
+tf.compat.v1.app.flags.DEFINE_float('p_ws',8,'period of wieghted synapse')
 
 tf.compat.v1.app.flags.DEFINE_integer('num_class',10,'number_of_class (do not touch)')
 
@@ -343,6 +343,17 @@ tf.compat.v1.app.flags.DEFINE_bool('f_qvth',False,'quantization-aware vth, round
 #
 tf.compat.v1.app.flags.DEFINE_string('tfboard_log_file_name',None,'tfboard log file name')
 
+# noise
+tf.compat.v1.app.flags.DEFINE_bool('noise_en',False,'noise injection mode enable')
+tf.compat.v1.app.flags.DEFINE_string('noise_type',None,'noise type - DEL ..')
+tf.compat.v1.app.flags.DEFINE_float('noise_pr',0.1,'noise probability for DEL')
+tf.compat.v1.app.flags.DEFINE_bool('noise_robust_en',False,'noise robust mode enable')
+tf.compat.v1.app.flags.DEFINE_bool('noise_robust_comp_pr_en',False,'noise robust compenstation pr enable - only DEL')
+tf.compat.v1.app.flags.DEFINE_integer('noise_robust_spike_num',0,'noise robust spike number')
+tf.compat.v1.app.flags.DEFINE_integer('rep',-1,'repeat - noise experiments')
+
+
+
 #
 conf = flags.FLAGS
 
@@ -353,11 +364,16 @@ conf.data_path_imagenet = data_path_imagenet
 #
 conf.time_fire_start = 1.5
 
-
+# TODO: parameterize - input 0~1
 if conf.model_name == 'vgg_cifar_ro_0':
     conf.f_data_std = False
 
+# stat mode - cpu
+if conf.f_write_stat:
+    en_gpu=False
+
 def main(_):
+    #tf.random.set_seed(76)
     #pr = cProfile.Profile()
     #pr=pprofile.Profile()
     #pr.enable()

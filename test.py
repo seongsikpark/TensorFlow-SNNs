@@ -241,6 +241,8 @@ def test(model, dataset, num_dataset, conf, f_val=False, epoch=0, f_val_snn=Fals
             df.set_index('time step', inplace=True)
             print(df)
 
+            # TODO: save result - integrate c1 and c2
+            # c1
             if conf.f_save_result:
                 f_name_result = conf.path_result_root+'/'+conf.date+'_'+conf.neural_coding
 
@@ -275,6 +277,37 @@ def test(model, dataset, num_dataset, conf, f_val=False, epoch=0, f_val_snn=Fals
 
                 df.to_excel(f_name_result)
                 print("output file: "+f_name_result)
+
+
+#            # c2
+#                # ts: time step
+#                # tssi: time step save interval
+#                #f_name_result = conf.path_result_root+'/'+conf.date+'_'+conf.neural_coding
+#                #f_name_result = conf.path_result_root+'/'+conf.input_spike_mode+conf.neural_coding+'_ts-'+str(conf.time_step)+'_tssi-'+str(conf.time_step_save_interval)
+#                f_name_result = '{}/{}_{}_ts-{}_tssi-{}_vth-{}'.format(conf.path_result_root,conf.input_spike_mode,conf.neural_coding,str(conf.time_step),str(conf.time_step_save_interval),conf.n_init_vth)
+#
+#
+#
+#                if conf.neural_coding=="TEMPORAL":
+#                    f_name_result += outfile_name_temporal(conf)
+#
+#                if conf.noise_en:
+#                    f_name_result += '_nt-'+conf.noise_type+'_np-'+str(conf.noise_pr)
+#
+#                    if conf.noise_robust_en:
+#                        f_name_result += '_nrs-'+str(conf.noise_robust_spike_num)
+#
+#                        if conf.noise_robust_comp_pr_en:
+#                            f_name_result += '_nrc'
+#
+#                    if conf.rep != -1:
+#                        f_name_result += '_rep-'+str(conf.rep)
+#
+#                #f_name_result = f_name_result+'.xlsx'
+#                f_name_result += '.xlsx'
+#
+#                df.to_excel(f_name_result)
+#                print("output file: "+f_name_result)
 
 
             if conf.f_train_time_const and print_loss:
@@ -390,6 +423,9 @@ def test(model, dataset, num_dataset, conf, f_val=False, epoch=0, f_val_snn=Fals
         if conf.f_write_stat:
             if conf.ann_model=='ResNet50' and conf.dataset=='ImageNet':
                 model.save_activation()
+            else:
+                model.save_activation()
+
 
 
         #print(tf.reduce_max(model.stat_a_fc2))
@@ -398,4 +434,32 @@ def test(model, dataset, num_dataset, conf, f_val=False, epoch=0, f_val_snn=Fals
 
     return avg_loss.result(), ret_accu, ret_accu_top5
 
+
+
+############################################
+# output file name
+############################################
+
+def outfile_name_temporal(conf):
+
+    if conf.f_tc_based:
+        f_name_result = '_tau_tc-'+str(conf.tc)+'_tw-'+str(conf.n_tau_time_window)+'_tfs-'+str(int(conf.n_tau_fire_start)) \
+                        +'_tfd-'+str(int(conf.n_tau_fire_duration))+'_ts-'+str(conf.time_step)+'_tssi-'+str(conf.time_step_save_interval)
+    else:
+        f_name_result = '_tc-'+str(conf.tc)+'_tw-'+str(conf.time_window)+'_tfs-'+str(int(conf.time_fire_start)) \
+                        +'_tfd-'+str(int(conf.time_fire_duration))
+
+    if conf.f_load_time_const:
+        if conf.f_train_time_const:
+            f_name_result += '_trained_data-'+str(conf.time_const_num_trained_data+conf.num_test_dataset)
+        else:
+            f_name_result += '_trained_data-'+str(conf.time_const_num_trained_data)
+
+    if conf.f_train_time_const:
+        if conf.f_train_time_const_outlier:
+            f_name_result += '_outlier'
+
+        f_name_result += '_train-tc'
+
+    return f_name_result
 

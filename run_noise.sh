@@ -6,6 +6,29 @@ source ../05_SNN/venv/bin/activate
 
 
 ###############################################################################
+# arguments
+###############################################################################
+
+# input_spike_mode=$1
+# neural_coding=$2
+# time_step=$3
+# time_step_save_interval=$4
+# vth=$5
+# tc=$6
+# time_fire_start=$7    # integration duration - n x tc
+# time_fire_duration=$8   # time window - n x tc
+# time_window=${time_fire_duration}
+# noise_en=$9
+# noise_type=$10
+# noise_pr=$11
+# noise_robust_en=${12}
+# noise_robust_comp_pr_en=${13}
+# noise_robust_spike_num=${14}
+# rep=$15
+
+rep=${15}
+
+###############################################################################
 ## Include
 ###############################################################################
 # path
@@ -32,15 +55,15 @@ verbose=False
 #verbose_visual=True
 verbose_visual=False
 
-en_tensorboard_write=True
-#en_tensorboard_write=False
+#en_tensorboard_write=True
+en_tensorboard_write=False
 
 
 ###############################################################################
 ## Model & Dataset
 ###############################################################################
-nn_mode='ANN'
-#nn_mode='SNN'
+#nn_mode='ANN'
+nn_mode='SNN'
 
 
 #exp_case='CNN_MNIST'
@@ -54,21 +77,21 @@ exp_case='VGG16_CIFAR-10'
 ###############################################################################
 
 
-epoch_start_train_tk=0
-epoch_start_train_t_int=0
+epoch_start_train_tk=600
+epoch_start_train_t_int=1000
 epoch_start_train_floor=1000
-epoch_start_train_clip_tw=0
+epoch_start_train_clip_tw=1
 epoch_start_loss_enc_spike=0
 
 #
-bypass_pr=0
+bypass_pr=1.0
 bypass_target_epoch=1000
 
 
 #
 # encoded spike distribution loss
-f_loss_enc_spike=False
-#f_loss_enc_spike=True
+#f_loss_enc_spike=False
+f_loss_enc_spike=True
 
 # weight of loss
 w_loss_enc_spike=0.01
@@ -80,8 +103,8 @@ w_loss_enc_spike=0.01
 #beta_dist_a=0.9
 #beta_dist_b=0.1
 
-beta_dist_a=1
-beta_dist_b=2
+beta_dist_a=0.5
+beta_dist_b=0.00001
 
 # target max encoded spike time - number of time window
 enc_st_n_tw=2
@@ -90,7 +113,7 @@ enc_st_n_tw=2
 ## Run
 ###############################################################################
 
-training_mode=True
+#training_mode=True
 training_mode=False
 
 #
@@ -138,20 +161,21 @@ f_full_test=True
 
 # for MNIST, CNN
 # DNN-to-SNN, inference
-time_step=200
+#time_step=200
 #time_step_save_interval=10
 #time_step_save_interval=2
-
+time_step=$3
 
 
 # for MNIST, CNN
 # SNN training
 #time_step=200
-time_step_save_interval=100
+#time_step_save_interval=100
 #time_step_save_interval=40
 #time_step_save_interval=20
 #time_step_save_interval=10
 #time_step_save_interval=5
+time_step_save_interval=$4
 
 
 ###############################################################
@@ -185,11 +209,12 @@ num_test_dataset=25
 #
 ## input spike mode
 #
-input_spike_mode='REAL'
+#input_spike_mode='REAL'
 #input_spike_mode='POISSON'
 #input_spike_mode='WEIGHTED_SPIKE'
 #input_spike_mode='BURST'
 #input_spike_mode='TEMPORAL'
+input_spike_mode=$1
 
 #
 ## neural coding
@@ -197,8 +222,9 @@ input_spike_mode='REAL'
 #neural_coding='RATE'
 #neural_coding='WEIGHTED_SPIKE'
 #neural_coding='BURST'
-neural_coding='TEMPORAL'
+#neural_coding='TEMPORAL'
 #neural_coding='NON_LINEAR'     # PF-Neuron
+neural_coding=$2
 
 
 # TODO: it should be deprecated
@@ -231,11 +257,7 @@ f_positive_vmem=False
 f_refractory=False
 
 
-#vth=1.1
-vth=1.0        # weight norm. default
-#vth=0.9
 
-vth_n_in=${vth}
 
 
 ###############################################################
@@ -254,31 +276,29 @@ then
 fi
 
 
-vth=1.0
-# TODO: input_spike_mode - REAL
-#if [ ${input_spike_mode} = 'REAL' ] && [ ${neural_coding} = 'BURST' ]
-if [ ${neural_coding} = 'RATE' ]
-then
-    vth=0.4
-elif [ ${neural_coding} = 'BURST' ]
+if [ ${neural_coding} = 'BURST' ]
 then
     # decreasing
     #vth=1.0
     #vth=0.5        # 1/2
     #vth=0.25       # 1/4
     # increasing
-    #vth=0.125      # 1/8 # default
-    vth=0.4         # empirical best
+    vth=0.125      # 1/8 # default
     #vth=0.0625     # 1/16
     #vth=0.03125    # 1/32
     #vth=0.015625   # 1/64
     #vth=0.015625   # 1/128
     #vth=0.0078125  # 1/256
-elif [ ${neural_coding} = 'TEMPORAL' ]
-then
-    vth=0.8
 fi
 
+
+#
+#vth=1.1
+#vth=1.0        # weight norm. default
+#vth=0.9
+vth=$5
+
+vth_n_in=${vth}
 
 
 ###############################################################################
@@ -315,7 +335,7 @@ batch_run_mode=False
 #
 batch_run_train_tc=False
 #batch_run_train_tc=True
-###############################################################################
+###############################################################
 
 
 ###############################################################################
@@ -323,34 +343,39 @@ batch_run_train_tc=False
 ##
 ###############################################################################
 
-noise_en=False
-#noise_en=True
+#noise_en=False
+noise_en=$9
 
-noise_type="DEL"
-#noise_type="JIT"
-#noise_type="SYN"
+#if [ $9 = 1 ]
+#then
+    #noise_en=True
+#else
+    #noise_en=False
+#fi
+
+
+noise_type=${10}
 
 # for noise_type = DEL (pr), JIT (std)
-#noise_pr=0.0
-#noise_pr=0.01
-#noise_pr=0.10
-#noise_pr=0.20
-noise_pr=0.40
-#noise_pr=0.60
-#noise_pr=1.0
-#noise_pr=2.0
+noise_pr=${11}
 
 #
-noise_robust_en=False
-#noise_robust_en=True
+noise_robust_en=${12}
 
-#noise_robust_comp_pr_en=True
-noise_robust_comp_pr_en=False
+#
+noise_robust_comp_pr_en=${13}
 
-noise_robust_spike_num=0
+#
+noise_robust_spike_num=${14}
+
+
+
+
+
+
+
 
 ###############################################################################
-
 
 
 f_visual_record_first_spike_time=False
@@ -435,25 +460,20 @@ epoch_train_time_const=1
 
 # TTFS - CIFAR-10 default setting
 #tc=10
-tc=20
-#tc=16
-time_fire_start=80    # integration duration - n x tc
-time_fire_duration=80   # time window - n x tc
+#tc=8
+#time_fire_start=32    # integration duration - n x tc
+#time_fire_duration=32   # time window - n x tc
+tc=$6
+time_fire_start=$7    # integration duration - n x tc
+time_fire_duration=$8   # time window - n x tc
 time_window=${time_fire_duration}
 
 
-# TTFS - CIFAR-10
-tc=10
-time_fire_start=40    # integration duration - n x tc
-time_fire_duration=40   # time window - n x tc
-time_window=${time_fire_duration}
-
-
-# TTFS - CIFAR-10
-tc=8
-time_fire_start=32    # integration duration - n x tc
-time_fire_duration=32   # time window - n x tc
-time_window=${time_fire_duration}
+## TTFS - CIFAR-10
+#tc=8
+#time_fire_start=32    # integration duration - n x tc
+#time_fire_duration=32   # time window - n x tc
+#time_window=${time_fire_duration}
 
 
 #f_tc_based=True
@@ -888,6 +908,7 @@ TRAIN_VGG16_CIFAR-100)
     ann_model='VGG16'
 
     #num_epoch=2000
+    #num_epoch=4000
     num_epoch=10000
 
     if [ ${f_surrogate_training_model} = True ]
@@ -1038,6 +1059,8 @@ time_const_root=${time_const_init_file_name}/${model_name}
 #
 path_stat=${path_stat_root}/${model_name}
 
+path_log_root=${path_log_root}/${model_name}
+
 #
 mkdir -p ${path_log_root}
 mkdir -p ${path_result_root}
@@ -1047,7 +1070,28 @@ mkdir -p ${path_stat}
 
 
 #log_file=${path_log_root}/log_${model_name}_${nn_mode}_${time_step}_${vth}_999_norm_${f_real_value_input_snn}_${date}
-log_file=${path_log_root}/${date}.log
+#log_file=${path_log_root}/${date}.log
+
+
+if [ ${noise_en} = True ]
+then
+    log_file_name=${input_spike_mode}_${neural_coding}_ts-${time_step}_tssi-${time_step_save_interval}_vth-${vth}_tc-${tc}_tw-${time_window}_tfs-${time_fire_start}_tfd-${time_fire_duration}_noise_t-${noise_type}_noise_p-${noise_pr}
+
+    if [ ${noise_robust_en} = True ]
+    then
+        log_file_name=${log_file_name}_nrs-${noise_robust_spike_num}
+
+        if [ ${noise_robust_comp_pr_en} = True ]
+        then
+            log_file_name=${log_file_name}_nrc
+        fi
+    fi
+    log_file_name=${log_file_name}_rep-${rep}
+else
+    log_file_name=${input_spike_mode}_${neural_coding}_ts-${time_step}_tssi-${time_step_save_interval}_vth-${vth}_tc-${tc}_tw-${time_window}_tfs-${time_fire_start}_tfd-${time_fire_duration}
+fi
+log_file=${path_log_root}/${log_file_name}.log
+
 
 #{ unbuffer time kernprof -l main.py \
 #{ CUDA_VISIBLE_DEVICES=0 unbuffer time python main.py \
@@ -1147,6 +1191,7 @@ log_file=${path_log_root}/${date}.log
     -noise_robust_en=${noise_robust_en}\
     -noise_robust_spike_num=${noise_robust_spike_num}\
     -noise_robust_comp_pr_en=${noise_robust_comp_pr_en}\
+    -rep=${rep}\
     ; } 2>&1 | tee ${log_file}
 
 echo 'log_file: '${log_file}

@@ -28,8 +28,8 @@ class Neuron(tf.keras.layers.Layer):
         self.n_name = n_name
 
         # stat for weighted spike
-        self.en_stat_ws = True
-        #self.en_stat_ws = False
+        #self.en_stat_ws = True
+        self.en_stat_ws = False
 
         #self.zeros = np.zeros(self.dim,dtype=np.float32)
         #self.zeros = tf.constant(0.0,shape=self.dim,dtype=tf.float32)
@@ -103,6 +103,7 @@ class Neuron(tf.keras.layers.Layer):
 
         if self.conf.f_refractory:
             self.refractory = self.add_variable("refractory",shape=self.dim,dtype=tf.float32,initializer=tf.zeros_initializer,trainable=False)
+            self.t_set_refractory= self.add_variable("t_set_refractory",shape=self.dim,dtype=tf.float32,initializer=tf.constant_initializer(-1.0),trainable=False)
 
         #self.depth = self.add_variable("depth",shape=self.dim,dtype=tf.int32,initializer=tf.zeros_initializer,trainable=False)
 
@@ -155,6 +156,16 @@ class Neuron(tf.keras.layers.Layer):
                 self.loss_max=self.add_variable("loss_max",shape=[],dtype=tf.float32,initializer=tf.zeros_initializer,trainable=False)
 
 
+#        if self.conf.noise_en and (self.conf.noise_type=="JIT"):
+#            #self.jit_max = tf.floor(4*self.conf.noise_pr)       # 4 sigma
+#            self.jit_max = int(tf.floor(4*self.conf.noise_pr))       # 4 sigma
+#            shape = tensor_shape.TensorShape(self.vmem.shape)
+#            #shape = tensor_shape.TensorShape(self.out.shape+[int(self.jit_max),])
+#            #shape = tensor_shape.TensorShape([int(self.jit_max),]+self.out.shape)
+#
+#            #self.jit_q = self.add_variable("jit_q",shape=shape,dtype=tf.bool,initializer=tf.constant_initializer(False),trainable=False)
+#            self.jit_q = self.add_variable("jit_q",shape=shape,dtype=tf.int32,initializer=tf.constant_initializer(False),trainable=False)
+
     def call(self,inputs,t):
         
         #print('neuron call')
@@ -206,6 +217,7 @@ class Neuron(tf.keras.layers.Layer):
             self.isi = tf.zeros(self.isi.shape)
         if self.conf.f_refractory:
             self.refractory = tf.zeros(self.refractory.shape)
+            self.t_set_refractory = tf.constant(-1.0,dtype=tf.float32,shape=self.refractory.shape)
 
         if self.conf.f_record_first_spike_time:
             self.reset_first_spike_time()
@@ -254,7 +266,11 @@ class Neuron(tf.keras.layers.Layer):
         #print(self.vth.shape)
         #print(self.time_const_fire.shape)
         #self.vth = tf.constant(tf.exp(tf.divide(-time,self.time_const_fire)),tf.float32,self.out.shape)
+
+        # TODO: check
         self.vth = tf.exp(tf.divide(-time,self.time_const_fire))
+        #
+        #self.vth = tf.multiply(self.conf.n_init_vth,tf.exp(tf.divide(-time,self.time_const_fire)))
 
         # polynomial
         #self.vth = tf.constant(tf.add(-tf.pow(t/self.conf.tc,2),1.0),tf.float32,self.out.shape)
@@ -262,16 +278,21 @@ class Neuron(tf.keras.layers.Layer):
 
     ##
     def input_spike_real(self,inputs,t):
+        # TODO: check it
         if self.conf.neural_coding=="WEIGHTED_SPIKE":
             self.out=tf.truediv(inputs,self.conf.p_ws)
-        if self.conf.neural_coding=="TEMPORAL":
+        elif self.conf.neural_coding=="TEMPORAL":
             if t==0:
                 self.out=inputs
             else:
                 self.out = tf.zeros(self.out.shape)
         else:
-            #self.out=inputs
-            assert False
+            self.out=inputs
+
+#        else:
+#            self.out=inputs
+#            #assert False
+        #self.out=inputs
 
     def input_spike_poission(self,inputs,t):
         # Poission input
@@ -347,12 +368,9 @@ class Neuron(tf.keras.layers.Layer):
         self.out = tf.where(self.f_fire,tf.ones(self.out.shape),tf.zeros(self.out.shape))
         self.vmem = tf.where(self.f_fire,tf.zeros(self.out.shape),self.vmem)
 
-
-
-
-
         if self.conf.f_refractory:
-            self.cal_refractory_temporal(self.f_fire)
+            #self.cal_refractory_temporal(self.f_fire)
+            self.cal_refractory_temporal(t)
 
 
         #self.vth = tf.where(f_fire,self.vth*2.0,self.vth_init)
@@ -454,6 +472,20 @@ class Neuron(tf.keras.layers.Layer):
             time = time - self.time_delay_integ
         #time = tf.zeros(self.vmem.shape)
 
+        if self.conf.noise_en:
+            if self.conf.noise_type=="JIT" or self.conf.noise_type=="JIT-A":
+                rand = tf.random.normal(shape=inputs.shape,mean=0.0,stddev=self.conf.noise_pr)
+
+                if self.conf.noise_type=="JIT-A":
+                    rand = tf.abs(rand)
+                    rand = tf.floor(rand)
+                else:
+                    f_positive = tf.greater_equal(rand,tf.zeros(shape=rand.shape))
+                    rand = tf.where(f_positive, tf.floor(rand), tf.math.ceil(rand))
+
+                time = tf.add(time,rand)
+
+
         #receptive_kernel = tf.constant(tf.exp(-time/self.conf.tc),tf.float32,self.vmem.shape)
 
         #receptive_kernel = tf.constant(tf.exp(-time/self.time_const_integ),tf.float32,self.vmem.shape)
@@ -523,6 +555,63 @@ class Neuron(tf.keras.layers.Layer):
 
         self.vmem = tf.add(self.vmem,psp)
 
+    # TODO: move
+    ############################################################
+    ## noise function
+    ############################################################
+    def noise_jit(self,t):
+        rand = tf.random.normal(self.out.shape,mean=0.0,stddev=self.conf.noise_pr)
+        time_jit= tf.cast(tf.floor(tf.abs(rand)),dtype=tf.int32)
+
+        f_jit_del = tf.not_equal(time_jit,tf.zeros(self.out.shape,dtype=tf.int32))
+        t_mod = t%self.jit_max
+        pow_t_mod = tf.pow(2,t_mod)
+        one_or_zero = tf.cast(tf.math.mod(tf.truediv(self.jit_q,pow_t_mod,2),2),tf.float32)
+        f_jit_ins = tf.equal(one_or_zero,tf.ones(self.out.shape))
+        self.jit_q = tf.where(f_jit_ins,tf.subtract(self.jit_q,pow_t_mod),self.jit_q)
+
+
+        f_fire_and_jit_del = tf.math.logical_and(self.f_fire,f_jit_del)
+
+        jit_t = tf.math.floormod(tf.add(tf.constant(t,shape=time_jit.shape,dtype=tf.int32),time_jit),self.jit_max)
+
+        jit_q_t = tf.add(self.jit_q,tf.pow(2,jit_t))
+
+        self.jit_q = tf.where(f_fire_and_jit_del,jit_q_t,self.jit_q)
+
+        # jitter - del
+        out_tmp = tf.where(f_fire_and_jit_del,tf.zeros(self.out.shape),self.out)
+
+        # jitter - insert
+        # reset by subtraction
+        self.out = tf.where(f_jit_ins,self.vth,out_tmp)
+
+
+
+
+
+    def noise_del(self):
+        #print(self.out)
+        #print(tf.reduce_sum(self.out))
+
+        rand = tf.random.uniform(self.out.shape,minval=0.0,maxval=1.0)
+
+        f_noise = tf.less(rand,tf.constant(self.conf.noise_pr,shape=self.out.shape))
+
+        f_fire_and_noise = tf.math.logical_and(self.f_fire,f_noise)
+
+        #out_noise = tf.where(f_fire_and_noise,tf.zeros(self.out.shape),self.out)
+
+        #if self.neural_coding=="TEMPORAL":
+            #self.out = tf.where(f_fire_and_noise,tf.zeros(self.out.shape),self.out)
+            #self.f_fire = tf.where(f_fire_and_noise,tf.constant(False,tf.bool,self.f_fire.shape),self.f_fire)
+        #else:
+        self.out = tf.where(f_fire_and_noise,tf.zeros(self.out.shape),self.out)
+        self.f_fire = tf.where(f_fire_and_noise,tf.constant(False,tf.bool,self.f_fire.shape),self.f_fire)
+
+        #print("out_noise: {}".format(tf.reduce_sum(out_noise)))
+
+        #assert False
 
 
 
@@ -551,6 +640,17 @@ class Neuron(tf.keras.layers.Layer):
             'NON_LINEAR': self.fire_non_lin
         }.get(self.neural_coding, self.fire_rate) (t)
 
+        #
+        if self.conf.noise_en:
+
+            ## noise - jitter
+            #if self.conf.noise_type=='JIT':
+            #    self.noise_jit(t)
+
+            # TODO: modify it to switch style
+            # noise - DEL spikes
+            if self.conf.noise_type == 'DEL':
+                self.noise_del()
 
 
     #
@@ -576,13 +676,17 @@ class Neuron(tf.keras.layers.Layer):
         # weighted synpase input
         t_mod = (int)(t%self.conf.p_ws)
         if t_mod == 0:
-            self.vth = tf.constant(0.5,tf.float32,self.vth.shape)
+            # TODO: check
+            #self.vth = tf.constant(0.5,tf.float32,self.vth.shape)
+            self.vth = tf.constant(self.conf.n_init_vth,tf.float32,self.vth.shape)
         else:
             self.vth = tf.multiply(self.vth,0.5)
 
         if self.conf.f_refractory:
             #self.f_fire = np.logical_and(self.vmem >= self.vth,np.equal(self.refractory,0.0))
-            self.f_fire = tf.logical_and(self.vmem >= self.vth, tf.equal(self.refractory,0.0))
+            # TODO: check
+            #self.f_fire = tf.logical_and(self.vmem >= self.vth, tf.equal(self.refractory,0.0))
+            assert False, 'modify refractory'
         else:
             self.f_fire = self.vmem >= self.vth
 
@@ -593,6 +697,22 @@ class Neuron(tf.keras.layers.Layer):
         self.out = tf.where(self.f_fire,self.vth,tf.zeros(self.out.shape))
 
         self.vmem = tf.subtract(self.vmem,self.out)
+
+        # noise - jit
+        if self.conf.noise_en:
+            if self.conf.noise_type=="JIT" or self.conf.noise_type=="JIT-A":
+                rand = tf.random.normal(shape=self.out.shape,mean=0.0,stddev=self.conf.noise_pr)
+
+                if self.conf.noise_type=="JIT-A":
+                    rand = tf.abs(rand)
+                    rand = tf.floor(rand)
+                else:
+                    f_positive = tf.greater_equal(rand,tf.zeros(shape=rand.shape))
+                    rand = tf.where(f_positive, tf.floor(rand), tf.math.ceil(rand))
+
+                pow_rand = tf.pow(2.0,-rand)
+                out_jit = tf.multiply(self.out,pow_rand)
+                self.out = tf.where(self.f_fire,out_jit,self.out)
 
         # stat for weighted spike
         if self.en_stat_ws:
@@ -615,7 +735,10 @@ class Neuron(tf.keras.layers.Layer):
     def fire_burst(self,t):
         if self.conf.f_refractory:
             #self.f_fire = np.logical_and(self.vmem >= self.vth,np.equal(self.refractory,0.0))
-            self.f_fire = tf.logical_and(self.vmem >= self.vth, np.equal(self.refractory,0.0))
+            # TODO: check
+            #self.f_fire = tf.logical_and(self.vmem >= self.vth, np.equal(self.refractory,0.0))
+            assert False, 'modify refractory'
+
         else:
             self.f_fire = self.vmem >= self.vth
 
@@ -640,6 +763,22 @@ class Neuron(tf.keras.layers.Layer):
         #self.vth = tf.where(f_fire,self.vth*0.5,self.vth_init)
         #self.vth = tf.where(f_fire,self.vth*0.9,self.vth_init)
 
+
+        if self.conf.noise_en:
+            if self.conf.noise_type=="JIT" or self.conf.noise_type=="JIT-A":
+                rand = tf.random.normal(shape=self.out.shape,mean=0.0,stddev=self.conf.noise_pr)
+
+                if self.conf.noise_type=="JIT-A":
+                    rand = tf.abs(rand)
+                    rand = tf.floor(rand)
+                else:
+                    f_positive = tf.greater_equal(rand,tf.zeros(shape=rand.shape))
+                    rand = tf.where(f_positive, tf.floor(rand), tf.math.ceil(rand))
+
+                pow_rand = tf.pow(2.0,rand)
+                out_jit = tf.multiply(self.out,pow_rand)
+                self.out = tf.where(self.f_fire,out_jit,self.out)
+
         if self.conf.f_isi:
             self.cal_isi(self.f_fire,t)
 
@@ -655,12 +794,25 @@ class Neuron(tf.keras.layers.Layer):
         self.set_vth_temporal_kernel(time)
 
         if self.conf.f_refractory:
+
+            # TODO: check - case 1 or 2
+            # case 1
             #self.f_fire = (self.vmem >= self.vth) & \
             #                tf.equal(self.refractory,tf.zeros(self.refractory.shape))
-
-
             self.f_fire = (self.vmem >= self.vth) & \
                               tf.equal(self.refractory,tf.constant(0.0,tf.float32,self.refractory.shape))
+
+            # case 2
+            ##self.f_fire = (self.vmem >= self.vth) & \
+            ##                tf.equal(self.refractory,tf.zeros(self.refractory.shape))
+            #f_fire = tf.greater_equal(self.vmem,self.vth)
+            ##f_refractory = tf.greater_equal(tf.constant(t,tf.float32),self.refractory)
+            ##f_refractory = tf.greater_equal(tf.constant(t,tf.float32),self.refractory)
+            #f_refractory = tf.greater(tf.constant(t,tf.float32),self.refractory)
+            ##self.f_fire = (self.vmem >= self.vth) & \
+            ##                  tf.equal(self.refractory,tf.constant(0.0,tf.float32,self.refractory.shape))
+            #self.f_fire = tf.logical_and(f_fire,f_refractory)
+
         else:
             self.f_fire = (self.vmem >= self.vth) & (self.vth >= 10**(-5))
 
@@ -681,7 +833,8 @@ class Neuron(tf.keras.layers.Layer):
         #print("fire: glb {}: loc {} - vth {:0.3f}, kernel {:.03f}, out {:0.3f}".format(t, time,self.vmem[addr],self.vth[addr],self.out[addr]))
 
         if self.conf.f_refractory:
-            self.cal_refractory_temporal(self.f_fire)
+            #self.cal_refractory_temporal(self.f_fire)
+            self.cal_refractory_temporal(t)
 
 
     #
@@ -746,9 +899,69 @@ class Neuron(tf.keras.layers.Layer):
 
         #print(tf.reduce_max(np.log2(self.vth/self.vth_init)))
 
-    def cal_refractory_temporal(self,f_fire):
+    # TODO: refractory
+    def cal_refractory_temporal_original(self,f_fire):
         #self.refractory = tf.where(f_fire,tf.constant(self.conf.time_step,tf.float32,self.refractory.shape),self.refractory)
         self.refractory = tf.where(f_fire,tf.constant(10000.0,tf.float32,self.refractory.shape),self.refractory)
+
+    def cal_refractory_temporal(self, t):
+        if self.conf.noise_robust_en:
+
+            inf_t = 10000.0
+
+            t_b = self.conf.noise_robust_spike_num
+            #t_b = 2
+
+            f_init_refractory = tf.equal(self.t_set_refractory,tf.constant(-1.0,dtype=tf.float32,shape=self.t_set_refractory.shape))
+
+
+
+            f_first_spike = tf.logical_and(f_init_refractory, self.f_fire)
+
+            t = tf.constant(t,dtype=tf.float32,shape=self.refractory.shape)
+            t_b = tf.constant(t_b,dtype=tf.float32,shape=self.refractory.shape)
+            inf_t = tf.constant(inf_t,dtype=tf.float32,shape=self.refractory.shape)
+
+            self.t_set_refractory = tf.where(f_first_spike,tf.add(t,t_b),self.t_set_refractory)
+            #self.t_set_refractory = tf.where(f_first_spike,t,self.t_set_refractory)
+
+            #
+            f_add_vmem = self.f_fire
+            #add_amount = tf.divide(self.vth,2.0)
+            add_amount = self.vth
+            self.vmem = tf.where(f_add_vmem,tf.add(self.vmem,add_amount),self.vmem)
+
+
+            #
+            f_set_inf_refractory = tf.equal(t,self.t_set_refractory)
+            self.refractory = tf.where(f_set_inf_refractory,inf_t,self.refractory)
+
+            #print(self.t_set_refractory)
+
+            #
+            #self.refractory = tf.where(self.f_fire,tf.constant(10000.0,tf.float32,self.refractory.shape),self.refractory)
+            #f_set_refractory = tf.logical_and(self.f_fire,tf.equal(self.refractory,tf.zeros(shape=self.refractory.shape)))
+            #self.t_set_refractory = tf.where(f_set_refractory,t,self.t_set_refractory)
+
+            #self.refractory = tf.where(self.f_fire,inf_t,self.refractory)
+
+            #print(type(t.numpy()[0,0,0,0]))
+            #print(type(self.t_set_refractory.numpy()[0,0,0,0]))
+            #print(t.shape)
+            #print(self.t_set_refractory.shape)
+            #f_refractory = tf.equal(t,self.t_set_refractory)
+            #print(self.t_set_refractory[0])
+            #self.refractory = tf.where(f_refractory,inf_t,self.refractory)
+
+            #print(t_int)
+            #print(self.depth)
+            #print(self.t_set_refractory.numpy()[0,0,0,0:10])
+            #print(f_init_refractory.numpy()[0,0,0,0:10])
+            #print(self.refractory.numpy()[0,0,0,0:10])
+        else:
+            self.refractory = tf.where(self.f_fire,tf.constant(10000.0,tf.float32,self.refractory.shape),self.refractory)
+
+
 
     #
     def count_spike(self, t):
@@ -1252,7 +1465,6 @@ class Temporal_kernel(tf.keras.layers.Layer):
 
         #
         t_float = self.call_encoding_kernel(input)
-
 
         #
         infer_mode = (f_training==False)and(epoch<0)

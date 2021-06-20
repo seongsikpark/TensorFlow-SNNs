@@ -88,6 +88,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
         #
         self.layer_name=[
+            # TODO: 'in' check - why commented out 'in'?
             'in',
             'conv1',
             'conv1_1',
@@ -174,12 +175,12 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         activation = None
         padding = 'same'
 
-        self.nn_mode = {
+        self.run_mode = {
             'ANN': self.call_ann if not self.conf.f_surrogate_training_model else self.call_ann_surrogate_training,
             'SNN': self.call_snn if not self.conf.f_pruning_channel else self.call_snn_pruning
         }
 
-        self.nn_mode_load_model = {
+        self.run_mode_load_model = {
             'ANN': self.call_ann if not self.conf.f_surrogate_training_model else self.call_ann_surrogate_training,
             'SNN': self.call_snn
         }
@@ -349,33 +350,36 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
 
         self.dict_shape_one_batch=collections.OrderedDict()
-        self.dict_shape_one_batch['conv1']=[1,]+self.shape_out_conv1[1:]
-        self.dict_shape_one_batch['conv1_1']=[1,]+self.shape_out_conv1_1[1:]
-        self.dict_shape_one_batch['conv1_p']=[1,]+self.shape_out_conv1_p[1:]
-        self.dict_shape_one_batch['conv2']=[1,]+self.shape_out_conv2[1:]
-        self.dict_shape_one_batch['conv2_1']=[1,]+self.shape_out_conv2_1[1:]
-        self.dict_shape_one_batch['conv2_p']=[1,]+self.shape_out_conv2_p[1:]
-        self.dict_shape_one_batch['conv3']=[1,]+self.shape_out_conv3[1:]
-        self.dict_shape_one_batch['conv3_1']=[1,]+self.shape_out_conv3_1[1:]
-        self.dict_shape_one_batch['conv3_2']=[1,]+self.shape_out_conv3_2[1:]
-        self.dict_shape_one_batch['conv3_p']=[1,]+self.shape_out_conv3_p[1:]
-        self.dict_shape_one_batch['conv4']=[1,]+self.shape_out_conv4[1:]
-        self.dict_shape_one_batch['conv4_1']=[1,]+self.shape_out_conv4_1[1:]
-        self.dict_shape_one_batch['conv4_2']=[1,]+self.shape_out_conv4_2[1:]
-        self.dict_shape_one_batch['conv4_p']=[1,]+self.shape_out_conv4_p[1:]
-        self.dict_shape_one_batch['conv5']=[1,]+self.shape_out_conv5[1:]
-        self.dict_shape_one_batch['conv5_1']=[1,]+self.shape_out_conv5_1[1:]
-        self.dict_shape_one_batch['conv5_2']=[1,]+self.shape_out_conv5_2[1:]
-        self.dict_shape_one_batch['conv5_p']=[1,]+self.shape_out_conv5_p[1:]
-        self.dict_shape_one_batch['fc1']=[1,]+self.shape_out_fc1[1:]
-        self.dict_shape_one_batch['fc2']=[1,]+self.shape_out_fc2[1:]
-        self.dict_shape_one_batch['fc3']=[1,]+self.shape_out_fc3[1:]
+#        self.dict_shape_one_batch['conv1']=[1,]+self.shape_out_conv1[1:]
+#        self.dict_shape_one_batch['conv1_1']=[1,]+self.shape_out_conv1_1[1:]
+#        self.dict_shape_one_batch['conv1_p']=[1,]+self.shape_out_conv1_p[1:]
+#        self.dict_shape_one_batch['conv2']=[1,]+self.shape_out_conv2[1:]
+#        self.dict_shape_one_batch['conv2_1']=[1,]+self.shape_out_conv2_1[1:]
+#        self.dict_shape_one_batch['conv2_p']=[1,]+self.shape_out_conv2_p[1:]
+#        self.dict_shape_one_batch['conv3']=[1,]+self.shape_out_conv3[1:]
+#        self.dict_shape_one_batch['conv3_1']=[1,]+self.shape_out_conv3_1[1:]
+#        self.dict_shape_one_batch['conv3_2']=[1,]+self.shape_out_conv3_2[1:]
+#        self.dict_shape_one_batch['conv3_p']=[1,]+self.shape_out_conv3_p[1:]
+#        self.dict_shape_one_batch['conv4']=[1,]+self.shape_out_conv4[1:]
+#        self.dict_shape_one_batch['conv4_1']=[1,]+self.shape_out_conv4_1[1:]
+#        self.dict_shape_one_batch['conv4_2']=[1,]+self.shape_out_conv4_2[1:]
+#        self.dict_shape_one_batch['conv4_p']=[1,]+self.shape_out_conv4_p[1:]
+#        self.dict_shape_one_batch['conv5']=[1,]+self.shape_out_conv5[1:]
+#        self.dict_shape_one_batch['conv5_1']=[1,]+self.shape_out_conv5_1[1:]
+#        self.dict_shape_one_batch['conv5_2']=[1,]+self.shape_out_conv5_2[1:]
+#        self.dict_shape_one_batch['conv5_p']=[1,]+self.shape_out_conv5_p[1:]
+#        self.dict_shape_one_batch['fc2']=[1,]+self.shape_out_fc2[1:]
+#        self.dict_shape_one_batch['fc3']=[1,]+self.shape_out_fc3[1:]
+        for l_name in self.layer_name:
+            self.dict_shape_one_batch[l_name] = tensor_shape.TensorShape([1,]+self.dict_shape[l_name][1:])
+
 
         #
         self.dict_stat_r=collections.OrderedDict()  # read
         self.dict_stat_w=collections.OrderedDict()  # write
 
 
+        #
         if self.conf.f_entropy:
             self.dict_stat_w['conv1']=np.zeros([self.conf.time_step,]+self.shape_out_conv1[1:])
             self.dict_stat_w['conv1_1']=np.zeros([self.conf.time_step,]+self.shape_out_conv1_1[1:])
@@ -394,27 +398,57 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             self.dict_stat_w['fc2']=np.zeros([self.conf.time_step,]+self.shape_out_fc2[1:])
             self.dict_stat_w['fc3']=np.zeros([self.conf.time_step,]+self.shape_out_fc3[1:])
 
-
             self.arr_length = [2,3,4,5,8,10]
             self.total_entropy=np.zeros([len(self.arr_length),len(self.layer_name)+1])
 
+        #
         if self.conf.f_write_stat or self.conf.f_comp_act:
-            self.dict_stat_w['conv1']=np.zeros([1,]+self.shape_out_conv1[1:])
-            self.dict_stat_w['conv1_1']=np.zeros([1,]+self.shape_out_conv1_1[1:])
-            self.dict_stat_w['conv2']=np.zeros([1,]+self.shape_out_conv2[1:])
-            self.dict_stat_w['conv2_1']=np.zeros([1,]+self.shape_out_conv2_1[1:])
-            self.dict_stat_w['conv3']=np.zeros([1,]+self.shape_out_conv3[1:])
-            self.dict_stat_w['conv3_1']=np.zeros([1,]+self.shape_out_conv3_1[1:])
-            self.dict_stat_w['conv3_2']=np.zeros([1,]+self.shape_out_conv3_2[1:])
-            self.dict_stat_w['conv4']=np.zeros([1,]+self.shape_out_conv4[1:])
-            self.dict_stat_w['conv4_1']=np.zeros([1,]+self.shape_out_conv4_1[1:])
-            self.dict_stat_w['conv4_2']=np.zeros([1,]+self.shape_out_conv4_2[1:])
-            self.dict_stat_w['conv5']=np.zeros([1,]+self.shape_out_conv5[1:])
-            self.dict_stat_w['conv5_1']=np.zeros([1,]+self.shape_out_conv5_1[1:])
-            self.dict_stat_w['conv5_2']=np.zeros([1,]+self.shape_out_conv5_2[1:])
-            self.dict_stat_w['fc1']=np.zeros([1,]+self.shape_out_fc1[1:])
-            self.dict_stat_w['fc2']=np.zeros([1,]+self.shape_out_fc2[1:])
-            self.dict_stat_w['fc3']=np.zeros([1,]+self.shape_out_fc3[1:])
+
+            # TODO: check
+            #
+            self.layer_name_write_stat=[
+                #'in',
+                #'conv1',
+                #'conv1_1',
+                #'conv2',
+                #'conv2_1',
+                #'conv3',
+                #'conv3_1',
+                #'conv3_2',
+                #'conv4',
+                #'conv4_1',
+                #'conv4_2',
+                'conv5',
+                'conv5_1',
+                'conv5_2',
+                'fc1',
+                'fc2',
+                'fc3',
+            ]
+
+            self.f_1st_iter_stat = True
+
+#            self.dict_stat_w['conv1']=np.zeros([1,]+self.shape_out_conv1[1:])
+#            self.dict_stat_w['conv1_1']=np.zeros([1,]+self.shape_out_conv1_1[1:])
+#            self.dict_stat_w['conv2']=np.zeros([1,]+self.shape_out_conv2[1:])
+#            self.dict_stat_w['conv2_1']=np.zeros([1,]+self.shape_out_conv2_1[1:])
+#            self.dict_stat_w['conv3']=np.zeros([1,]+self.shape_out_conv3[1:])
+#            self.dict_stat_w['conv3_1']=np.zeros([1,]+self.shape_out_conv3_1[1:])
+#            self.dict_stat_w['conv3_2']=np.zeros([1,]+self.shape_out_conv3_2[1:])
+#            self.dict_stat_w['conv4']=np.zeros([1,]+self.shape_out_conv4[1:])
+#            self.dict_stat_w['conv4_1']=np.zeros([1,]+self.shape_out_conv4_1[1:])
+#            self.dict_stat_w['conv4_2']=np.zeros([1,]+self.shape_out_conv4_2[1:])
+#            self.dict_stat_w['conv5']=np.zeros([1,]+self.shape_out_conv5[1:])
+#            self.dict_stat_w['conv5_1']=np.zeros([1,]+self.shape_out_conv5_1[1:])
+#            self.dict_stat_w['conv5_2']=np.zeros([1,]+self.shape_out_conv5_2[1:])
+#            self.dict_stat_w['fc1']=np.zeros([1,]+self.shape_out_fc1[1:])
+#            self.dict_stat_w['fc2']=np.zeros([1,]+self.shape_out_fc2[1:])
+#            self.dict_stat_w['fc3']=np.zeros([1,]+self.shape_out_fc3[1:])
+
+            #self.dict_stat_w['fc1']=tf.Variable(initial_value=tf.zeros(self.dict_shape['fc1']),trainable=None)
+
+            for l_name in self.layer_name_write_stat:
+                self.dict_stat_w[l_name]=tf.Variable(initial_value=tf.zeros(self.dict_shape[l_name]),trainable=None)
 
 
         self.conv_p=collections.OrderedDict()
@@ -423,6 +457,11 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         self.conv_p['conv3_p']=np.empty(self.dict_shape['conv3_p'],dtype=np.float32)
         self.conv_p['conv4_p']=np.empty(self.dict_shape['conv4_p'],dtype=np.float32)
         self.conv_p['conv5_p']=np.empty(self.dict_shape['conv5_p'],dtype=np.float32)
+
+
+        #
+        if (self.conf.nn_mode=='SNN' and self.conf.f_train_time_const) or (self.conf.nn_mode=='ANN' and self.conf.f_write_stat):
+            self.dnn_act_list=collections.OrderedDict()
 
         # neurons
         if self.conf.nn_mode == 'SNN' or self.conf.f_validation_snn:
@@ -645,7 +684,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             # TODO: parameterize with other file (e.g., train_snn.py)
             #f_loss_dist = True
 
-            #
+            # TODO: function
             self.f_loss_enc_spike_dist = False
             self.f_loss_enc_spike_bn = False
             self.f_loss_enc_spike_bn_only = False   # loss aginst only BN parameters
@@ -687,6 +726,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
                 self.f_loss_enc_spike_bn = False
                 self.f_loss_enc_spike_bn_only = False
 
+            # TODO: function
             if self.f_loss_enc_spike_dist:
 
                 #alpha = 0.1
@@ -818,16 +858,16 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
                 tw_sampling = 20
                 ret_val = self.call_snn(inputs,f_training,tw_sampling,epoch)
-                ret_val = self.nn_mode[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
+                ret_val = self.run_mode[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
             else:
                 if (self.conf.nn_mode=='SNN' and self.conf.neural_coding=="TEMPORAL"):
                     # inference - temporal coding
                     #ret_val = self.call_snn_temporal(inputs,f_training,self.conf.time_step)
 
                     #
-                    self.nn_mode['ANN'](inputs,f_training,self.conf.time_step,epoch)
+                    self.run_mode['ANN'](inputs,f_training,self.conf.time_step,epoch)
 
-                    ret_val = self.nn_mode[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
+                    ret_val = self.run_mode[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
 
                     # training time constant
                     if self.conf.f_train_time_const:
@@ -835,14 +875,13 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
                 else:
                     # inference - rate, phase burst coding
-                    ret_val = self.nn_mode[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
+                    ret_val = self.run_mode[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
         else:
 
             if self.conf.nn_mode=='SNN' and self.conf.f_surrogate_training_model:
                 ret_val = self.call_ann_surrogate_training(inputs,f_training,self.conf.time_step,epoch)
 
-            #ret_val = self.nn_mode_load_model[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
-            ret_val = self.nn_mode_load_model[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
+            ret_val = self.run_mode_load_model[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
             self.f_load_model_done=True
         return ret_val
 
@@ -997,23 +1036,20 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
                 #
                 if self.conf.f_train_time_const:
-                    self.nn_mode['ANN'](inputs,f_training,self.conf.time_step,epoch)
+                    self.run_mode['ANN'](inputs,f_training,self.conf.time_step,epoch)
 
                 #
-                ret_val = self.nn_mode[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
+                ret_val = self.run_mode[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
 
                 # training time constant
                 if self.conf.f_train_time_const:
                     self.train_time_const()
             else:
                 # inference - rate, phase burst coding
-                #ret_val = self.nn_mode[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
-
-                #
                 if f_val_snn:
                     ret_val = self.call_snn(inputs,f_training,self.conf.time_step,epoch)
                 else:
-                    ret_val = self.nn_mode[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
+                    ret_val = self.run_mode[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
 
 
             # post-processing
@@ -1027,17 +1063,17 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             if self.conf.en_train and self.conf.f_validation_snn:
                 ret_val = self.call_snn(inputs,False,1,0)
 
-            ret_val = self.nn_mode_load_model[self.conf.nn_mode](inputs,False,self.conf.time_step,epoch)
+            #ret_val = self.run_mode_load_model[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
+            ret_val = self.run_mode_load_model[self.conf.nn_mode](inputs,False,self.conf.time_step,epoch)
 
             self.f_load_model_done=True
-
 
         return ret_val
 
 
     #
     def fused_bn(self):
-        #print('fused_bn')
+        print('fused_bn')
         self.conv_bn_fused(self.conv1, self.conv1_bn, 1.0)
         self.conv_bn_fused(self.conv1_1, self.conv1_1_bn, 1.0)
         self.conv_bn_fused(self.conv2, self.conv2_bn, 1.0)
@@ -1106,46 +1142,195 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         for k, v in self.norm_b.items():
             print(k +': '+str(v))
 
+        if self.conf.noise_en:
+            if self.conf.noise_robust_en:
+                #layer_const = 0.55  # noise del 0.0
+                #layer_const = 0.50648  # noise del 0.0
+                #layer_const = 0.65 # noise del 0.0
+                #layer_const = 0.55 # noise del 0.0
+                #layer_const = 0.6225 # noise del 0.0
+                #layer_const = 0.50648  # noise del 0.0, n: 2
+                #layer_const = 0.45505  # noise del 0.0  n: 3
+                #layer_const = 0.42866  # noise del 0.0  n: 4
+                #layer_const = 0.41409  # noise del 0.0  n: 5
+                #layer_const = 0.40572  # noise del 0.0  n: 6
+                #layer_const = 0.40081  # noise del 0.0  n: 7
+                #layer_const = 0.45505*1.2 # noise del 0.0 - n 3
+                #layer_const = 1.0  # noise del 0.0
+                #layer_const = 0.55  # noise del 0.01
+                #layer_const = 0.6  # noise del 0.1
+                #layer_const = 0.65  # noise del 0.2
+                #layer_const = 0.78   # noise del 0.4
+                #layer_const = 0.7   # noise del 0.6
+                #layer_const=1.0
 
-        deep_layer_const = 1.0
 
-        self.conv1.kernel = self.conv1.kernel/self.norm['conv1']*deep_layer_const
-        self.conv1.bias = self.conv1.bias/self.norm_b['conv1']
-        self.conv1_1.kernel = self.conv1_1.kernel/self.norm['conv1_1']*deep_layer_const
-        self.conv1_1.bias = self.conv1_1.bias/self.norm_b['conv1_1']
+                layer_const = 1.0
+                bias_const = 1.0
 
-        self.conv2.kernel = self.conv2.kernel/self.norm['conv2']*deep_layer_const
-        self.conv2.bias = self.conv2.bias/self.norm_b['conv2']
-        self.conv2_1.kernel = self.conv2_1.kernel/self.norm['conv2_1']*deep_layer_const
-        self.conv2_1.bias = self.conv2_1.bias/self.norm_b['conv2_1']
+                if self.conf.neural_coding == 'TEMPORAL':
+                    if self.conf.noise_robust_spike_num==0:
+                        layer_const = 1.0
+                    elif self.conf.noise_robust_spike_num==1:
+                        layer_const = 0.50648
+                    elif self.conf.noise_robust_spike_num==2:
+                        layer_const = 0.50648
+                    elif self.conf.noise_robust_spike_num==3:
+                        layer_const = 0.45505
+                    elif self.conf.noise_robust_spike_num==4:
+                        layer_const = 0.42866
+                    elif self.conf.noise_robust_spike_num==5:
+                        layer_const = 0.41409
+                    elif self.conf.noise_robust_spike_num==6:
+                        layer_const = 0.40572
+                    elif self.conf.noise_robust_spike_num==7:
+                        layer_const = 0.40081
+                    elif self.conf.noise_robust_spike_num==10:
+                        layer_const = 0.39508
+                    elif self.conf.noise_robust_spike_num==15:
+                        layer_const = 0.39360
+                    elif self.conf.noise_robust_spike_num==20:
+                        layer_const = 0.39348
+                    else:
+                        assert False
+                else:
+                    if self.conf.noise_robust_spike_num==0:
+                        layer_const = 1.0
+                    else:
+                        assert False
 
-        self.conv3.kernel = self.conv3.kernel/self.norm['conv3']*deep_layer_const
-        self.conv3.bias = self.conv3.bias/self.norm_b['conv3']
-        self.conv3_1.kernel = self.conv3_1.kernel/self.norm['conv3_1']*deep_layer_const
-        self.conv3_1.bias = self.conv3_1.bias/self.norm_b['conv3_1']
-        self.conv3_2.kernel = self.conv3_2.kernel/self.norm['conv3_2']*deep_layer_const
-        self.conv3_2.bias = self.conv3_2.bias/self.norm_b['conv3_2']
+                #layer_const = 1.0
 
-        self.conv4.kernel = self.conv4.kernel/self.norm['conv4']*deep_layer_const
-        self.conv4.bias = self.conv4.bias/self.norm_b['conv4']
-        self.conv4_1.kernel = self.conv4_1.kernel/self.norm['conv4_1']*deep_layer_const
-        self.conv4_1.bias = self.conv4_1.bias/self.norm_b['conv4_1']
-        self.conv4_2.kernel = self.conv4_2.kernel/self.norm['conv4_2']*deep_layer_const
-        self.conv4_2.bias = self.conv4_2.bias/self.norm_b['conv4_2']
+                # compenstation - p
+                if self.conf.noise_robust_comp_pr_en:
+                    if self.conf.noise_type=="DEL":
+                        layer_const = layer_const / (1.0-self.conf.noise_pr)
+                    elif self.conf.noise_type=="JIT" or self.conf.noise_type=="JIT-A" or self.conf.noise_type=="SYN":
+                        layer_const = layer_const
+                        #layer_const = layer_const / (1.0-self.conf.noise_pr/4.0)
+                    else:
+                        assert False
+            else:
+                layer_const = 1.0
+                bias_const = 1.0
 
-        self.conv5.kernel = self.conv5.kernel/self.norm['conv5']*deep_layer_const
-        self.conv5.bias = self.conv5.bias/self.norm_b['conv5']
-        self.conv5_1.kernel = self.conv5_1.kernel/self.norm['conv5_1']*deep_layer_const
-        self.conv5_1.bias = self.conv5_1.bias/self.norm_b['conv5_1']
-        self.conv5_2.kernel = self.conv5_2.kernel/self.norm['conv5_2']*deep_layer_const
-        self.conv5_2.bias = self.conv5_2.bias/self.norm_b['conv5_2']
 
-        self.fc1.kernel = self.fc1.kernel/self.norm['fc1']*deep_layer_const
-        self.fc1.bias = self.fc1.bias/self.norm_b['fc1']
-        self.fc2.kernel = self.fc2.kernel/self.norm['fc2']*deep_layer_const
-        self.fc2.bias = self.fc2.bias/self.norm_b['fc2']
-        self.fc3.kernel = self.fc3.kernel/self.norm['fc3']*deep_layer_const
-        self.fc3.bias = self.fc3.bias/self.norm_b['fc3']
+
+            if self.conf.input_spike_mode=='REAL':
+                self.conv1.kernel = self.conv1.kernel/self.norm['conv1']
+                self.conv1.bias = self.conv1.bias/self.norm_b['conv1']
+                self.conv1_1.kernel = self.conv1_1.kernel/self.norm['conv1_1']
+                self.conv1_1.bias = self.conv1_1.bias/self.norm_b['conv1_1']
+            else:
+                self.conv1.kernel = self.conv1.kernel/self.norm['conv1']*layer_const
+                self.conv1.bias = self.conv1.bias/self.norm_b['conv1']*bias_const
+                self.conv1_1.kernel = self.conv1_1.kernel/self.norm['conv1_1']*layer_const
+                self.conv1_1.bias = self.conv1_1.bias/self.norm_b['conv1_1']*bias_const
+
+
+#            if self.conf.noise_type=="SYN":
+#                rand_2 = tf.random.normal(shape=self.conv2.kernel.shape,mean=0.0,stddev=self.conf.noise_pr)
+#                rand_2_1 = tf.random.normal(shape=self.conv2_1.kernel.shape,mean=0.0,stddev=self.conf.noise_pr)
+#                rand_3 = tf.random.normal(shape=self.conv3.kernel.shape,mean=0.0,stddev=self.conf.noise_pr)
+#                rand_3_1 = tf.random.normal(shape=self.conv3_1.kernel.shape,mean=0.0,stddev=self.conf.noise_pr)
+#                rand_3_2 = tf.random.normal(shape=self.conv3_2.kernel.shape,mean=0.0,stddev=self.conf.noise_pr)
+#                rand_4 = tf.random.normal(shape=self.conv4.kernel.shape,mean=0.0,stddev=self.conf.noise_pr)
+#                rand_4_1 = tf.random.normal(shape=self.conv4_1.kernel.shape,mean=0.0,stddev=self.conf.noise_pr)
+#                rand_4_2 = tf.random.normal(shape=self.conv4_2.kernel.shape,mean=0.0,stddev=self.conf.noise_pr)
+#                rand_5 = tf.random.normal(shape=self.conv5.kernel.shape,mean=0.0,stddev=self.conf.noise_pr)
+#                rand_5_1 = tf.random.normal(shape=self.conv5_1.kernel.shape,mean=0.0,stddev=self.conf.noise_pr)
+#                rand_5_2 = tf.random.normal(shape=self.conv5_2.kernel.shape,mean=0.0,stddev=self.conf.noise_pr)
+#                rand_fc1 = tf.random.normal(shape=self.fc1.kernel.shape,mean=0.0,stddev=self.conf.noise_pr)
+#                rand_fc2 = tf.random.normal(shape=self.fc2.kernel.shape,mean=0.0,stddev=self.conf.noise_pr)
+#                rand_fc3 = tf.random.normal(shape=self.fc3.kernel.shape,mean=0.0,stddev=self.conf.noise_pr)
+#
+#                noise_w_2 = tf.add(1.0,rand_2)
+#                noise_w_2_1 = tf.add(1.0,rand_2_1)
+#                noise_w_3 = tf.add(1.0,rand_3)
+#                noise_w_3_1 = tf.add(1.0,rand_3_1)
+#                noise_w_3_2 = tf.add(1.0,rand_3_2)
+#                noise_w_4 = tf.add(1.0,rand_4)
+#                noise_w_4_1 = tf.add(1.0,rand_4_1)
+#                noise_w_4_2 = tf.add(1.0,rand_4_2)
+#                noise_w_5 = tf.add(1.0,rand_5)
+#                noise_w_5_1 = tf.add(1.0,rand_5_1)
+#                noise_w_5_2 = tf.add(1.0,rand_5_2)
+#                noise_w_fc1 = tf.add(1.0,rand_fc1)
+#                noise_w_fc2 = tf.add(1.0,rand_fc2)
+#                noise_w_fc3 = tf.add(1.0,rand_fc3)
+#            else:
+#                noise_w_2 = 1.0
+#                noise_w_2_1 = 1.0
+#                noise_w_3 = 1.0
+#                noise_w_3_1 = 1.0
+#                noise_w_3_2 = 1.0
+#                noise_w_4 = 1.0
+#                noise_w_4_1 = 1.0
+#                noise_w_4_2 = 1.0
+#                noise_w_5 = 1.0
+#                noise_w_5_1 = 1.0
+#                noise_w_5_2 = 1.0
+#                noise_w_fc1 = 1.0
+#                noise_w_fc2 = 1.0
+#                noise_w_fc3 = 1.0
+
+        else:
+            layer_const = 1.0
+            bias_const = 1.0
+
+            noise_w_2 = 1.0
+            noise_w_2_1 = 1.0
+            noise_w_3 = 1.0
+            noise_w_3_1 = 1.0
+            noise_w_3_2 = 1.0
+            noise_w_4 = 1.0
+            noise_w_4_1 = 1.0
+            noise_w_4_2 = 1.0
+            noise_w_5 = 1.0
+            noise_w_5_1 = 1.0
+            noise_w_5_2 = 1.0
+            noise_w_fc1 = 1.0
+            noise_w_fc2 = 1.0
+            noise_w_fc3 = 1.0
+
+
+        depth_const = 1.0
+        self.conv2.kernel = self.conv2.kernel/self.norm['conv2']*layer_const*depth_const*noise_w_2
+        self.conv2.bias = self.conv2.bias/self.norm_b['conv2']*bias_const
+        self.conv2_1.kernel = self.conv2_1.kernel/self.norm['conv2_1']*layer_const*depth_const*noise_w_2_1
+        self.conv2_1.bias = self.conv2_1.bias/self.norm_b['conv2_1']*bias_const
+
+        depth_const = 1.0
+        self.conv3.kernel = self.conv3.kernel/self.norm['conv3']*layer_const*depth_const*noise_w_3
+        self.conv3.bias = self.conv3.bias/self.norm_b['conv3']*bias_const
+        self.conv3_1.kernel = self.conv3_1.kernel/self.norm['conv3_1']*layer_const*depth_const*noise_w_3_1
+        self.conv3_1.bias = self.conv3_1.bias/self.norm_b['conv3_1']*bias_const
+        self.conv3_2.kernel = self.conv3_2.kernel/self.norm['conv3_2']*layer_const*depth_const*noise_w_3_2
+        self.conv3_2.bias = self.conv3_2.bias/self.norm_b['conv3_2']*bias_const
+
+        depth_const = 1.0
+        self.conv4.kernel = self.conv4.kernel/self.norm['conv4']*layer_const*depth_const*noise_w_4
+        self.conv4.bias = self.conv4.bias/self.norm_b['conv4']*bias_const
+        self.conv4_1.kernel = self.conv4_1.kernel/self.norm['conv4_1']*layer_const*depth_const*noise_w_4_1
+        self.conv4_1.bias = self.conv4_1.bias/self.norm_b['conv4_1']*bias_const
+        self.conv4_2.kernel = self.conv4_2.kernel/self.norm['conv4_2']*layer_const*depth_const*noise_w_4_2
+        self.conv4_2.bias = self.conv4_2.bias/self.norm_b['conv4_2']*bias_const
+
+        depth_const = 1.0
+        self.conv5.kernel = self.conv5.kernel/self.norm['conv5']*layer_const*depth_const*noise_w_5
+        self.conv5.bias = self.conv5.bias/self.norm_b['conv5']*bias_const
+        self.conv5_1.kernel = self.conv5_1.kernel/self.norm['conv5_1']*layer_const*depth_const*noise_w_5_1
+        self.conv5_1.bias = self.conv5_1.bias/self.norm_b['conv5_1']*bias_const
+        self.conv5_2.kernel = self.conv5_2.kernel/self.norm['conv5_2']*layer_const*depth_const*noise_w_5_2
+        self.conv5_2.bias = self.conv5_2.bias/self.norm_b['conv5_2']*bias_const
+
+        depth_const = 1.0
+        self.fc1.kernel = self.fc1.kernel/self.norm['fc1']*layer_const*depth_const*noise_w_fc1
+        self.fc1.bias = self.fc1.bias/self.norm_b['fc1']*bias_const
+        self.fc2.kernel = self.fc2.kernel/self.norm['fc2']*layer_const*depth_const*noise_w_fc2
+        self.fc2.bias = self.fc2.bias/self.norm_b['fc2']*bias_const
+        self.fc3.kernel = self.fc3.kernel/self.norm['fc3']*layer_const*depth_const*noise_w_fc3
+        self.fc3.bias = self.fc3.bias/self.norm_b['fc3']*bias_const
 
     #
     def data_based_w_norm(self):
@@ -1153,9 +1338,23 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         #stat_file='./stat/dist_act_neuron_trainset_'+self.conf.model_name
         #stat_file='./stat/act_n_trainset_test_'+self.conf.model_name
 
-        path_stat='./stat/'
-        f_name_stat='act_n_train'
-        stat_conf=['max','mean','max_999','max_99','max_98']
+        # TODO: check
+        #f_new = False
+        f_new = True
+        if self.conf.model_name=='vgg_cifar100_ro_0':
+            f_new = False
+
+        if f_new:
+            path_stat=self.conf.path_stat
+        else:
+            path_stat='./stat/'
+
+        f_name_stat_pre=self.conf.prefix_stat
+
+        #f_name_stat='act_n_train'
+
+        #stat_conf=['max','mean','max_999','max_99','max_98']
+
         f_stat=collections.OrderedDict()
         r_stat=collections.OrderedDict()
 
@@ -1171,7 +1370,17 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         for idx_l, l in enumerate(self.layer_name):
             key=l+'_'+stat
 
-            f_stat[key]=open(path_stat+f_name_stat+'_'+key+'_'+self.conf.model_name,'r')
+            f_name_stat = f_name_stat_pre+'_'+key
+
+            # TODO: check
+            if f_new:
+                f_name=os.path.join(path_stat,f_name_stat)
+                f_stat[key]=open(f_name,'r')
+            else:
+                f_stat[key]=open(path_stat+f_name_stat+'_'+self.conf.model_name,'r')
+
+
+            #print(f_name)
             r_stat[key]=csv.reader(f_stat[key])
 
             for row in r_stat[key]:
@@ -1189,22 +1398,31 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
     #
     def load_act_after_w_norm(self):
-        path_stat='./stat/'
-        f_name_stat='act_n_train_after_w_norm_max_999'
+        #path_stat='./stat/'
+        path_stat=self.conf.path_stat
+        #f_name_stat='act_n_train_after_w_norm_max_999'
+
         f_stat=collections.OrderedDict()
         r_stat=collections.OrderedDict()
 
         # choose one
         #stat='max'
-        stat='mean'
+        stat='max_999'
+        #stat='mean'
         #stat='min'
         #stat='max_75'
         #stat='max_25'
 
+        f_name_stat_pre=self.conf.prefix_stat
+
         for idx_l, l in enumerate(self.layer_name):
             key=l+'_'+stat
 
-            f_stat[key]=open(path_stat+f_name_stat+'_'+key+'_'+self.conf.model_name,'r')
+            f_name_stat = f_name_stat_pre+'_'+key
+
+            f_name=os.path.join(path_stat,f_name_stat)
+            f_stat[key]=open(f_name,'r')
+            #f_stat[key]=open(path_stat+f_name_stat+'_'+key+'_'+self.conf.model_name,'r')
             r_stat[key]=csv.reader(f_stat[key])
 
             for row in r_stat[key]:
@@ -1249,10 +1467,19 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         #print(type(inputs))
         #if self.f_1st_iter == False and self.conf.nn_mode=='ANN':
         if self.f_1st_iter == False:
+            # TODO: check c1 or c2
+            # c1
             if self.f_done_preproc == False:
                 self.f_done_preproc=True
                 self.print_model_conf()
                 self.preproc_ann_norm()
+
+            # c2
+            #assert False
+            #if self.f_done_preproc == False:
+                #self.f_done_preproc=True
+                #self.print_model_conf()
+                #self.preproc_ann_norm()
 
 
             self.f_skip_bn=self.conf.f_fused_bn
@@ -1418,44 +1645,23 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         if self.f_skip_bn:
             s_fc3_bn = s_fc3
         else:
-            if ('bn' in self.conf.model_name) or ('ro' in self.conf.model_name) :
-                s_fc3_bn = self.fc3_bn(s_fc3,training=f_training)
-            else:
-                s_fc3_bn = s_fc3
+            #if ('bn' in self.conf.model_name) or ('ro' in self.conf.model_name) :
+                #s_fc3_bn = self.fc3_bn(s_fc3,training=f_training)
+            #else:
+                #s_fc3_bn = s_fc3
+            s_fc3_bn = self.fc3_bn(s_fc3,training=f_training)
         #a_fc3 = s_fc3_bn
-        if 'ro' in self.conf.model_name:
-            a_fc3 = tf.nn.relu(s_fc3_bn)
-        else:
-            a_fc3 = s_fc3_bn
+        #if 'ro' in self.conf.model_name:
+         #   a_fc3 = tf.nn.relu(s_fc3_bn)
+        #else:
+            #a_fc3 = s_fc3_bn
+        a_fc3 = s_fc3_bn
 
         #if f_training:
         #   x = self.dropout(x,training=f_training)
 
 
-        #print("here")
-        # write stat
-        #print(self.conf.f_write_stat)
-        #print(self.f_1st_iter)
-        #print(self.dict_stat_w["fc1"])
-        if (self.conf.f_write_stat) and (not self.f_1st_iter):
-            #self.dict_stat_w['conv1']=np.append(self.dict_stat_w['conv1'],a_conv1.numpy(),axis=0)
-            #self.dict_stat_w['conv1_1']=np.append(self.dict_stat_w['conv1_1'],a_conv1_1.numpy(),axis=0)
-            #self.dict_stat_w['conv2']=np.append(self.dict_stat_w['conv2'],a_conv2.numpy(),axis=0)
-            #self.dict_stat_w['conv2_1']=np.append(self.dict_stat_w['conv2_1'],a_conv2_1.numpy(),axis=0)
-            #self.dict_stat_w['conv3']=np.append(self.dict_stat_w['conv3'],a_conv3.numpy(),axis=0)
-            #self.dict_stat_w['conv3_1']=np.append(self.dict_stat_w['conv3_1'],a_conv3_1.numpy(),axis=0)
-            #self.dict_stat_w['conv3_2']=np.append(self.dict_stat_w['conv3_2'],a_conv3_2.numpy(),axis=0)
-            #self.dict_stat_w['conv4']=np.append(self.dict_stat_w['conv4'],a_conv4.numpy(),axis=0)
-            #self.dict_stat_w['conv4_1']=np.append(self.dict_stat_w['conv4_1'],a_conv4_1.numpy(),axis=0)
-            #self.dict_stat_w['conv4_2']=np.append(self.dict_stat_w['conv4_2'],a_conv4_2.numpy(),axis=0)
-            #self.dict_stat_w['conv5']=np.append(self.dict_stat_w['conv5'],a_conv5.numpy(),axis=0)
-            #self.dict_stat_w['conv5_1']=np.append(self.dict_stat_w['conv5_1'],a_conv5_1.numpy(),axis=0)
-            #self.dict_stat_w['conv5_2']=np.append(self.dict_stat_w['conv5_2'],a_conv5_2.numpy(),axis=0)
-            #self.dict_stat_w['fc1']=np.append(self.dict_stat_w['fc1'],a_fc1.numpy(),axis=0)
-            #self.dict_stat_w['fc2']=np.append(self.dict_stat_w['fc2'],a_fc2.numpy(),axis=0)
-            #self.dict_stat_w['fc3']=np.append(self.dict_stat_w['fc3'],a_fc3.numpy(),axis=0)
-            # test bn activation distribution
-            self.dict_stat_w['fc1']=np.append(self.dict_stat_w['fc1'],s_fc1_bn.numpy(),axis=0)
+
 
 
         if self.conf.f_comp_act and (not self.f_1st_iter):
@@ -1480,6 +1686,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
 
         a_out = a_fc3
         #print(a_out)
+        #print(tf.reduce_max(a_out))
         #print(a_fc2)
         #print(s_fc3)
         #print(self.fc3.kernel)
@@ -1522,8 +1729,8 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             self.f_skip_bn = (not self.f_1st_iter) and (self.conf.f_fused_bn)
 
 
-        if not self.f_1st_iter and self.conf.f_train_time_const:
-            print("training time constant for temporal coding in SNN")
+        if not self.f_1st_iter and (self.conf.f_train_time_const or self.conf.f_write_stat):
+            #print("training time constant for temporal coding in SNN")
 
             self.dnn_act_list['in'] = a_in
             self.dnn_act_list['conv1']   = a_conv1
@@ -1549,7 +1756,56 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
             self.dnn_act_list['fc3'] = a_fc3
 
 
+                    # write stat
+        #print(self.f_1st_iter)
+        #print(self.dict_stat_w["fc1"])
+        if (self.conf.f_write_stat) and (not self.f_1st_iter):
+            self.write_act()
+
+            #self.dict_stat_w['conv1']=np.append(self.dict_stat_w['conv1'],a_conv1.numpy(),axis=0)
+            #self.dict_stat_w['conv1_1']=np.append(self.dict_stat_w['conv1_1'],a_conv1_1.numpy(),axis=0)
+            #self.dict_stat_w['conv2']=np.append(self.dict_stat_w['conv2'],a_conv2.numpy(),axis=0)
+            #self.dict_stat_w['conv2_1']=np.append(self.dict_stat_w['conv2_1'],a_conv2_1.numpy(),axis=0)
+            #self.dict_stat_w['conv3']=np.append(self.dict_stat_w['conv3'],a_conv3.numpy(),axis=0)
+            #self.dict_stat_w['conv3_1']=np.append(self.dict_stat_w['conv3_1'],a_conv3_1.numpy(),axis=0)
+            #self.dict_stat_w['conv3_2']=np.append(self.dict_stat_w['conv3_2'],a_conv3_2.numpy(),axis=0)
+            #self.dict_stat_w['conv4']=np.append(self.dict_stat_w['conv4'],a_conv4.numpy(),axis=0)
+            #self.dict_stat_w['conv4_1']=np.append(self.dict_stat_w['conv4_1'],a_conv4_1.numpy(),axis=0)
+            #self.dict_stat_w['conv4_2']=np.append(self.dict_stat_w['conv4_2'],a_conv4_2.numpy(),axis=0)
+            #self.dict_stat_w['conv5']=np.append(self.dict_stat_w['conv5'],a_conv5.numpy(),axis=0)
+            #self.dict_stat_w['conv5_1']=np.append(self.dict_stat_w['conv5_1'],a_conv5_1.numpy(),axis=0)
+            #self.dict_stat_w['conv5_2']=np.append(self.dict_stat_w['conv5_2'],a_conv5_2.numpy(),axis=0)
+            #self.dict_stat_w['fc1']=np.append(self.dict_stat_w['fc1'],a_fc1.numpy(),axis=0)
+            #self.dict_stat_w['fc2']=np.append(self.dict_stat_w['fc2'],a_fc2.numpy(),axis=0)
+            #self.dict_stat_w['fc3']=np.append(self.dict_stat_w['fc3'],a_fc3.numpy(),axis=0)
+
+            # test bn activation distribution
+            #self.dict_stat_w['fc1']=np.append(self.dict_stat_w['fc1'],s_fc1_bn.numpy(),axis=0)
+
+            #self.dict_stat_w['fc1']=np.append(self.dict_stat_w['fc1'],s_fc1_bn.numpy(),axis=0)
+
+
         return a_out
+
+
+    # TODO: move other spot
+    #
+    def write_act(self):
+
+        for l_name in self.layer_name_write_stat:
+            dict_stat_w = self.dict_stat_w[l_name]
+
+            if self.f_1st_iter_stat:
+                dict_stat_w.assign(self.dnn_act_list[l_name])
+            else:
+                self.dict_stat_w[l_name]=tf.concat([dict_stat_w,self.dnn_act_list[l_name]], 0)
+
+
+        #print(self.dict_stat_w[l_name].shape)
+
+        if self.f_1st_iter_stat:
+            self.f_1st_iter_stat = False
+
 
 
 
@@ -1559,8 +1815,6 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
         #print(epoch)
         #print(type(inputs))
         #if self.f_1st_iter == False and self.conf.nn_mode=='ANN':
-
-
         if self.f_1st_iter == False:
             #if self.f_done_preproc == False:
                 #self.f_done_preproc=True
@@ -3007,6 +3261,7 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
     ###########################################
     # bias control
     ###########################################
+    # TODO: bias control
     def bias_control(self,t):
         if self.conf.input_spike_mode == 'WEIGHTED_SPIKE' or self.conf.neural_coding == 'WEIGHTED_SPIKE':
             #if self.conf.neural_coding == 'WEIGHTED_SPIKE':
@@ -4506,6 +4761,163 @@ class CIFARModel_CNN(tf.keras.layers.Layer):
                 loss_max += self.list_neuron[name_layer].loss_max
 
         return [loss_prec, loss_min, loss_max]
+
+
+    # TODO: save activation
+    ##############################################################
+    # save activation for data-based normalization
+    ##############################################################
+    # distribution of activation - neuron-wise or channel-wise?
+    #def save_dist_activation_neuron_vgg16(model):
+    def save_activation(self):
+
+        #path_stat='/home/sspark/Projects/05_SNN/stat/'
+        #path_stat='./stat/'
+        path_stat=self.conf.path_stat
+        #f_name_stat='act_n_train_after_w_norm_max_999'
+        #f_name_stat='act_n_train'
+        f_name_stat_pre=self.conf.prefix_stat
+        stat_conf=['max_999']
+        #stat_conf=['max','mean','max_999','max_99','max_98']
+        #stat_conf=['max_95','max_90']
+        #stat_conf=['max','mean','min','max_75','max_25']
+        f_stat=collections.OrderedDict()
+        #wr_stat=collections.OrderedDict()
+
+        #
+        threads=[]
+
+        for idx_l, l in enumerate(self.layer_name_write_stat):
+            for idx_c, c in enumerate(stat_conf):
+                key=l+'_'+c
+
+                f_name_stat = f_name_stat_pre+'_'+key
+                f_name=os.path.join(path_stat,f_name_stat)
+                #f_stat[key]=open(path_stat+f_name_stat+'_'+key+'_'+self.conf.model_name,'w')
+                #f_stat[key]=open(path_stat'/'f_name_stat)
+                #print(f_name)
+
+                f_stat[key]=open(f_name,'w')
+                #wr_stat[key]=csv.writer(f_stat[key])
+
+
+                #for idx_l, l in enumerate(self.layer_name_write_stat):
+                threads.append(threading.Thread(target=self.write_stat, args=(f_stat[key], l, c)))
+
+        for thread in threads:
+            thread.start()
+
+        for thread in threads:
+            thread.join()
+
+        #f = open('./stat/dist_act_neuron_trainset_test_'+stat_conf+conf.model_name,'wb')
+
+        #wr = csv.writer(f,quoting=csv.QUOTE_NONE,escapechar='\n')
+        #wr = csv.writer(f)
+        #wr.writerow(['max','min','mean','std','99.9','99','98'])
+        #wr.writerow(['max','min','mean','99.9','99','98'])
+
+#        for idx_l, l in enumerate(self.layer_name_write_stat):
+#            s_layer=self.dict_stat_w[l].numpy()
+#            #print(l)
+#            #print(np.shape(s_layer))
+#            #print(np.shape(s_layer)[1:])
+#            #shape_n=np.shape(s_layer)[1:]
+#
+#            # before
+#            #max=np.max(s_layer,axis=0).flatten()
+#            #mean=np.mean(s_layer,axis=0).flatten()
+#            #max_999=np.nanpercentile(s_layer,99.9,axis=0).flatten()
+#            max_999=np.nanpercentile(s_layer,99.9,axis=0).flatten()
+#            #max_99=np.nanpercentile(s_layer,99,axis=0).flatten()
+#            #max_98=np.nanpercentile(s_layer,98,axis=0).flatten()
+#            #max_95=np.nanpercentile(s_layer,95,axis=0).flatten()
+#            #max_90=np.nanpercentile(s_layer,90,axis=0).flatten()
+#            #wr_stat[l+'_max'].writerow(max)
+#            #wr_stat[l+'_mean'].writerow(mean)
+#            wr_stat[l+'_max_999'].writerow(max_999)
+#            #wr_stat[l+'_max_99'].writerow(max_99)
+#            #wr_stat[l+'_max_98'].writerow(max_98)
+#            #wr_stat[l+'_max_95'].writerow(max_95)
+#            #wr_stat[l+'_max_90'].writerow(max_90)
+#
+#
+#            #min=np.min(s_layer,axis=0).flatten()
+#            #max=np.max(s_layer).flatten()
+#            #print(max)
+#            #print(np.nanpercentile(s_layer,99.9))
+#            #print(np.nanpercentile(s_layer,99))
+#            #print(np.nanpercentile(s_layer,98))
+#            #print(np.nanpercentile(s_layer,95))
+#            #print(np.nanpercentile(s_layer,90))
+#            #print(np.mean(s_layer))
+#            #plt.hist(s_layer.flatten(), log=True, bins=int(max*2))
+#            #plt.show()
+#
+#            # for after w norm stat
+#            #max=np.max(s_layer,axis=0).flatten()
+#            #mean=np.mean(s_layer,axis=0).flatten()
+#            #min=np.mean(s_layer,axis=0).flatten()
+#            #max_25=np.nanpercentile(s_layer,25,axis=0).flatten()
+#            #max_75=np.nanpercentile(s_layer,75,axis=0).flatten()
+#            #hist=np.histogram(s_layer)
+#
+#            #wr_stat[l+'_max'].writerow(max)
+#            #wr_stat[l+'_mean'].writerow(mean)
+#            #wr_stat[l+'_min'].writerow(min)
+#            #wr_stat[l+'_max_75'].writerow(max_25)
+#            #wr_stat[l+'_max_25'].writerow(max_75)
+#            #wr_stat[l+'_hist'].writerow()
+#
+#
+#            #print(np.shape(max))
+#
+#            #np.savetxt('a',max)
+#
+#            #wr.writerow([np.max(s_layer,axis=0),np.min(s_layer,axis=0),np.mean(s_layer,axis=0),np.std(s_layer,axis=0),np.nanpercentile(s_layer,99.9,axis=0),np.nanpercentile(s_layer,99,axis=0),np.nanpercentile(s_layer,98,axis=0)])
+#            #wr.writerow([np.max(s_layer,axis=0),np.min(s_layer,axis=0),np.mean(s_layer,axis=0),np.nanpercentile(s_layer,99.9,axis=0),np.nanpercentile(s_layer,99,axis=0),np.nanpercentile(s_layer,98,axis=0)])
+#            #wr.writerow([max,min,mean,max_999,max_99,max_98])
+#
+#        for idx_l, l in enumerate(self.layer_name_write_stat):
+#            for idx_c, c in enumerate(stat_conf):
+#                key=l+'_'+c
+#                f_stat[key].close()
+
+
+
+
+    def write_stat(self, f_stat, layer_name, stat_conf_name):
+        print('write_stat func')
+
+        l = layer_name
+        c = stat_conf_name
+        s_layer=self.dict_stat_w[l].numpy()
+
+        self._write_stat(f_stat,s_layer,c)
+
+
+        #f_stat.close()
+
+
+    def _write_stat(self, f_stat, s_layer, conf_name):
+        print('stat cal: '+conf_name)
+
+        if conf_name=='max':
+            stat=np.max(s_layer,axis=0).flatten()
+            #stat=tf.reshape(tf.reduce_max(s_layer,axis=0),[-1])
+        elif conf_name=='max_999':
+            stat=np.nanpercentile(s_layer,99.9,axis=0).flatten()
+        elif conf_name=='max_99':
+            stat=np.nanpercentile(s_layer,99,axis=0).flatten()
+        elif conf_name=='max_98':
+            stat=np.nanpercentile(s_layer,98,axis=0).flatten()
+        else:
+            print('stat confiugration not supported')
+
+        print('stat write')
+        wr_stat=csv.writer(f_stat)
+        wr_stat.writerow(stat)
+        f_stat.close()
 
 
 

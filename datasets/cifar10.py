@@ -96,9 +96,6 @@ def load(conf):
     test_dataset = test_dataset.batch(conf.batch_size)
 
 
-
-
-
     return train_dataset, val_dataset, test_dataset, num_train_dataset, num_val_dataset, num_test_dataset
 
 
