@@ -4,9 +4,9 @@
 .png
 .pyc
 .idea/
+__pycache__/
 models_ckpt/
-logs_before_181010/
-logs/
+logs*/
 spike_pattern_anal/
 venv/
 ILVRC2012_training_filename
