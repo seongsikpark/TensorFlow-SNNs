@@ -13,6 +13,11 @@ from tqdm import tqdm
 
 import pandas as pd
 
+
+# train tk
+train_tk_num_data = None
+train_tk_num_data_save_target = None
+
 #
 def test(model, dataset, num_dataset, conf, f_val=False, epoch=0, f_val_snn=False):
     #avg_loss = tfe.metrics.Mean('loss')
@@ -54,8 +59,20 @@ def test(model, dataset, num_dataset, conf, f_val=False, epoch=0, f_val_snn=Fals
 
         num_batch=int(math.ceil(float(num_dataset)/float(conf.batch_size)))
 
+        if conf.f_train_tk:
+            global train_tk_num_data
+            global train_tk_num_data_save_target
+            # 1st run - initial set
+            if train_tk_num_data is None:
+                if conf.f_load_time_const:
+                    train_tk_num_data = conf.time_const_num_trained_data
+                else:
+                    train_tk_num_data = 0
+                train_tk_num_data_save_target=train_tk_num_data+conf.time_const_save_interval
+
+        # TODO: parameterize print_loss
         print_loss = True
-        if conf.f_train_time_const and print_loss:
+        if conf.f_train_tk and print_loss:
             list_loss_prec = list(range(num_batch))
             list_loss_min = list(range(num_batch))
             list_loss_max = list(range(num_batch))
@@ -64,127 +81,134 @@ def test(model, dataset, num_dataset, conf, f_val=False, epoch=0, f_val_snn=Fals
             list_td = list(range(num_batch))
 
 
-
+        #
         if f_val==False:
             pbar = tqdm(range(1,num_batch+1),ncols=80)
             pbar.set_description("batch")
 
+        #
         if f_val_snn:
             model.f_done_preproc = False
 
+        #
         idx_batch=0
-        #for (idx_batch, (images, labels_one_hot)) in enumerate(tfe.Iterator(dataset)):
-        #for (idx_batch, (images, labels_one_hot)) in enumerate(tf.Iterator(dataset)):
         for (images, labels_one_hot) in dataset:
             labels = tf.argmax(labels_one_hot,axis=1,output_type=tf.int32)
 
+            #
             f_resize_output = False
             if conf.batch_size != labels.shape:
                 concat_dim = conf.batch_size-labels.numpy().shape[0]
                 f_resize_output = True
+                batch_size = conf.batch_size-concat_dim
 
-                #labels = tf.concat([labels,tf.zeros(shape=[conf.batch_size-labels.shape[0]],dtype=tf.int32)],0)
                 labels = tf.concat([labels,tf.zeros(shape=[concat_dim],dtype=tf.int32)],0)
                 images = tf.concat([images,tf.zeros(shape=(concat_dim,)+tuple(images.shape[1:]),dtype=images.dtype)],0)
-                #images = tf.concat([images,tf.zeros(shape=(200,)+tuple(images.shape[1:]),dtype=tf.float32)],0)
-                #labels = tf.concat([labels,tf.zeros(shape=[200],dtype=tf.int32)],0)
+
+            else:
+                batch_size = conf.batch_size
+
+            #
+            #if idx_batch!=-1:
+            #if conf.f_train_tk:
+                #for itr_train_time_const in range(0,10):
+                #    model(images, f_training=False)
+
+            # run
+            # predictions_times - [saved time step, batch, output dim]
+            predictions_times = model(images, f_training=False, f_val_snn=f_val_snn, epoch=epoch)
 
 
-            if idx_batch!=-1:
-                #if conf.f_train_time_const:
-                    #for itr_train_time_const in range(0,10):
-                    #    model(images, f_training=False)
+            # post-processing
+            if f_resize_output:
+                labels = labels[0:batch_size]
+                predictions_times = predictions_times[:,batch_size,:]
 
-                # predictions_times - [saved time step, batch, output dim]
-                predictions_times = model(images, f_training=False, f_val_snn=f_val_snn, epoch=epoch)
+            if predictions_times.shape[1] != labels.numpy().shape[0]:
+                predictions_times = predictions_times[:,0:labels.numpy().shape[0],:]
 
-                if f_resize_output:
-                    labels = labels[0:conf.batch_size-concat_dim]
-                    predictions_times = predictions_times[:,0:conf.batch_size-concat_dim,:]
+            tf.reshape(predictions_times,(-1,)+labels.numpy().shape)
 
+            if f_val:
+                predictions = predictions_times[-1]
+                accuracy = accuracy_times[-1]
+                accuracy(tf.argmax(predictions,axis=argmax_axis_predictions,output_type=tf.int32), labels)
 
-
-                #print('shape')
-                #print(predictions_times.shape)
-                #print(labels.numpy().shape[0])
-
-                if predictions_times.shape[1] != labels.numpy().shape[0]:
-                    predictions_times = predictions_times[:,0:labels.numpy().shape[0],:]
-
-                tf.reshape(predictions_times,(-1,)+labels.numpy().shape)
-
-                if f_val:
-                    predictions = predictions_times[-1]
-                    accuracy = accuracy_times[-1]
+            else:
+                for i in range(num_accuracy_time_point):
+                    predictions=predictions_times[i]
+                    accuracy = accuracy_times[i]
+                    #print(tf.shape(predictions))
                     accuracy(tf.argmax(predictions,axis=argmax_axis_predictions,output_type=tf.int32), labels)
 
-                else:
-                    for i in range(num_accuracy_time_point):
-                        predictions=predictions_times[i]
-                        accuracy = accuracy_times[i]
-                        #print(tf.shape(predictions))
-                        accuracy(tf.argmax(predictions,axis=argmax_axis_predictions,output_type=tf.int32), labels)
+                    if conf.dataset == 'ImageNet':
+                        accuracy_top5 = accuracy_times_top5[i]
+                        with tf.device('/cpu:0'):
+                            accuracy_top5(tf.cast(tf.nn.in_top_k(predictions,labels,5),tf.int32))
 
-                        if conf.dataset == 'ImageNet':
-                            accuracy_top5 = accuracy_times_top5[i]
-                            with tf.device('/cpu:0'):
-                                accuracy_top5(tf.cast(tf.nn.in_top_k(predictions,labels,5),tf.int32))
+            predictions = predictions_times[-1]
+            avg_loss(train.loss_cross_entoropy(predictions,labels_one_hot))
 
-                predictions = predictions_times[-1]
-                avg_loss(train.loss_cross_entoropy(predictions,labels_one_hot))
 
-                # TODO: decide remove?
-                # syntax error
-                #if conf.verbose:
-                #    print(predictions-labels*conf.time_step)
+            if conf.f_train_tk and print_loss:
+                [loss_prec, loss_min, loss_max] = model.get_time_const_train_loss()
 
-                if conf.f_train_time_const and print_loss:
-                    [loss_prec, loss_min, loss_max] = model.get_time_const_train_loss()
-
-                    list_loss_prec[idx_batch]=loss_prec.numpy()
-                    list_loss_min[idx_batch]=loss_min.numpy()
-                    list_loss_max[idx_batch]=loss_max.numpy()
+                list_loss_prec[idx_batch]=loss_prec.numpy()
+                list_loss_min[idx_batch]=loss_min.numpy()
+                list_loss_max[idx_batch]=loss_max.numpy()
+            #else:
+            #    assert False
 
 
 
             if f_val==False:
                 pbar.update()
 
-            if conf.f_train_time_const:
-                print("idx_batch: {:d}".format(idx_batch))
-                num_data=(idx_batch+1)*conf.batch_size+conf.time_const_num_trained_data+(epoch)*conf.num_test_dataset
+            if conf.f_train_tk:
+                print("\nidx_batch: {:d}".format(idx_batch))
+                #train_tk_num_data=(idx_batch+1)*conf.batch_size+conf.time_const_num_trained_data+(epoch)*conf.num_test_dataset
+                train_tk_num_data+=batch_size
 
-                print("num_data: {:d}".format(num_data))
+                print("num_data: {:d}".format(train_tk_num_data))
+                print(train_tk_num_data_save_target)
                 #if num_data%10000==0:
-                if num_data%conf.time_const_save_interval==0:
+                #if num_data%conf.time_const_save_interval==0:
+                #if train_tk_num_data%conf.time_const_save_interval==0:
                 #if num_data%1==0:
+                if train_tk_num_data >= train_tk_num_data_save_target:
 
+                    # TODO: move to run.sh and add paramter - train_tk_out_file_name
 
-                    fname = conf.time_const_init_file_name + '/' + conf.model_name
-                    if conf.f_tc_based:
-                        fname+="/tc-{:d}_tw-{:d}_tau_itr-{:d}".format(conf.tc,conf.n_tau_time_window,num_data)
-                    else:
-                        fname+="/tc-{:d}_tw-{:d}_itr-{:d}".format(conf.tc,conf.time_window,num_data)
+                    # train_tk_write_output(model,conf)
+                    fname = conf.tk_file_name + "_itr-{:d}".format(train_tk_num_data)
 
-                    if conf.f_train_time_const_outlier:
+                    #fname = conf.time_const_init_file_name + '/' + conf.model_name
+                    #if conf.f_tc_based:
+                    #    fname+="/tc-{:d}_tw-{:d}_tau_itr-{:d}".format(conf.tc,conf.n_tau_time_window,train_tk_num_data)
+                    #else:
+                    #    fname+="/tc-{:d}_tw-{:d}_itr-{:d}".format(conf.tc,conf.time_window,train_tk_num_data)
+
+                    if conf.f_train_tk_outlier:
                         fname+="_outlier"
 
                     print("save time constant: file_name: {:s}".format(fname))
                     f = open(fname,'w')
 
                     # time const
-                    for name_neuron, neuron in model.neuron_list.items():
+                    for name_neuron, neuron in model.list_neuron.items():
                         if not ('fc3' in name_neuron):
                             f.write("tc,"+name_neuron+","+str(neuron.time_const_fire.numpy())+"\n")
 
                     f.write("\n")
 
                     # time delay
-                    for name_neuron, neuron in model.neuron_list.items():
+                    for name_neuron, neuron in model.list_neuron.items():
                         if not ('fc3' in name_neuron):
                             f.write("td,"+name_neuron+","+str(neuron.time_delay_fire.numpy())+"\n")
 
                     f.close()
+
+                    train_tk_num_data_save_target+=conf.time_const_save_interval
 
             idx_batch += 1
 
@@ -255,16 +279,16 @@ def test(model, dataset, num_dataset, conf, f_val=False, epoch=0, f_val_snn=Fals
                                     +'_tfd-'+str(conf.time_fire_duration)+'_ts-'+str(conf.time_step)+'_tssi-'+str(conf.time_step_save_interval)
 
                 if conf.f_load_time_const:
-                    if conf.f_train_time_const:
+                    if conf.f_train_tk:
                         f_name_result += '_trained_data-'+str(conf.time_const_num_trained_data+conf.num_test_dataset)
                     else:
                         f_name_result += '_trained_data-'+str(conf.time_const_num_trained_data)
 
 
-                if conf.f_train_time_const_outlier:
+                if conf.f_train_tk_outlier:
                     f_name_result += '_outlier'
 
-                if conf.f_train_time_const:
+                if conf.f_train_tk:
                     f_name_result += '_train-tc'
 
                 if conf.ckpt_epoch!=0:
@@ -310,7 +334,7 @@ def test(model, dataset, num_dataset, conf, f_val=False, epoch=0, f_val_snn=Fals
 #                print("output file: "+f_name_result)
 
 
-            if conf.f_train_time_const and print_loss:
+            if conf.f_train_tk and print_loss:
                 df=pd.DataFrame({'loss_prec': list_loss_prec, 'loss_min': list_loss_min, 'loss_max': list_loss_max})
                 fname="./time-const-train-loss_b-"+str(conf.batch_size)+"_d-"+str(conf.num_test_dataset)+"_tc-"+str(conf.tc)+"_tw-"+str(conf.time_window)+"_ckpt-"+str(conf.ckpt_epoch)+".xlsx"
                 df.to_excel(fname)
@@ -347,11 +371,9 @@ def test(model, dataset, num_dataset, conf, f_val=False, epoch=0, f_val_snn=Fals
 
     # DNN (ANN) test
     else:
-        #accuracy=tfe.metrics.Accuracy('accuracy')
         accuracy=tf.metrics.Accuracy('accuracy')
 
         if conf.dataset == 'ImageNet':
-            #accuracy_top5=tfe.metrics.Mean('accuracy_top5')
             accuracy_top5=tf.metrics.Mean('accuracy_top5')
 
 
@@ -436,6 +458,23 @@ def test(model, dataset, num_dataset, conf, f_val=False, epoch=0, f_val_snn=Fals
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ############################################
 # output file name
 ############################################
@@ -450,13 +489,13 @@ def outfile_name_temporal(conf):
                         +'_tfd-'+str(int(conf.time_fire_duration))
 
     if conf.f_load_time_const:
-        if conf.f_train_time_const:
+        if conf.f_train_tk:
             f_name_result += '_trained_data-'+str(conf.time_const_num_trained_data+conf.num_test_dataset)
         else:
             f_name_result += '_trained_data-'+str(conf.time_const_num_trained_data)
 
-    if conf.f_train_time_const:
-        if conf.f_train_time_const_outlier:
+    if conf.f_train_tk:
+        if conf.f_train_tk_outlier:
             f_name_result += '_outlier'
 
         f_name_result += '_train-tc'

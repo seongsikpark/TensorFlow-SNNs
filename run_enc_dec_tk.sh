@@ -1284,7 +1284,6 @@ mkdir -p ${time_const_root}
     -f_fused_bn=${f_fused_bn}\
     -f_stat_train_mode=${f_stat_train_mode}\
     -f_real_value_input_snn=${f_real_value_input_snn}\
-    -f_vth_conp=${f_vth_conp}\
     -f_spike_max_pool=${f_spike_max_pool}\
     -f_w_norm_data=${f_w_norm_data}\
     -f_ws=${f_ws}\

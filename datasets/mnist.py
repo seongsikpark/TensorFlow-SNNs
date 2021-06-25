@@ -30,7 +30,7 @@ import tensorflow as tf
 #    print('# of dataset: train ({}), val ({}), test ({})'.format(num_train_dataset,num_val_dataset,num_test_dataset))
 #
 #
-#    if conf.f_train_time_const:
+#    if conf.f_train_tk:
 #        test_dataset = tf.data.Dataset.from_tensor_slices((data.train.images[conf.idx_test_dataset_s:conf.idx_test_dataset_s+conf.num_test_dataset], tf.cast(data.train.labels[conf.idx_test_dataset_s:conf.idx_test_dataset_s+conf.num_test_dataset],tf.float32)))
 #
 #
@@ -80,7 +80,7 @@ def load(conf):
     print('# of dataset: train ({}), val ({}), test ({})'.format(num_train_dataset,num_val_dataset,num_test_dataset))
 
 
-    if conf.f_train_time_const:
+    if conf.f_train_tk:
         test_dataset = tf.data.Dataset.from_tensor_slices((img_train[conf.idx_test_dataset_s:conf.idx_test_dataset_s+conf.num_test_dataset], label_train[conf.idx_test_dataset_s:conf.idx_test_dataset_s+conf.num_test_dataset],tf.float32))
 
 

@@ -150,7 +150,9 @@ f_full_test=True
 
 # for MNIST, CNN
 # DNN-to-SNN, inference
-time_step=200
+time_step=2000
+#time_step=10000
+#time_step=100
 #time_step_save_interval=10
 #time_step_save_interval=2
 
@@ -172,11 +174,12 @@ time_step_save_interval=100
 
 # for MNIST, CNN
 #batch_size=250
-batch_size=25
-#batch_size=1
+batch_size=400
+#batch_size=2
 
 idx_test_dataset_s=0
-num_test_dataset=25
+num_test_dataset=400
+#num_test_dataset=450
 #num_test_dataset=500
 #num_test_dataset=50000
 #num_test_dataset=10000
@@ -206,9 +209,9 @@ input_spike_mode='REAL'
 #
 ## neural coding
 #
-#neural_coding='RATE'
-#neural_coding='WEIGHTED_SPIKE'
-#neural_coding='BURST'
+neural_coding='RATE'
+neural_coding='WEIGHTED_SPIKE'
+neural_coding='BURST'
 neural_coding='TEMPORAL'
 #neural_coding='NON_LINEAR'     # PF-Neuron
 
@@ -299,7 +302,7 @@ fi
 
 #snn_output_type='SPIKE'
 snn_output_type='VMEM'
-#snn_output_type='FIRST_SPIKE_TIME'       # for TTFS coding
+#snn_output_type='FIRST_SPIKE_TIME'
 
 
 #if [ ${training_mode} = True ] && [ ${neural_coding} = "TEMPORAL" ]
@@ -368,34 +371,36 @@ noise_robust_spike_num=0
 f_visual_record_first_spike_time=False
 #f_visual_record_first_spike_time=True
 
-# train time cosntant for temporal coding
-f_train_time_const=False
-#f_train_time_const=True
+# train time constant for temporal coding
+f_train_tk=False
+#f_train_tk=True
 
 #
-f_train_time_const_outlier=True
-#f_train_time_const_outlier=False
-
-
 f_load_time_const=False
 #f_load_time_const=True
 
 #
-time_const_init_file_name='./temporal_coding'
-
-#
 #time_const_num_trained_data=50000
-time_const_num_trained_data=40000
+#time_const_num_trained_data=40000
 #time_const_num_trained_data=30000
 #time_const_num_trained_data=20000
 #time_const_num_trained_data=10000
-#time_const_num_trained_data=0
+time_const_num_trained_data=0
+time_const_num_trained_data=4000
 
 #
 time_const_save_interval=1000
 
 #
-epoch_train_time_const=1
+epoch_train_time_const=10
+
+
+#
+f_train_tk_outlier=True
+#f_train_tk_outlier=False
+
+#
+tk_file_root='./temporal_kernel'
 
 
 
@@ -510,6 +515,18 @@ else
     f_validation_snn=False
 fi
 
+
+# SNN inference
+if [ ${nn_mode} == 'SNN' ] && [ ${training_mode} = False ]
+then
+    echo "########################################"
+    echo "## SNN Inference Mode "
+    echo "########################################"
+
+    f_w_norm_data=True
+    f_write_stat=False
+    f_fused_bn=True
+fi
 
 
 
@@ -962,7 +979,7 @@ fi
 ##
 ###############################################
 # record first spike time of each neuron - it should be True for training time constant
-# overwirte this flag as True if f_train_time_const is Ture
+# overwirte this flag as True if f_train_tk is Ture
 # it should be True when TTFS coding is used
 if [ ${neural_coding} = "TEMPORAL" ]
 then
@@ -977,7 +994,7 @@ fi
 ###############################################3
 ## training time constant
 ###############################################3
-if [ ${f_train_time_const} = True ]
+if [ ${f_train_tk} = True ]
 then
     f_record_first_spike_time=True
 fi
@@ -1032,6 +1049,7 @@ esac
 
 
 
+
 if [ ${nn_mode} = 'ANN' ]
 then
     echo "ANN mode"
@@ -1047,7 +1065,9 @@ log_file=${path_log_root}/log_${model_name}_${nn_mode}_${log_file_post_fix}
 date=`date +%Y%m%d_%H%M`
 
 path_result_root=${path_result_root}/${model_name}
-time_const_root=${time_const_init_file_name}/${model_name}
+
+
+
 #
 path_stat=${path_stat_root}/${model_name}
 
@@ -1060,9 +1080,18 @@ echo path_stat: ${path_stat}
 #
 mkdir -p ${path_log_root}
 mkdir -p ${path_result_root}
-mkdir -p ${time_const_root}
+#mkdir -p ${time_const_root}
 mkdir -p ${path_stat}
 
+
+# train tk mode
+tk_file_path=${tk_file_root}/${model_name}
+tk_file_name=${tk_file_path}/tc-${tc}_tw-${time_window}
+
+if [ ${f_train_tk} = True ]
+then
+    mkdir -p ${time_const_root}
+fi
 
 
 #log_file=${path_log_root}/log_${model_name}_${nn_mode}_${time_step}_${vth}_999_norm_${f_real_value_input_snn}_${date}
@@ -1102,7 +1131,6 @@ log_file=${path_log_root}/${date}.log
     -f_fused_bn=${f_fused_bn}\
     -f_stat_train_mode=${f_stat_train_mode}\
     -f_real_value_input_snn=${f_real_value_input_snn}\
-    -f_vth_conp=${f_vth_conp}\
     -f_spike_max_pool=${f_spike_max_pool}\
     -f_w_norm_data=${f_w_norm_data}\
     -f_ws=${f_ws}\
@@ -1128,10 +1156,10 @@ log_file=${path_log_root}/${date}.log
     -time_fire_duration=${time_fire_duration}\
     -f_record_first_spike_time=${f_record_first_spike_time}\
     -f_visual_record_first_spike_time=${f_visual_record_first_spike_time}\
-    -f_train_time_const=${f_train_time_const}\
-    -f_train_time_const_outlier=${f_train_time_const_outlier}\
+    -f_train_tk=${f_train_tk}\
+    -f_train_tk_outlier=${f_train_tk_outlier}\
+    -tk_file_name=${tk_file_name}\
     -f_load_time_const=${f_load_time_const}\
-    -time_const_init_file_name=${time_const_init_file_name}\
     -time_const_num_trained_data=${time_const_num_trained_data}\
     -time_const_save_interval=${time_const_save_interval}\
     -f_tc_based=${f_tc_based}\

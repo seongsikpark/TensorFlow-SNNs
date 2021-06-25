@@ -207,7 +207,6 @@ tf.compat.v1.app.flags.DEFINE_bool('f_fused_bn',False,'f_fused_bn')
 #
 tf.compat.v1.app.flags.DEFINE_bool('f_stat_train_mode',False,'f_stat_train_mode')
 tf.compat.v1.app.flags.DEFINE_bool('f_real_value_input_snn',False,'f_real_value_input_snn')
-tf.compat.v1.app.flags.DEFINE_bool('f_vth_conp',False,'f_vth_conp')
 tf.compat.v1.app.flags.DEFINE_bool('f_spike_max_pool',False,'f_spike_max_pool')
 tf.compat.v1.app.flags.DEFINE_bool('f_w_norm_data',False,'f_w_norm_data')
 tf.compat.v1.app.flags.DEFINE_bool('f_ws',False,'wieghted synapse')
@@ -266,10 +265,10 @@ tf.compat.v1.app.flags.DEFINE_float('time_fire_start',20,'time fire start (integ
 tf.compat.v1.app.flags.DEFINE_float('time_fire_duration',20,'time fire duration for temporal coding')
 tf.compat.v1.app.flags.DEFINE_bool('f_record_first_spike_time',False,'flag - recording first spike time of each neuron')
 tf.compat.v1.app.flags.DEFINE_bool('f_visual_record_first_spike_time',False,'flag - visual recording first spike time of each neuron')
-tf.compat.v1.app.flags.DEFINE_bool('f_train_time_const',False,'flag - enable to train time constant for temporal coding')
-tf.compat.v1.app.flags.DEFINE_bool('f_train_time_const_outlier',True,'flag - enable to outlier roubst train time constant for temporal coding')
+tf.compat.v1.app.flags.DEFINE_bool('f_train_tk',False,'flag - enable to train time constant for temporal coding')
+tf.compat.v1.app.flags.DEFINE_bool('f_train_tk_outlier',True,'flag - enable to outlier roubst train time constant for temporal coding')
+tf.compat.v1.app.flags.DEFINE_string('tk_file_name',None,'temporal kernel (tk) file name - prefix (tc and td)')
 tf.compat.v1.app.flags.DEFINE_bool('f_load_time_const',False,'flag - load time constant for temporal coding')
-tf.compat.v1.app.flags.DEFINE_string('time_const_init_file_name','./temporal_coding/time_const','temporal coding file name - time_const, time_delay`')
 tf.compat.v1.app.flags.DEFINE_integer('time_const_num_trained_data',0,'number of trained data - time constant')
 tf.compat.v1.app.flags.DEFINE_integer('time_const_save_interval',10000,'save interval - training time constant')
 tf.compat.v1.app.flags.DEFINE_integer('epoch_train_time_const',1,'epoch - training time constant')
@@ -470,12 +469,14 @@ def main(_):
             #    train_func = train.train_snn_one_epoch_mnist_cnn
 
         elif conf.dataset=='CIFAR-10':
-            model = models.CIFARModel_CNN(data_format,conf)
+            input_shape=[32,32,3]
+            model = models.CIFARModel_CNN(input_shape,data_format,conf)
         elif conf.dataset=='CIFAR-100':
             model = models.CIFARModel_CNN(data_format,conf)
     elif conf.ann_model=='VGG16':
+        input_shape=[32,32,3]
         if conf.dataset=='CIFAR-10':
-            model = models.CIFARModel_CNN(data_format,conf)
+            model = models.CIFARModel_CNN(input_shape,data_format,conf)
         elif conf.dataset=='CIFAR-100':
             model = models.CIFARModel_CNN(data_format,conf)
     elif conf.ann_model=='ResNet18':
@@ -1322,20 +1323,20 @@ def main(_):
 
 
 
-            #if conf.f_train_time_const:
+            #if conf.f_train_tk:
             #    loss_train, acc_train, acc_train_top5 = test.test(model, train_dataset, conf)
             #    if conf.dataset == 'ImageNet':
             #        print('loss_test: %f, acc_test: %f, acc_test_top5: %f'%(loss_test,acc_test,acc_test_top5))
             #    else:
             #        print('loss_test: %f, acc_test: %f'%(loss_test,acc_test))
 
-
-            if conf.f_train_time_const:
+            # TODO check
+            if conf.f_train_tk:
 
                 for epoch in range(conf.epoch_train_time_const):
                     print("epoch: {:d}".format(epoch))
                     with test_summary_writer.as_default():
-                        loss_test, acc_test, acc_test_top5 = test.test(model, test_dataset, conf, epoch=epoch)
+                        loss_test, acc_test, acc_test_top5 = test.test(model, test_dataset, num_test_dataset, conf, epoch=epoch)
                         if conf.dataset == 'ImageNet':
                             print('loss_test: %f, acc_test: %f, acc_test_top5: %f'%(loss_test,acc_test,acc_test_top5))
                         else:
