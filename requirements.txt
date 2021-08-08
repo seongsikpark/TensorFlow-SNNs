@@ -67,8 +67,7 @@ tensorflow-metadata==1.2.0
 tensorflow-plot==0.3.2
 tensorflow-probability==0.13.0
 termcolor==1.1.0
-tfp-nightly==0.0.1.dev20200518
-Theano==1.0.4
+tfp-nightly
 tqdm==4.32.2
 typeguard==2.12.1
 typing-extensions==3.7.4.3

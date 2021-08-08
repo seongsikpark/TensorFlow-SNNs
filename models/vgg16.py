@@ -73,6 +73,10 @@ import cv2
 #
 #tf.config.functions_run_eagerly()
 
+#
+gpu_number=0
+os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
+
 global input_size
 
 #
@@ -198,8 +202,8 @@ def resize_with_crop_aug(image, label):
         #i=tf.image.resize(i,(s,h),method='bicubic')
 
     #i=tf.image.resize_with_crop_or_pad(i,input_size,input_size)
-    i=tf.image.random_crop(i,input_size,input_size)
-    i=tf.image.random_flip_left_right(i,input_size,input_size)
+    i=tf.image.random_crop(i,[input_size,input_size,3])
+    i=tf.image.random_flip_left_right(i)
     i=preprocess_input(i)
 
     return (i, label)
@@ -264,7 +268,30 @@ preprocessor_input = {
     'EfficientNetB7': EfficientNet_preprocess_input,
 }
 
+GPU = 'RTX_3090'
 # NVIDIA TITAN V (12GB)
+if GPU=='NVIDA_TITAN_V':
+    input_sizes = {
+        'Xception': 299,
+        'InceptionV3': 299,
+        'InceptionResNetV2': 299,
+        'NASNetLarge': 331,
+        'EfficientNetB1': 240,
+        'EfficientNetB2': 260,
+        'EfficientNetB4': 380,
+        'EfficientNetB5': 456,
+        'EfficientNetB6': 528,
+        'EfficientNetB7': 600,
+    }
+
+    batch_size_inference_sel ={
+        'NASNetLarge': 128,
+        'EfficientNetB4': 128,
+        'EfficientNetB5': 128,
+        'EfficientNetB6': 64,
+        'EfficientNetB7': 64,
+    }
+
 input_sizes = {
     'Xception': 299,
     'InceptionV3': 299,
@@ -286,8 +313,10 @@ batch_size_inference_sel ={
     'EfficientNetB7': 64,
 }
 
+
+
 batch_size_train_sel = {
-    'VGG16': 128,
+    'VGG16': 512,
 }
 
 model = models[model_name]
@@ -421,7 +450,7 @@ if dataset_name == 'ImageNet':
 elif dataset_name == 'CIFAR-10':
 
     # Preprocess input
-    train_ds=train_ds.map(resize_with_crop,num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    train_ds=train_ds.map(resize_with_crop_aug,num_parallel_calls=tf.data.experimental.AUTOTUNE)
     #train_ds=train_ds.batch(batch_size_inference)
     train_ds=train_ds.batch(batch_size_train)
     train_ds=train_ds.prefetch(tf.data.experimental.AUTOTUNE)
