@@ -15,7 +15,7 @@ import tensorflow_probability as tfp
 tfd = tfp.distributions
 
 #
-import util
+#import util
 import lib_snn
 import sys
 import os
@@ -196,11 +196,11 @@ class MNISTModel_CNN(tf.keras.layers.Layer):
         input_shape_one_sample = tensor_shape.TensorShape([1,self._input_shape[1],self._input_shape[2],self._input_shape[3]])
         self.in_shape = [self.conf.batch_size]+self._input_shape[1:]
 
-        self.shape_out_conv1 = util.cal_output_shape_Conv2D_pad_val(self.data_format,self.in_shape,12,self.kernel_size,1)
-        self.shape_out_conv1_p = util.cal_output_shape_Pooling2D(self.data_format,self.shape_out_conv1,2,2)
+        self.shape_out_conv1 = lib_snn.util.cal_output_shape_Conv2D_pad_val(self.data_format,self.in_shape,12,self.kernel_size,1)
+        self.shape_out_conv1_p = lib_snn.util.cal_output_shape_Pooling2D(self.data_format,self.shape_out_conv1,2,2)
 
-        self.shape_out_conv2 = util.cal_output_shape_Conv2D_pad_val(self.data_format,self.shape_out_conv1_p,64,self.kernel_size,1)
-        self.shape_out_conv2_p = util.cal_output_shape_Pooling2D(self.data_format,self.shape_out_conv2,2,2)
+        self.shape_out_conv2 = lib_snn.util.cal_output_shape_Conv2D_pad_val(self.data_format,self.shape_out_conv1_p,64,self.kernel_size,1)
+        self.shape_out_conv2_p = lib_snn.util.cal_output_shape_Pooling2D(self.data_format,self.shape_out_conv2,2,2)
 
         self.shape_out_fc1 = tensor_shape.TensorShape([self.conf.batch_size,self.num_class]).as_list()
 

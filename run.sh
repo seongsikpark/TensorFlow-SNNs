@@ -40,7 +40,7 @@ en_tensorboard_write=True
 ## Model & Dataset
 ###############################################################################
 nn_mode='ANN'
-#nn_mode='SNN'
+nn_mode='SNN'
 
 # model
 #model='CNN' # for MNIST
@@ -127,7 +127,7 @@ f_overwrite_train_model=False
 
 # full test
 f_full_test=True
-#f_full_test=False
+f_full_test=False
 
 
 #
@@ -150,7 +150,11 @@ f_full_test=True
 
 # for MNIST, CNN
 # DNN-to-SNN, inference
-time_step=2000
+#time_step=10
+#time_step=100
+time_step=1000
+#time_step=1200
+#time_step=2000
 #time_step=10000
 #time_step=100
 #time_step_save_interval=10
@@ -178,8 +182,8 @@ batch_size=400
 #batch_size=2
 
 idx_test_dataset_s=0
-num_test_dataset=400
-#num_test_dataset=450
+#num_test_dataset=400
+num_test_dataset=800
 #num_test_dataset=500
 #num_test_dataset=50000
 #num_test_dataset=10000
@@ -210,9 +214,9 @@ input_spike_mode='REAL'
 ## neural coding
 #
 neural_coding='RATE'
-neural_coding='WEIGHTED_SPIKE'
-neural_coding='BURST'
-neural_coding='TEMPORAL'
+#neural_coding='WEIGHTED_SPIKE'
+#neural_coding='BURST'
+#neural_coding='TEMPORAL'
 #neural_coding='NON_LINEAR'     # PF-Neuron
 
 
@@ -365,8 +369,8 @@ noise_robust_comp_pr_en=False
 noise_robust_spike_num=0
 
 ###############################################################################
-
-
+# T2FSNN
+###############################################################################
 
 f_visual_record_first_spike_time=False
 #f_visual_record_first_spike_time=True

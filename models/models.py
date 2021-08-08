@@ -8,7 +8,7 @@ import tensorflow_probability as tfp
 tfd = tfp.distributions
 
 #
-import util
+#import util
 import sys
 import os
 
@@ -105,28 +105,28 @@ class CIFARModel_CNN(lib_snn.model.Model,tf.keras.layers.Layer):
         self.dropout = tf.keras.layers.Dropout(0.5)
 
         #
-        self.list_shape['conv1'] = util.cal_output_shape_Conv2D(self.data_format,self.in_shape,64,self.kernel_size,1)
-        self.list_shape['conv1_1'] = util.cal_output_shape_Conv2D(self.data_format,self.list_shape['conv1'],64,self.kernel_size,1)
-        self.list_shape['conv1_p'] = util.cal_output_shape_Pooling2D(self.data_format,self.list_shape['conv1_1'],2,2)
+        self.list_shape['conv1'] = lib_snn.util.cal_output_shape_Conv2D(self.data_format,self.in_shape,64,self.kernel_size,1)
+        self.list_shape['conv1_1'] = lib_snn.util.cal_output_shape_Conv2D(self.data_format,self.list_shape['conv1'],64,self.kernel_size,1)
+        self.list_shape['conv1_p'] = lib_snn.util.cal_output_shape_Pooling2D(self.data_format,self.list_shape['conv1_1'],2,2)
 
-        self.list_shape['conv2'] = util.cal_output_shape_Conv2D(self.data_format,self.list_shape['conv1_p'],128,self.kernel_size,1)
-        self.list_shape['conv2_1'] = util.cal_output_shape_Conv2D(self.data_format,self.list_shape['conv2'],128,self.kernel_size,1)
-        self.list_shape['conv2_p'] = util.cal_output_shape_Pooling2D(self.data_format,self.list_shape['conv2_1'],2,2)
+        self.list_shape['conv2'] = lib_snn.util.cal_output_shape_Conv2D(self.data_format,self.list_shape['conv1_p'],128,self.kernel_size,1)
+        self.list_shape['conv2_1'] = lib_snn.util.cal_output_shape_Conv2D(self.data_format,self.list_shape['conv2'],128,self.kernel_size,1)
+        self.list_shape['conv2_p'] = lib_snn.util.cal_output_shape_Pooling2D(self.data_format,self.list_shape['conv2_1'],2,2)
 
-        self.list_shape['conv3'] = util.cal_output_shape_Conv2D(self.data_format,self.list_shape['conv2_p'],256,self.kernel_size,1)
-        self.list_shape['conv3_1'] = util.cal_output_shape_Conv2D(self.data_format,self.list_shape['conv3'],256,self.kernel_size,1)
-        self.list_shape['conv3_2'] = util.cal_output_shape_Conv2D(self.data_format,self.list_shape['conv3_1'],256,self.kernel_size,1)
-        self.list_shape['conv3_p'] = util.cal_output_shape_Pooling2D(self.data_format,self.list_shape['conv3_2'],2,2)
+        self.list_shape['conv3'] = lib_snn.util.cal_output_shape_Conv2D(self.data_format,self.list_shape['conv2_p'],256,self.kernel_size,1)
+        self.list_shape['conv3_1'] = lib_snn.util.cal_output_shape_Conv2D(self.data_format,self.list_shape['conv3'],256,self.kernel_size,1)
+        self.list_shape['conv3_2'] = lib_snn.util.cal_output_shape_Conv2D(self.data_format,self.list_shape['conv3_1'],256,self.kernel_size,1)
+        self.list_shape['conv3_p'] = lib_snn.util.cal_output_shape_Pooling2D(self.data_format,self.list_shape['conv3_2'],2,2)
 
-        self.list_shape['conv4'] = util.cal_output_shape_Conv2D(self.data_format,self.list_shape['conv3_p'],512,self.kernel_size,1)
-        self.list_shape['conv4_1'] = util.cal_output_shape_Conv2D(self.data_format,self.list_shape['conv4'],512,self.kernel_size,1)
-        self.list_shape['conv4_2'] = util.cal_output_shape_Conv2D(self.data_format,self.list_shape['conv4_1'],512,self.kernel_size,1)
-        self.list_shape['conv4_p'] = util.cal_output_shape_Pooling2D(self.data_format,self.list_shape['conv4_2'],2,2)
+        self.list_shape['conv4'] = lib_snn.util.cal_output_shape_Conv2D(self.data_format,self.list_shape['conv3_p'],512,self.kernel_size,1)
+        self.list_shape['conv4_1'] = lib_snn.util.cal_output_shape_Conv2D(self.data_format,self.list_shape['conv4'],512,self.kernel_size,1)
+        self.list_shape['conv4_2'] = lib_snn.util.cal_output_shape_Conv2D(self.data_format,self.list_shape['conv4_1'],512,self.kernel_size,1)
+        self.list_shape['conv4_p'] = lib_snn.util.cal_output_shape_Pooling2D(self.data_format,self.list_shape['conv4_2'],2,2)
 
-        self.list_shape['conv5'] = util.cal_output_shape_Conv2D(self.data_format,self.list_shape['conv4_p'],512,self.kernel_size,1)
-        self.list_shape['conv5_1'] = util.cal_output_shape_Conv2D(self.data_format,self.list_shape['conv5'],512,self.kernel_size,1)
-        self.list_shape['conv5_2'] = util.cal_output_shape_Conv2D(self.data_format,self.list_shape['conv5_1'],512,self.kernel_size,1)
-        self.list_shape['conv5_p'] = util.cal_output_shape_Pooling2D(self.data_format,self.list_shape['conv5_2'],2,2)
+        self.list_shape['conv5'] = lib_snn.util.cal_output_shape_Conv2D(self.data_format,self.list_shape['conv4_p'],512,self.kernel_size,1)
+        self.list_shape['conv5_1'] = lib_snn.util.cal_output_shape_Conv2D(self.data_format,self.list_shape['conv5'],512,self.kernel_size,1)
+        self.list_shape['conv5_2'] = lib_snn.util.cal_output_shape_Conv2D(self.data_format,self.list_shape['conv5_1'],512,self.kernel_size,1)
+        self.list_shape['conv5_p'] = lib_snn.util.cal_output_shape_Pooling2D(self.data_format,self.list_shape['conv5_2'],2,2)
 
         self.list_shape['fc1'] = tensor_shape.TensorShape([self.conf.batch_size,512]).as_list()
         self.list_shape['fc2'] = tensor_shape.TensorShape([self.conf.batch_size,512]).as_list()
@@ -405,6 +405,7 @@ class CIFARModel_CNN(lib_snn.model.Model,tf.keras.layers.Layer):
             )
 
         return load_layer_ann_checkpoint
+
 
 
     ###########################################################################

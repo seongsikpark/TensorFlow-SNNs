@@ -33,19 +33,21 @@ if en_gpu==False:
 import numpy as np
 import tensorflow as tf
 
+
+#tf.compat.v1.disable_eager_execution()
 #
-import tensorflow_probability as tfp
-tfd = tfp.distributions
+#import tensorflow_probability as tfp
+#tfd = tfp.distributions
 
 #
-import tensorflow.python.util.deprecation as deprecation
-deprecation._PRINT_DEPRECATION_WARNINGS=False
-try:
-    from tensorflow.python.util import module_wrapper as deprecation
-except ImportError:
-    from tensorflow.python.util import deprecation_wrapper as deprecation
-deprecation._PER_MODULE_WARNING_LIMIT = 0
-
+#import tensorflow.python.util.deprecation as deprecation
+#deprecation._PRINT_DEPRECATION_WARNINGS=False
+#try:
+    #from tensorflow.python.util import module_wrapper as deprecation
+#except ImportError:
+    #from tensorflow.python.util import deprecation_wrapper as deprecation
+#deprecation._PER_MODULE_WARNING_LIMIT = 0
+#
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 #import tensorflow.contrib.eager as tfe
@@ -67,7 +69,9 @@ import test
 import train_snn
 
 # models
-from models import models
+#from models import models
+#from models import vgg16_cifar
+import models
 #from models import mlp
 #from models import cnn
 import model_cnn_mnist
@@ -106,6 +110,9 @@ import collections
 import re
 
 import gc
+
+#
+import lib_snn
 
 now = datetime.now()
 
@@ -363,6 +370,9 @@ conf.data_path_imagenet = data_path_imagenet
 #
 conf.time_fire_start = 1.5
 
+
+
+
 # TODO: parameterize - input 0~1
 if conf.model_name == 'vgg_cifar_ro_0':
     conf.f_data_std = False
@@ -379,6 +389,7 @@ def main(_):
 
     #print(device_lib.list_local_devices())
     print('main start')
+
 
     # remove output dir
     if conf.en_remove_output_dir:
@@ -442,7 +453,11 @@ def main(_):
     #print(test_dataset)
 
 
+    #
+    input_shape_one_sample = lib_snn.util.dataset_shape_one_sample(test_dataset)
 
+
+    #
     if conf.ann_model=='MLP':
         if conf.dataset=='MNIST':
             #model = models.MNISTModel_MLP(data_format,conf)
@@ -469,14 +484,18 @@ def main(_):
             #    train_func = train.train_snn_one_epoch_mnist_cnn
 
         elif conf.dataset=='CIFAR-10':
-            input_shape=[32,32,3]
-            model = models.CIFARModel_CNN(input_shape,data_format,conf)
+            #input_shape=[32,32,3]
+            #model = models.CIFARModel_CNN(input_shape,data_format,conf)
+            #model = models.vgg16_cifar.VGG16_CIFAR(input_shape_one_sample,data_format,conf)
+            model = models.vgg16_cifar_scratch.VGG16_CIFAR(input_shape_one_sample,data_format,conf)
         elif conf.dataset=='CIFAR-100':
             model = models.CIFARModel_CNN(data_format,conf)
     elif conf.ann_model=='VGG16':
-        input_shape=[32,32,3]
+        #input_shape=[32,32,3]
         if conf.dataset=='CIFAR-10':
-            model = models.CIFARModel_CNN(input_shape,data_format,conf)
+            assert False
+            #model = models.CIFARModel_CNN(input_shape,data_format,conf)
+            model = models.VGG16_CIFAR(input_shape,data_format,conf)
         elif conf.dataset=='CIFAR-100':
             model = models.CIFARModel_CNN(data_format,conf)
     elif conf.ann_model=='ResNet18':
@@ -1060,16 +1079,27 @@ def main(_):
 
         #if conf.en_train == False:
         if en_train == False:
-            if conf.dataset=='ImageNet':
-                #images_0, _ = test_dataset.next()  # tensornets
-                #images_0, _ = tfe.Iterator(test_dataset).get_next()
-                #images_0, _ = tf.compat.v1.data.Iterator(test_dataset).get_next()
-                images_0 = next(test_dataset.__iter__())[0]
-            else:
-                #images_0, _ = tfe.Iterator(test_dataset).get_next()
-                #images_0, _ = tf.compat.v1.data.Iterator(test_dataset).get_next()
-                images_0 = next(test_dataset.__iter__())[0]
-            model(images_0,False)
+#            if conf.dataset=='ImageNet':
+#                #images_0, _ = test_dataset.next()  # tensornets
+#                #images_0, _ = tfe.Iterator(test_dataset).get_next()
+#                #images_0, _ = tf.compat.v1.data.Iterator(test_dataset).get_next()
+#                images_0 = next(test_dataset.__iter__())[0]
+#            else:
+#                #images_0, _ = tfe.Iterator(test_dataset).get_next()
+#                #images_0, _ = tf.compat.v1.data.Iterator(test_dataset).get_next()
+#                images_0 = next(test_dataset.__iter__())[0]
+
+
+            input_shape_one_sample = lib_snn.util.dataset_shape_one_sample(test_dataset)
+            dummy_batch = tf.zeros(shape=[conf.batch_size]+input_shape_one_sample)
+
+
+            # dummy inferece
+            #model(images_0,False)
+            #model(input_shape_one_sample,False)
+            model(dummy_batch,False)
+            print('Dummy run - done')
+
             #print('image 0 done')
 
             #restore_variables = [v for v in model.trainable_variables if ('neuron' not in v.name) and ('dummy' not in v.name)]
