@@ -466,15 +466,19 @@ elif dataset_name == 'CIFAR-10':
     #feature = pretrained_model(train_ds)
 
     #
+    #kernel_regularizer = tf.keras.regularizers.l2
+    lmb = 0.001
+
+    #
     pretrained_model.trainable=False
     training_model = tf.keras.Sequential()
     training_model.add(pretrained_model)
     training_model.add(tf.keras.layers.Flatten(name='flatten'))
     training_model.add(tf.keras.layers.Dropout(0.5))
-    training_model.add(tf.keras.layers.Dense(4096, activation='relu', name='fc1'))
+    training_model.add(tf.keras.layers.Dense(4096, activation='relu', kernel_regularizer=tf.keras.regularizers.L2(lmb), name='fc1'))
     training_model.add(tf.keras.layers.BatchNormalization())
     training_model.add(tf.keras.layers.Dropout(0.5))
-    training_model.add(tf.keras.layers.Dense(4096, activation='relu', name='fc2'))
+    training_model.add(tf.keras.layers.Dense(4096, activation='relu', kernel_regularizer=tf.keras.regularizers.L2(lmb), name='fc2'))
     #training_model.add(tf.keras.layers.Dense(1024, activation='relu', name='fc2'))
     training_model.add(tf.keras.layers.BatchNormalization())
     training_model.add(tf.keras.layers.Dropout(0.5))
@@ -523,7 +527,7 @@ elif dataset_name == 'CIFAR-10':
         )
     ]
 
-    train_results = training_model.fit(train_ds,epochs=1000,validation_data=valid_ds,callbacks=callbacks)
+    train_histories = training_model.fit(train_ds,epochs=epoch,validation_data=valid_ds,callbacks=callbacks)
     #train_results = training_model.fit(train_ds,epochs=3,validation_data=valid_ds)
 
     #assert False
