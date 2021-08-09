@@ -474,8 +474,8 @@ elif dataset_name == 'CIFAR-10':
     training_model.add(tf.keras.layers.Dense(4096, activation='relu', name='fc1'))
     training_model.add(tf.keras.layers.BatchNormalization())
     training_model.add(tf.keras.layers.Dropout(0.5))
-    #training_model.add(tf.keras.layers.Dense(4096, activation='relu', name='fc2'))
-    training_model.add(tf.keras.layers.Dense(1024, activation='relu', name='fc2'))
+    training_model.add(tf.keras.layers.Dense(4096, activation='relu', name='fc2'))
+    #training_model.add(tf.keras.layers.Dense(1024, activation='relu', name='fc2'))
     training_model.add(tf.keras.layers.BatchNormalization())
     training_model.add(tf.keras.layers.Dropout(0.5))
     training_model.add(tf.keras.layers.Dense(10, activation='softmax', name='predictions'))
@@ -505,10 +505,28 @@ elif dataset_name == 'CIFAR-10':
                              #metrics=[tf.keras.metrics.sparse_top_k_categorical_accuracy])
                              metrics=[metric_accuracy, metric_accuracy_top5])
 
+    dir_model = './VGG16_CIFAR10'
+    if not os.path.isdir(dir_model):
+        tf.io.gfile.makedirs(dir_model)
 
+    epoch=1000
+    batch_size=batch_size_train
+    #file_name='checkpoint-epoch-{}-batch-{}.h5'.format(epoch,batch_size)
+    file_path='epoch-{}-batch-{}'.format(epoch,batch_size)
 
-    train_results = training_model.fit(train_ds,epochs=1000,validation_data=valid_ds)
+    callbacks = [
+        tf.keras.callbacks.ModelCheckpoint(
+            filepath='./VGG16_CIFAR10/'+file_path,
+            save_best_only=True,
+            monitor='val_loss',
+            verbose=1,
+        )
+    ]
 
+    train_results = training_model.fit(train_ds,epochs=1000,validation_data=valid_ds,callbacks=callbacks)
+    #train_results = training_model.fit(train_ds,epochs=3,validation_data=valid_ds)
+
+    #assert False
 
     #result = pretrained_model.evaluate(ds)
 
