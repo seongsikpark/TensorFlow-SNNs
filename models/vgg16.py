@@ -316,7 +316,9 @@ batch_size_inference_sel ={
 
 
 batch_size_train_sel = {
-    'VGG16': 512,
+    #'VGG16': 512,
+    #'VGG16': 1024,
+    'VGG16': 2048,
 }
 
 model = models[model_name]
@@ -407,10 +409,14 @@ else:
 if dataset_name == 'ImageNet':
     include_top = True
 else:
+    # CIFAR-10
+    input_size=32
     include_top = False
 
 #
-image_shape=(input_size,input_size,3)
+image_shape = (input_size, input_size, 3)
+
+#
 pretrained_model = model(input_shape=image_shape, include_top=include_top, weights='imagenet')
 #pretrained_model = VGG16(include_top=True, weights='imagenet')
 #pretrained_model = VGG19(include_top=True, weights='imagenet')
@@ -467,7 +473,7 @@ elif dataset_name == 'CIFAR-10':
 
     #
     #kernel_regularizer = tf.keras.regularizers.l2
-    lmb = 0.001
+    lmb = 0.000001
 
     #
     pretrained_model.trainable=False
@@ -513,7 +519,7 @@ elif dataset_name == 'CIFAR-10':
     if not os.path.isdir(dir_model):
         tf.io.gfile.makedirs(dir_model)
 
-    epoch=1000
+    epoch=10000
     batch_size=batch_size_train
     #file_name='checkpoint-epoch-{}-batch-{}.h5'.format(epoch,batch_size)
     file_path='epoch-{}-batch-{}'.format(epoch,batch_size)
