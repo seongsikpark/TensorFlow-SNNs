@@ -473,7 +473,7 @@ elif dataset_name == 'CIFAR-10':
 
     #
     #kernel_regularizer = tf.keras.regularizers.l2
-    lmb = 0.000001
+    lmb = 0.00001
 
     #
     pretrained_model.trainable=False
@@ -516,21 +516,32 @@ elif dataset_name == 'CIFAR-10':
                              metrics=[metric_accuracy, metric_accuracy_top5])
 
     dir_model = './VGG16_CIFAR10'
-    if not os.path.isdir(dir_model):
-        tf.io.gfile.makedirs(dir_model)
+    model_name = 'VGG16'
+    dataset_name = 'CIFAR10'
+    config_name = model_name+'_'+dataset_name
+    dir_model = './'+config_name
+   # if not os.path.isdir(dir_model):
+   #     tf.io.gfile.makedirs(dir_model)
+
+    root_tensorboard = '../tensorboard/'
+
 
     epoch=10000
     batch_size=batch_size_train
     #file_name='checkpoint-epoch-{}-batch-{}.h5'.format(epoch,batch_size)
     file_path='epoch-{}-batch-{}'.format(epoch,batch_size)
 
+
+
     callbacks = [
         tf.keras.callbacks.ModelCheckpoint(
-            filepath='./VGG16_CIFAR10/'+file_path,
+            filepath=dir_model+file_path,
             save_best_only=True,
             monitor='val_loss',
             verbose=1,
-        )
+        ),
+        tf.keras.callbacks.TensorBoard(log_dir=root_tensorboard+config_name,update_freq='epoch')
+
     ]
 
     train_histories = training_model.fit(train_ds,epochs=epoch,validation_data=valid_ds,callbacks=callbacks)
