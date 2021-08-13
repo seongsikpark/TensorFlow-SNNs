@@ -79,6 +79,9 @@ gpu_number=0
 os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
 
 global input_size
+global input_size_pre_crop_ratio
+
+input_size_pre_crop_ratio = 256/224
 
 #
 #model_name='Xception'
@@ -122,7 +125,8 @@ def eager_resize_with_crop(image, label):
 #
 #@tf.function
 def resize_with_crop(image, label):
-    global input_size
+    #global input_size
+    #global input_size_pre_crop
 
     i=image
     i=tf.cast(i,tf.float32)
@@ -137,13 +141,15 @@ def resize_with_crop(image, label):
     #s = 256 # 71.26, 90.10
     #s = 250 # 71.13, 90.05
     #print(tf.shape(image))
-    s = input_size
+    #s = input_size_pre_crop
+    s = input_size*input_size_pre_crop_ratio
 
     #if w >= h:
     if tf.greater(w,h):
         w = tf.cast(tf.math.multiply(tf.math.divide(w,h),s),tf.int32)
         ##i=tf.image.resize(i,(w,256),method='bicubic',preserve_aspect_ratio=True)
         #i=tf.image.resize(i,(w,256),method='bicubic')
+        s=tf.cast(s,tf.int32)
         i=tf.image.resize(i,(w,s),method='lanczos3')
         #i=tf.image.resize(i,(w,s),method='lanczos5')
         #i=tf.image.resize(i,(w,s),method='bicubic')
@@ -151,6 +157,7 @@ def resize_with_crop(image, label):
         h = tf.cast(tf.math.multiply(tf.math.divide(h,w),s),tf.int32)
         ##i=tf.image.resize(i,(256,h),method='bicubic',preserve_aspect_ratio=True)
         #i=tf.image.resize(i,(256,h),method='bicubic')
+        s=tf.cast(s,tf.int32)
         i=tf.image.resize(i,(s,h),method='lanczos3')
         #i=tf.image.resize(i,(s,h),method='lanczos5')
         #i=tf.image.resize(i,(s,h),method='bicubic')
@@ -174,7 +181,7 @@ def resize_with_crop(image, label):
 
 #@tf.function
 def resize_with_crop_aug(image, label):
-    global input_size
+    #global input_size
 
     i=image
     i=tf.cast(i,tf.float32)
@@ -184,13 +191,15 @@ def resize_with_crop_aug(image, label):
     w=tf.shape(image)[0]
     h=tf.shape(image)[1]
 
-    s = input_size
+    #s = input_size
+    s = input_size*input_size_pre_crop_ratio
 
     #if w >= h:
     if tf.greater(w,h):
         w = tf.cast(tf.math.multiply(tf.math.divide(w,h),s),tf.int32)
         ##i=tf.image.resize(i,(w,256),method='bicubic',preserve_aspect_ratio=True)
         #i=tf.image.resize(i,(w,256),method='bicubic')
+        s=tf.cast(s,tf.int32)
         i=tf.image.resize(i,(w,s),method='lanczos3')
         #i=tf.image.resize(i,(w,s),method='lanczos5')
         #i=tf.image.resize(i,(w,s),method='bicubic')
@@ -198,6 +207,7 @@ def resize_with_crop_aug(image, label):
         h = tf.cast(tf.math.multiply(tf.math.divide(h,w),s),tf.int32)
         ##i=tf.image.resize(i,(256,h),method='bicubic',preserve_aspect_ratio=True)
         #i=tf.image.resize(i,(256,h),method='bicubic')
+        s=tf.cast(s,tf.int32)
         i=tf.image.resize(i,(s,h),method='lanczos3')
         #i=tf.image.resize(i,(s,h),method='lanczos5')
         #i=tf.image.resize(i,(s,h),method='bicubic')
@@ -208,6 +218,31 @@ def resize_with_crop_aug(image, label):
     i=preprocess_input(i)
 
     return (i, label)
+
+def resize_with_crop_cifar(image, label):
+
+    i=image
+    i=tf.cast(i,tf.float32)
+
+    #[w,h,c] = tf.shape(image)
+    #w=tf.shape(image)[0]
+    #h=tf.shape(image)[1]
+
+    #s = input_size
+    #s = tf.cast(input_size*input_size_pre_crop_ratio,tf.int32)
+
+    #i=tf.image.resize(i,(input_size,h),method='lanczos3')
+    #i=tf.image.resize_with_crop_or_pad(i,input_size,input_size)
+
+    #i=tf.image.random_crop(i,[input_size,input_size,3])
+    #i=tf.image.random_flip_left_right(i)
+    i=preprocess_input(i)
+
+    return (i, label)
+
+
+
+#def resize_with_crop_aug_cifar(image, label):
 
 
 # models
@@ -293,6 +328,7 @@ if GPU=='NVIDA_TITAN_V':
         'EfficientNetB7': 64,
     }
 
+
 input_sizes = {
     'Xception': 299,
     'InceptionV3': 299,
@@ -323,6 +359,8 @@ batch_size_train_sel = {
     #'VGG16': 2048,
 }
 
+
+
 model = models[model_name]
 preprocess_input = preprocessor_input[model_name]
 input_size = input_sizes.get(model_name,224)
@@ -334,40 +372,38 @@ batch_size_train = batch_size_train_sel.get(model_name,256)
 ## ImageNet Dataset setup
 if dataset_name == 'ImageNet':
     # Get ImageNet labels
-    #labels_path = tf.keras.utils.get_file('ImageNetwLabels.txt','https://storage.googleapis.com/download.tensorflow.org/data/ImageNetLabels.txt')
-    #imagenet_labels = np.array(open(labels_path).read().splitlines())
+    labels_path = tf.keras.utils.get_file('ImageNetwLabels.txt','https://storage.googleapis.com/download.tensorflow.org/data/ImageNetLabels.txt')
+    imagenet_labels = np.array(open(labels_path).read().splitlines())
 
-    #print(imagenet_labels)
+    print(imagenet_labels)
 
-    # Set data_dir to a read-only storage of .tar files
-    # Set write_dir to a w/r wtorage
+#    # Set data_dir to a read-only storage of .tar files
+#    # Set write_dir to a w/r wtorage
     data_dir = '~/Datasets/ImageNet_down/'
     write_dir = '~/Datasets/ImageNet'
-
-    # Construct a tf.data.Dataset
+#
+#    # Construct a tf.data.Dataset
     download_config = tfds.download.DownloadConfig(
         extract_dir=os.path.join(write_dir,'extracted'),
         manual_dir=data_dir
     )
-
+#
     download_and_prepare_kwargs={
         'download_dir': os.path.join(write_dir, 'download'),
         'download_config': download_config
     }
 
+
     ds = tfds.load('imagenet2012',
                    data_dir=os.path.join(write_dir, 'data'),
-                   #batch_size=256,
-                   #batch_size=64,
-                   #batch_size=2,
-                   #split='train',
                    split='validation',
                    #split=['train','validation']
                    shuffle_files=False,
                    download=True,
                    as_supervised=True,
                    #with_info=True,
-                   download_and_prepare_kwargs=download_and_prepare_kwargs)
+                   download_and_prepare_kwargs=download_and_prepare_kwargs,
+                   )
 elif dataset_name == 'CIFAR-10':
     #(train_ds, val_ds, test_ds) = tfds.load('cifar10',
     #                              split=['train[:90%]','train[90%:100%]','test'],
@@ -463,7 +499,7 @@ elif dataset_name == 'CIFAR-10':
     train_ds=train_ds.batch(batch_size_train)
     train_ds=train_ds.prefetch(tf.data.experimental.AUTOTUNE)
 
-    valid_ds=valid_ds.map(resize_with_crop,num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    valid_ds=valid_ds.map(resize_with_crop_cifar,num_parallel_calls=tf.data.experimental.AUTOTUNE)
     #valid_ds=valid_ds.batch(batch_size_inference)
     valid_ds=valid_ds.batch(batch_size_train)
     valid_ds=valid_ds.prefetch(tf.data.experimental.AUTOTUNE)
@@ -475,7 +511,7 @@ elif dataset_name == 'CIFAR-10':
 
     #
     #kernel_regularizer = tf.keras.regularizers.l2
-    lmb = 0.000001
+    lmb = 0.00001
 
     #
     pretrained_model.trainable=False
@@ -486,7 +522,7 @@ elif dataset_name == 'CIFAR-10':
     training_model.add(tf.keras.layers.Dense(4096, activation='relu', kernel_regularizer=tf.keras.regularizers.L2(lmb), name='fc1'))
     training_model.add(tf.keras.layers.BatchNormalization())
     training_model.add(tf.keras.layers.Dropout(0.5))
-    training_model.add(tf.keras.layers.Dense(4096, activation='relu', kernel_regularizer=tf.keras.regularizers.L2(lmb), name='fc2'))
+    training_model.add(tf.keras.layers.Dense(512, activation='relu', kernel_regularizer=tf.keras.regularizers.L2(lmb), name='fc2'))
     #training_model.add(tf.keras.layers.Dense(1024, activation='relu', name='fc2'))
     training_model.add(tf.keras.layers.BatchNormalization())
     training_model.add(tf.keras.layers.Dropout(0.5))
@@ -534,6 +570,7 @@ elif dataset_name == 'CIFAR-10':
         print('tensorboard data already exists')
         print('move {} to {}'.format(path_tensorboard,path_dest_tensorboard))
 
+        #shutil.move(path_tensorboard,path_dest_tensorboard)
         shutil.move(path_tensorboard,path_dest_tensorboard)
 
 
