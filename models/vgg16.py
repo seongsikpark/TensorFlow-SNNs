@@ -1,5 +1,6 @@
 
-
+import datetime
+import shutil
 
 import tensorflow as tf
 
@@ -316,9 +317,10 @@ batch_size_inference_sel ={
 
 
 batch_size_train_sel = {
+    'VGG16': 256,
     #'VGG16': 512,
     #'VGG16': 1024,
-    'VGG16': 2048,
+    #'VGG16': 2048,
 }
 
 model = models[model_name]
@@ -473,7 +475,7 @@ elif dataset_name == 'CIFAR-10':
 
     #
     #kernel_regularizer = tf.keras.regularizers.l2
-    lmb = 0.00001
+    lmb = 0.000001
 
     #
     pretrained_model.trainable=False
@@ -524,6 +526,16 @@ elif dataset_name == 'CIFAR-10':
    #     tf.io.gfile.makedirs(dir_model)
 
     root_tensorboard = '../tensorboard/'
+    path_tensorboard = root_tensorboard+config_name
+
+    if os.path.isdir(path_tensorboard):
+        date_cur = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M')
+        path_dest_tensorboard = path_tensorboard+'_'+date_cur
+        print('tensorboard data already exists')
+        print('move {} to {}'.format(path_tensorboard,path_dest_tensorboard))
+
+        shutil.move(path_tensorboard,path_dest_tensorboard)
+
 
 
     epoch=10000
