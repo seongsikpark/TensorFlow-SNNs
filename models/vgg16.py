@@ -81,7 +81,6 @@ os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
 global input_size
 global input_size_pre_crop_ratio
 
-input_size_pre_crop_ratio = 256/224
 
 #
 #model_name='Xception'
@@ -404,6 +403,9 @@ if dataset_name == 'ImageNet':
                    #with_info=True,
                    download_and_prepare_kwargs=download_and_prepare_kwargs,
                    )
+
+
+    input_size_pre_crop_ratio = 256/224
 elif dataset_name == 'CIFAR-10':
     #(train_ds, val_ds, test_ds) = tfds.load('cifar10',
     #                              split=['train[:90%]','train[90%:100%]','test'],
@@ -431,6 +433,7 @@ elif dataset_name == 'CIFAR-10':
                       split=['test'],
                       as_supervised=True)
 
+    input_size_pre_crop_ratio = 40/32
 
 else:
     assert False
