@@ -214,6 +214,13 @@ def resize_with_crop_aug(image, label):
     #i=tf.image.resize_with_crop_or_pad(i,input_size,input_size)
     i=tf.image.random_crop(i,[input_size,input_size,3])
     i=tf.image.random_flip_left_right(i)
+    #i=tf.numpy_function(lambda i: tf.keras.preprocessing.image.random_zoom(i, (0.2,0.2)),[i],tf.float32)
+    #i=tf.keras.preprocessing.image.random_zoom(i,[-0.1,0.2])
+    #i=tf.keras.preprocessing.image.random_rotation(i,0.3)
+    i=tf.image.random_brightness(i,max_delta=63)
+    i=tf.image.random_contrast(i,lower=0.2,upper=1.8)
+    i=tf.image.random_hue(i,0.1)
+
     i=preprocess_input(i)
 
     return (i, label)
@@ -518,11 +525,19 @@ elif dataset_name == 'CIFAR-10':
 
     #
     #kernel_regularizer = tf.keras.regularizers.l2
-    lmb = 1.0E-5
+    lmb = 5.0E-6
+
 
     #
     pretrained_model.trainable=False
     training_model = tf.keras.Sequential()
+
+    train = True
+    # data augmentation
+    if train:
+        training_model.add(tf.keras.layers.experimental.preprocessing.RandomZoom((-0.2,0.2)))
+        training_model.add(tf.keras.layers.experimental.preprocessing.RandomRotation((-0.2,0.2)))
+
     training_model.add(pretrained_model)
     training_model.add(tf.keras.layers.Flatten(name='flatten'))
     training_model.add(tf.keras.layers.Dropout(0.5))
