@@ -352,8 +352,8 @@ batch_size_inference_sel ={
 
 
 batch_size_train_sel = {
-    'VGG16': 256,
-    #'VGG16': 512,
+    #'VGG16': 256,
+    'VGG16': 512,
     #'VGG16': 1024,
     #'VGG16': 2048,
 }
@@ -433,7 +433,9 @@ elif dataset_name == 'CIFAR-10':
                       split=['test'],
                       as_supervised=True)
 
-    input_size_pre_crop_ratio = 40/32
+    #input_size_pre_crop_ratio = 40/32
+    input_size_pre_crop_ratio = 256/224
+
 
 else:
     assert False
@@ -451,7 +453,8 @@ if dataset_name == 'ImageNet':
     include_top = True
 else:
     # CIFAR-10
-    input_size=32
+    #input_size=32
+    input_size=224
     include_top = False
 
 #
@@ -502,7 +505,8 @@ elif dataset_name == 'CIFAR-10':
     train_ds=train_ds.batch(batch_size_train)
     train_ds=train_ds.prefetch(tf.data.experimental.AUTOTUNE)
 
-    valid_ds=valid_ds.map(resize_with_crop_cifar,num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    #valid_ds=valid_ds.map(resize_with_crop_cifar,num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    valid_ds=valid_ds.map(resize_with_crop,num_parallel_calls=tf.data.experimental.AUTOTUNE)
     #valid_ds=valid_ds.batch(batch_size_inference)
     valid_ds=valid_ds.batch(batch_size_train)
     valid_ds=valid_ds.prefetch(tf.data.experimental.AUTOTUNE)
@@ -514,7 +518,7 @@ elif dataset_name == 'CIFAR-10':
 
     #
     #kernel_regularizer = tf.keras.regularizers.l2
-    lmb = 0.00001
+    lmb = 1.0E-5
 
     #
     pretrained_model.trainable=False
@@ -559,13 +563,13 @@ elif dataset_name == 'CIFAR-10':
     dir_model = './VGG16_CIFAR10'
     model_name = 'VGG16'
     dataset_name = 'CIFAR10'
-    config_name = model_name+'_'+dataset_name
-    dir_model = './'+config_name
+    exp_set_name = model_name+'_'+dataset_name
+    dir_model = './'+exp_set_name
    # if not os.path.isdir(dir_model):
    #     tf.io.gfile.makedirs(dir_model)
 
     root_tensorboard = '../tensorboard/'
-    path_tensorboard = root_tensorboard+config_name
+    path_tensorboard = root_tensorboard+exp_set_name
 
     if os.path.isdir(path_tensorboard):
         date_cur = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M')
@@ -573,27 +577,24 @@ elif dataset_name == 'CIFAR-10':
         print('tensorboard data already exists')
         print('move {} to {}'.format(path_tensorboard,path_dest_tensorboard))
 
-        #shutil.move(path_tensorboard,path_dest_tensorboard)
         shutil.move(path_tensorboard,path_dest_tensorboard)
-
 
 
     epoch=10000
     batch_size=batch_size_train
     #file_name='checkpoint-epoch-{}-batch-{}.h5'.format(epoch,batch_size)
-    file_path='epoch-{}-batch-{}'.format(epoch,batch_size)
-
+    config_name='ep-{}_bat-{}_lmb-{:.1E}'.format(epoch,batch_size,lmb)
+    filepath = os.path.join(dir_model,config_name)
 
 
     callbacks = [
         tf.keras.callbacks.ModelCheckpoint(
-            filepath=dir_model+file_path,
+            filepath=filepath,
             save_best_only=True,
             monitor='val_loss',
             verbose=1,
         ),
-        tf.keras.callbacks.TensorBoard(log_dir=root_tensorboard+config_name,update_freq='epoch')
-
+        tf.keras.callbacks.TensorBoard(log_dir=root_tensorboard+exp_set_name,update_freq='epoch')
     ]
 
     train_histories = training_model.fit(train_ds,epochs=epoch,validation_data=valid_ds,callbacks=callbacks)
