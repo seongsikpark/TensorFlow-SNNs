@@ -75,7 +75,7 @@ import cv2
 #tf.config.functions_run_eagerly()
 
 #
-gpu_number=0
+gpu_number=1
 os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
 
 global input_size
@@ -518,7 +518,7 @@ elif dataset_name == 'CIFAR-10':
 
     #
     #kernel_regularizer = tf.keras.regularizers.l2
-    lmb = 1.0E-5
+    lmb = 1.0E-6
 
     #
     pretrained_model.trainable=False
@@ -526,7 +526,8 @@ elif dataset_name == 'CIFAR-10':
     training_model.add(pretrained_model)
     training_model.add(tf.keras.layers.Flatten(name='flatten'))
     training_model.add(tf.keras.layers.Dropout(0.5))
-    training_model.add(tf.keras.layers.Dense(4096, activation='relu', kernel_regularizer=tf.keras.regularizers.L2(lmb), name='fc1'))
+    #training_model.add(tf.keras.layers.Dense(4096, activation='relu', kernel_regularizer=tf.keras.regularizers.L2(lmb), name='fc1'))
+    training_model.add(tf.keras.layers.Dense(2048, activation='relu', kernel_regularizer=tf.keras.regularizers.L2(lmb), name='fc1'))
     training_model.add(tf.keras.layers.BatchNormalization())
     training_model.add(tf.keras.layers.Dropout(0.5))
     training_model.add(tf.keras.layers.Dense(512, activation='relu', kernel_regularizer=tf.keras.regularizers.L2(lmb), name='fc2'))
