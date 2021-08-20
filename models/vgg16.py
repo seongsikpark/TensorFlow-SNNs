@@ -1,4 +1,33 @@
 
+########################################
+# configuration
+########################################
+train =True
+# train=False
+
+load_model=True
+#load_model=False
+
+#
+overwrite_train_model =True
+# overwrite_train_model=False
+
+epoch = 10000
+root_model = './models'
+model_name = 'VGG16'
+dataset_name = 'CIFAR10'
+
+# dataset
+#dataset_name='CIFAR-10'
+#dataset_name='ImageNet'
+
+
+
+root_tensorboard = './tensorboard/'
+
+
+
+
 import datetime
 import shutil
 
@@ -84,7 +113,6 @@ os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
 global input_size
 global input_size_pre_crop_ratio
 
-
 #
 #model_name='Xception'
 model_name='VGG16'
@@ -113,10 +141,6 @@ model_name='VGG16'
 #model_name='EfficientNetB6'
 #model_name='EfficientNetB7'
 
-
-# dataset
-dataset_name='CIFAR-10'
-#dataset_name='ImageNet'
 
 
 #
@@ -454,7 +478,7 @@ if dataset_name == 'ImageNet':
 
 
     input_size_pre_crop_ratio = 256/224
-elif dataset_name == 'CIFAR-10':
+elif dataset_name == 'CIFAR10':
     #(train_ds, val_ds, test_ds) = tfds.load('cifar10',
     #                              split=['train[:90%]','train[90%:100%]','test'],
     #                              as_supervised=True,
@@ -544,7 +568,7 @@ if dataset_name == 'ImageNet':
     #ds=ds.take(1)
 
     result = pretrained_model.evaluate(ds)
-elif dataset_name == 'CIFAR-10':
+elif dataset_name == 'CIFAR10':
 
     # Preprocess input
     train_ds=train_ds.map(resize_with_crop_aug,num_parallel_calls=tf.data.experimental.AUTOTUNE)
@@ -571,7 +595,7 @@ elif dataset_name == 'CIFAR-10':
 
     #
     #kernel_regularizer = tf.keras.regularizers.l2
-    lmb = 5.0E-8
+    lmb = 1.0E-8
 
 
     #
@@ -621,33 +645,19 @@ elif dataset_name == 'CIFAR-10':
                              #metrics=[tf.keras.metrics.sparse_top_k_categorical_accuracy])
                              metrics=[metric_accuracy, metric_accuracy_top5])
 
-    root_model = './models'
-    model_name = 'VGG16'
-    dataset_name = 'CIFAR10'
+
+
+    batch_size=batch_size_train
+
     exp_set_name = model_name+'_'+dataset_name
     #dir_model = './'+exp_set_name
     dir_model = os.path.join(root_model,exp_set_name)
 
-    epoch=10000
-    batch_size=batch_size_train
     #file_name='checkpoint-epoch-{}-batch-{}.h5'.format(epoch,batch_size)
     #config_name='ep-{epoch:04d}_bat-{}_lmb-{:.1E}'.format(batch_size,lmb)
     config_name='bat-{}_lmb-{:.1E}'.format(batch_size,lmb)
     filepath = os.path.join(dir_model,config_name)
 
-
-    ########################################
-    # configuration
-    ########################################
-    train=True
-    #train=False
-
-    #load_model=True
-    load_model=False
-
-    #
-    overwrite_train_model=True
-    #overwrite_train_model=False
 
 
     ########################################
@@ -655,7 +665,16 @@ elif dataset_name == 'CIFAR-10':
     ########################################
 
     if load_model:
-        model = tf.keras.models.load_model(filepath)
+        # get latest saved model
+        latest_model=lib_snn.util.get_latest_saved_model(filepath)
+        load_path = os.path.join(filepath,latest_model)
+        model = tf.keras.models.load_model(load_path)
+
+        if not latest_model.startswith('ep-'):
+            assert False, 'the dir name of latest model should start with ''ep-'''
+        init_epoch = int(latest_model.split('-')[1])
+    else:
+        init_epoch = 0
 
 
     if train:
@@ -666,9 +685,10 @@ elif dataset_name == 'CIFAR-10':
                 if os.path.isdir(filepath):
                     shutil.rmtree(filepath)
 
-        root_tensorboard = '../tensorboard/'
         #path_tensorboard = root_tensorboard+exp_set_name
-        path_tensorboard = root_tensorboard+filepath
+        #path_tensorboard = root_tensorboard+filepath
+        path_tensorboard = os.path.join(root_tensorboard,exp_set_name)
+        path_tensorboard = os.path.join(path_tensorboard,config_name)
 
         if os.path.isdir(path_tensorboard):
             date_cur = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M')
@@ -691,7 +711,7 @@ elif dataset_name == 'CIFAR-10':
             lib_snn.callbacks.ManageSavedModels(filepath=filepath)
         ]
 
-        train_histories = model.fit(train_ds,epochs=epoch,validation_data=valid_ds,callbacks=callbacks)
+        train_histories = model.fit(train_ds,epochs=epoch,initial_epoch=init_epoch,validation_data=valid_ds,callbacks=callbacks)
         #train_results = training_model.fit(train_ds,epochs=3,validation_data=valid_ds)
 
         #assert False

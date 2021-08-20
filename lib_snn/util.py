@@ -1,4 +1,5 @@
 
+import os
 import tensorflow as tf
 
 from tensorflow.python.framework import tensor_shape
@@ -14,6 +15,18 @@ from tensorflow.python.util import nest
 import matplotlib.pyplot as plt
 
 import numpy as np
+
+
+##############################################################
+# return latest saved model
+##############################################################
+def get_latest_saved_model(path):
+    mtime = lambda f: os.stat(os.path.join(path, f)).st_mtime
+    list_dir_sorted = list(sorted(os.listdir(path), key=mtime))
+
+    latest_model = list_dir_sorted[-1]
+
+    return latest_model
 
 
 ##############################################################
