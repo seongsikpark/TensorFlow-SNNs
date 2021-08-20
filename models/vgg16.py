@@ -78,7 +78,7 @@ import lib_snn
 #tf.config.functions_run_eagerly()
 
 #
-gpu_number=1
+gpu_number=0
 os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
 
 global input_size
@@ -246,17 +246,22 @@ def resize_with_crop_aug(image, label):
     i=tf.image.random_flip_left_right(i)
 
     # gaussian filter
-    g_p = tf.random.uniform(shape=[],minval=0.0,maxval=1.0)
-    g_filter_size = int(input_size*0.1)
-    if tf.greater(g_p,0.5):
-        g_sigma = tf.random.uniform(shape=[],minval=0.1,maxval=2.0)
-        i = tfa.image.gaussian_filter2d(image=i,
-                                filter_shape=(g_filter_size,g_filter_size),
-                                sigma=g_sigma,
-                                )
+    d_aug_g_filter=False
+    if d_aug_g_filter:
+        g_p = tf.random.uniform(shape=[],minval=0.0,maxval=1.0)
+        g_filter_size = int(input_size*0.1)
+        if tf.greater(g_p,0.5):
+            g_sigma = tf.random.uniform(shape=[],minval=0.1,maxval=2.0)
+            # for use sigma as a random value, we commented out lines of 262, 263 in filters.py
+            # where gaussian_filter2d function is defined
+            i = tfa.image.gaussian_filter2d(image=i,
+                                    filter_shape=(g_filter_size,g_filter_size),
+                                    sigma=g_sigma,
+                                    )
 
     #
     i=preprocess_input(i)
+
 
     return (i, label)
 
@@ -565,7 +570,7 @@ elif dataset_name == 'CIFAR-10':
 
     #
     #kernel_regularizer = tf.keras.regularizers.l2
-    lmb = 5.0E-09
+    lmb = 5.0E-8
 
 
     #
@@ -633,11 +638,11 @@ elif dataset_name == 'CIFAR-10':
     ########################################
     # configuration
     ########################################
-    #train=True
-    train=False
+    train=True
+    #train=False
 
-    load_model=True
-    #load_model=False
+    #load_model=True
+    load_model=False
 
     #
     overwrite_train_model=True
@@ -677,8 +682,8 @@ elif dataset_name == 'CIFAR-10':
             tf.keras.callbacks.ModelCheckpoint(
                 filepath=filepath+'/ep-{epoch:04d}',
                 save_best_only=True,
-                #monitor='val_acc',
-                period=1,
+                monitor='val_acc',
+                #period=1,
                 verbose=1,
             ),
             tf.keras.callbacks.TensorBoard(log_dir=path_tensorboard,update_freq='epoch'),
