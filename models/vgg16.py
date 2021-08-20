@@ -71,6 +71,9 @@ import argparse
 import cv2
 
 
+# snn library
+import lib_snn
+
 #
 #tf.config.functions_run_eagerly()
 
@@ -178,6 +181,16 @@ def resize_with_crop(image, label):
 
     return (i, label)
 
+
+@tf.function
+def gaussian_filter(input, filter_size):
+    g_sigma = tf.random.uniform(shape=[],minval=0.1,maxval=2.0)
+    filtered_image = tfa.image.gaussian_filter2d(image=input,
+                                filter_shape=(filter_size,filter_size),
+                                sigma=g_sigma,
+                                )
+    return filtered_image
+
 #@tf.function
 def resize_with_crop_aug(image, label):
     #global input_size
@@ -211,17 +224,45 @@ def resize_with_crop_aug(image, label):
         #i=tf.image.resize(i,(s,h),method='lanczos5')
         #i=tf.image.resize(i,(s,h),method='bicubic')
 
-    #i=tf.image.resize_with_crop_or_pad(i,input_size,input_size)
-    i=tf.image.random_crop(i,[input_size,input_size,3])
-    i=tf.image.random_flip_left_right(i)
+
+
+    # data augmentation from "A Simple Framework for Contrastive Learning of Visual Representations"
+
     #i=tf.numpy_function(lambda i: tf.keras.preprocessing.image.random_zoom(i, (0.2,0.2)),[i],tf.float32)
     #i=tf.keras.preprocessing.image.random_zoom(i,[-0.1,0.2])
     #i=tf.keras.preprocessing.image.random_rotation(i,0.3)
-    i=tf.image.random_brightness(i,max_delta=63)
-    i=tf.image.random_contrast(i,lower=0.2,upper=1.8)
-    i=tf.image.random_hue(i,0.1)
+    #i=tf.image.random_brightness(i,max_delta=63)
+    #i=tf.image.random_contrast(i,lower=0.2,upper=1.8)
 
+    # color jitter
+    i=tf.image.random_brightness(i,max_delta=0.8)
+    i=tf.image.random_contrast(i,lower=0.2,upper=1.8)
+    i=tf.image.random_saturation(i,lower=0.2,upper=1.8)
+    i=tf.image.random_hue(i,0.2)
+    #i=tf.clip_by_value(i,0,1)
+
+    # random transformation
+    #i=tf.image.resize_with_crop_or_pad(i,input_size,input_size)
+    i=tf.image.random_crop(i,[input_size,input_size,3])
+    i=tf.image.random_flip_left_right(i)
+
+    # gaussian filter
+    d_aug_g_filter=False
+    if d_aug_g_filter:
+        g_p = tf.random.uniform(shape=[],minval=0.0,maxval=1.0)
+        g_filter_size = int(input_size*0.1)
+        if tf.greater(g_p,0.5):
+            g_sigma = tf.random.uniform(shape=[],minval=0.1,maxval=2.0)
+            # for use sigma as a random value, we commented out lines of 262, 263 in filters.py
+            # where gaussian_filter2d function is defined
+            i = tfa.image.gaussian_filter2d(image=i,
+                                    filter_shape=(g_filter_size,g_filter_size),
+                                    sigma=g_sigma,
+                                    )
+
+    #
     i=preprocess_input(i)
+
 
     return (i, label)
 
@@ -312,7 +353,7 @@ preprocessor_input = {
 
 GPU = 'RTX_3090'
 # NVIDIA TITAN V (12GB)
-if GPU=='NVIDA_TITAN_V':
+if GPU=='NVIDIA_TITAN_V':
     input_sizes = {
         'Xception': 299,
         'InceptionV3': 299,
@@ -435,9 +476,8 @@ elif dataset_name == 'CIFAR-10':
                              split=['train[:90%]','train[90%:100%]'],
                              as_supervised=True)
 
-
     test_ds = tfds.load('cifar10',
-                      split=['test'],
+                      split='test',
                       as_supervised=True)
 
     #input_size_pre_crop_ratio = 40/32
@@ -518,6 +558,12 @@ elif dataset_name == 'CIFAR-10':
     valid_ds=valid_ds.batch(batch_size_train)
     valid_ds=valid_ds.prefetch(tf.data.experimental.AUTOTUNE)
 
+    test_ds=test_ds.map(resize_with_crop,num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    test_ds=test_ds.batch(batch_size_train)
+    test_ds=test_ds.prefetch(tf.data.experimental.AUTOTUNE)
+
+
+
 
 
 
@@ -525,29 +571,31 @@ elif dataset_name == 'CIFAR-10':
 
     #
     #kernel_regularizer = tf.keras.regularizers.l2
-    lmb = 1.0E-6
+    lmb = 5.0E-8
+
 
     #
     pretrained_model.trainable=False
-    training_model = tf.keras.Sequential()
+    model = tf.keras.Sequential()
 
     train = True
     # data augmentation
     if train:
-        training_model.add(tf.keras.layers.experimental.preprocessing.RandomZoom((-0.2,0.2)))
-        training_model.add(tf.keras.layers.experimental.preprocessing.RandomRotation((-0.2,0.2)))
+        #model.add(tf.keras.layers.GaussianNoise(0.1))
+        model.add(tf.keras.layers.experimental.preprocessing.RandomZoom((-0.1,0.1)))
+        model.add(tf.keras.layers.experimental.preprocessing.RandomRotation((-0.1,0.1)))
 
-    training_model.add(pretrained_model)
-    training_model.add(tf.keras.layers.Flatten(name='flatten'))
-    training_model.add(tf.keras.layers.Dropout(0.5))
-    training_model.add(tf.keras.layers.Dense(1024, activation='relu', kernel_regularizer=tf.keras.regularizers.L2(lmb), name='fc1'))
-    training_model.add(tf.keras.layers.BatchNormalization())
-    training_model.add(tf.keras.layers.Dropout(0.5))
-    training_model.add(tf.keras.layers.Dense(512, activation='relu', kernel_regularizer=tf.keras.regularizers.L2(lmb), name='fc2'))
-    #training_model.add(tf.keras.layers.Dense(1024, activation='relu', name='fc2'))
-    training_model.add(tf.keras.layers.BatchNormalization())
-    training_model.add(tf.keras.layers.Dropout(0.5))
-    training_model.add(tf.keras.layers.Dense(10, activation='softmax', name='predictions'))
+    model.add(pretrained_model)
+    model.add(tf.keras.layers.Flatten(name='flatten'))
+    model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.Dense(4096, activation='relu', kernel_regularizer=tf.keras.regularizers.L2(lmb), name='fc1'))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.Dense(4096, activation='relu', kernel_regularizer=tf.keras.regularizers.L2(lmb), name='fc2'))
+    #model.add(tf.keras.layers.Dense(1024, activation='relu', name='fc2'))
+    model.add(tf.keras.layers.BatchNormalization())
+    model.add(tf.keras.layers.Dropout(0.5))
+    model.add(tf.keras.layers.Dense(10, activation='softmax', name='predictions'))
 
 
     #x = pretrained_model(train_ds)
@@ -557,7 +605,6 @@ elif dataset_name == 'CIFAR-10':
     #output = tf.keras.layers.Dense(10, activation='softmax', name='predictions')(x)
 
 
-    #training_model = tf.keras.Model(inputs=pretrained_model.input, outputs = output)
 
     #metric_accuracy = tf.keras.metrics.sparse_categorical_accuracy(name='accuracy')
     #metric_accuracy_top5 = tf.keras.metrics.sparse_top_k_categorical_accuracy(name='accuracy_top5')
@@ -568,55 +615,94 @@ elif dataset_name == 'CIFAR-10':
     metric_accuracy.name = 'acc'
     metric_accuracy_top5.name = 'acc-5'
 
-    training_model.compile(optimizer='adam',
+    model.compile(optimizer='adam',
                              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
                              #metrics=['accuracy'])
                              #metrics=[tf.keras.metrics.sparse_top_k_categorical_accuracy])
                              metrics=[metric_accuracy, metric_accuracy_top5])
 
-    dir_model = './VGG16_CIFAR10'
+    root_model = './models'
     model_name = 'VGG16'
     dataset_name = 'CIFAR10'
     exp_set_name = model_name+'_'+dataset_name
-    dir_model = './'+exp_set_name
-   # if not os.path.isdir(dir_model):
-   #     tf.io.gfile.makedirs(dir_model)
-
-    root_tensorboard = '../tensorboard/'
-    path_tensorboard = root_tensorboard+exp_set_name
-
-    if os.path.isdir(path_tensorboard):
-        date_cur = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M')
-        path_dest_tensorboard = path_tensorboard+'_'+date_cur
-        print('tensorboard data already exists')
-        print('move {} to {}'.format(path_tensorboard,path_dest_tensorboard))
-
-        shutil.move(path_tensorboard,path_dest_tensorboard)
-
+    #dir_model = './'+exp_set_name
+    dir_model = os.path.join(root_model,exp_set_name)
 
     epoch=10000
     batch_size=batch_size_train
     #file_name='checkpoint-epoch-{}-batch-{}.h5'.format(epoch,batch_size)
-    config_name='ep-{}_bat-{}_lmb-{:.1E}'.format(epoch,batch_size,lmb)
+    #config_name='ep-{epoch:04d}_bat-{}_lmb-{:.1E}'.format(batch_size,lmb)
+    config_name='bat-{}_lmb-{:.1E}'.format(batch_size,lmb)
     filepath = os.path.join(dir_model,config_name)
 
 
-    callbacks = [
-        tf.keras.callbacks.ModelCheckpoint(
-            filepath=filepath,
-            save_best_only=True,
-            monitor='val_loss',
-            verbose=1,
-        ),
-        tf.keras.callbacks.TensorBoard(log_dir=root_tensorboard+exp_set_name,update_freq='epoch')
-    ]
+    ########################################
+    # configuration
+    ########################################
+    train=True
+    #train=False
 
-    train_histories = training_model.fit(train_ds,epochs=epoch,validation_data=valid_ds,callbacks=callbacks)
-    #train_results = training_model.fit(train_ds,epochs=3,validation_data=valid_ds)
+    #load_model=True
+    load_model=False
 
-    #assert False
+    #
+    overwrite_train_model=True
+    #overwrite_train_model=False
 
-    #result = pretrained_model.evaluate(ds)
+
+    ########################################
+    #
+    ########################################
+
+    if load_model:
+        model = tf.keras.models.load_model(filepath)
+
+
+    if train:
+
+        # remove dir - train model
+        if not load_model:
+            if overwrite_train_model:
+                if os.path.isdir(filepath):
+                    shutil.rmtree(filepath)
+
+        root_tensorboard = '../tensorboard/'
+        #path_tensorboard = root_tensorboard+exp_set_name
+        path_tensorboard = root_tensorboard+filepath
+
+        if os.path.isdir(path_tensorboard):
+            date_cur = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M')
+            path_dest_tensorboard = path_tensorboard+'_'+date_cur
+            print('tensorboard data already exists')
+            print('move {} to {}'.format(path_tensorboard,path_dest_tensorboard))
+
+            shutil.move(path_tensorboard,path_dest_tensorboard)
+
+        #
+        callbacks = [
+            tf.keras.callbacks.ModelCheckpoint(
+                filepath=filepath+'/ep-{epoch:04d}',
+                save_best_only=True,
+                monitor='val_acc',
+                #period=1,
+                verbose=1,
+            ),
+            tf.keras.callbacks.TensorBoard(log_dir=path_tensorboard,update_freq='epoch'),
+            lib_snn.callbacks.ManageSavedModels(filepath=filepath)
+        ]
+
+        train_histories = model.fit(train_ds,epochs=epoch,validation_data=valid_ds,callbacks=callbacks)
+        #train_results = training_model.fit(train_ds,epochs=3,validation_data=valid_ds)
+
+        #assert False
+
+        #result = pretrained_model.evaluate(ds)
+    else:
+        result = model.evaluate(test_ds)
+        #result = model.predict(test_ds)
+
+        print(result)
+
 
 else:
     assert False
