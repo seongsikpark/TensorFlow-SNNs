@@ -24,7 +24,6 @@ class ManageSavedModels(tf.keras.callbacks.Callback):
         if len(list_dir) <= self.max_to_keep:
             return
 
-
         mtime = lambda f: os.stat(os.path.join(self.filepath, f)).st_mtime
         list_dir_sorted = list(sorted(os.listdir(self.filepath), key=mtime))
 
