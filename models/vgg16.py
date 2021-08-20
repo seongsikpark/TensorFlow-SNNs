@@ -181,6 +181,16 @@ def resize_with_crop(image, label):
 
     return (i, label)
 
+
+@tf.function
+def gaussian_filter(input, filter_size):
+    g_sigma = tf.random.uniform(shape=[],minval=0.1,maxval=2.0)
+    filtered_image = tfa.image.gaussian_filter2d(image=input,
+                                filter_shape=(filter_size,filter_size),
+                                sigma=g_sigma,
+                                )
+    return filtered_image
+
 #@tf.function
 def resize_with_crop_aug(image, label):
     #global input_size
@@ -236,6 +246,15 @@ def resize_with_crop_aug(image, label):
     i=tf.image.random_crop(i,[input_size,input_size,3])
     i=tf.image.random_flip_left_right(i)
 
+    # gaussian filter
+    g_p = tf.random.uniform(shape=[],minval=0.0,maxval=1.0)
+    g_filter_size = int(input_size*0.1)
+    if tf.greater(g_p,0.5):
+        g_sigma = tf.random.uniform(shape=[],minval=0.1,maxval=2.0)
+        i = tfa.image.gaussian_filter2d(image=i,
+                                filter_shape=(g_filter_size,g_filter_size),
+                                sigma=g_sigma,
+                                )
 
     #
     i=preprocess_input(i)
@@ -421,7 +440,7 @@ elif dataset_name == 'CIFAR-10':
 
     else:
         train_ds, valid_ds = tfds.load('cifar10',
-                             split=['train[:5%]','train[90%:100%]'],
+                             split=['train[:90%]','train[90%:100%]'],
                              as_supervised=True)
 
     test_ds = tfds.load('cifar10',
