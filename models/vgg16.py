@@ -565,7 +565,7 @@ elif dataset_name == 'CIFAR-10':
 
     #
     #kernel_regularizer = tf.keras.regularizers.l2
-    lmb = 1.0E-8
+    lmb = 5.0E-09
 
 
     #
@@ -615,11 +615,12 @@ elif dataset_name == 'CIFAR-10':
                              #metrics=[tf.keras.metrics.sparse_top_k_categorical_accuracy])
                              metrics=[metric_accuracy, metric_accuracy_top5])
 
-    dir_model = './VGG16_CIFAR10'
+    root_model = './models'
     model_name = 'VGG16'
     dataset_name = 'CIFAR10'
     exp_set_name = model_name+'_'+dataset_name
-    dir_model = './'+exp_set_name
+    #dir_model = './'+exp_set_name
+    dir_model = os.path.join(root_model,exp_set_name)
 
     epoch=10000
     batch_size=batch_size_train
@@ -632,11 +633,11 @@ elif dataset_name == 'CIFAR-10':
     ########################################
     # configuration
     ########################################
-    train=True
-    #train=False
+    #train=True
+    train=False
 
-    #load_model=True
-    load_model=False
+    load_model=True
+    #load_model=False
 
     #
     overwrite_train_model=True
