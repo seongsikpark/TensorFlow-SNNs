@@ -3,10 +3,10 @@
 # configuration
 ########################################
 train=True
-#train=False
+train=False
 
-#load_model=True
-load_model=False
+load_model=True
+#load_model=False
 
 #
 overwrite_train_model =True
@@ -25,7 +25,7 @@ dataset_name = 'CIFAR10'
 root_tensorboard = './tensorboard/'
 
 #
-lmb = 1.0E-10
+lmb = 1.0E-8
 
 
 
@@ -609,8 +609,8 @@ elif dataset_name == 'CIFAR10':
     # data augmentation
     if train:
         #model.add(tf.keras.layers.GaussianNoise(0.1))
-        model.add(tf.keras.layers.experimental.preprocessing.RandomZoom((-0.2,0.2)))
-        model.add(tf.keras.layers.experimental.preprocessing.RandomRotation((-0.2,0.2)))
+        model.add(tf.keras.layers.experimental.preprocessing.RandomZoom((-0.1,0.1)))
+        model.add(tf.keras.layers.experimental.preprocessing.RandomRotation((-0.1,0.1)))
 
     model.add(pretrained_model)
     model.add(tf.keras.layers.Flatten(name='flatten'))
