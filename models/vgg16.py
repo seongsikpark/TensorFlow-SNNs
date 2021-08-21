@@ -2,11 +2,11 @@
 ########################################
 # configuration
 ########################################
-train =True
-# train=False
+train=True
+#train=False
 
-load_model=True
-#load_model=False
+#load_model=True
+load_model=False
 
 #
 overwrite_train_model =True
@@ -21,9 +21,13 @@ dataset_name = 'CIFAR10'
 #dataset_name='CIFAR-10'
 #dataset_name='ImageNet'
 
-
-
+#
 root_tensorboard = './tensorboard/'
+
+#
+lmb = 1.0E-10
+
+
 
 
 
@@ -107,7 +111,7 @@ import lib_snn
 #tf.config.functions_run_eagerly()
 
 #
-gpu_number=1
+gpu_number=0
 os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
 
 global input_size
@@ -595,19 +599,18 @@ elif dataset_name == 'CIFAR10':
 
     #
     #kernel_regularizer = tf.keras.regularizers.l2
-    lmb = 1.0E-8
 
 
     #
     pretrained_model.trainable=False
     model = tf.keras.Sequential()
 
-    train = True
+    #train = True
     # data augmentation
     if train:
         #model.add(tf.keras.layers.GaussianNoise(0.1))
-        model.add(tf.keras.layers.experimental.preprocessing.RandomZoom((-0.1,0.1)))
-        model.add(tf.keras.layers.experimental.preprocessing.RandomRotation((-0.1,0.1)))
+        model.add(tf.keras.layers.experimental.preprocessing.RandomZoom((-0.2,0.2)))
+        model.add(tf.keras.layers.experimental.preprocessing.RandomRotation((-0.2,0.2)))
 
     model.add(pretrained_model)
     model.add(tf.keras.layers.Flatten(name='flatten'))
@@ -678,7 +681,7 @@ elif dataset_name == 'CIFAR10':
 
 
     if train:
-
+        print('Train mode')
         # remove dir - train model
         if not load_model:
             if overwrite_train_model:
@@ -718,6 +721,7 @@ elif dataset_name == 'CIFAR10':
 
         #result = pretrained_model.evaluate(ds)
     else:
+        print('Test mode')
         result = model.evaluate(test_ds)
         #result = model.predict(test_ds)
 
