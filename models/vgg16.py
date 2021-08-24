@@ -2,15 +2,15 @@
 ########################################
 # configuration
 ########################################
-train =True
-# train=False
+train=True
+#train=False
 
-load_model=True
-#load_model=False
+#load_model=True
+load_model=False
 
 #
 overwrite_train_model =True
-# overwrite_train_model=False
+#overwrite_train_model=False
 
 epoch = 10000
 root_model = './models'
@@ -21,9 +21,12 @@ dataset_name = 'CIFAR10'
 #dataset_name='CIFAR-10'
 #dataset_name='ImageNet'
 
-
-
+#
 root_tensorboard = './tensorboard/'
+
+#
+lmb = 1.0E-9
+
 
 
 
@@ -496,9 +499,13 @@ elif dataset_name == 'CIFAR10':
                               as_supervised=True)
 
     else:
+        #train_ds, valid_ds = tfds.load('cifar10',
+                             #split=['train[:90%]','train[90%:100%]'],
+                             #as_supervised=True)
         train_ds, valid_ds = tfds.load('cifar10',
-                             split=['train[:90%]','train[90%:100%]'],
-                             as_supervised=True)
+                            split=['train','test'],
+                            shuffle_files=True,
+                            as_supervised=True)
 
     test_ds = tfds.load('cifar10',
                       split='test',
@@ -595,14 +602,13 @@ elif dataset_name == 'CIFAR10':
 
     #
     #kernel_regularizer = tf.keras.regularizers.l2
-    lmb = 1.0E-8
 
 
     #
     pretrained_model.trainable=False
     model = tf.keras.Sequential()
 
-    train = True
+    #train = True
     # data augmentation
     if train:
         #model.add(tf.keras.layers.GaussianNoise(0.1))
@@ -678,7 +684,7 @@ elif dataset_name == 'CIFAR10':
 
 
     if train:
-
+        print('Train mode')
         # remove dir - train model
         if not load_model:
             if overwrite_train_model:
@@ -718,6 +724,7 @@ elif dataset_name == 'CIFAR10':
 
         #result = pretrained_model.evaluate(ds)
     else:
+        print('Test mode')
         result = model.evaluate(test_ds)
         #result = model.predict(test_ds)
 
