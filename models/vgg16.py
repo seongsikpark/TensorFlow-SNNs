@@ -3,14 +3,14 @@
 # configuration
 ########################################
 train=True
-train=False
+#train=False
 
-load_model=True
-#load_model=False
+#load_model=True
+load_model=False
 
 #
 overwrite_train_model =True
-# overwrite_train_model=False
+#overwrite_train_model=False
 
 epoch = 10000
 root_model = './models'
@@ -25,8 +25,7 @@ dataset_name = 'CIFAR10'
 root_tensorboard = './tensorboard/'
 
 #
-lmb = 1.0E-8
-
+lmb = 1.0E-9
 
 
 
@@ -111,7 +110,7 @@ import lib_snn
 #tf.config.functions_run_eagerly()
 
 #
-gpu_number=0
+gpu_number=1
 os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
 
 global input_size
@@ -500,9 +499,13 @@ elif dataset_name == 'CIFAR10':
                               as_supervised=True)
 
     else:
+        #train_ds, valid_ds = tfds.load('cifar10',
+                             #split=['train[:90%]','train[90%:100%]'],
+                             #as_supervised=True)
         train_ds, valid_ds = tfds.load('cifar10',
-                             split=['train[:90%]','train[90%:100%]'],
-                             as_supervised=True)
+                            split=['train','test'],
+                            shuffle_files=True,
+                            as_supervised=True)
 
     test_ds = tfds.load('cifar10',
                       split='test',
