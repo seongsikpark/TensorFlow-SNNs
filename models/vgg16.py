@@ -38,6 +38,10 @@ lmb = 1.0E-9
 en_mixup=True
 #en_mixup=False
 
+#mixup_w_other_aug=True
+mixup_w_other_aug=False
+
+#
 if dataset_name == 'ImageNet':
     num_class = 1000
 elif dataset_name == 'CIFAR10':
@@ -184,8 +188,12 @@ def mixup(ds_one, ds_two, alpha=0.2):
     #assert False
 
     #
-    images_one, labels_one = resize_with_crop_aug(images_one, labels_one)
-    images_two, labels_two = resize_with_crop_aug(images_two, labels_two)
+    if mixup_w_other_aug:
+        images_one, labels_one = resize_with_crop_aug(images_one, labels_one)
+        images_two, labels_two = resize_with_crop_aug(images_two, labels_two)
+    else:
+        images_one, labels_one = resize_with_crop(images_one, labels_one)
+        images_two, labels_two = resize_with_crop(images_two, labels_two)
 
     labels_one = tf.cast(labels_one,tf.float32)
     labels_two = tf.cast(labels_two,tf.float32)
