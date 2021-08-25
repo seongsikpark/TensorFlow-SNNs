@@ -16,7 +16,7 @@ load_model=False
 
 #
 overwrite_train_model =True
-# overwrite_train_model=False
+#overwrite_train_model=False
 
 epoch = 10000
 root_model = './models'
@@ -362,6 +362,7 @@ def resize_with_crop_aug(image, label):
                                     filter_shape=(g_filter_size,g_filter_size),
                                     sigma=g_sigma,
                                     )
+
     #
     i=preprocess_input(i)
 
@@ -370,8 +371,6 @@ def resize_with_crop_aug(image, label):
     label = tf.one_hot(label, num_class)
 
     return (i, label)
-
-
 
 
 
@@ -703,7 +702,7 @@ elif dataset_name == 'CIFAR10':
     #
     #kernel_regularizer = tf.keras.regularizers.l2
 
-    #assert False
+
     #
     pretrained_model.trainable=False
     model = tf.keras.Sequential()
