@@ -2,6 +2,12 @@
 ########################################
 # configuration
 ########################################
+
+# Parallel CPU
+NUM_PARALLEL_CALL = 15
+
+
+#
 train=True
 #train=False
 
@@ -26,6 +32,18 @@ root_tensorboard = './tensorboard/'
 
 #
 lmb = 1.0E-9
+
+# data augmentation
+# mixup
+en_mixup=True
+#en_mixup=False
+
+if dataset_name == 'ImageNet':
+    num_class = 1000
+elif dataset_name == 'CIFAR10':
+    num_class = 10
+else:
+    assert False
 
 
 
@@ -144,7 +162,63 @@ model_name='VGG16'
 #model_name='EfficientNetB6'
 #model_name='EfficientNetB7'
 
+########
+# mixup
+########
+# mixup data augmentation
+# from keras.io
 
+def eager_mixup(ds_one, ds_two, alpha=0.2):
+    return tf.py_function(mixup, [ds_one, ds_two, alpha],[tf.float32,tf.float32])
+    #return tf.py_function(mixup, [ds_one, ds_two, alpha],[tf.uint8,tf.uint8,tf.int64),tf.float32])
+    #return tf.py_function(mixup, [ds_one, ds_two, alpha],[(tf.uint8,tf.int64),(tf.uint8,tf.int64),tf.float32])
+
+def mixup(ds_one, ds_two, alpha=0.2):
+
+    # unpack two datasets
+    images_one, labels_one = ds_one
+    images_two, labels_two = ds_two
+    batch_size = 1
+    #batch_size = tf.shape(images_one)[0]
+    #print(batch_size)
+    #assert False
+
+    #
+    images_one, labels_one = resize_with_crop_aug(images_one, labels_one)
+    images_two, labels_two = resize_with_crop_aug(images_two, labels_two)
+
+    labels_one = tf.cast(labels_one,tf.float32)
+    labels_two = tf.cast(labels_two,tf.float32)
+
+    # sample lambda and reshape it to do the mixup
+    gamma_1_sample = tf.random.gamma(shape=[batch_size], alpha=alpha)
+    gamma_2_sample = tf.random.gamma(shape=[batch_size], alpha=alpha)
+    l = gamma_1_sample / (gamma_1_sample+gamma_2_sample)
+    #xx_l = l
+    #x_l = tf.reshape(l, shape=(batch_size,1,1,1))
+    #x_l = tf.broadcast_to(x_l, tf.shape(images_one))
+    #y_l = tf.reshape(l, shape=(batch_size,1))
+    #y_l = tf.broadcast_to(y_l, tf.shape(images_one))
+    #y_l = l
+
+    # perform mixup on both images and labels by combining a pair of images/labels
+    # (one from each dataset) into one image/label
+    #print(type(images_one[0]))
+    ##print((images_one[0]))
+    #assert False
+    #images = tf.add(tf.multiply(images_one,x_l),tf.multiply(images_two,(1-x_l)))
+    #images = tf.multiply(images_one,x_l)
+    #$images = images_one * x_l
+    #images = images_one * l
+    images = images_one * l + images_two * (1-l)
+    #images = x_l*images_one + (1-x_l)*labels_two
+    #images=images_one
+    labels = labels_one * l + labels_two * (1-l)
+    #labels = labels_one * y_l
+    #labels = labels_one * 0.2
+    #labels = tf.add(tf.multiply())
+
+    return (images,labels)
 
 #
 def eager_resize_with_crop(image, label):
@@ -206,6 +280,9 @@ def resize_with_crop(image, label):
 #
     #print(tf.reduce_max(i))
 
+    #
+    label = tf.one_hot(label,num_class)
+
     return (i, label)
 
 
@@ -220,7 +297,6 @@ def gaussian_filter(input, filter_size):
 
 #@tf.function
 def resize_with_crop_aug(image, label):
-    #global input_size
 
     i=image
     i=tf.cast(i,tf.float32)
@@ -291,26 +367,8 @@ def resize_with_crop_aug(image, label):
     i=preprocess_input(i)
 
 
-    return (i, label)
-
-def resize_with_crop_cifar(image, label):
-
-    i=image
-    i=tf.cast(i,tf.float32)
-
-    #[w,h,c] = tf.shape(image)
-    #w=tf.shape(image)[0]
-    #h=tf.shape(image)[1]
-
-    #s = input_size
-    #s = tf.cast(input_size*input_size_pre_crop_ratio,tf.int32)
-
-    #i=tf.image.resize(i,(input_size,h),method='lanczos3')
-    #i=tf.image.resize_with_crop_or_pad(i,input_size,input_size)
-
-    #i=tf.image.random_crop(i,[input_size,input_size,3])
-    #i=tf.image.random_flip_left_right(i)
-    i=preprocess_input(i)
+    # one-hot vectorization - label
+    label = tf.one_hot(label, num_class)
 
     return (i, label)
 
@@ -492,20 +550,35 @@ elif dataset_name == 'CIFAR10':
     if f_cross_valid:
         train_ds = tfds.load('cifar10',
                              split=[f'train[:{k}%]+train[{k+10}%:]' for k in range(0,100,10)],
+                             shuffle_files=True,
                              as_supervised=True)
 
         valid_ds = tfds.load('cifar10',
-                              split=[f'train[{k}%:{k+10}%]' for k in range(0,100,10)],
-                              as_supervised=True)
+                             split=[f'train[{k}%:{k+10}%]' for k in range(0,100,10)],
+                             shuffle_files=True,
+                             as_supervised=True)
 
-    else:
-        #train_ds, valid_ds = tfds.load('cifar10',
-                             #split=['train[:90%]','train[90%:100%]'],
-                             #as_supervised=True)
-        train_ds, valid_ds = tfds.load('cifar10',
-                            split=['train','test'],
-                            shuffle_files=True,
+    elif en_mixup:
+        train_ds_1 = tfds.load('cifar10',
+                             split='train',
+                             shuffle_files=True,
+                             as_supervised=True)
+
+        train_ds_2 = tfds.load('cifar10',
+                           split='train',
+                           shuffle_files=True,
+                           as_supervised=True)
+
+        train_ds = tf.data.Dataset.zip((train_ds_1,train_ds_2))
+
+        valid_ds = tfds.load('cifar10',
+                            split='test',
                             as_supervised=True)
+    else:
+        train_ds, valid_ds = tfds.load('cifar10',
+                             split=['train','test'],
+                             shuffle_files=True,
+                             as_supervised=True)
 
     test_ds = tfds.load('cifar10',
                       split='test',
@@ -558,19 +631,22 @@ pretrained_model = model(input_shape=image_shape, include_top=include_top, weigh
 if dataset_name == 'ImageNet':
 
     pretrained_model.compile(optimizer='adam',
-                             loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+                             loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
                              #metrics=['accuracy'])
                              #metrics=[tf.keras.metrics.sparse_top_k_categorical_accuracy])
-                             metrics=[tf.keras.metrics.sparse_categorical_accuracy, \
-                                      tf.keras.metrics.sparse_top_k_categorical_accuracy])
+                             metrics=[tf.keras.metrics.categorical_accuracy, \
+                                      tf.keras.metrics.top_k_categorical_accuracy])
 
     # Preprocess input
-    ds=ds.map(resize_with_crop,num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    #ds=ds.map(resize_with_crop,num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    ds=ds.map(resize_with_crop,num_parallel_calls=NUM_PARALLEL_CALL)
     #ds=ds.map(eager_resize_with_crop,num_parallel_calls=tf.data.experimental.AUTOTUNE)
     ds=ds.batch(batch_size_inference)
     #ds=ds.batch(250)
     #ds=ds.batch(2)
-    ds=ds.prefetch(tf.data.experimental.AUTOTUNE)
+    #ds=ds.prefetch(tf.data.experimental.AUTOTUNE)
+    ds=ds.prefetch(NUM_PARALLEL_CALL)
+
 
     #ds=ds.take(1)
 
@@ -578,20 +654,43 @@ if dataset_name == 'ImageNet':
 elif dataset_name == 'CIFAR10':
 
     # Preprocess input
-    train_ds=train_ds.map(resize_with_crop_aug,num_parallel_calls=tf.data.experimental.AUTOTUNE)
-    #train_ds=train_ds.batch(batch_size_inference)
-    train_ds=train_ds.batch(batch_size_train)
-    train_ds=train_ds.prefetch(tf.data.experimental.AUTOTUNE)
+    if train:
+        if en_mixup:
+            #train_ds_1=train_ds_1.map(resize_with_crop_aug,num_parallel_calls=tf.data.experimental.AUTOTUNE)
+            #train_ds_1=train_ds_1.batch(batch_size_train)
+            #train_ds_1=train_ds_1.prefetch(tf.data.experimental.AUTOTUNE)
+
+            #train_ds_2=train_ds_2.map(resize_with_crop_aug,num_parallel_calls=tf.data.experimental.AUTOTUNE)
+            #train_ds_2=train_ds_2.batch(batch_size_train)
+            #train_ds_2=train_ds_2.prefetch(tf.data.experimental.AUTOTUNE)
+
+            #train_ds=train_ds.map(lambda train_ds_1, train_ds_2: mixup(train_ds_1,train_ds_2,alpha=0.2),num_parallel_calls=tf.data.experimental.AUTOTUNE)
+            train_ds=train_ds.map(lambda train_ds_1, train_ds_2: mixup(train_ds_1,train_ds_2,alpha=0.2),num_parallel_calls=NUM_PARALLEL_CALL)
+            #train_ds=train_ds.map(lambda train_ds_1, train_ds_2: eager_mixup(train_ds_1,train_ds_2,alpha=0.2),num_parallel_calls=tf.data.experimental.AUTOTUNE)
+            train_ds=train_ds.batch(batch_size_train)
+            #train_ds=train_ds.prefetch(tf.data.experimental.AUTOTUNE)
+            train_ds = train_ds.prefetch(NUM_PARALLEL_CALL)
+
+        else:
+            #train_ds=train_ds.map(resize_with_crop_aug,num_parallel_calls=tf.data.experimental.AUTOTUNE)
+            train_ds=train_ds.map(resize_with_crop_aug,num_parallel_calls=NUM_PARALLEL_CALL)
+            train_ds=train_ds.batch(batch_size_train)
+            #train_ds=train_ds.prefetch(tf.data.experimental.AUTOTUNE)
+            train_ds = train_ds.prefetch(NUM_PARALLEL_CALL)
 
     #valid_ds=valid_ds.map(resize_with_crop_cifar,num_parallel_calls=tf.data.experimental.AUTOTUNE)
-    valid_ds=valid_ds.map(resize_with_crop,num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    #valid_ds=valid_ds.map(resize_with_crop,num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    valid_ds=valid_ds.map(resize_with_crop,num_parallel_calls=NUM_PARALLEL_CALL)
     #valid_ds=valid_ds.batch(batch_size_inference)
     valid_ds=valid_ds.batch(batch_size_train)
-    valid_ds=valid_ds.prefetch(tf.data.experimental.AUTOTUNE)
+    #valid_ds=valid_ds.prefetch(tf.data.experimental.AUTOTUNE)
+    valid_ds=valid_ds.prefetch(NUM_PARALLEL_CALL)
 
-    test_ds=test_ds.map(resize_with_crop,num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    #test_ds=test_ds.map(resize_with_crop,num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    test_ds=test_ds.map(resize_with_crop,num_parallel_calls=NUM_PARALLEL_CALL)
     test_ds=test_ds.batch(batch_size_train)
-    test_ds=test_ds.prefetch(tf.data.experimental.AUTOTUNE)
+    #test_ds=test_ds.prefetch(tf.data.experimental.AUTOTUNE)
+    test_ds=test_ds.prefetch(NUM_PARALLEL_CALL)
 
 
 
@@ -613,7 +712,7 @@ elif dataset_name == 'CIFAR10':
     if train:
         #model.add(tf.keras.layers.GaussianNoise(0.1))
         model.add(tf.keras.layers.experimental.preprocessing.RandomZoom((-0.1,0.1)))
-        model.add(tf.keras.layers.experimental.preprocessing.RandomRotation((-0.1,0.1)))
+        model.add(tf.keras.layers.experimental.preprocessing.RandomRotation((-0.03,0.03)))
 
     model.add(pretrained_model)
     model.add(tf.keras.layers.Flatten(name='flatten'))
@@ -639,16 +738,15 @@ elif dataset_name == 'CIFAR10':
     #metric_accuracy = tf.keras.metrics.sparse_categorical_accuracy(name='accuracy')
     #metric_accuracy_top5 = tf.keras.metrics.sparse_top_k_categorical_accuracy(name='accuracy_top5')
 
-    metric_accuracy = tf.keras.metrics.sparse_categorical_accuracy
-    metric_accuracy_top5 = tf.keras.metrics.sparse_top_k_categorical_accuracy
+    metric_accuracy = tf.keras.metrics.categorical_accuracy
+    metric_accuracy_top5 = tf.keras.metrics.top_k_categorical_accuracy
 
     metric_accuracy.name = 'acc'
     metric_accuracy_top5.name = 'acc-5'
 
     model.compile(optimizer='adam',
-                             loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+                             loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
                              #metrics=['accuracy'])
-                             #metrics=[tf.keras.metrics.sparse_top_k_categorical_accuracy])
                              metrics=[metric_accuracy, metric_accuracy_top5])
 
 
@@ -661,7 +759,12 @@ elif dataset_name == 'CIFAR10':
 
     #file_name='checkpoint-epoch-{}-batch-{}.h5'.format(epoch,batch_size)
     #config_name='ep-{epoch:04d}_bat-{}_lmb-{:.1E}'.format(batch_size,lmb)
-    config_name='bat-{}_lmb-{:.1E}'.format(batch_size,lmb)
+    #config_name='bat-{}_lmb-{:.1E}'.format(batch_size,lmb)
+    if en_mixup:
+        config_name='bat-{}_lmb-{:.1E}_mu'.format(batch_size,lmb)
+    else:
+        config_name='bat-{}_lmb-{:.1E}'.format(batch_size,lmb)
+
     filepath = os.path.join(dir_model,config_name)
 
 
