@@ -78,7 +78,8 @@ class Model(tf.keras.Model):
 
 
         # input
-        self._input_shape = [-1]+input_shape.as_list()
+        #self._input_shape = [-1]+input_shape.as_list()
+        self._input_shape = [-1]+list(input_shape)
         self.in_shape = [self.conf.batch_size]+self._input_shape[1:]
         self.in_shape_snn = [self.conf.batch_size] + self._input_shape[1:]
 
@@ -252,24 +253,30 @@ class Model(tf.keras.Model):
     ## call
     ###########################################################################
 
+    def call(self, inputs, training, epoch=-1, f_val_snn=False):
+
+        ret_val = self.call_ann(inputs, training)
+
+        return ret_val
+
     #
-    #def __call__(self, inputs, f_training, epoch=-1, f_val_snn=False):
-    def call(self, inputs, f_training, epoch=-1, f_val_snn=False):
+    #def __call__(self, inputs, training, epoch=-1, f_val_snn=False):
+    def call_set_aside(self, inputs, training, epoch=-1, f_val_snn=False):
         #print("lib_SNN - Model - call")
 
         if Model.f_load_model_done:
             #print('Model - f_load_model_done')
 
             # pre-processing
-            self.preproc(inputs,f_training,f_val_snn)
+            self.preproc(inputs,training,f_val_snn)
 
             # run
             if (self.en_opt_time_const_T2FSNN):
                 # run ANN
-                self.run_mode['ANN'](inputs,f_training,self.conf.time_step,epoch)
+                self.run_mode['ANN'](inputs,training,self.conf.time_step,epoch)
 
                 # run SNN
-                ret_val = self.run_mode[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
+                ret_val = self.run_mode[self.conf.nn_mode](inputs,training,self.conf.time_step,epoch)
 
                 # training time constant
                 self.train_time_const()
@@ -277,9 +284,9 @@ class Model(tf.keras.Model):
                 # inference - rate, phase, and burst coding
                 if f_val_snn:
                     assert False, 'f_val_snn mode is not validated yet'
-                    ret_val = self.call_snn(inputs,f_training,self.conf.time_step,epoch)
+                    ret_val = self.call_snn(inputs,training,self.conf.time_step,epoch)
                 else:
-                    ret_val = self.run_mode[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
+                    ret_val = self.run_mode[self.conf.nn_mode](inputs,training,self.conf.time_step,epoch)
 
 
             # post-processing
@@ -294,7 +301,7 @@ class Model(tf.keras.Model):
             if self.conf.en_train and self.conf.f_validation_snn:
                 ret_val = self.call_snn(inputs,False,1,0)
 
-            #ret_val = self.run_mode_load_model[self.conf.nn_mode](inputs,f_training,self.conf.time_step,epoch)
+            #ret_val = self.run_mode_load_model[self.conf.nn_mode](inputs,training,self.conf.time_step,epoch)
             #ret_val = self.run_mode_load_model[self.conf.nn_mode](inputs,False,self.conf.time_step,epoch)
             ret_val = self.run_mode_load_model[self.conf.nn_mode](inputs,False,2,epoch)
 

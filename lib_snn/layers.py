@@ -117,9 +117,16 @@ class Layer():
         #
         self.built = True
 
-
     #
     def call(self,input,training):
+        s = super().call(input)
+
+        s = tf.nn.relu(s)
+
+        return s
+
+    #
+    def call_set_aside_for_future(self,input,training):
         #print('layer call')
         s = super().call(input)
 
@@ -330,6 +337,12 @@ class MaxPool2D(Layer,tf.keras.layers.MaxPool2D):
         self.output_shape_fixed_batch = super().compute_output_shape(input_shapes)
         print('maxpool')
         print(self.output_shape_fixed_batch)
+
+
+    def call(self,inputs):
+        s = super().call(input)
+
+        return s
 
 
     def call(self,inputs):

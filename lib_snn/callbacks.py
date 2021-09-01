@@ -37,3 +37,38 @@ class ManageSavedModels(tf.keras.callbacks.Callback):
 
     def on_epoch_end(self, epoch, logs=None):
         self.check_and_remove()
+
+
+
+# ModelCheckpointResume
+# wrapper for keras.callback.ModelCheckpoint
+# add "best" argument for resume training
+class ModelCheckpointResume(tf.keras.callbacks.ModelCheckpoint):
+    def __init__(self,
+                filepath,
+                monitor = 'val_loss',
+                verbose = 0,
+                save_best_only = False,
+                save_weights_only = False,
+                mode = 'auto',
+                save_freq = 'epoch',
+                options = None,
+                best = None,
+                ** kwargs):
+        super(ModelCheckpointResume, self).__init__(
+            filepath=filepath,
+            monitor=monitor,
+            verbose=verbose,
+            save_best_only=save_best_only,
+            save_weights_only=save_weights_only,
+            mode=mode,
+            save_freq=save_freq,
+            options=options,
+            **kwargs)
+
+        if best is not None:
+            self.best = best
+
+        print('ModelCheckpointResume - init - previous best: '.format(self.best))
+
+
