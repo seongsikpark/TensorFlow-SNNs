@@ -72,6 +72,8 @@ class Layer():
         if self.en_snn:
             self.n_type = self.conf.n_type
 
+
+
     #
     def build(self, input_shapes):
         #super(Conv2D,self).build(input_shapes)
@@ -118,17 +120,19 @@ class Layer():
         self.built = True
 
     #
-    def call(self,input,training):
-        s = super().call(input)
-
-        s = tf.nn.relu(s)
-
-        return s
+    #def call(self,input,training):
+        #s = super().call(input)
+#
+        #s = tf.nn.relu(s)
+#
+        #return s
 
     #
-    def call_set_aside_for_future(self,input,training):
+    #def call_set_aside_for_future(self,input,training):
+    def call(self,input,training):
         #print('layer call')
         s = super().call(input)
+        print(self.name)
 
         if (self.use_bn) and (not Model.f_skip_bn):
             b = self.bn(s,training=training)
@@ -143,9 +147,7 @@ class Layer():
                 n = self.act(b,Model.t)
             else:
                 n = self.act(b)
-
         ret = n
-
 
         return ret
 
@@ -273,6 +275,8 @@ class Conv2D(Layer,tf.keras.layers.Conv2D):
         Layer.index+= 1
         self.depth = Layer.index
 
+
+
 # Dense
 class Dense(Layer,tf.keras.layers.Dense):
     def __init__(self,
@@ -340,12 +344,13 @@ class MaxPool2D(Layer,tf.keras.layers.MaxPool2D):
 
 
     def call(self,inputs):
-        s = super().call(input)
+        #s = super().call(self,inputs)
+        #return s
+        return tf.keras.layers.MaxPool2D.call(self, inputs)
 
-        return s
 
 
-    def call(self,inputs):
+    def call_set_aside(self,inputs):
 
         if not Model.f_load_model_done:
             return tf.keras.layers.MaxPool2D.call(self,inputs)

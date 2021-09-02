@@ -13,7 +13,6 @@ tf.compat.v1.app.flags.DEFINE_string('date','','date')
 
 tf.compat.v1.app.flags.DEFINE_integer('epoch', 300, 'Number os epochs')
 tf.compat.v1.app.flags.DEFINE_string('gpu_fraction', '1/3', 'define the gpu fraction used')
-tf.compat.v1.app.flags.DEFINE_integer('batch_size', 500, '')
 tf.compat.v1.app.flags.DEFINE_string('activation', 'ReLU', '')
 tf.compat.v1.app.flags.DEFINE_string('optim_type', 'adam', '[exp_decay, adam]')
 
@@ -49,8 +48,6 @@ tf.compat.v1.app.flags.DEFINE_float('momentum', 0.9, 'momentum')
 # ADAM
 #tf.compat.v1.app.flags.DEFINE_float('lr', 0.0001, '')
 
-# l2 norm
-tf.compat.v1.app.flags.DEFINE_float('lamb',0.0001, 'lambda')
 
 tf.compat.v1.app.flags.DEFINE_float('lr_decay', 0.1, '')
 tf.compat.v1.app.flags.DEFINE_integer('lr_decay_step', 50, '')
@@ -101,7 +98,7 @@ tf.compat.v1.app.flags.DEFINE_bool('f_w_norm_data',False,'f_w_norm_data')
 tf.compat.v1.app.flags.DEFINE_bool('f_ws',False,'wieghted synapse')
 tf.compat.v1.app.flags.DEFINE_float('p_ws',8,'period of wieghted synapse')
 
-tf.compat.v1.app.flags.DEFINE_integer('num_class',1000,'number_of_class')
+#tf.compat.v1.app.flags.DEFINE_integer('num_class',1000,'number_of_class')
 
 tf.compat.v1.app.flags.DEFINE_string('input_spike_mode','POISSON','input spike mode - POISSON, WEIGHTED_SPIKE, ROPOSED')
 tf.compat.v1.app.flags.DEFINE_string('neural_coding','RATE','neural coding - RATE, WEIGHTED_SPIKE, PROPOSED')
@@ -134,7 +131,7 @@ tf.compat.v1.app.flags.DEFINE_bool('f_data_std', True, 'data_standardization')
 
 
 # pruning
-tf.compat.v1.app.flags.DEFINE_bool('f_pruning_channel', False, 'purning - channel')
+#tf.compat.v1.app.flags.DEFINE_bool('f_pruning_channel', False, 'purning - channel')
 
 
 tf.compat.v1.app.flags.DEFINE_string('path_result_root','./result/', 'path result root')
@@ -187,58 +184,58 @@ tf.compat.v1.app.flags.DEFINE_bool("f_validation_snn", False, "validation on SNN
 tf.compat.v1.app.flags.DEFINE_bool("en_tensorboard_write", False, "Tensorboard write")
 
 
-################################################################################
-# Deep SNNs training w/ tepmoral information - surrogate DNN model
-################################################################################
-tf.compat.v1.app.flags.DEFINE_integer('epoch_start_train_tk',100,'epoch start train tk')
-tf.compat.v1.app.flags.DEFINE_float('w_train_tk',1,'weight train tk')
-tf.compat.v1.app.flags.DEFINE_float('w_train_tk_reg',0,'weight train tk regularization, lambda')
-tf.compat.v1.app.flags.DEFINE_string('t_train_tk_reg','L2-I','type train tk regularization, lambda')
-tf.compat.v1.app.flags.DEFINE_bool('f_train_tk_reg',False,'flag for tk regularization')
-tf.compat.v1.app.flags.DEFINE_string('train_tk_strategy','N','traing tk strategy')
-
-tf.compat.v1.app.flags.DEFINE_integer('epoch_start_train_t_int',100,'epoch start train t_int')
-tf.compat.v1.app.flags.DEFINE_integer('epoch_start_train_floor',100,'epoch start train floor')
-tf.compat.v1.app.flags.DEFINE_integer('epoch_start_train_clip_tw',1,'epoch start train clip tw')
-tf.compat.v1.app.flags.DEFINE_integer('epoch_start_loss_enc_spike',100,'epoch start encoded spike loss')
-
+#################################################################################
+## Deep SNNs training w/ tepmoral information - surrogate DNN model
+#################################################################################
+#tf.compat.v1.app.flags.DEFINE_integer('epoch_start_train_tk',100,'epoch start train tk')
+#tf.compat.v1.app.flags.DEFINE_float('w_train_tk',1,'weight train tk')
+#tf.compat.v1.app.flags.DEFINE_float('w_train_tk_reg',0,'weight train tk regularization, lambda')
+#tf.compat.v1.app.flags.DEFINE_string('t_train_tk_reg','L2-I','type train tk regularization, lambda')
+#tf.compat.v1.app.flags.DEFINE_bool('f_train_tk_reg',False,'flag for tk regularization')
+#tf.compat.v1.app.flags.DEFINE_string('train_tk_strategy','N','traing tk strategy')
 #
-tf.compat.v1.app.flags.DEFINE_float('bypass_pr',1.0,'bypass probabilty')
-tf.compat.v1.app.flags.DEFINE_integer('bypass_target_epoch',1,'bypass target epoch')
-
+#tf.compat.v1.app.flags.DEFINE_integer('epoch_start_train_t_int',100,'epoch start train t_int')
+#tf.compat.v1.app.flags.DEFINE_integer('epoch_start_train_floor',100,'epoch start train floor')
+#tf.compat.v1.app.flags.DEFINE_integer('epoch_start_train_clip_tw',1,'epoch start train clip tw')
+#tf.compat.v1.app.flags.DEFINE_integer('epoch_start_loss_enc_spike',100,'epoch start encoded spike loss')
 #
-tf.compat.v1.app.flags.DEFINE_bool('f_loss_enc_spike',False,'flag for encoded spike loss')
-
+##
+#tf.compat.v1.app.flags.DEFINE_float('bypass_pr',1.0,'bypass probabilty')
+#tf.compat.v1.app.flags.DEFINE_integer('bypass_target_epoch',1,'bypass target epoch')
 #
-tf.compat.v1.app.flags.DEFINE_float('w_loss_enc_spike',0.001,'weight of encoded spike loss')
-# TODO: update below two parameters in run.sh (they are only denoted in run_enc_dec_tk.sh)
-tf.compat.v1.app.flags.DEFINE_string('d_loss_enc_spike','b','target distribution of encoded spike loss')
-tf.compat.v1.app.flags.DEFINE_string('ems_loss_enc_spike','n','encoded spike loss - encoding max spike: f (fixed), n (n x time window=nt)')
-
-# coefficient of beta distribution
-tf.compat.v1.app.flags.DEFINE_float('beta_dist_a',0.1,'coefficient of beta distribution - alpha')
-tf.compat.v1.app.flags.DEFINE_float('beta_dist_b',0.1,'coefficient of beta distribution - beta')
-
+##
+#tf.compat.v1.app.flags.DEFINE_bool('f_loss_enc_spike',False,'flag for encoded spike loss')
 #
-tf.compat.v1.app.flags.DEFINE_integer('enc_st_n_tw',10,'target max encoded spike time - number of time window')
-#tf.compat.v1.app.flags.DEFINE_float('enc_st_n_tw',10,'target max encoded spike time - number of time window')
-
-tf.compat.v1.app.flags.DEFINE_bool('f_td_training',True,'flag td training')
-
-# quantization-aware vth - TTFS coding, surrogate training model
-tf.compat.v1.app.flags.DEFINE_bool('f_qvth',False,'quantization-aware vth, rounding function')
-
+##
+#tf.compat.v1.app.flags.DEFINE_float('w_loss_enc_spike',0.001,'weight of encoded spike loss')
+## TODO: update below two parameters in run.sh (they are only denoted in run_enc_dec_tk.sh)
+#tf.compat.v1.app.flags.DEFINE_string('d_loss_enc_spike','b','target distribution of encoded spike loss')
+#tf.compat.v1.app.flags.DEFINE_string('ems_loss_enc_spike','n','encoded spike loss - encoding max spike: f (fixed), n (n x time window=nt)')
 #
-tf.compat.v1.app.flags.DEFINE_string('tfboard_log_file_name',None,'tfboard log file name')
-
-# noise
-tf.compat.v1.app.flags.DEFINE_bool('noise_en',False,'noise injection mode enable')
-tf.compat.v1.app.flags.DEFINE_string('noise_type',None,'noise type - DEL ..')
-tf.compat.v1.app.flags.DEFINE_float('noise_pr',0.1,'noise probability for DEL')
-tf.compat.v1.app.flags.DEFINE_bool('noise_robust_en',False,'noise robust mode enable')
-tf.compat.v1.app.flags.DEFINE_bool('noise_robust_comp_pr_en',False,'noise robust compenstation pr enable - only DEL')
-tf.compat.v1.app.flags.DEFINE_integer('noise_robust_spike_num',0,'noise robust spike number')
-tf.compat.v1.app.flags.DEFINE_integer('rep',-1,'repeat - noise experiments')
+## coefficient of beta distribution
+#tf.compat.v1.app.flags.DEFINE_float('beta_dist_a',0.1,'coefficient of beta distribution - alpha')
+#tf.compat.v1.app.flags.DEFINE_float('beta_dist_b',0.1,'coefficient of beta distribution - beta')
+#
+##
+#tf.compat.v1.app.flags.DEFINE_integer('enc_st_n_tw',10,'target max encoded spike time - number of time window')
+##tf.compat.v1.app.flags.DEFINE_float('enc_st_n_tw',10,'target max encoded spike time - number of time window')
+#
+#tf.compat.v1.app.flags.DEFINE_bool('f_td_training',True,'flag td training')
+#
+## quantization-aware vth - TTFS coding, surrogate training model
+#tf.compat.v1.app.flags.DEFINE_bool('f_qvth',False,'quantization-aware vth, rounding function')
+#
+##
+#tf.compat.v1.app.flags.DEFINE_string('tfboard_log_file_name',None,'tfboard log file name')
+#
+## noise
+#tf.compat.v1.app.flags.DEFINE_bool('noise_en',False,'noise injection mode enable')
+#tf.compat.v1.app.flags.DEFINE_string('noise_type',None,'noise type - DEL ..')
+#tf.compat.v1.app.flags.DEFINE_float('noise_pr',0.1,'noise probability for DEL')
+#tf.compat.v1.app.flags.DEFINE_bool('noise_robust_en',False,'noise robust mode enable')
+#tf.compat.v1.app.flags.DEFINE_bool('noise_robust_comp_pr_en',False,'noise robust compenstation pr enable - only DEL')
+#tf.compat.v1.app.flags.DEFINE_integer('noise_robust_spike_num',0,'noise robust spike number')
+#tf.compat.v1.app.flags.DEFINE_integer('rep',-1,'repeat - noise experiments')
 
 
 ########################################
@@ -246,9 +243,16 @@ tf.compat.v1.app.flags.DEFINE_integer('rep',-1,'repeat - noise experiments')
 ########################################
 
 # common
+tf.compat.v1.app.flags.DEFINE_integer('batch_size', 500, '')
+# l2 norm
+tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-10, 'lambda')
+
+## not frequently used
 tf.compat.v1.app.flags.DEFINE_string('data_format', 'channels_last', 'data format')
 
 
 # data augmentation
-tf.compat.v1.app.flags.DEFINE_bool('mixup', False, 'data augmentation - mixup')
+#tf.compat.v1.app.flags.DEFINE_bool('mixup', False, 'data augmentation - mixup')
+#tf.compat.v1.app.flags.DEFINE_string('data_aug_mix', 'cutmix', 'data augmentation - mixup or cutmix')
+tf.compat.v1.app.flags.DEFINE_string('data_aug_mix', None, 'data augmentation - mixup or cutmix')
 

@@ -22,7 +22,7 @@ import lib_snn
 #
 class Model(tf.keras.Model):
     count=0
-    def __init__(self, input_shape, data_format, conf):
+    def __init__(self, input_shape, data_format, num_class, conf):
         #print("lib_SNN - Layer - init")
 
         #
@@ -39,7 +39,8 @@ class Model(tf.keras.Model):
         Model.conf = conf
         Model.data_format = data_format
         self.kernel_size = None                 # for conv layer
-        self.num_class = conf.num_class
+        #self.num_class = conf.num_class
+        self.num_class = num_class
         Model.use_bias = conf.use_bias
 
         #
@@ -85,13 +86,14 @@ class Model(tf.keras.Model):
 
 
         # output
-        self.count_accuracy_time_point=0
-        self.accuracy_time_point = list(range(conf.time_step_save_interval,conf.time_step,conf.time_step_save_interval))
-        self.accuracy_time_point.append(conf.time_step)
-        self.num_accuracy_time_point = len(self.accuracy_time_point)
-        self.snn_output_neuron = None
-        self.snn_output = None
-        self.spike_count = None
+        if False:
+            self.count_accuracy_time_point=0
+            self.accuracy_time_point = list(range(conf.time_step_save_interval,conf.time_step,conf.time_step_save_interval))
+            self.accuracy_time_point.append(conf.time_step)
+            self.num_accuracy_time_point = len(self.accuracy_time_point)
+            self.snn_output_neuron = None
+            self.snn_output = None
+            self.spike_count = None
 
         #
         self.activation = tf.nn.relu
@@ -102,8 +104,8 @@ class Model(tf.keras.Model):
         #kernel_initializer = initializers.variance_scaling_initializer(factor=2.0,mode='FAN_IN')    # MSRA init. = He init
 
         regularizer_type = {
-            'L1': regularizers.l1(conf.lamb),
-            'L2': regularizers.l2(conf.lamb)
+            'L1': regularizers.l1(conf.lmb),
+            'L2': regularizers.l2(conf.lmb)
         }
 
         Model.kernel_regularizer = regularizer_type[self.conf.regularizer]
@@ -162,7 +164,7 @@ class Model(tf.keras.Model):
 
     #
     # after init
-    def build(self, input_shapes):
+    def build_set_aside(self, input_shapes):
         #print('build lib snn - Model')
 
         #
