@@ -55,6 +55,7 @@ class VGG16(lib_snn.model.Model):
             #self.model.add(tf.keras.layers.experimental.preprocessing.RandomRotation((-0.03, 0.03)))
 
         self.model.add(lib_snn.layers.InputLayer(input_shape=input_shape,batch_size=conf.batch_size,name='in'))
+        self.model.add(lib_snn.layers.InputGenLayer())
         #self.model.add(lib_snn.layers.InputLayer(input_shape=input_shape,name='in'))
         self.model.add(lib_snn.layers.Conv2D(64,self.kernel_size,padding=padding,
                                              activation=act_relu,use_bn=use_bn_feat,name='conv1'))
@@ -112,10 +113,10 @@ class VGG16(lib_snn.model.Model):
 
         self.model.summary()
 
-#    #
-#    def build(self, input_shapes):
-#
-#        # build model
-#        lib_snn.model.Model.build(self, input_shapes)
+    #
+    def build(self, input_shapes):
+
+        # build model
+        lib_snn.model.Model.build(self, input_shapes)
 
 

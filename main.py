@@ -398,13 +398,14 @@ model = model(input_shape=image_shape, conf=conf, include_top=include_top,
 #pretrained_model = ResNet101(include_top=True, weights='imagenet')
 
 # TODO: move to parameter
-run_eagerly=False
-#run_eagerly=True
+#run_eagerly=False
+run_eagerly=True
 
 model.compile(optimizer='adam',
               loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
               metrics=[metric_accuracy, metric_accuracy_top5], run_eagerly=run_eagerly)
 
+#assert False
 
 if train:
     print('Train mode')

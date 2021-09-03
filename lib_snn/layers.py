@@ -32,7 +32,7 @@ from lib_snn.model import Model
 # abstract class
 # Layer
 class Layer():
-    index=0
+    index=-1
     def __init__(self,use_bn,activation):
         #
         self.depth=-1
@@ -81,8 +81,11 @@ class Layer():
         #tf.keras.layers.Conv2D.build(self,input_shapes)
         #self.__mro__[2].build(self,input_shapes)
 
-        #print('build layer')
+        print('build layer')
         super().build(input_shapes)
+        #print(super())
+        #print(super().build)
+
 
         #
         self.output_shape_fixed_batch = super().compute_output_shape(input_shapes)
@@ -132,7 +135,14 @@ class Layer():
     def call(self,input,training):
         #print('layer call')
         s = super().call(input)
-        print(self.name)
+
+        #print('depth: {}, name: {}'.format(self.depth, self.name))
+        #if self.depth==1:
+            #print(super().call(input))
+        #    print(super().call)
+            #print(s)
+            #print(self.kernel)
+
 
         if (self.use_bn) and (not Model.f_skip_bn):
             b = self.bn(s,training=training)
@@ -191,6 +201,7 @@ class Layer():
 
 # Input
 class InputLayer(Layer,tf.keras.layers.InputLayer):
+#class InputLayer(Layer):
     def __init__(self,
                  input_shape=None,
                  batch_size=None,
@@ -214,22 +225,39 @@ class InputLayer(Layer,tf.keras.layers.InputLayer):
             **kwargs)
         Layer.__init__(self,False,None)
 
-        #
-        Layer.index+= 1
-        self.depth = Layer.index
 
-    def build(self):
+
+        print('init')
+        #assert False
+
+    def build(self, input_shapes):
         print('build input')
         #super().build(input_shapes)
 
         assert False
 
-    def call(self):
+    #def call(self, inputs):
+    #def call(self, inputs, *args, ** kwargs):
+    def call(self, inputs, training):
         print('call input')
 
         assert False
 
 
+# custom input layer - for spike input generation
+class InputGenLayer(Layer,tf.keras.layers.Layer):
+    def __init__(self):
+        Layer.__init__(self,False,None)
+        tf.keras.layers.Layer.__init__(self)
+
+        #
+        Layer.index+= 1
+        self.depth = Layer.index
+
+    def call(self, inputs):
+        #print('input gen layer - call')
+        #print(inputs)
+        return inputs
 
 
 
@@ -259,7 +287,7 @@ class Conv2D(Layer,tf.keras.layers.Conv2D):
             dilation_rate=dilation_rate,
             activation=None,
             use_bias=Model.use_bias,
-            kernel_initializer=Model.kernel_initializer,
+            #kernel_initializer=Model.kernel_initializer,
             bias_initializer='zeros',
             kernel_regularizer=Model.kernel_regularizer,
             bias_regularizer=None,
@@ -298,7 +326,7 @@ class Dense(Layer,tf.keras.layers.Dense):
             units,
             activation=None,
             use_bias=Model.use_bias,
-            kernel_initializer=Model.kernel_initializer,
+            #kernel_initializer=Model.kernel_initializer,
             bias_initializer='zeros',
             kernel_regularizer=Model.kernel_regularizer,
             bias_regularizer=None,

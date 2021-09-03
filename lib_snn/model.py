@@ -100,7 +100,8 @@ class Model(tf.keras.Model):
 
         #kernel_initializer = initializers.xavier_initializer(True)
         #self.kernel_initializer = initializers.GlorotUniform()
-        Model.kernel_initializer = initializers.Zeros()
+        #Model.kernel_initializer = initializers.Zeros()
+        #Model.kernel_initializer = initializers.Zeros()
         #kernel_initializer = initializers.variance_scaling_initializer(factor=2.0,mode='FAN_IN')    # MSRA init. = He init
 
         regularizer_type = {
