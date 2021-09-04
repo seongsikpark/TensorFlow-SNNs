@@ -13,6 +13,7 @@ global num_class
 NUM_PARALLEL_CALL = 15
 
 
+
 #
 train=True
 #train=False
@@ -106,7 +107,16 @@ import models.input_preprocessor as preprocessor
 gpu_number=0
 os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
 
-
+# TODO: gpu mem usage - parameterize
+# GPU mem usage
+gpu = tf.config.experimental.list_physical_devices('GPU')
+if gpu:
+    try:
+        tf.config.experimental.set_virtual_device_configuration(
+            gpu[0],
+            [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=6144)])
+    except RuntimeError as e:
+        print(e)
 
 
 # training types
@@ -398,10 +408,11 @@ model = model(input_shape=image_shape, conf=conf, include_top=include_top,
 #pretrained_model = ResNet101(include_top=True, weights='imagenet')
 
 # TODO: move to parameter
-#run_eagerly=False
-run_eagerly=True
+run_eagerly=False
+#run_eagerly=True
 
-model.compile(optimizer='adam',
+opt = tf.keras.optimizers.Adam(learning_rate=0.1)
+model.compile(optimizer=opt,
               loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
               metrics=[metric_accuracy, metric_accuracy_top5], run_eagerly=run_eagerly)
 

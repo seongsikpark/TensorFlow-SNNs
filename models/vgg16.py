@@ -47,7 +47,8 @@ class VGG16(lib_snn.model.Model):
         #
         self.model = tf.keras.Sequential()
 
-        use_bn_feat = False
+        #use_bn_feat = False
+        use_bn_feat = True
         use_bn_clas = True
 
         #if train:
@@ -103,9 +104,11 @@ class VGG16(lib_snn.model.Model):
 
         self.model.add(tf.keras.layers.Flatten(data_format=data_format))
         self.model.add(tf.keras.layers.Dropout(self.dropout_conv_r[2]))
-        self.model.add(lib_snn.layers.Dense(4096,activation=act_relu,use_bn=use_bn_clas,name='fc1'))
+        #self.model.add(lib_snn.layers.Dense(4096,activation=act_relu,use_bn=use_bn_clas,name='fc1'))
+        self.model.add(lib_snn.layers.Dense(512,activation=act_relu,use_bn=use_bn_clas,name='fc1'))
         self.model.add(tf.keras.layers.Dropout(self.dropout_conv_r[2]))
-        self.model.add(lib_snn.layers.Dense(4096,activation=act_relu,use_bn=use_bn_clas,name='fc2'))
+        #self.model.add(lib_snn.layers.Dense(4096,activation=act_relu,use_bn=use_bn_clas,name='fc2'))
+        self.model.add(lib_snn.layers.Dense(512,activation=act_relu,use_bn=use_bn_clas,name='fc2'))
         self.model.add(tf.keras.layers.Dropout(self.dropout_conv_r[2]))
         self.model.add(lib_snn.layers.Dense(classes,activation=act_sm,use_bn=False,name='predictions'))
 

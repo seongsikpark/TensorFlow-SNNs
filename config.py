@@ -243,9 +243,9 @@ tf.compat.v1.app.flags.DEFINE_bool("en_tensorboard_write", False, "Tensorboard w
 ########################################
 
 # common
-tf.compat.v1.app.flags.DEFINE_integer('batch_size', 500, '')
+tf.compat.v1.app.flags.DEFINE_integer('batch_size', 125, '')
 # l2 norm
-tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-10, 'lambda')
+tf.compat.v1.app.flags.DEFINE_float('lmb',5.0E-4, 'lambda')
 
 ## not frequently used
 tf.compat.v1.app.flags.DEFINE_string('data_format', 'channels_last', 'data format')
