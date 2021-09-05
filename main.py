@@ -411,7 +411,7 @@ model = model(input_shape=image_shape, conf=conf, include_top=include_top,
 run_eagerly=False
 #run_eagerly=True
 
-opt = tf.keras.optimizers.Adam(learning_rate=0.1)
+opt = tf.keras.optimizers.Adam(learning_rate=0.001)
 model.compile(optimizer=opt,
               loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
               metrics=[metric_accuracy, metric_accuracy_top5], run_eagerly=run_eagerly)
