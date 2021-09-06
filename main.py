@@ -123,7 +123,28 @@ if gpu:
 #train_type='finetuning' # not supported yet
 #train_type='transfer'
 train_type='scratch'
+#train_type='scratch-4k-4k'
+#train_type='scratch-4k-2k'
+#train_type='scratch-4k-1k'
+#train_type='scratch-4k-0.5k'
+#train_type='scratch-2k-2k'
+#train_type='scratch-2k-1k'
+#train_type='scratch-2k-0.5k'
+#train_type='scratch-1k-1k'
+#train_type='scratch-1k-0.5k'
+#train_type='scratch-0.5k-0.5k'
 
+#n_dim_classifier=None
+#n_dim_classifier=(4096,4096)
+#n_dim_classifier=(4096,2048)
+n_dim_classifier=(4096,1024)
+#n_dim_classifier=(4096,512)
+#n_dim_classifier=(2048,2048)
+#n_dim_classifier=(2048,1024)
+#n_dim_classifier=(2048,512)
+#n_dim_classifier=(1024,1024)
+#n_dim_classifier=(1024,512)
+#n_dim_classifier=(512,512)
 
 #
 #model_name='Xception'
@@ -343,6 +364,9 @@ if train_type=='transfer':
     config_name += '_tr'
 elif train_type=='scratch':
     config_name += '_sc'
+    if n_dim_classifier is not None:
+        if model_name == 'VGG16':
+            config_name = config_name+'-'+str(n_dim_classifier[0])+'-'+str(n_dim_classifier[1])
 else:
     assert False
 
@@ -407,7 +431,7 @@ init_epoch = 0
 #
 #pretrained_model = model(input_shape=image_shape, conf=conf, include_top=include_top, weights='imagenet', train=train)
 model = model(input_shape=image_shape, conf=conf, include_top=include_top,
-              weights=load_weight, classes=num_class)
+              weights=load_weight, classes=num_class, n_dim_classifier=n_dim_classifier)
 #model = model(input_shape=image_shape, conf=conf, include_top=False, weights=load_weight, train=train, add_top=True)
 #model = model(input_shape=image_shape, conf=conf, include_top=include_top, train=train, add_top=add_top)
 #pretrained_model = model(input_shape=image_shape, include_top=include_top, weights='imagenet',classifier_activation=None)

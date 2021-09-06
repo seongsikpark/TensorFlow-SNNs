@@ -17,7 +17,8 @@ class VGG16(lib_snn.model.Model):
         input_tensor=None,
         pooling=None,
         classes=1000,
-        classifier_activation='softmax'):
+        classifier_activation='softmax',
+        **kwargs):
         #train=False,
         #add_top=False):
 
@@ -43,13 +44,19 @@ class VGG16(lib_snn.model.Model):
         self.dropout = tf.keras.layers.Dropout(0.5)
         self.dropout_conv_r = [0.3,0.4,0.5]
 
+        #
+        n_dim_classifer = kwargs.pop('n_dim_classifier', None)
+
+        if n_dim_classifer is None:
+            n_dim_classifer = (4096, 4096)
+
 
         #
         self.model = tf.keras.Sequential()
 
         #use_bn_feat = False
         use_bn_feat = True
-        use_bn_clas = True
+        use_bn_cls = True
 
         #if train:
             #self.model.add(tf.keras.layers.experimental.preprocessing.RandomZoom((-0.1, 0.1)))
@@ -104,11 +111,13 @@ class VGG16(lib_snn.model.Model):
 
         self.model.add(tf.keras.layers.Flatten(data_format=data_format))
         self.model.add(tf.keras.layers.Dropout(self.dropout_conv_r[2]))
-        #self.model.add(lib_snn.layers.Dense(4096,activation=act_relu,use_bn=use_bn_clas,name='fc1'))
-        self.model.add(lib_snn.layers.Dense(512,activation=act_relu,use_bn=use_bn_clas,name='fc1'))
+        #self.model.add(lib_snn.layers.Dense(4096,activation=act_relu,use_bn=use_bn_cls,name='fc1'))
+        #self.model.add(lib_snn.layers.Dense(512,activation=act_relu,use_bn=use_bn_cls,name='fc1'))
+        self.model.add(lib_snn.layers.Dense(n_dim_classifer[0],activation=act_relu,use_bn=use_bn_cls,name='fc1'))
         self.model.add(tf.keras.layers.Dropout(self.dropout_conv_r[2]))
-        #self.model.add(lib_snn.layers.Dense(4096,activation=act_relu,use_bn=use_bn_clas,name='fc2'))
-        self.model.add(lib_snn.layers.Dense(512,activation=act_relu,use_bn=use_bn_clas,name='fc2'))
+        #self.model.add(lib_snn.layers.Dense(4096,activation=act_relu,use_bn=use_bn_cls,name='fc2'))
+        #self.model.add(lib_snn.layers.Dense(512,activation=act_relu,use_bn=use_bn_cls,name='fc2'))
+        self.model.add(lib_snn.layers.Dense(n_dim_classifer[1],activation=act_relu,use_bn=use_bn_cls,name='fc2'))
         self.model.add(tf.keras.layers.Dropout(self.dropout_conv_r[2]))
         self.model.add(lib_snn.layers.Dense(classes,activation=act_sm,use_bn=False,name='predictions'))
 
