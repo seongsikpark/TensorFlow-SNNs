@@ -56,7 +56,7 @@ def eager_cutmix(ds_one, ds_two, alpha=0.2):
 
 #
 @tf.function
-def cutmix(train_ds_one, train_ds_two, input_size, input_size_pre_crop_ratio, num_class, alpha):
+def cutmix(train_ds_one, train_ds_two, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode):
     (images_one, labels_one), (images_two, labels_two) = train_ds_one, train_ds_two
 
     # Get a sample from the Beta distribution
@@ -68,8 +68,8 @@ def cutmix(train_ds_one, train_ds_two, input_size, input_size_pre_crop_ratio, nu
     # Get the bounding box offsets, heights and widths
     boundaryx1, boundaryy1, target_w, target_h = get_box(lambda_value,input_size)
 
-    images_one, labels_one = resize_with_crop_aug(images_one,labels_one,input_size,input_size_pre_crop_ratio,num_class)
-    images_two, labels_two = resize_with_crop_aug(images_two,labels_two,input_size,input_size_pre_crop_ratio,num_class)
+    images_one, labels_one = resize_with_crop_aug(images_one,labels_one,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode)
+    images_two, labels_two = resize_with_crop_aug(images_two,labels_two,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode)
 
     # Get a patch from the second image
     crop2 = tf.image.crop_to_bounding_box(images_two, boundaryy1, boundaryx1, target_h, target_w)
@@ -109,7 +109,7 @@ def eager_mixup(ds_one, ds_two, alpha=0.2):
     #return tf.py_function(mixup, [ds_one, ds_two, alpha],[tf.uint8,tf.uint8,tf.int64),tf.float32])
     #return tf.py_function(mixup, [ds_one, ds_two, alpha],[(tf.uint8,tf.int64),(tf.uint8,tf.int64),tf.float32])
 
-def mixup(ds_one, ds_two, input_size, input_size_pre_crop_ratio, num_class, alpha=0.2):
+def mixup(ds_one, ds_two, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode):
 
     # unpack two datasets
     images_one, labels_one = ds_one
@@ -120,8 +120,8 @@ def mixup(ds_one, ds_two, input_size, input_size_pre_crop_ratio, num_class, alph
     #assert False
 
     #
-    images_one, labels_one = resize_with_crop_aug(images_one,labels_one,input_size,input_size_pre_crop_ratio,num_class)
-    images_one, labels_one = resize_with_crop_aug(images_two,labels_two,input_size,input_size_pre_crop_ratio,num_class)
+    images_one, labels_one = resize_with_crop_aug(images_one,labels_one,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode)
+    images_one, labels_one = resize_with_crop_aug(images_two,labels_two,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode)
 
     labels_one = tf.cast(labels_one,tf.float32)
     labels_two = tf.cast(labels_two,tf.float32)
@@ -164,7 +164,7 @@ def eager_resize_with_crop(image, label):
 #
 #@tf.function
 #def resize_with_crop(image, label):
-def resize_with_crop(image, label, input_size,input_size_pre_crop_ratio, num_class):
+def resize_with_crop(image, label, input_size,input_size_pre_crop_ratio, num_class, input_prec_mode):
 
     #global model_name
     #preprocess_input = preprocessor_input[model_name]
@@ -205,7 +205,8 @@ def resize_with_crop(image, label, input_size,input_size_pre_crop_ratio, num_cla
 
     #i=tf.image.resize_with_crop_or_pad(i,224,224)
     i=tf.image.resize_with_crop_or_pad(i,input_size,input_size)
-    i=preprocess_input(i)
+
+    i=preprocess_input(i,mode=input_prec_mode)
 
     #
     label = tf.one_hot(label,num_class)
@@ -224,7 +225,7 @@ def gaussian_filter(input, filter_size):
 
 #@tf.function
 #def resize_with_crop_aug(image, label):
-def resize_with_crop_aug(image, label, input_size, input_size_pre_crop_ratio, num_class):
+def resize_with_crop_aug(image, label, input_size, input_size_pre_crop_ratio, num_class, input_prec_mode):
 
     i=image
     i=tf.cast(i,tf.float32)
@@ -267,12 +268,12 @@ def resize_with_crop_aug(image, label, input_size, input_size_pre_crop_ratio, nu
 
     # color jitter
     i=tf.image.random_brightness(i,max_delta=0.8)
-    #i=tf.image.random_contrast(i,lower=0.2,upper=1.8)
-    #i=tf.image.random_saturation(i,lower=0.2,upper=1.8)
-    #i=tf.image.random_hue(i,0.2)
-    i=tf.image.random_contrast(i,lower=0.0,upper=0.8)
-    i=tf.image.random_saturation(i,lower=0.0,upper=0.8)
-    i=tf.image.random_hue(i,max_delta=0.2)
+    i=tf.image.random_contrast(i,lower=0.2,upper=1.8)
+    i=tf.image.random_saturation(i,lower=0.2,upper=1.8)
+    i=tf.image.random_hue(i,0.2)
+    #i=tf.image.random_contrast(i,lower=0.0,upper=0.8)
+    #i=tf.image.random_saturation(i,lower=0.0,upper=0.8)
+    #i=tf.image.random_hue(i,max_delta=0.2)
     #i=tf.clip_by_value(i,0,1)
 
     # random transformation
@@ -295,8 +296,8 @@ def resize_with_crop_aug(image, label, input_size, input_size_pre_crop_ratio, nu
                                             )
 
     #
-    i=preprocess_input(i)
-
+    #i=preprocess_input(i)
+    i=preprocess_input(i,mode=input_prec_mode)
 
     # one-hot vectorization - label
     label = tf.one_hot(label, num_class)

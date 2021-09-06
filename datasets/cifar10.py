@@ -11,7 +11,7 @@ from datasets.augmentation import cutmix
 
 f_cross_valid = False
 
-def load(input_size,input_size_pre_crop_ratio,num_class,train,num_parallel,conf):
+def load(input_size,input_size_pre_crop_ratio,num_class,train,num_parallel,conf,input_prec_mode):
 
     num_class = num_class
     batch_size_train = conf.batch_size
@@ -54,24 +54,26 @@ def load(input_size,input_size_pre_crop_ratio,num_class,train,num_parallel,conf)
                         split='test',
                         as_supervised=True)
 
+    #input_prec_mode = 'torch'
+
     # data augmentation
     # Preprocess input
     if train:
         if conf.data_aug_mix == 'mixup':
-            train_ds = train_ds.map(lambda train_ds_1, train_ds_2: mixup(train_ds_1, train_ds_2, alpha=0.2),
+            train_ds = train_ds.map(lambda train_ds_1, train_ds_2: mixup(train_ds_1, train_ds_2, 0.2, input_prec_mode),
                                     num_parallel_calls=num_parallel)
             # train_ds=train_ds.map(lambda train_ds_1, train_ds_2: eager_mixup(train_ds_1,train_ds_2,alpha=0.2),num_parallel_calls=tf.data.experimental.AUTOTUNE)
         if conf.data_aug_mix == 'cutmix':
             train_ds = train_ds.map(
                 lambda train_ds_1, train_ds_2: cutmix(train_ds_1, train_ds_2, input_size, input_size_pre_crop_ratio,
-                                                      num_class, alpha=0.2),
+                                                      num_class, 0.2, input_prec_mode),
                 num_parallel_calls=num_parallel)
             # train_ds = train_ds.map(lambda train_ds_1, train_ds_2: eager_cutmix(train_ds_1, train_ds_2, alpha=0.2),
             #                        num_parallel_calls=num_parallel)
         else:
             #train_ds = train_ds.map(resize_with_crop_aug, num_parallel_calls=num_parallel)
             train_ds = train_ds.map(
-                lambda image, label: resize_with_crop_aug(image, label, input_size, input_size_pre_crop_ratio, num_class),
+                lambda image, label: resize_with_crop_aug(image, label, input_size, input_size_pre_crop_ratio, num_class, input_prec_mode),
                 num_parallel_calls=num_parallel)
 
         train_ds = train_ds.batch(batch_size_train)
@@ -81,7 +83,7 @@ def load(input_size,input_size_pre_crop_ratio,num_class,train,num_parallel,conf)
     # valid_ds=valid_ds.map(resize_with_crop,num_parallel_calls=tf.data.experimental.AUTOTUNE)
     # valid_ds=valid_ds.map(resize_with_crop,num_parallel_calls=num_parallel)
     valid_ds = valid_ds.map(
-        lambda image, label: resize_with_crop(image, label, input_size, input_size_pre_crop_ratio, num_class),
+        lambda image, label: resize_with_crop(image, label, input_size, input_size_pre_crop_ratio, num_class, input_prec_mode),
         num_parallel_calls=num_parallel)
     # valid_ds=valid_ds.batch(batch_size_inference)
     valid_ds = valid_ds.batch(batch_size_train)

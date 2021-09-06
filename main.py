@@ -262,14 +262,23 @@ batch_size_train = conf.batch_size
 if dataset_name == 'ImageNet':
     #include_top = True
     input_size_pre_crop_ratio = 256/224
+    # TODO: set
+    if train:
+        input_prec_mode = None # should be modified
+    else:
+        input_prec_mode = 'caffe' # keras pre-trained model
+
 else:
     # CIFAR-10
     # TODO:
     if train_type == 'transfer':
         input_size_pre_crop_ratio = 256 / 224
+        # TODO: check it - transfer learning with torch mode
+        input_prec_mode = 'caffe'
     elif train_type == 'scratch':
         input_size = 32
         input_size_pre_crop_ratio = 36 / 32
+        input_prec_mode = 'torch'
     else:
         assert False, 'not supported train type {}'.format(train_type)
 
@@ -282,7 +291,7 @@ image_shape = (input_size, input_size, 3)
 # dataset load
 dataset = dataset_sel[dataset_name]
 train_ds, valid_ds, test_ds = dataset.load(
-            input_size,input_size_pre_crop_ratio,num_class,train,NUM_PARALLEL_CALL,conf)
+            input_size,input_size_pre_crop_ratio,num_class,train,NUM_PARALLEL_CALL,conf,input_prec_mode)
 
 
 # models
