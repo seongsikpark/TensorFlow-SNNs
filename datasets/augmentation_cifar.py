@@ -1,4 +1,7 @@
 
+#
+# Data augmentation - CIFAR
+
 
 import tensorflow as tf
 import tensorflow_addons as tfa
@@ -121,7 +124,7 @@ def mixup(ds_one, ds_two, input_size, input_size_pre_crop_ratio, num_class, alph
 
     #
     images_one, labels_one = resize_with_crop_aug(images_one,labels_one,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode)
-    images_two, labels_two= resize_with_crop_aug(images_two,labels_two,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode)
+    images_two, labels_two = resize_with_crop_aug(images_two,labels_two,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode)
 
     labels_one = tf.cast(labels_one,tf.float32)
     labels_two = tf.cast(labels_two,tf.float32)
@@ -163,49 +166,19 @@ def eager_resize_with_crop(image, label):
 
 #
 #@tf.function
-#def resize_with_crop(image, label):
 def resize_with_crop(image, label, input_size,input_size_pre_crop_ratio, num_class, input_prec_mode):
-
-    #global model_name
-    #preprocess_input = preprocessor_input[model_name]
 
     i=image
     i=tf.cast(i,tf.float32)
-    #i=tf.image.resize(i,256,preserve_aspect_ratio=True)
 
     #[w,h,c] = tf.shape(image)
-    w=tf.shape(image)[0]
-    h=tf.shape(image)[1]
+    #w=tf.shape(image)[0]
+    #h=tf.shape(image)[1]
 
-    #s = 270 # 71.43. 90.06
-    #s = 260 # 71.37, 90.09
-    #s = 256 # 71.26, 90.10
-    #s = 250 # 71.13, 90.05
     #print(tf.shape(image))
     #s = input_size_pre_crop
-    s = input_size*input_size_pre_crop_ratio
 
-    #if w >= h:
-    if tf.greater(w,h):
-        w = tf.cast(tf.math.multiply(tf.math.divide(w,h),s),tf.int32)
-        ##i=tf.image.resize(i,(w,256),method='bicubic',preserve_aspect_ratio=True)
-        #i=tf.image.resize(i,(w,256),method='bicubic')
-        s=tf.cast(s,tf.int32)
-        i=tf.image.resize(i,(w,s),method='lanczos3')
-        #i=tf.image.resize(i,(w,s),method='lanczos5')
-        #i=tf.image.resize(i,(w,s),method='bicubic')
-    else:
-        h = tf.cast(tf.math.multiply(tf.math.divide(h,w),s),tf.int32)
-        ##i=tf.image.resize(i,(256,h),method='bicubic',preserve_aspect_ratio=True)
-        #i=tf.image.resize(i,(256,h),method='bicubic')
-        s=tf.cast(s,tf.int32)
-        i=tf.image.resize(i,(s,h),method='lanczos3')
-        #i=tf.image.resize(i,(s,h),method='lanczos5')
-        #i=tf.image.resize(i,(s,h),method='bicubic')
-
-    #i=tf.image.resize_with_crop_or_pad(i,224,224)
     i=tf.image.resize_with_crop_or_pad(i,input_size,input_size)
-
     i=preprocess_input(i,mode=input_prec_mode)
 
     #
@@ -214,49 +187,19 @@ def resize_with_crop(image, label, input_size,input_size_pre_crop_ratio, num_cla
     return (i, label)
 
 
-@tf.function
-def gaussian_filter(input, filter_size):
-    g_sigma = tf.random.uniform(shape=[],minval=0.1,maxval=2.0)
-    filtered_image = tfa.image.gaussian_filter2d(image=input,
-                                                 filter_shape=(filter_size,filter_size),
-                                                 sigma=g_sigma,
-                                                 )
-    return filtered_image
 
 #@tf.function
-#def resize_with_crop_aug(image, label):
 def resize_with_crop_aug(image, label, input_size, input_size_pre_crop_ratio, num_class, input_prec_mode):
 
     i=image
     i=tf.cast(i,tf.float32)
-    #i=tf.image.resize(i,256,preserve_aspect_ratio=True)
 
     #[w,h,c] = tf.shape(image)
-    w=tf.shape(image)[0]
-    h=tf.shape(image)[1]
+    #w=tf.shape(image)[0]
+    #h=tf.shape(image)[1]
 
-    #s = input_size
-    s = input_size*input_size_pre_crop_ratio
-
-    #if w >= h:
-    if tf.greater(w,h):
-        w = tf.cast(tf.math.multiply(tf.math.divide(w,h),s),tf.int32)
-        ##i=tf.image.resize(i,(w,256),method='bicubic',preserve_aspect_ratio=True)
-        #i=tf.image.resize(i,(w,256),method='bicubic')
-        s=tf.cast(s,tf.int32)
-        i=tf.image.resize(i,(w,s),method='lanczos3')
-        #i=tf.image.resize(i,(w,s),method='lanczos5')
-        #i=tf.image.resize(i,(w,s),method='bicubic')
-    else:
-        h = tf.cast(tf.math.multiply(tf.math.divide(h,w),s),tf.int32)
-        ##i=tf.image.resize(i,(256,h),method='bicubic',preserve_aspect_ratio=True)
-        #i=tf.image.resize(i,(256,h),method='bicubic')
-        s=tf.cast(s,tf.int32)
-        i=tf.image.resize(i,(s,h),method='lanczos3')
-        #i=tf.image.resize(i,(s,h),method='lanczos5')
-        #i=tf.image.resize(i,(s,h),method='bicubic')
-
-
+    s = input_size * input_size_pre_crop_ratio
+    s = tf.cast(s, tf.int32)
 
     # data augmentation from "A Simple Framework for Contrastive Learning of Visual Representations"
 
@@ -266,11 +209,14 @@ def resize_with_crop_aug(image, label, input_size, input_size_pre_crop_ratio, nu
     #i=tf.image.random_brightness(i,max_delta=63)
     #i=tf.image.random_contrast(i,lower=0.2,upper=1.8)
 
+    i = tf.image.resize_with_crop_or_pad(i, s, s)
+
     # color jitter
     i=tf.image.random_brightness(i,max_delta=0.8)
     i=tf.image.random_contrast(i,lower=0.2,upper=1.8)
     i=tf.image.random_saturation(i,lower=0.2,upper=1.8)
     i=tf.image.random_hue(i,0.2)
+
     #i=tf.image.random_contrast(i,lower=0.0,upper=0.8)
     #i=tf.image.random_saturation(i,lower=0.0,upper=0.8)
     #i=tf.image.random_hue(i,max_delta=0.2)
@@ -280,20 +226,6 @@ def resize_with_crop_aug(image, label, input_size, input_size_pre_crop_ratio, nu
     #i=tf.image.resize_with_crop_or_pad(i,input_size,input_size)
     i=tf.image.random_crop(i,[input_size,input_size,3])
     i=tf.image.random_flip_left_right(i)
-
-    # gaussian filter
-    d_aug_g_filter=False
-    if d_aug_g_filter:
-        g_p = tf.random.uniform(shape=[],minval=0.0,maxval=1.0)
-        g_filter_size = int(input_size*0.1)
-        if tf.greater(g_p,0.5):
-            g_sigma = tf.random.uniform(shape=[],minval=0.1,maxval=2.0)
-            # for use sigma as a random value, we commented out lines of 262, 263 in filters.py
-            # where gaussian_filter2d function is defined
-            i = tfa.image.gaussian_filter2d(image=i,
-                                            filter_shape=(g_filter_size,g_filter_size),
-                                            sigma=g_sigma,
-                                            )
 
     #
     #i=preprocess_input(i)
@@ -306,21 +238,3 @@ def resize_with_crop_aug(image, label, input_size, input_size_pre_crop_ratio, nu
 
 
 
-
-
-
-
-
-## Autoaugmentation
-## based on https://github.com/yhhhli/SNN_Calibration/blob/master/data/autoaugment.py
-## CIFAR10Policy
-#def AutoAug(images, labels, dataset_name):
-#
-#    autoaug_sel = {
-#        'CIFAR10': AutoAugCIFAR10
-#    }
-#
-#    image, label = autoaug_sel[dataset_name](images, labels)
-#
-#    return (image, label)
-#

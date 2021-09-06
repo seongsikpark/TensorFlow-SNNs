@@ -4,10 +4,10 @@ import numpy as np
 import os
 import tensorflow_datasets as tfds
 
-from datasets.augmentation import resize_with_crop
-from datasets.augmentation import resize_with_crop_aug
-from datasets.augmentation import mixup
-from datasets.augmentation import cutmix
+from datasets.augmentation_cifar import resize_with_crop
+from datasets.augmentation_cifar import resize_with_crop_aug
+from datasets.augmentation_cifar import mixup
+from datasets.augmentation_cifar import cutmix
 
 f_cross_valid = False
 
