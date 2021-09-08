@@ -35,7 +35,12 @@ model_name = 'VGG16'
 dataset_name = 'CIFAR10'
 #dataset_name='ImageNet'
 
+#
+learning_rate = 0.1
+#learning_rate = 0.01
 
+#
+opt='SGD'
 
 #
 root_tensorboard = './tensorboard/'
@@ -137,14 +142,14 @@ train_type='scratch'
 #n_dim_classifier=None
 #n_dim_classifier=(4096,4096)
 #n_dim_classifier=(4096,2048)
-n_dim_classifier=(4096,1024)
+#n_dim_classifier=(4096,1024)
 #n_dim_classifier=(4096,512)
 #n_dim_classifier=(2048,2048)
 #n_dim_classifier=(2048,1024)
 #n_dim_classifier=(2048,512)
 #n_dim_classifier=(1024,1024)
 #n_dim_classifier=(1024,512)
-#n_dim_classifier=(512,512)
+n_dim_classifier=(512,512)
 
 #
 #model_name='Xception'
@@ -176,7 +181,6 @@ n_dim_classifier=(4096,1024)
 
 #
 conf = flags.FLAGS
-
 
 
 ########################################
@@ -356,7 +360,9 @@ dir_model = os.path.join(root_model, exp_set_name)
 # config_name='ep-{epoch:04d}_bat-{}_lmb-{:.1E}'.format(batch_size,lmb)
 # config_name='bat-{}_lmb-{:.1E}'.format(batch_size,lmb)
 
-config_name = 'bat-{}_lmb-{:.1E}'.format(batch_size, lmb)
+config_name = 'bat-{}_opt-{}_lr-{:.0E}_lmb-{:.0E}'.format(batch_size,opt,learning_rate,lmb)
+
+#config_name = 'bat-{}_lmb-{:.0E}'.format(batch_size, lmb)
 #config_name = 'bat-512_lmb-{:.1E}'.format(lmb)
 
 if train_type=='transfer':
@@ -444,8 +450,16 @@ model = model(input_shape=image_shape, conf=conf, include_top=include_top,
 run_eagerly=False
 #run_eagerly=True
 
-opt = tf.keras.optimizers.Adam(learning_rate=0.001)
-model.compile(optimizer=opt,
+lr_schedule_first_decay_step=1000 # in iteration
+learning_rate = tf.keras.optimizers.schedules.CosineDecayRestarts(
+                                                        learning_rate, lr_schedule_first_decay_step)
+
+if opt=='SGD':
+    optimizer = tf.keras.optimizers.SGD(learning_rate=learning_rate,momentum=0.9,name='SGD')
+else:
+    assert False
+#opt = tf.keras.optimizers.Adam(learning_rate=0.001)
+model.compile(optimizer=optimizer,
               loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
               metrics=[metric_accuracy, metric_accuracy_top5], run_eagerly=run_eagerly)
 
