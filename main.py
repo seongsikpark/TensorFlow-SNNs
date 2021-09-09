@@ -10,6 +10,7 @@ global num_class
 ########################################
 
 # Parallel CPU
+#NUM_PARALLEL_CALL = 7
 NUM_PARALLEL_CALL = 15
 
 
@@ -114,14 +115,18 @@ os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
 
 # TODO: gpu mem usage - parameterize
 # GPU mem usage
-gpu = tf.config.experimental.list_physical_devices('GPU')
-if gpu:
-    try:
-        tf.config.experimental.set_virtual_device_configuration(
-            gpu[0],
-            [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=6144)])
-    except RuntimeError as e:
-        print(e)
+#if False:
+#gpu_mem = 6144
+gpu_mem = 10240
+if True:
+    gpu = tf.config.experimental.list_physical_devices('GPU')
+    if gpu:
+        try:
+            tf.config.experimental.set_virtual_device_configuration(
+                gpu[0],
+                [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=gpu_mem)])
+        except RuntimeError as e:
+            print(e)
 
 
 # training types
@@ -450,7 +455,7 @@ model = model(input_shape=image_shape, conf=conf, include_top=include_top,
 run_eagerly=False
 #run_eagerly=True
 
-lr_schedule_first_decay_step=1000 # in iteration
+lr_schedule_first_decay_step=100*10 # in iteration
 learning_rate = tf.keras.optimizers.schedules.CosineDecayRestarts(
                                                         learning_rate, lr_schedule_first_decay_step)
 
