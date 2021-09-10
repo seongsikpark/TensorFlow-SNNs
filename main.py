@@ -10,8 +10,8 @@ global num_class
 ########################################
 
 # Parallel CPU
-#NUM_PARALLEL_CALL = 7
-NUM_PARALLEL_CALL = 15
+NUM_PARALLEL_CALL = 7
+#NUM_PARALLEL_CALL = 15
 
 
 
@@ -19,14 +19,15 @@ NUM_PARALLEL_CALL = 15
 train=True
 #train=False
 
-#load_model=True
-load_model=False
+load_model=True
+#load_model=False
 
 #
 #overwrite_train_model =True
 overwrite_train_model=False
 
-epoch = 10000
+#epoch = 20000
+epoch = 20472
 root_model = './models'
 
 # model
@@ -118,6 +119,7 @@ os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
 #if False:
 #gpu_mem = 6144
 gpu_mem = 10240
+#if False:
 if True:
     gpu = tf.config.experimental.list_physical_devices('GPU')
     if gpu:
@@ -399,10 +401,11 @@ if load_model:
     # get latest saved model
     #latest_model = lib_snn.util.get_latest_saved_model(filepath)
 
-    assert False, 'not yet implemented'
-    latest_model = 'ep-1085'
+    #assert False, 'not yet implemented'
+    #latest_model = 'ep-1085'
+    latest_model = lib_snn.util.get_latest_saved_model(filepath)
     load_weight = os.path.join(filepath, latest_model)
-    pre_model = tf.keras.models.load_model(load_weight)
+    #pre_model = tf.keras.models.load_model(load_weight)
     #print(pre_model.evaluate(valid_ds))
     #assert False
 
@@ -421,6 +424,13 @@ if load_model:
 
     include_top = True
     add_top = False
+
+    if train_type == 'transfer':
+        model = model_sel_tr[model_name]
+    elif train_type == 'scratch':
+        model = model_sel_sc[model_name]
+    else:
+        assert False
 else:
     if train_type == 'transfer':
         load_weight = 'imagenet'
@@ -429,13 +439,17 @@ else:
 
         model = model_sel_tr[model_name]
 
-    else:
+    elif train_type == 'scratch':
         load_weight = None
         include_top = True
         add_top = False
 
         model = model_sel_sc[model_name]
+    else:
+        assert False
+
 init_epoch = 0
+
 
 
 
@@ -450,6 +464,7 @@ model = model(input_shape=image_shape, conf=conf, include_top=include_top,
 #pretrained_model = VGG19(include_top=True, weights='imagenet')
 #pretrained_model = ResNet50(include_top=True, weights='imagenet')
 #pretrained_model = ResNet101(include_top=True, weights='imagenet')
+
 
 # TODO: move to parameter
 run_eagerly=False
@@ -467,6 +482,13 @@ else:
 model.compile(optimizer=optimizer,
               loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
               metrics=[metric_accuracy, metric_accuracy_top5], run_eagerly=run_eagerly)
+
+#print(image_shape)
+#assert False
+# flops
+#flops = lib_snn.util.get_flops(model,image_shape)
+#print("{:E}".format(flops))
+#assert False
 
 #assert False
 

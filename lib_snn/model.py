@@ -256,7 +256,7 @@ class Model(tf.keras.Model):
     ## call
     ###########################################################################
 
-    def call(self, inputs, training, epoch=-1, f_val_snn=False):
+    def call(self, inputs, training=False, epoch=-1, f_val_snn=False):
 
         ret_val = self.call_ann(inputs, training)
 
