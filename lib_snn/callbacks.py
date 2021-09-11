@@ -29,7 +29,10 @@ class ManageSavedModels(tf.keras.callbacks.Callback):
 
         for d in list_dir_sorted[:-5]:
             target_d = os.path.join(self.filepath,d)
-            shutil.rmtree(target_d)
+            if os.path.isfile(target_d):
+                os.remove(target_d)
+            else:
+                shutil.rmtree(target_d)
 
 
     #def on_train_batch_end(self, batch, logs=None):

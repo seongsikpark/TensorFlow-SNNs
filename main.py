@@ -476,7 +476,7 @@ if load_model:
 run_eagerly=False
 #run_eagerly=True
 
-lr_schedule_first_decay_step=100*100 # in iteration
+lr_schedule_first_decay_step=100*10 # in iteration
 learning_rate = tf.keras.optimizers.schedules.CosineDecayRestarts(
                                                         learning_rate, lr_schedule_first_decay_step)
 
