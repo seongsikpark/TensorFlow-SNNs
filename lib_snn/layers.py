@@ -33,7 +33,7 @@ from lib_snn.model import Model
 # Layer
 class Layer():
     index=-1
-    def __init__(self,use_bn,activation):
+    def __init__(self,use_bn,activation,**kwargs):
         #
         self.depth=-1
 
@@ -51,15 +51,31 @@ class Layer():
         self.out_b = None       # output - batch norm.
         self.out_n = None       # output - neuron
 
+        # name
+        name = kwargs.pop('name', None)
+        if name is not None:
+            name_bn = name+'_bn'
+            name_act = name+'_act'
+        else:
+            name_bn = None
+            name_act = None
+
         # batch norm.
         if self.use_bn:
-            self.bn = tf.keras.layers.BatchNormalization()
+            self.bn = tf.keras.layers.BatchNormalization(name=name_bn)
         else:
             self.bn = None
 
         # activation, neuron
         # DNN mode
-        self.act_dnn = activation
+        if activation == 'relu':
+            self.act_dnn = tf.keras.layers.ReLU(name=name_act)
+        elif activation == 'softmax':
+            self.act_dnn = tf.keras.layers.Softmax(name=name_act)
+        else:
+            self.act_dnn = None
+
+        #self.act_dnn = activation
         self.act_snn = None
 
         #
@@ -223,7 +239,7 @@ class InputLayer(Layer,tf.keras.layers.InputLayer):
             ragged,
             type_spec,
             **kwargs)
-        Layer.__init__(self,False,None)
+        Layer.__init__(self,False,None,**kwargs)
 
 
 
@@ -246,8 +262,8 @@ class InputLayer(Layer,tf.keras.layers.InputLayer):
 
 # custom input layer - for spike input generation
 class InputGenLayer(Layer,tf.keras.layers.Layer):
-    def __init__(self):
-        Layer.__init__(self,False,None)
+    def __init__(self,**kwargs):
+        Layer.__init__(self,False,None,**kwargs)
         tf.keras.layers.Layer.__init__(self)
 
         #
@@ -297,7 +313,7 @@ class Conv2D(Layer,tf.keras.layers.Conv2D):
             #dynamic=True,
             **kwargs)
 
-        Layer.__init__(self,use_bn,activation)
+        Layer.__init__(self,use_bn,activation,**kwargs)
 
         #
         Layer.index+= 1
@@ -336,7 +352,7 @@ class Dense(Layer,tf.keras.layers.Dense):
             #dynamic=True,
             **kwargs)
 
-        Layer.__init__(self,use_bn,activation)
+        Layer.__init__(self,use_bn,activation,**kwargs)
 
         #
         Layer.index += 1
@@ -360,7 +376,7 @@ class MaxPool2D(Layer,tf.keras.layers.MaxPool2D):
             data_format=Model.data_format,
             **kwargs)
 
-        Layer.__init__(self,False,None)
+        Layer.__init__(self,False,None,**kwargs)
 
 
     def build(self, input_shapes):

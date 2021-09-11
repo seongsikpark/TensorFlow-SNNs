@@ -10,8 +10,8 @@ global num_class
 ########################################
 
 # Parallel CPU
-NUM_PARALLEL_CALL = 7
-#NUM_PARALLEL_CALL = 15
+#NUM_PARALLEL_CALL = 7
+NUM_PARALLEL_CALL = 15
 
 
 
@@ -19,8 +19,8 @@ NUM_PARALLEL_CALL = 7
 train=True
 #train=False
 
-load_model=True
-#load_model=False
+#load_model=True
+load_model=False
 
 #
 #overwrite_train_model =True
@@ -418,17 +418,17 @@ if load_model:
     #tf.keras.models.save_model(model,filepath+'/ttt')
     #model.save_weights(filepath+'/weight_1.h5')
 
-    #if not latest_model.startswith('ep-'):
-        #assert False, 'the dir name of latest model should start with ''ep-'''
-    #init_epoch = int(re.split('-|\.',latest_model)[1])
+    if not latest_model.startswith('ep-'):
+        assert False, 'the dir name of latest model should start with ''ep-'''
+    init_epoch = int(re.split('-|\.',latest_model)[1])
 
     include_top = True
     add_top = False
 
     if train_type == 'transfer':
-        model = model_sel_tr[model_name]
+        model_top = model_sel_tr[model_name]
     elif train_type == 'scratch':
-        model = model_sel_sc[model_name]
+        model_top = model_sel_sc[model_name]
     else:
         assert False
 else:
@@ -437,26 +437,26 @@ else:
         include_top = False
         add_top = True
 
-        model = model_sel_tr[model_name]
+        model_top = model_sel_tr[model_name]
 
     elif train_type == 'scratch':
         load_weight = None
         include_top = True
         add_top = False
 
-        model = model_sel_sc[model_name]
+        model_top = model_sel_sc[model_name]
     else:
         assert False
 
-init_epoch = 0
+    init_epoch = 0
 
 
 
 
 #
 #pretrained_model = model(input_shape=image_shape, conf=conf, include_top=include_top, weights='imagenet', train=train)
-model = model(input_shape=image_shape, conf=conf, include_top=include_top,
-              weights=load_weight, classes=num_class, n_dim_classifier=n_dim_classifier)
+model_top = model_top(input_shape=image_shape, conf=conf, include_top=include_top,
+              weights=load_weight, classes=num_class, n_dim_classifier=n_dim_classifier,name='VGG16')
 #model = model(input_shape=image_shape, conf=conf, include_top=False, weights=load_weight, train=train, add_top=True)
 #model = model(input_shape=image_shape, conf=conf, include_top=include_top, train=train, add_top=add_top)
 #pretrained_model = model(input_shape=image_shape, include_top=include_top, weights='imagenet',classifier_activation=None)
@@ -465,12 +465,18 @@ model = model(input_shape=image_shape, conf=conf, include_top=include_top,
 #pretrained_model = ResNet50(include_top=True, weights='imagenet')
 #pretrained_model = ResNet101(include_top=True, weights='imagenet')
 
+model = model_top.model
+
+if load_model:
+    model.load_weights(load_weight)
+    #model.load_weights(load_weight,by_name=True)
+
 
 # TODO: move to parameter
 run_eagerly=False
 #run_eagerly=True
 
-lr_schedule_first_decay_step=100*10 # in iteration
+lr_schedule_first_decay_step=100*100 # in iteration
 learning_rate = tf.keras.optimizers.schedules.CosineDecayRestarts(
                                                         learning_rate, lr_schedule_first_decay_step)
 
@@ -478,6 +484,7 @@ if opt=='SGD':
     optimizer = tf.keras.optimizers.SGD(learning_rate=learning_rate,momentum=0.9,name='SGD')
 else:
     assert False
+
 #opt = tf.keras.optimizers.Adam(learning_rate=0.001)
 model.compile(optimizer=optimizer,
               loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
@@ -491,6 +498,7 @@ model.compile(optimizer=optimizer,
 #assert False
 
 #assert False
+
 
 if train:
     print('Train mode')
@@ -517,8 +525,8 @@ if train:
     if load_model:
         print('Evaluate pretrained model')
         assert monitor_cri == 'val_acc', 'currently only consider monitor criterion - val_acc'
-        idx_monitor_cri = model.metrics_names.index('acc')
         result = model.evaluate(valid_ds)
+        idx_monitor_cri = model.metrics_names.index('acc')
         best = result[idx_monitor_cri]
         print('previous best result - {}'.format(best))
     else:
@@ -535,8 +543,10 @@ if train:
         # tf.keras.callbacks.ModelCheckpoint(
         lib_snn.callbacks.ModelCheckpointResume(
             #filepath=filepath + '/ep-{epoch:04d}',
-            filepath=filepath + '/ep-{epoch:04d}',
+            #filepath=filepath + '/ep-{epoch:04d}.ckpt',
+            filepath=filepath + '/ep-{epoch:04d}.hdf5',
             save_weight_only=True,
+            #save_weight_only=False,
             save_best_only=True,
             # monitor='val_acc',
             monitor=monitor_cri,

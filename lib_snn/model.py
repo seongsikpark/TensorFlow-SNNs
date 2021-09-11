@@ -22,11 +22,11 @@ import lib_snn
 #
 class Model(tf.keras.Model):
     count=0
-    def __init__(self, input_shape, data_format, num_class, conf):
+    def __init__(self, input_shape, data_format, num_class, conf,**kwargs):
         #print("lib_SNN - Layer - init")
 
         #
-        super(Model, self).__init__()
+        super(Model, self).__init__(**kwargs)
 
         #
         Model.count += 1
@@ -111,12 +111,12 @@ class Model(tf.keras.Model):
 
         Model.kernel_regularizer = regularizer_type[self.conf.regularizer]
 
-        pooling_type= {
-            'max': tf.keras.layers.MaxPooling2D((2,2),(2,2),padding='SAME',data_format=data_format),
-            'avg': tf.keras.layers.AveragePooling2D((2,2),(2,2),padding='SAME',data_format=data_format)
-        }
+        #pooling_type= {
+        #    'max': tf.keras.layers.MaxPooling2D((2,2),(2,2),padding='SAME',data_format=data_format),
+        #    'avg': tf.keras.layers.AveragePooling2D((2,2),(2,2),padding='SAME',data_format=data_format)
+        #}
 
-        self.pool2d = pooling_type[self.conf.pooling]
+        #self.pool2d = pooling_type[self.conf.pooling]
 
 
         #
