@@ -32,9 +32,11 @@ root_model = './models'
 
 # model
 model_name = 'VGG16'
+#model_name = 'ResNet50'
 
 # dataset
 dataset_name = 'CIFAR10'
+dataset_name = 'CIFAR100'
 #dataset_name='ImageNet'
 
 #
@@ -209,7 +211,7 @@ else:
 
 if dataset_name == 'ImageNet':
     num_class = 1000
-elif dataset_name == 'CIFAR10':
+elif dataset_name == 'CIFAR10' or 'CIFAR100':
     num_class = 10
 else:
     assert False
@@ -277,8 +279,10 @@ batch_size_train_sel = {
     #'VGG16': 2048,
 }
 
+# TODO:
 dataset_sel = {
     'CIFAR10': datasets.cifar10,
+    'CIFAR100': datasets.cifar10,
     'ImageNet': datasets.imagenet,
 }
 
@@ -322,7 +326,7 @@ image_shape = (input_size, input_size, 3)
 
 # dataset load
 dataset = dataset_sel[dataset_name]
-train_ds, valid_ds, test_ds = dataset.load(
+train_ds, valid_ds, test_ds = dataset.load(dataset_name,
             input_size,input_size_pre_crop_ratio,num_class,train,NUM_PARALLEL_CALL,conf,input_prec_mode)
 
 
@@ -465,6 +469,7 @@ model_top = model_top(input_shape=image_shape, conf=conf, include_top=include_to
 #pretrained_model = ResNet50(include_top=True, weights='imagenet')
 #pretrained_model = ResNet101(include_top=True, weights='imagenet')
 
+# TODO: model_top wrapper use check - from scratch, transfer learning
 model = model_top.model
 
 if load_model:
@@ -560,6 +565,14 @@ if train:
 
     train_histories = model.fit(train_ds, epochs=epoch, initial_epoch=init_epoch, validation_data=valid_ds,
                                 callbacks=callbacks)
+else:
+    print('Test mode')
+    result = model.evaluate(valid_ds)
+    # result = model.predict(test_ds)
+
+    print(result)
+
+
 
 assert False
 # set weights by layer from transfer learning model

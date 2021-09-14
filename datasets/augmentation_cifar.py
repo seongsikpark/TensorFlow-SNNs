@@ -166,7 +166,7 @@ def eager_resize_with_crop(image, label):
 
 #
 #@tf.function
-def resize_with_crop(image, label, input_size,input_size_pre_crop_ratio, num_class, input_prec_mode):
+def resize_with_crop(image, label, input_size,input_size_pre_crop_ratio, num_class, input_prec_mode='torch'):
 
     i=image
     i=tf.cast(i,tf.float32)
@@ -178,7 +178,12 @@ def resize_with_crop(image, label, input_size,input_size_pre_crop_ratio, num_cla
     #print(tf.shape(image))
     #s = input_size_pre_crop
 
-    i=tf.image.resize_with_crop_or_pad(i,input_size,input_size)
+    s = input_size
+    if input_prec_mode=='torch':
+        i = tf.image.resize_with_crop_or_pad(i, s, s)
+    elif input_prec_mode == 'caffe':
+        # transfer learning with pre-trained modes in Keras (ImageNet)
+        i = tf.image.resize(i, (s, s), method='lanczos3')
     i=preprocess_input(i,mode=input_prec_mode)
 
     #
@@ -189,7 +194,7 @@ def resize_with_crop(image, label, input_size,input_size_pre_crop_ratio, num_cla
 
 
 #@tf.function
-def resize_with_crop_aug(image, label, input_size, input_size_pre_crop_ratio, num_class, input_prec_mode):
+def resize_with_crop_aug(image, label, input_size, input_size_pre_crop_ratio, num_class, input_prec_mode='torch'):
 
     i=image
     i=tf.cast(i,tf.float32)
@@ -209,7 +214,11 @@ def resize_with_crop_aug(image, label, input_size, input_size_pre_crop_ratio, nu
     #i=tf.image.random_brightness(i,max_delta=63)
     #i=tf.image.random_contrast(i,lower=0.2,upper=1.8)
 
-    i = tf.image.resize_with_crop_or_pad(i, s, s)
+    if input_prec_mode=='torch':
+        i = tf.image.resize_with_crop_or_pad(i, s, s)
+    elif input_prec_mode == 'caffe':
+        # transfer learning with pre-trained modes in Keras (ImageNet)
+        i = tf.image.resize(i, (s, s), method='lanczos3')
 
     # color jitter
     i=tf.image.random_brightness(i,max_delta=0.8)

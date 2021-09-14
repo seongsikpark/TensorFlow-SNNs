@@ -11,7 +11,9 @@ from datasets.augmentation_cifar import cutmix
 
 f_cross_valid = False
 
-def load(input_size,input_size_pre_crop_ratio,num_class,train,num_parallel,conf,input_prec_mode):
+def load(dataset_name,input_size,input_size_pre_crop_ratio,num_class,train,num_parallel,conf,input_prec_mode):
+
+    dataset_name = dataset_name.lower()
 
     num_class = num_class
     batch_size_train = conf.batch_size
@@ -19,38 +21,39 @@ def load(input_size,input_size_pre_crop_ratio,num_class,train,num_parallel,conf,
     input_size_pre_crop_ratio = input_size_pre_crop_ratio
 
     if f_cross_valid:
-        train_ds = tfds.load('cifar10',
+        #train_ds = tfds.load('cifar10',
+        train_ds = tfds.load(dataset_name,
                              split=[f'train[:{k}%]+train[{ k +10}%:]' for k in range(0 ,100 ,10)],
                              shuffle_files=True,
                              as_supervised=True)
 
-        valid_ds = tfds.load('cifar10',
+        valid_ds = tfds.load(dataset_name,
                              split=[f'train[{k}%:{ k +10}%]' for k in range(0 ,100 ,10)],
                              shuffle_files=True,
                              as_supervised=True)
 
     elif conf.data_aug_mix=='mixup' or conf.data_aug_mix=='cutmix':
-        train_ds_1 = tfds.load('cifar10',
+        train_ds_1 = tfds.load(dataset_name,
                                split='train',
                                shuffle_files=True,
                                as_supervised=True)
 
-        train_ds_2 = tfds.load('cifar10',
+        train_ds_2 = tfds.load(dataset_name,
                                split='train',
                                shuffle_files=True,
                                as_supervised=True)
 
         train_ds = tf.data.Dataset.zip((train_ds_1 ,train_ds_2))
 
-        valid_ds = tfds.load('cifar10',
+        valid_ds = tfds.load(dataset_name,
                              split='test',
                              as_supervised=True)
     else:
-        train_ds, valid_ds = tfds.load('cifar10',
+        train_ds, valid_ds = tfds.load(dataset_name,
                                        split=['train' ,'test'],
                                        shuffle_files=True,
                                        as_supervised=True)
-    test_ds = tfds.load('cifar10',
+    test_ds = tfds.load(dataset_name,
                         split='test',
                         as_supervised=True)
 
