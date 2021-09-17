@@ -245,7 +245,7 @@ tf.compat.v1.app.flags.DEFINE_bool("en_tensorboard_write", False, "Tensorboard w
 tf.compat.v1.app.flags.DEFINE_integer('batch_size', 500, '')
 tf.compat.v1.app.flags.DEFINE_string('regularizer', 'L2', 'L2 or L1 regularizer')
 # l2 norm
-tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-5, 'lambda')
+tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-3, 'lambda')
 
 ## not frequently used
 tf.compat.v1.app.flags.DEFINE_string('data_format', 'channels_last', 'data format')
@@ -254,5 +254,5 @@ tf.compat.v1.app.flags.DEFINE_string('data_format', 'channels_last', 'data forma
 # data augmentation
 #tf.compat.v1.app.flags.DEFINE_bool('mixup', False, 'data augmentation - mixup')
 #tf.compat.v1.app.flags.DEFINE_string('data_aug_mix', 'cutmix', 'data augmentation - mixup or cutmix')
-tf.compat.v1.app.flags.DEFINE_string('data_aug_mix', None, 'data augmentation - mixup or cutmix')
+tf.compat.v1.app.flags.DEFINE_string('data_aug_mix', 'cutmix', 'data augmentation - mixup or cutmix')
 

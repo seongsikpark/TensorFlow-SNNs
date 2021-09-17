@@ -77,6 +77,7 @@ class Layer():
 
         #self.act_dnn = activation
         self.act_snn = None
+        self.activation = None
 
         #
         self.shape_n = None
@@ -131,9 +132,9 @@ class Layer():
 
         # setup activation
         if self.en_snn:
-            self.act = self.act_snn
+            self.activation = self.act_snn
         else:
-            self.act = self.act_dnn
+            self.activation = self.act_dnn
 
         #
         self.built = True
@@ -165,14 +166,14 @@ class Layer():
         else:
             b = s
 
-        if self.act is None:
+        if self.activation is None:
             n = b
             #assert False
         else:
             if self.en_snn:
-                n = self.act(b,Model.t)
+                n = self.activation(b,Model.t)
             else:
-                n = self.act(b)
+                n = self.activation(b)
         ret = n
 
         return ret
@@ -283,14 +284,14 @@ class Conv2D(Layer,tf.keras.layers.Conv2D):
     def __init__(self,
                  filters,
                  kernel_size,
+                 use_bn=False,                          # use batch norm.
+                 activation=None,
                  strides=(1,1),
                  padding='valid',
                  dilation_rate=(1, 1),
-                 activation=None,
                  activity_regularizer=None,
                  kernel_constraint=None,
                  bias_constraint=None,
-                 use_bn=False,                          # use batch norm.
                  **kwargs):
 
         tf.keras.layers.Conv2D.__init__(
@@ -359,6 +360,28 @@ class Dense(Layer,tf.keras.layers.Dense):
         self.depth = Layer.index
 
 
+#
+class Add(tf.keras.layers.Add):
+    def __init__(self, use_bn=False, activation=None, **kwargs):
+        tf.keras.layers.Add.__init__(self, **kwargs)
+
+        Layer.__init__(self, use_bn=use_bn, activation=activation, **kwargs)
+
+        #
+        Layer.index += 1
+        self.depth = Layer.index
+
+    def get_config(self):
+        config = super().get_config().copy()
+        config.update({
+            'use_bn': self.use_bn,
+            'activation': self.activation,
+        })
+        return config
+
+
+
+
 # MaxPolling2D
 class MaxPool2D(Layer,tf.keras.layers.MaxPool2D):
     def __init__(self,
@@ -409,8 +432,6 @@ class MaxPool2D(Layer,tf.keras.layers.MaxPool2D):
             return lib_snn.layers.spike_max_pool(inputs,spike_count,output_shape)
         else:
             return tf.keras.layers.MaxPool2D.call(self,inputs)
-
-
 
 
 

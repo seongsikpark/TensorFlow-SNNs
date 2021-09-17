@@ -1,9 +1,8 @@
 
 
-global input_size
+#global input_size
 #global input_size_pre_crop_ratio
 global model_name
-global num_class
 
 ########################################
 # configuration
@@ -32,11 +31,11 @@ root_model = './models'
 
 # model
 model_name = 'VGG16'
-#model_name = 'ResNet50'
+model_name = 'ResNet50'
 
 # dataset
 dataset_name = 'CIFAR10'
-dataset_name = 'CIFAR100'
+#dataset_name = 'CIFAR100'
 #dataset_name='ImageNet'
 
 #
@@ -86,11 +85,6 @@ import lib_snn
 
 #
 import datasets
-from datasets import augmentation as daug
-from datasets.augmentation import resize_with_crop
-from datasets.augmentation import resize_with_crop_aug
-from datasets.augmentation import mixup
-from datasets.augmentation import cutmix
 
 
 
@@ -99,6 +93,7 @@ from datasets.augmentation import cutmix
 from models.vgg16_keras_toh5 import VGG16 as VGG16_KERAS
 from models.vgg16_tr import VGG16_TR
 from models.vgg16 import VGG16
+from models.resnet import ResNet
 #from tensorflow.keras.applications.vgg16 import VGG16
 
 
@@ -191,6 +186,8 @@ n_dim_classifier=(512,512)
 #
 conf = flags.FLAGS
 
+#
+assert conf.data_format == 'channels_last', 'not support "{}", only support channels_last'.format(conf.data_format)
 
 ########################################
 # DO NOT TOUCH
@@ -209,39 +206,17 @@ else:
 
 
 
-if dataset_name == 'ImageNet':
-    num_class = 1000
-elif dataset_name == 'CIFAR10' or 'CIFAR100':
-    num_class = 10
-else:
-    assert False
-
 
 # l2-norm
 #lmb = 1.0E-10
 lmb = conf.lmb
 
 
-#
-
 
 
 GPU = 'RTX_3090'
 # NVIDIA TITAN V (12GB)
 if GPU=='NVIDIA_TITAN_V':
-    input_sizes = {
-        'Xception': 299,
-        'InceptionV3': 299,
-        'InceptionResNetV2': 299,
-        'NASNetLarge': 331,
-        'EfficientNetB1': 240,
-        'EfficientNetB2': 260,
-        'EfficientNetB4': 380,
-        'EfficientNetB5': 456,
-        'EfficientNetB6': 528,
-        'EfficientNetB7': 600,
-    }
-
     batch_size_inference_sel ={
         'NASNetLarge': 128,
         'EfficientNetB4': 128,
@@ -250,19 +225,6 @@ if GPU=='NVIDIA_TITAN_V':
         'EfficientNetB7': 64,
     }
 
-
-input_sizes = {
-    'Xception': 299,
-    'InceptionV3': 299,
-    'InceptionResNetV2': 299,
-    'NASNetLarge': 331,
-    'EfficientNetB1': 240,
-    'EfficientNetB2': 260,
-    'EfficientNetB4': 380,
-    'EfficientNetB5': 456,
-    'EfficientNetB6': 528,
-    'EfficientNetB7': 600,
-}
 
 batch_size_inference_sel ={
     'NASNetLarge': 128,
@@ -281,42 +243,53 @@ batch_size_train_sel = {
 
 # TODO:
 dataset_sel = {
+    'ImageNet': datasets.imagenet,
     'CIFAR10': datasets.cifar10,
     'CIFAR100': datasets.cifar10,
-    'ImageNet': datasets.imagenet,
 }
 
 
+#
+input_size_default = {
+    'ImageNet': 244,
+    'CIFAR10': 32,
+    'CIFAR100': 32,
+}
+
+#
+input_sizes_imagenet = {
+    'Xception': 299,
+    'InceptionV3': 299,
+    'InceptionResNetV2': 299,
+    'NASNetLarge': 331,
+    'EfficientNetB1': 240,
+    'EfficientNetB2': 260,
+    'EfficientNetB4': 380,
+    'EfficientNetB5': 456,
+    'EfficientNetB6': 528,
+    'EfficientNetB7': 600,
+}
+
+input_sizes_cifar = {
+    'VGG16': 32,
+}
+
+#
+input_size_sel ={
+    'ImageNet': input_sizes_imagenet,
+    'CIFAR10': input_sizes_cifar,
+    'CIFAR100': input_sizes_cifar,
+}
+
 # TODO: integrate input size selector
-input_size = input_sizes.get(model_name,224)
+input_size = input_size_sel[dataset_name].get(model_name,input_size_default[dataset_name])
+#input_size = input_sizes.get(model_name,224)
+
+
 #batch_size_inference = batch_size_inference_sel.get(model_name,256)
 batch_size_inference = conf.batch_size
 batch_size_train = conf.batch_size
 #batch_size_train = batch_size_train_sel.get(model_name,256)
-
-# input shape
-if dataset_name == 'ImageNet':
-    #include_top = True
-    input_size_pre_crop_ratio = 256/224
-    # TODO: set
-    if train:
-        input_prec_mode = None # should be modified
-    else:
-        input_prec_mode = 'caffe' # keras pre-trained model
-
-else:
-    # CIFAR-10
-    # TODO:
-    if train_type == 'transfer':
-        input_size_pre_crop_ratio = 256 / 224
-        # TODO: check it - transfer learning with torch mode
-        input_prec_mode = 'caffe'
-    elif train_type == 'scratch':
-        input_size = 32
-        input_size_pre_crop_ratio = 36 / 32
-        input_prec_mode = 'torch'
-    else:
-        assert False, 'not supported train type {}'.format(train_type)
 
 
 
@@ -325,9 +298,9 @@ image_shape = (input_size, input_size, 3)
 
 
 # dataset load
-dataset = dataset_sel[dataset_name]
-train_ds, valid_ds, test_ds = dataset.load(dataset_name,
-            input_size,input_size_pre_crop_ratio,num_class,train,NUM_PARALLEL_CALL,conf,input_prec_mode)
+#dataset = dataset_sel[dataset_name]
+#train_ds, valid_ds, test_ds = dataset.load(dataset_name,input_size,input_size_pre_crop_ratio,num_class,train,NUM_PARALLEL_CALL,conf,input_prec_mode)
+train_ds, valid_ds, test_ds, num_class = datasets.datasets.load(dataset_name,input_size,train_type,train,conf,NUM_PARALLEL_CALL)
 
 
 # models
@@ -337,6 +310,11 @@ model_sel_tr = {
 
 model_sel_sc = {
     'VGG16': VGG16,
+    'ResNet18': ResNet,
+    'ResNet34': ResNet,
+    'ResNet50': ResNet,
+    'ResNet101': ResNet,
+    'ResNet152': ResNet,
 }
 
 
@@ -377,7 +355,6 @@ config_name = 'bat-{}_opt-{}_lr-{:.0E}_lmb-{:.0E}'.format(batch_size,opt,learnin
 #config_name = 'bat-512_lmb-{:.1E}'.format(lmb)
 
 if train_type=='transfer':
-    pass
     config_name += '_tr'
 elif train_type=='scratch':
     config_name += '_sc'
@@ -459,8 +436,13 @@ else:
 
 #
 #pretrained_model = model(input_shape=image_shape, conf=conf, include_top=include_top, weights='imagenet', train=train)
+
+#model_top = model_top(input_shape=image_shape, conf=conf, include_top=include_top,
+              #weights=load_weight, classes=num_class, n_dim_classifier=n_dim_classifier,name=model_name)
+
 model_top = model_top(input_shape=image_shape, conf=conf, include_top=include_top,
-              weights=load_weight, classes=num_class, n_dim_classifier=n_dim_classifier,name='VGG16')
+                        weights=load_weight, classes=num_class, n_dim_classifier=n_dim_classifier,name=model_name)
+
 #model = model(input_shape=image_shape, conf=conf, include_top=False, weights=load_weight, train=train, add_top=True)
 #model = model(input_shape=image_shape, conf=conf, include_top=include_top, train=train, add_top=add_top)
 #pretrained_model = model(input_shape=image_shape, include_top=include_top, weights='imagenet',classifier_activation=None)
@@ -573,6 +555,9 @@ else:
     print(result)
 
 
+########################################
+#
+########################################
 
 assert False
 # set weights by layer from transfer learning model
@@ -719,137 +704,3 @@ else:
 
 
 
-assert False
-
-if dataset_name == 'ImageNet':
-
-    pretrained_model.compile(optimizer='adam',
-                             loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
-                             #metrics=['accuracy'])
-                             #metrics=[tf.keras.metrics.sparse_top_k_categorical_accuracy])
-                             metrics=[tf.keras.metrics.categorical_accuracy, \
-                                      tf.keras.metrics.top_k_categorical_accuracy])
-
-    # Preprocess input
-    #ds=ds.map(resize_with_crop,num_parallel_calls=tf.data.experimental.AUTOTUNE)
-    #valid_ds=valid_ds.map(daug.resize_with_crop,num_parallel_calls=NUM_PARALLEL_CALL)
-    valid_ds=valid_ds.map(lambda image, label: resize_with_crop(image, label, input_size, input_size_pre_crop_ratio, num_class),
-                          num_parallel_calls=NUM_PARALLEL_CALL)
-    #valid_ds=valid_ds.map(eager_resize_with_crop,num_parallel_calls=tf.data.experimental.AUTOTUNE)
-    valid_ds=valid_ds.batch(batch_size_inference)
-    valid_ds=valid_ds.prefetch(NUM_PARALLEL_CALL)
-
-    #ds=ds.take(1)
-
-    #t1 = valid_ds.take(1)
-    #assert False
-
-    result = pretrained_model.evaluate(valid_ds,workers=NUM_PARALLEL_CALL)
-    #result = pretrained_model.predict(valid_ds,workers=NUM_PARALLEL_CALL)
-elif dataset_name == 'CIFAR10':
-
-
-    #
-    pretrained_model.trainable=False
-    model = tf.keras.Sequential()
-
-    #train = True
-    # data augmentation
-    if train:
-        #model.add(tf.keras.layers.GaussianNoise(0.1))
-        model.add(tf.keras.layers.experimental.preprocessing.RandomZoom((-0.1,0.1)))
-        model.add(tf.keras.layers.experimental.preprocessing.RandomRotation((-0.03,0.03)))
-
-    model.add(pretrained_model)
-    model.add(tf.keras.layers.Flatten(name='flatten'))
-    model.add(tf.keras.layers.Dropout(0.5))
-    model.add(tf.keras.layers.Dense(4096, activation='relu', kernel_regularizer=tf.keras.regularizers.L2(lmb), name='fc1'))
-    model.add(tf.keras.layers.BatchNormalization())
-    model.add(tf.keras.layers.Dropout(0.5))
-    model.add(tf.keras.layers.Dense(4096, activation='relu', kernel_regularizer=tf.keras.regularizers.L2(lmb), name='fc2'))
-    #model.add(tf.keras.layers.Dense(1024, activation='relu', name='fc2'))
-    model.add(tf.keras.layers.BatchNormalization())
-    model.add(tf.keras.layers.Dropout(0.5))
-    model.add(tf.keras.layers.Dense(10, activation='softmax', name='predictions'))
-
-
-    #x = pretrained_model(train_ds)
-    #x = tf.keras.layers.Flatten(name='flatten')(x)
-    #x = tf.keras.layers.Dense(4096, activation='relu', name='fc1')(x)
-    #x = tf.keras.layers.Dense(4096, activation='relu', name='fc2')(x)
-    #output = tf.keras.layers.Dense(10, activation='softmax', name='predictions')(x)
-
-    # metric_accuracy = tf.keras.metrics.sparse_categorical_accuracy(name='accuracy')
-    # metric_accuracy_top5 = tf.keras.metrics.sparse_top_k_categorical_accuracy(name='accuracy_top5')
-
-
-
-
-
-    if train:
-        print('Train mode')
-        # remove dir - train model
-        if not load_model:
-            if overwrite_train_model:
-                if os.path.isdir(filepath):
-                    shutil.rmtree(filepath)
-
-        # path_tensorboard = root_tensorboard+exp_set_name
-        # path_tensorboard = root_tensorboard+filepath
-        path_tensorboard = os.path.join(root_tensorboard, exp_set_name)
-        path_tensorboard = os.path.join(path_tensorboard, config_name)
-
-        if os.path.isdir(path_tensorboard):
-            date_cur = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M')
-            path_dest_tensorboard = path_tensorboard + '_' + date_cur
-            print('tensorboard data already exists')
-            print('move {} to {}'.format(path_tensorboard, path_dest_tensorboard))
-
-            shutil.move(path_tensorboard, path_dest_tensorboard)
-
-        #
-        if load_model:
-            print('Evaluate pretrained model')
-
-            assert monitor_cri == 'val_acc', 'currently only consider monitor criterion - val_acc'
-
-            idx_monitor_cri = model.metrics_names.index('acc')
-
-            result = model.evaluate(test_ds)
-
-            best = result[idx_monitor_cri]
-
-            print('previous best result - {}'.format(best))
-        else:
-            best = None
-
-        # assert False
-        #
-        callbacks = [
-            # tf.keras.callbacks.ModelCheckpoint(
-            lib_snn.callbacks.ModelCheckpointResume(
-                filepath=filepath + '/ep-{epoch:04d}',
-                save_best_only=True,
-                # monitor='val_acc',
-                monitor=monitor_cri,
-                # period=1,
-                verbose=1,
-                best=best
-            ),
-            tf.keras.callbacks.TensorBoard(log_dir=path_tensorboard, update_freq='epoch'),
-            lib_snn.callbacks.ManageSavedModels(filepath=filepath)
-        ]
-
-        train_histories = model.fit(train_ds, epochs=epoch, initial_epoch=init_epoch, validation_data=valid_ds,
-                                    callbacks=callbacks)
-        # train_results = training_model.fit(train_ds,epochs=3,validation_data=valid_ds)
-
-        # assert False
-
-        # result = pretrained_model.evaluate(ds)
-    else:
-        print('Test mode')
-        result = model.evaluate(test_ds)
-        # result = model.predict(test_ds)
-
-        print(result)
