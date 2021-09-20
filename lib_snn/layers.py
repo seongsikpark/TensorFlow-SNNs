@@ -33,7 +33,11 @@ from lib_snn.model import Model
 # Layer
 class Layer():
     index=-1
-    def __init__(self,use_bn,activation,**kwargs):
+    def __init__(self,
+                 use_bn=False,
+                 epsilon=0.001,
+                 activation=None,
+                 **kwargs):
         #
         self.depth=-1
 
@@ -62,7 +66,7 @@ class Layer():
 
         # batch norm.
         if self.use_bn:
-            self.bn = tf.keras.layers.BatchNormalization(name=name_bn)
+            self.bn = tf.keras.layers.BatchNormalization(epsilon=epsilon, name=name_bn)
         else:
             self.bn = None
 
@@ -240,7 +244,7 @@ class InputLayer(Layer,tf.keras.layers.InputLayer):
             ragged,
             type_spec,
             **kwargs)
-        Layer.__init__(self,False,None,**kwargs)
+        Layer.__init__(self,use_bn=False,**kwargs)
 
 
 
@@ -264,7 +268,7 @@ class InputLayer(Layer,tf.keras.layers.InputLayer):
 # custom input layer - for spike input generation
 class InputGenLayer(Layer,tf.keras.layers.Layer):
     def __init__(self,**kwargs):
-        Layer.__init__(self,False,None,**kwargs)
+        Layer.__init__(self,use_bn=False,**kwargs)
         tf.keras.layers.Layer.__init__(self)
 
         #
@@ -285,6 +289,7 @@ class Conv2D(Layer,tf.keras.layers.Conv2D):
                  filters,
                  kernel_size,
                  use_bn=False,                          # use batch norm.
+                 epsilon=0.001,
                  activation=None,
                  strides=(1,1),
                  padding='valid',
@@ -314,7 +319,7 @@ class Conv2D(Layer,tf.keras.layers.Conv2D):
             #dynamic=True,
             **kwargs)
 
-        Layer.__init__(self,use_bn,activation,**kwargs)
+        Layer.__init__(self,use_bn=use_bn,epsilon=epsilon,activation=activation,**kwargs)
 
         #
         Layer.index+= 1
@@ -336,6 +341,7 @@ class Dense(Layer,tf.keras.layers.Dense):
                  kernel_constraint=None,
                  bias_constraint=None,
                  use_bn=False,                          # use batch norm.
+                 epsilon=0.001,
                  **kwargs):
 
         tf.keras.layers.Dense.__init__(
@@ -353,7 +359,7 @@ class Dense(Layer,tf.keras.layers.Dense):
             #dynamic=True,
             **kwargs)
 
-        Layer.__init__(self,use_bn,activation,**kwargs)
+        Layer.__init__(self,use_bn=use_bn,epsilon=epsilon,activation=activation,**kwargs)
 
         #
         Layer.index += 1
@@ -362,10 +368,10 @@ class Dense(Layer,tf.keras.layers.Dense):
 
 #
 class Add(tf.keras.layers.Add):
-    def __init__(self, use_bn=False, activation=None, **kwargs):
+    def __init__(self, use_bn=False, epsilon=0.001, activation=None, **kwargs):
         tf.keras.layers.Add.__init__(self, **kwargs)
 
-        Layer.__init__(self, use_bn=use_bn, activation=activation, **kwargs)
+        Layer.__init__(self,use_bn=use_bn,epsilon=epsilon,activation=activation,**kwargs)
 
         #
         Layer.index += 1
@@ -399,7 +405,7 @@ class MaxPool2D(Layer,tf.keras.layers.MaxPool2D):
             data_format=Model.data_format,
             **kwargs)
 
-        Layer.__init__(self,False,None,**kwargs)
+        Layer.__init__(self,use_bn=False,**kwargs)
 
 
     def build(self, input_shapes):

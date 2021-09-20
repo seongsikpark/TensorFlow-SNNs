@@ -184,6 +184,9 @@ def resize_with_crop(image, label, input_size,input_size_pre_crop_ratio, num_cla
     elif input_prec_mode == 'caffe':
         # transfer learning with pre-trained modes in Keras (ImageNet)
         i = tf.image.resize(i, (s, s), method='lanczos3')
+    else:
+        assert False
+
     i=preprocess_input(i,mode=input_prec_mode)
 
     #
@@ -219,6 +222,8 @@ def resize_with_crop_aug(image, label, input_size, input_size_pre_crop_ratio, nu
     elif input_prec_mode == 'caffe':
         # transfer learning with pre-trained modes in Keras (ImageNet)
         i = tf.image.resize(i, (s, s), method='lanczos3')
+    else:
+        assert False
 
     # color jitter
     i=tf.image.random_brightness(i,max_delta=0.8)
