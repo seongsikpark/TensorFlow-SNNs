@@ -33,11 +33,7 @@ from lib_snn.model import Model
 # Layer
 class Layer():
     index=-1
-    def __init__(self,
-                 use_bn=False,
-                 epsilon=0.001,
-                 activation=None,
-                 **kwargs):
+    def __init__(self,use_bn,activation,**kwargs):
         #
         self.depth=-1
 
@@ -66,7 +62,7 @@ class Layer():
 
         # batch norm.
         if self.use_bn:
-            self.bn = tf.keras.layers.BatchNormalization(epsilon=epsilon, name=name_bn)
+            self.bn = tf.keras.layers.BatchNormalization(name=name_bn)
         else:
             self.bn = None
 
@@ -81,7 +77,6 @@ class Layer():
 
         #self.act_dnn = activation
         self.act_snn = None
-        self.activation = None
 
         #
         self.shape_n = None
@@ -136,9 +131,9 @@ class Layer():
 
         # setup activation
         if self.en_snn:
-            self.activation = self.act_snn
+            self.act = self.act_snn
         else:
-            self.activation = self.act_dnn
+            self.act = self.act_dnn
 
         #
         self.built = True
@@ -170,14 +165,14 @@ class Layer():
         else:
             b = s
 
-        if self.activation is None:
+        if self.act is None:
             n = b
             #assert False
         else:
             if self.en_snn:
-                n = self.activation(b,Model.t)
+                n = self.act(b,Model.t)
             else:
-                n = self.activation(b)
+                n = self.act(b)
         ret = n
 
         return ret
@@ -244,7 +239,7 @@ class InputLayer(Layer,tf.keras.layers.InputLayer):
             ragged,
             type_spec,
             **kwargs)
-        Layer.__init__(self,use_bn=False,**kwargs)
+        Layer.__init__(self,False,None,**kwargs)
 
 
 
@@ -268,7 +263,7 @@ class InputLayer(Layer,tf.keras.layers.InputLayer):
 # custom input layer - for spike input generation
 class InputGenLayer(Layer,tf.keras.layers.Layer):
     def __init__(self,**kwargs):
-        Layer.__init__(self,use_bn=False,**kwargs)
+        Layer.__init__(self,False,None,**kwargs)
         tf.keras.layers.Layer.__init__(self)
 
         #
@@ -288,15 +283,14 @@ class Conv2D(Layer,tf.keras.layers.Conv2D):
     def __init__(self,
                  filters,
                  kernel_size,
-                 use_bn=False,                          # use batch norm.
-                 epsilon=0.001,
-                 activation=None,
                  strides=(1,1),
                  padding='valid',
                  dilation_rate=(1, 1),
+                 activation=None,
                  activity_regularizer=None,
                  kernel_constraint=None,
                  bias_constraint=None,
+                 use_bn=False,                          # use batch norm.
                  **kwargs):
 
         tf.keras.layers.Conv2D.__init__(
@@ -319,7 +313,7 @@ class Conv2D(Layer,tf.keras.layers.Conv2D):
             #dynamic=True,
             **kwargs)
 
-        Layer.__init__(self,use_bn=use_bn,epsilon=epsilon,activation=activation,**kwargs)
+        Layer.__init__(self,use_bn,activation,**kwargs)
 
         #
         Layer.index+= 1
@@ -341,7 +335,6 @@ class Dense(Layer,tf.keras.layers.Dense):
                  kernel_constraint=None,
                  bias_constraint=None,
                  use_bn=False,                          # use batch norm.
-                 epsilon=0.001,
                  **kwargs):
 
         tf.keras.layers.Dense.__init__(
@@ -359,7 +352,7 @@ class Dense(Layer,tf.keras.layers.Dense):
             #dynamic=True,
             **kwargs)
 
-        Layer.__init__(self,use_bn=use_bn,epsilon=epsilon,activation=activation,**kwargs)
+        Layer.__init__(self,use_bn,activation,**kwargs)
 
         #
         Layer.index += 1
@@ -367,11 +360,13 @@ class Dense(Layer,tf.keras.layers.Dense):
 
 
 #
-class Add(tf.keras.layers.Add):
+class Add(Layer,tf.keras.layers.Add):
     def __init__(self, use_bn=False, epsilon=0.001, activation=None, **kwargs):
         tf.keras.layers.Add.__init__(self, **kwargs)
 
         Layer.__init__(self,use_bn=use_bn,epsilon=epsilon,activation=activation,**kwargs)
+
+        #self.act = activation
 
         #
         Layer.index += 1
@@ -381,11 +376,9 @@ class Add(tf.keras.layers.Add):
         config = super().get_config().copy()
         config.update({
             'use_bn': self.use_bn,
-            'activation': self.activation,
+            'act': self.act,
         })
         return config
-
-
 
 
 # MaxPolling2D
@@ -405,7 +398,7 @@ class MaxPool2D(Layer,tf.keras.layers.MaxPool2D):
             data_format=Model.data_format,
             **kwargs)
 
-        Layer.__init__(self,use_bn=False,**kwargs)
+        Layer.__init__(self,False,None,**kwargs)
 
 
     def build(self, input_shapes):
@@ -438,6 +431,8 @@ class MaxPool2D(Layer,tf.keras.layers.MaxPool2D):
             return lib_snn.layers.spike_max_pool(inputs,spike_count,output_shape)
         else:
             return tf.keras.layers.MaxPool2D.call(self,inputs)
+
+
 
 
 
