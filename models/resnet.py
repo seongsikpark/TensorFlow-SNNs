@@ -265,9 +265,16 @@ class ResNet(lib_snn.model.Model):
         #bn_axis = 3 if backend.image_data_format() == 'channels_last' else 1
         bn_axis = 3
 
+        imagenet_pretrain = False
+
         img_input = tf.keras.layers.Input(shape=input_shape)
         #img_input = lib_snn.layers.InputLayer(input_shape=input_shape,batch_size=conf.batch_size,name='in')
-        x = tf.keras.layers.ZeroPadding2D(padding=((3, 3), (3, 3)), name='conv1_pad')(img_input)
+
+        if imagenet_pretrain:
+            # ImageNet pretrained model - tf.keras.applications
+            x = tf.keras.layers.ZeroPadding2D(padding=((3, 3), (3, 3)), name='conv1_pad')(img_input)
+        else:
+            x = img_input
 
         if not preact:
             preact_bn = True
@@ -280,13 +287,16 @@ class ResNet(lib_snn.model.Model):
         #x = lib_snn.layers.Conv2D(64, 7, strides=2, use_bn = preact_bn, activation=preact_act, epsilon=1.001e-5, name='conv1_conv')(x)
         x = lib_snn.layers.Conv2D(64, 7, strides=2, use_bn=preact_bn, activation=preact_act, name='conv1_conv')(x)
 
-#if not preact:
+        #if not preact:
             #x = layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5, name='conv1_bn')(x)
             #x = layers.Activation('relu', name='conv1_relu')(x)
 
-        x = tf.keras.layers.ZeroPadding2D(padding=((1, 1), (1, 1)), name='pool1_pad')(x)
-        #x = lib_snn.layers.MaxPooling2D(3, strides=2, name='pool1_pool')(x)
-        x = lib_snn.layers.MaxPool2D(3, strides=2, name='pool1_pool')(x)
+        if imagenet_pretrain:
+            x = tf.keras.layers.ZeroPadding2D(padding=((1, 1), (1, 1)), name='pool1_pad')(x)
+            # x = lib_snn.layers.MaxPooling2D(3, strides=2, name='pool1_pool')(x)
+            x = lib_snn.layers.MaxPool2D(3, strides=2, name='pool1_pool')(x)
+        else:
+            x = lib_snn.layers.MaxPool2D(3, strides=2, name='pool1_pool')(x)
 
         #x = stack_fn(x)
         # ResNet50
