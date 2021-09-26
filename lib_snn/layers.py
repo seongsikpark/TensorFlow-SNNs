@@ -63,6 +63,7 @@ class Layer():
         # batch norm.
         if self.use_bn:
             self.bn = tf.keras.layers.BatchNormalization(name=name_bn)
+            #self.bn = tf.keras.layers.BatchNormalization(epsilon=1.001e-5,name=name_bn)
         else:
             self.bn = None
 

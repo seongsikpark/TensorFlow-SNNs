@@ -86,23 +86,26 @@ def block1(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
 
     if conv_shortcut:
         shortcut = lib_snn.layers.Conv2D(4 * filters, 1, strides=stride, use_bn=True, activation=None,
-                                         name=name + '_conv_0')(x)
+                                         name=name + '_conv0')(x)
     else:
         shortcut = x
 
     #x = lib_snn.layers.Conv2D(filters, 1, strides=stride, use_bn=True, activation='relu', epsilon=1.001e-5, name=name + '_conv_1')(x)
-    x = lib_snn.layers.Conv2D(filters, 1, strides=stride, use_bn=True, activation='relu', name=name + '_conv_1')(x)
+    x = lib_snn.layers.Conv2D(filters, 1, strides=stride, use_bn=True, activation='relu', name=name + '_conv1')(x)
+    #x = tf.keras.layers.Dropout(0.5,name=name+'_conv1_do')(x)
     # x = layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5, name=name + '_1_bn')(x)
     # x = layers.Activation('relu', name=name + '_1_relu')(x)
 
     #x = lib_snn.layers.Conv2D(filters, kernel_size, strides=stride, padding='SAME', use_bn=True, activation='relu',epsilon=1.001e-5, name=name + '_conv_2')(x)
-    x = lib_snn.layers.Conv2D(filters, kernel_size, strides=stride, padding='SAME', use_bn=True, activation='relu',name=name + '_conv_2')(x)
+    x = lib_snn.layers.Conv2D(filters, kernel_size, strides=stride, padding='SAME', use_bn=True, activation='relu',name=name + '_conv2')(x)
+    #x = tf.keras.layers.Dropout(0.5,name=name+'_conv2_do')(x)
     # x = layers.Conv2D(filters, kernel_size, padding='SAME', name=name + '_2_conv')(x)
     # x = layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5, name=name + '_2_bn')(x)
     # x = layers.Activation('relu', name=name + '_2_relu')(x)
 
     #x = lib_snn.layers.Conv2D(4*filters, 1, strides=stride, use_bn=True, activation=None,epsilon=1.001e-5, name=name + '_conv_3')(x)
-    x = lib_snn.layers.Conv2D(4*filters, 1, strides=stride, use_bn=True, activation=None, name=name + '_conv_3')(x)
+    x = lib_snn.layers.Conv2D(4*filters, 1, strides=stride, use_bn=True, activation=None, name=name + '_conv3')(x)
+    x = tf.keras.layers.Dropout(0.5,name=name+'_conv3_do')(x)
     # x = layers.Conv2D(4 * filters, 1, name=name + '_3_conv')(x)
     # x = layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5, name=name + '_3_bn')(x)
 
@@ -265,7 +268,8 @@ class ResNet(lib_snn.model.Model):
         #bn_axis = 3 if backend.image_data_format() == 'channels_last' else 1
         bn_axis = 3
 
-        imagenet_pretrain = False
+        #imagenet_pretrain = False
+        imagenet_pretrain = True
 
         img_input = tf.keras.layers.Input(shape=input_shape)
         #img_input = lib_snn.layers.InputLayer(input_shape=input_shape,batch_size=conf.batch_size,name='in')

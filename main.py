@@ -474,7 +474,8 @@ else:
 
 #opt = tf.keras.optimizers.Adam(learning_rate=0.001)
 model.compile(optimizer=optimizer,
-              loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
+              #loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
+              loss=tf.keras.losses.CategoricalCrossentropy(),
               metrics=[metric_accuracy, metric_accuracy_top5], run_eagerly=run_eagerly)
 
 #print(image_shape)
