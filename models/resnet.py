@@ -28,45 +28,10 @@ WEIGHTS_HASHES = {
         ('34fb605428fcc7aa4d62f44404c11509', '0f678c91647380debd923963594981b3')
 }
 
-##
-# class block1(tf.keras.Model):
-#    # class block1(tf.keras.layers):
-#    # class block1(tf.keras.Sequential):
-#    def __init__(self,
-#                 input_shape,
-#                 conf,
-#                 filters,
-#                 kernel_size=3,
-#                 stride=1,
-#                 conv_shortcut=True,
-#                 name=None,
-#                 **kwargs):
-#        bn_axis = 3 if conf.data_format == 'channels_last' else None
-#
-#        if conv_shortcut:
-#            self.add(lib_snn.layers.Conv2D(4 * filters, 1, strides=stride, name=name + '_0_conv'))
-#            self.add(tf.keras.layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5, name=name + '_0_bn'))
-#
-#        self.conv1 = lib_snn.layers.Conv2D(filters, 1, strides=stride, )
-#        self.add(lib_snn.layers.Conv2D(filters, 1, strides=stride, name=name + '_1_conv'))
-#        self.add(tf.keras.layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5, name=name + '_1_bn'))
-#        self.add(tf.keras.layers.ReLU(name=name + '_1_act'))
-#
-#        self.add(lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', name=name + '_2_conv'))
-#        self.add(tf.keras.layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5, name=name + '_2_bn'))
-#        self.add(tf.keras.layers.ReLU(name=name + '_2_act'))
-#
-#        self.add(lib_snn.layers.Conv2D(4 * filters, 1, name=name + '_3_conv'))
-#        self.add(tf.keras.layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5, name=name + '_3_bn'))
-#
-#        self.add(tf.keras.layers.Add)
-#
-#    x = layers.Add(name=name + '_add')([shortcut, x])
-#    x = layers.Activation('relu', name=name + '_out')(x)
-#
 
-# keras - resnet.py based
-def block1(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
+
+#
+def block_basic(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
     """A residual block.
 
     Args:
@@ -85,8 +50,39 @@ def block1(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
     # bn_axis = 3  # 'channels_last' only
 
     if conv_shortcut:
-        shortcut = lib_snn.layers.Conv2D(4 * filters, 1, strides=stride, use_bn=True, activation=None,
-                                         name=name + '_conv0')(x)
+        shortcut = lib_snn.layers.Conv2D(filters, 1, strides=stride, use_bn=True, activation=None, name=name + '_conv0')(x)
+    else:
+        shortcut = x
+
+    x = lib_snn.layers.Conv2D(filters, kernel_size, strides=stride, padding='SAME', use_bn=True, activation='relu',name=name + '_conv1')(x)
+    x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation='relu',name=name + '_conv2')(x)
+
+    x = lib_snn.layers.Add(use_bn=False, activation='relu', name=name + '_out')([shortcut, x])
+
+    return x
+
+
+# keras - resnet.py based
+def block_bottleneck(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
+    """A residual block.
+
+    Args:
+      x: input tensor.
+      filters: integer, filters of the bottleneck layer.
+      kernel_size: default 3, kernel size of the bottleneck layer.
+      stride: default 1, stride of the first layer.
+      conv_shortcut: default True, use convolution shortcut if True,
+          otherwise identity shortcut.
+      name: string, block label.
+
+    Returns:
+      Output tensor for the residual block.
+    """
+    # bn_axis = 3 if backend.image_data_format() == 'channels_last' else 1
+    # bn_axis = 3  # 'channels_last' only
+
+    if conv_shortcut:
+        shortcut = lib_snn.layers.Conv2D(4 * filters, 1, strides=stride, use_bn=True, activation=None, name=name + '_conv0')(x)
     else:
         shortcut = x
 
@@ -121,7 +117,7 @@ def block1(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
 
 
 # keras, resnet.py based
-def stack1(x, filters, blocks, stride1=2, name=None):
+def stack1(x, filters, block, num_block, stride=2, name=None):
     """A set of stacked residual blocks.
 
     Args:
@@ -134,9 +130,9 @@ def stack1(x, filters, blocks, stride1=2, name=None):
     Returns:
       Output tensor for the stacked blocks.
     """
-    x = block1(x, filters, stride=stride1, name=name + '_block1')
-    for i in range(2, blocks + 1):
-        x = block1(x, filters, conv_shortcut=False, name=name + '_block' + str(i))
+    x = block(x, filters, stride=stride, name=name + '_block1')
+    for i in range(2, num_block + 1):
+        x = block(x, filters, conv_shortcut=False, name=name + '_block' + str(i))
     return x
 
 
@@ -212,6 +208,8 @@ Returns:
 class ResNet(lib_snn.model.Model):
     def __init__(self,
         input_shape,
+        block,
+        num_blocks,
         conf,
         preact=False,
         #use_bias=True,
@@ -223,41 +221,6 @@ class ResNet(lib_snn.model.Model):
         classes=1000,
         classifier_activation='softmax',
         **kwargs):
-
-
-#    global layers
-#    if 'layers' in kwargs:
-#        layers = kwargs.pop('layers')
-#    else:
-#        layers = VersionAwareLayers()
-#    if kwargs:
-#        raise ValueError('Unknown argument(s): %s' % (kwargs,))
-#    if not (weights in {'imagenet', None} or file_io.file_exists_v2(weights)):
-#        raise ValueError('The `weights` argument should be either '
-#                         '`None` (random initialization), `imagenet` '
-#                         '(pre-training on ImageNet), '
-#                         'or the path to the weights file to be loaded.') #
-#    if weights == 'imagenet' and include_top and classes != 1000:
-#        raise ValueError('If using `weights` as `"imagenet"` with `include_top`'
-#                         ' as true, `classes` should be 1000')
-#
-#    # Determine proper input shape
-#    input_shape = imagenet_utils.obtain_input_shape(
-#        input_shape,
-#        default_size=224,
-#        min_size=32,
-#        data_format=backend.image_data_format(),
-#        require_flatten=include_top,
-#        weights=weights)
-
-#    if input_tensor is None:
-#        img_input = layers.Input(shape=input_shape)
-#    else:
-#        if not backend.is_keras_tensor(input_tensor):
-#            img_input = layers.Input(tensor=input_tensor, shape=input_shape)
-#        else:
-#            img_input = input_tensor
-
 
         data_format = conf.data_format
 
@@ -312,11 +275,10 @@ class ResNet(lib_snn.model.Model):
             #x = lib_snn.layers.MaxPool2D(name='pool1_pool')(x)
 
         #x = stack_fn(x)
-        # ResNet50
-        x = stack1(x, 64, 3, stride1=1, name='conv2')
-        x = stack1(x, 128, 4, name='conv3')
-        x = stack1(x, 256, 6, name='conv4')
-        x = stack1(x, 512, 3, name='conv5')
+        x = stack1(x, 64, block, num_blocks[0], stride=1, name='conv2')
+        x = stack1(x, 128, block, num_blocks[1], name='conv3')
+        x = stack1(x, 256, block, num_blocks[2], name='conv4')
+        x = stack1(x, 512, block, num_blocks[3], name='conv5')
 
         if preact:
             #x = tf.keras.layers.BatchNormalization( axis=bn_axis, epsilon=1.001e-5, name='post_bn')(x)
@@ -367,3 +329,27 @@ class ResNet(lib_snn.model.Model):
         self.model.summary()
 
 #
+def ResNet18(input_shape, conf, include_top, weights, classes, **kwargs):
+    num_blocks = [2,2,2,2]
+    return ResNet(input_shape=input_shape, block=block_basic, num_blocks=num_blocks, conf=conf, include_top=include_top,
+                  weights=weights, classes=classes, **kwargs)
+#
+def ResNet34(input_shape, conf, include_top, weights, classes, **kwargs):
+    num_blocks = [3,4,6,3]
+    return ResNet(input_shape=input_shape, block=block_basic, num_blocks=num_blocks, conf=conf, include_top=include_top,
+                  weights=weights, classes=classes, **kwargs)
+#
+def ResNet50(input_shape, conf, include_top, weights, classes, **kwargs):
+    num_blocks = [3,4,6,3]
+    return ResNet(input_shape=input_shape, block=block_bottleneck, num_blocks=num_blocks, conf=conf, include_top=include_top,
+                  weights=weights, classes=classes, **kwargs)
+#
+def ResNet101(input_shape, conf, include_top, weights, classes, **kwargs):
+    num_blocks = [3,4,23,3]
+    return ResNet(input_shape=input_shape, block=block_bottleneck, num_blocks=num_blocks, conf=conf, include_top=include_top,
+                  weights=weights, classes=classes, **kwargs)
+#
+def ResNet152(input_shape, conf, include_top, weights, classes, **kwargs):
+    num_blocks = [3,8,36,3]
+    return ResNet(input_shape=input_shape, block=block_bottleneck, num_blocks=num_blocks, conf=conf, include_top=include_top,
+                  weights=weights, classes=classes, **kwargs)

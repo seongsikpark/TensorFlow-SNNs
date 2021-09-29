@@ -31,7 +31,8 @@ root_model = './models'
 
 # model
 model_name = 'VGG16'
-model_name = 'ResNet50'
+model_name = 'ResNet18'
+#model_name = 'ResNet50'
 
 # dataset
 dataset_name = 'CIFAR10'
@@ -93,7 +94,11 @@ import datasets
 from models.vgg16_keras_toh5 import VGG16 as VGG16_KERAS
 from models.vgg16_tr import VGG16_TR
 from models.vgg16 import VGG16
-from models.resnet import ResNet
+from models.resnet import ResNet18
+from models.resnet import ResNet34
+from models.resnet import ResNet50
+from models.resnet import ResNet101
+from models.resnet import ResNet152
 #from tensorflow.keras.applications.vgg16 import VGG16
 
 
@@ -300,11 +305,11 @@ model_sel_tr = {
 
 model_sel_sc = {
     'VGG16': VGG16,
-    'ResNet18': ResNet,
-    'ResNet34': ResNet,
-    'ResNet50': ResNet,
-    'ResNet101': ResNet,
-    'ResNet152': ResNet,
+    'ResNet18': ResNet18,
+    'ResNet34': ResNet34,
+    'ResNet50': ResNet50,
+    'ResNet101': ResNet101,
+    'ResNet152': ResNet152,
 }
 
 
@@ -444,7 +449,7 @@ else:
               #weights=load_weight, classes=num_class, n_dim_classifier=n_dim_classifier,name=model_name)
 
 model_top = model_top(input_shape=image_shape, conf=conf, include_top=include_top,
-                        weights=load_weight, classes=num_class, n_dim_classifier=n_dim_classifier,name=model_name)
+                        weights=load_weight, classes=num_class, name=model_name, n_dim_classifier=n_dim_classifier)
 
 #model = model(input_shape=image_shape, conf=conf, include_top=False, weights=load_weight, train=train, add_top=True)
 #model = model(input_shape=image_shape, conf=conf, include_top=include_top, train=train, add_top=add_top)
