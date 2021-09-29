@@ -116,8 +116,8 @@ os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
 #if False:
 #gpu_mem = 6144
 gpu_mem = 10240
-#if False:
-if True:
+if False:
+#if True:
     gpu = tf.config.experimental.list_physical_devices('GPU')
     if gpu:
         try:
@@ -193,16 +193,6 @@ assert conf.data_format == 'channels_last', 'not support "{}", only support chan
 # DO NOT TOUCH
 ########################################
 # data augmentation - mix
-
-if conf.data_aug_mix == 'mixup':
-    en_mixup = True
-    en_cutmix = False
-elif conf.data_aug_mix == 'cutmix':
-    en_mixup = False
-    en_cutmix = True
-else:
-    en_mixup = False
-    en_cutmix = False
 
 
 
@@ -340,9 +330,12 @@ metric_accuracy_top5.name = metric_name_acc_top5
 
 batch_size = batch_size_train
 
+
+# TODO: configuration & file naming
 exp_set_name = model_name + '_' + dataset_name
 # dir_model = './'+exp_set_name
 dir_model = os.path.join(root_model, exp_set_name)
+
 
 # TODO: functionalize
 # file_name='checkpoint-epoch-{}-batch-{}.h5'.format(epoch,batch_size)
@@ -363,6 +356,16 @@ elif train_type=='scratch':
             config_name = config_name+'-'+str(n_dim_classifier[0])+'-'+str(n_dim_classifier[1])
 else:
     assert False
+
+if conf.data_aug_mix == 'mixup':
+    en_mixup = True
+    en_cutmix = False
+elif conf.data_aug_mix == 'cutmix':
+    en_mixup = False
+    en_cutmix = True
+else:
+    en_mixup = False
+    en_cutmix = False
 
 if en_mixup:
     config_name += '_mu'

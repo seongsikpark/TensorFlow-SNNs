@@ -92,20 +92,21 @@ def block1(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
 
     #x = lib_snn.layers.Conv2D(filters, 1, strides=stride, use_bn=True, activation='relu', epsilon=1.001e-5, name=name + '_conv_1')(x)
     x = lib_snn.layers.Conv2D(filters, 1, strides=stride, use_bn=True, activation='relu', name=name + '_conv1')(x)
-    #x = tf.keras.layers.Dropout(0.5,name=name+'_conv1_do')(x)
+    #x = tf.keras.layers.Dropout(0.3,name=name+'_conv1_do')(x)
     # x = layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5, name=name + '_1_bn')(x)
     # x = layers.Activation('relu', name=name + '_1_relu')(x)
 
     #x = lib_snn.layers.Conv2D(filters, kernel_size, strides=stride, padding='SAME', use_bn=True, activation='relu',epsilon=1.001e-5, name=name + '_conv_2')(x)
-    x = lib_snn.layers.Conv2D(filters, kernel_size, strides=stride, padding='SAME', use_bn=True, activation='relu',name=name + '_conv2')(x)
-    #x = tf.keras.layers.Dropout(0.5,name=name+'_conv2_do')(x)
+    x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation='relu',name=name + '_conv2')(x)
+    #x = lib_snn.layers.Conv2D(filters, kernel_size, strides=stride, use_bn=True, activation='relu',name=name + '_conv2')(x)
+    #x = tf.keras.layers.Dropout(0.4,name=name+'_conv2_do')(x)
     # x = layers.Conv2D(filters, kernel_size, padding='SAME', name=name + '_2_conv')(x)
     # x = layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5, name=name + '_2_bn')(x)
     # x = layers.Activation('relu', name=name + '_2_relu')(x)
 
     #x = lib_snn.layers.Conv2D(4*filters, 1, strides=stride, use_bn=True, activation=None,epsilon=1.001e-5, name=name + '_conv_3')(x)
-    x = lib_snn.layers.Conv2D(4*filters, 1, strides=stride, use_bn=True, activation=None, name=name + '_conv3')(x)
-    x = tf.keras.layers.Dropout(0.5,name=name+'_conv3_do')(x)
+    x = lib_snn.layers.Conv2D(4*filters, 1, use_bn=True, activation=None, name=name + '_conv3')(x)
+    #x = tf.keras.layers.Dropout(0.5,name=name+'_conv3_do')(x)
     # x = layers.Conv2D(4 * filters, 1, name=name + '_3_conv')(x)
     # x = layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5, name=name + '_3_bn')(x)
 
@@ -268,8 +269,8 @@ class ResNet(lib_snn.model.Model):
         #bn_axis = 3 if backend.image_data_format() == 'channels_last' else 1
         bn_axis = 3
 
-        #imagenet_pretrain = False
-        imagenet_pretrain = True
+        imagenet_pretrain = False
+        #imagenet_pretrain = True
 
         img_input = tf.keras.layers.Input(shape=input_shape)
         #img_input = lib_snn.layers.InputLayer(input_shape=input_shape,batch_size=conf.batch_size,name='in')
@@ -279,6 +280,7 @@ class ResNet(lib_snn.model.Model):
             x = tf.keras.layers.ZeroPadding2D(padding=((3, 3), (3, 3)), name='conv1_pad')(img_input)
         else:
             x = img_input
+            #x = tf.keras.layers.ZeroPadding2D(padding=((1, 1), (1, 1)), name='conv1_pad')(x)
 
         if not preact:
             preact_bn = True
@@ -289,7 +291,11 @@ class ResNet(lib_snn.model.Model):
 
         #x = lib_snn.layers.Conv2D(64, 7, strides=2, use_bias=use_bias, use_bn = preact_bn, activation=preact_act, name='conv1_conv')(x)
         #x = lib_snn.layers.Conv2D(64, 7, strides=2, use_bn = preact_bn, activation=preact_act, epsilon=1.001e-5, name='conv1_conv')(x)
-        x = lib_snn.layers.Conv2D(64, 7, strides=2, use_bn=preact_bn, activation=preact_act, name='conv1_conv')(x)
+        if imagenet_pretrain:
+            x = lib_snn.layers.Conv2D(64, 7, strides=2, use_bn=preact_bn, activation=preact_act, name='conv1_conv')(x)
+        else:
+            #x = lib_snn.layers.Conv2D(64, 3, padding='same', use_bn=preact_bn, activation=preact_act, name='conv1_conv')(x)
+            x = lib_snn.layers.Conv2D(64, 3, strides=2, padding='same', use_bn=preact_bn, activation=preact_act, name='conv1_conv')(x)
 
         #if not preact:
             #x = layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5, name='conv1_bn')(x)
@@ -300,7 +306,10 @@ class ResNet(lib_snn.model.Model):
             # x = lib_snn.layers.MaxPooling2D(3, strides=2, name='pool1_pool')(x)
             x = lib_snn.layers.MaxPool2D(3, strides=2, name='pool1_pool')(x)
         else:
-            x = lib_snn.layers.MaxPool2D(3, strides=2, name='pool1_pool')(x)
+            pass
+            #x = lib_snn.layers.MaxPool2D(3, strides=2, name='pool1_pool')(x)
+            #x = lib_snn.layers.MaxPool2D(2, strides=2, name='pool1_pool')(x)
+            #x = lib_snn.layers.MaxPool2D(name='pool1_pool')(x)
 
         #x = stack_fn(x)
         # ResNet50
