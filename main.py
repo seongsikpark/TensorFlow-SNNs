@@ -32,6 +32,8 @@ root_model = './models'
 # model
 model_name = 'VGG16'
 model_name = 'ResNet18'
+model_name = 'ResNet20'
+#model_name = 'ResNet34'
 #model_name = 'ResNet50'
 
 # dataset
@@ -95,6 +97,7 @@ from models.vgg16_keras_toh5 import VGG16 as VGG16_KERAS
 from models.vgg16_tr import VGG16_TR
 from models.vgg16 import VGG16
 from models.resnet import ResNet18
+from models.resnet import ResNet20
 from models.resnet import ResNet34
 from models.resnet import ResNet50
 from models.resnet import ResNet101
@@ -306,6 +309,7 @@ model_sel_tr = {
 model_sel_sc = {
     'VGG16': VGG16,
     'ResNet18': ResNet18,
+    'ResNet20': ResNet20,
     'ResNet34': ResNet34,
     'ResNet50': ResNet50,
     'ResNet101': ResNet101,

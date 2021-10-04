@@ -224,6 +224,9 @@ class ResNet(lib_snn.model.Model):
 
         data_format = conf.data_format
 
+        #
+        cifar_stack = True if len(num_blocks) == 3 else False
+
         lib_snn.model.Model.__init__(self, input_shape, data_format, classes, conf)
 
         #print(input_shape)
@@ -258,7 +261,8 @@ class ResNet(lib_snn.model.Model):
             x = lib_snn.layers.Conv2D(64, 7, strides=2, use_bn=preact_bn, activation=preact_act, name='conv1_conv')(x)
         else:
             #x = lib_snn.layers.Conv2D(64, 3, padding='same', use_bn=preact_bn, activation=preact_act, name='conv1_conv')(x)
-            x = lib_snn.layers.Conv2D(64, 3, strides=2, padding='same', use_bn=preact_bn, activation=preact_act, name='conv1_conv')(x)
+            #x = lib_snn.layers.Conv2D(64, 3, strides=2, padding='same', use_bn=preact_bn, activation=preact_act, name='conv1_conv')(x)
+            x = lib_snn.layers.Conv2D(16, 3, strides=1, padding='same', use_bn=preact_bn, activation=preact_act, name='conv1_conv')(x)
 
         #if not preact:
             #x = layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5, name='conv1_bn')(x)
@@ -275,10 +279,21 @@ class ResNet(lib_snn.model.Model):
             #x = lib_snn.layers.MaxPool2D(name='pool1_pool')(x)
 
         #x = stack_fn(x)
-        x = stack1(x, 64, block, num_blocks[0], stride=1, name='conv2')
-        x = stack1(x, 128, block, num_blocks[1], name='conv3')
-        x = stack1(x, 256, block, num_blocks[2], name='conv4')
-        x = stack1(x, 512, block, num_blocks[3], name='conv5')
+        #x = stack1(x, 64, block, num_blocks[0], stride=1, name='conv2')
+        #x = stack1(x, 128, block, num_blocks[1], name='conv3')
+        #x = stack1(x, 256, block, num_blocks[2], name='conv4')
+        #x = stack1(x, 512, block, num_blocks[3], name='conv5')
+
+        if cifar_stack:
+            x = stack1(x, 16, block, num_blocks[0], stride=1, name='conv2')
+            x = stack1(x, 32, block, num_blocks[1], name='conv3')
+            x = stack1(x, 64, block, num_blocks[2], name='conv4')
+        else:
+            x = stack1(x, 16, block, num_blocks[0], stride=1, name='conv2')
+            x = stack1(x, 32, block, num_blocks[1], name='conv3')
+            x = stack1(x, 64, block, num_blocks[2], name='conv4')
+            x = stack1(x, 128, block, num_blocks[3], name='conv5')
+
 
         if preact:
             #x = tf.keras.layers.BatchNormalization( axis=bn_axis, epsilon=1.001e-5, name='post_bn')(x)
@@ -333,6 +348,13 @@ def ResNet18(input_shape, conf, include_top, weights, classes, **kwargs):
     num_blocks = [2,2,2,2]
     return ResNet(input_shape=input_shape, block=block_basic, num_blocks=num_blocks, conf=conf, include_top=include_top,
                   weights=weights, classes=classes, **kwargs)
+
+#
+def ResNet20(input_shape, conf, include_top, weights, classes, **kwargs):
+    num_blocks = [3,3,3]
+    return ResNet(input_shape=input_shape, block=block_basic, num_blocks=num_blocks, conf=conf, include_top=include_top,
+                  weights=weights, classes=classes, **kwargs)
+
 #
 def ResNet34(input_shape, conf, include_top, weights, classes, **kwargs):
     num_blocks = [3,4,6,3]
