@@ -49,6 +49,12 @@ learning_rate = 0.2
 opt='SGD'
 
 #
+lr_schedule = 'COS'     # COSine
+lr_schedule = 'COSR'    # COSine with Restart
+lr_schedule = 'STEP'    # STEP wise
+
+
+#
 root_tensorboard = './tensorboard/'
 
 
@@ -354,7 +360,8 @@ dir_model = os.path.join(root_model, exp_set_name)
 # config_name='ep-{epoch:04d}_bat-{}_lmb-{:.1E}'.format(batch_size,lmb)
 # config_name='bat-{}_lmb-{:.1E}'.format(batch_size,lmb)
 
-config_name = 'bat-{}_opt-{}_lr-{:.0E}_lmb-{:.0E}'.format(batch_size,opt,learning_rate,lmb)
+#config_name = 'bat-{}_opt-{}_lr-{:.0E}_lmb-{:.0E}'.format(batch_size,opt,learning_rate,lmb)
+config_name = 'bat-{}_opt-{}_lr-{}-{:.0E}_lmb-{:.0E}'.format(batch_size,opt,lr_schedule,learning_rate,lmb)
 
 #config_name = 'bat-{}_lmb-{:.0E}'.format(batch_size, lmb)
 #config_name = 'bat-512_lmb-{:.1E}'.format(lmb)
@@ -478,10 +485,18 @@ if load_model:
 run_eagerly=False
 #run_eagerly=True
 
-#lr_schedule_first_decay_step=100*10 # in iteration
-#learning_rate = tf.keras.optimizers.schedules.CosineDecayRestarts(learning_rate, lr_schedule_first_decay_step)
-#learning_rate = tf.keras.optimizers.schedules.CosineDecay(learning_rate, 100*300)
-learning_rate = lib_snn.optimizers.LRSchedule_step(learning_rate,100,0.1)
+lr_schedule_first_decay_step=100*10 # in iteration
+
+if lr_schedule=='COS':
+    learning_rate = tf.keras.optimizers.schedules.CosineDecay(learning_rate, 100 * 300)
+elif lr_schedule == 'COSR':
+    learning_rate = tf.keras.optimizers.schedules.CosineDecayRestarts(learning_rate, lr_schedule_first_decay_step)
+elif lr_schedule == 'STEP':
+    learning_rate = lib_snn.optimizers.LRSchedule_step(learning_rate, 100, 0.1)
+
+else:
+    assert False
+
 
 if opt=='SGD':
     optimizer = tf.keras.optimizers.SGD(learning_rate=learning_rate,momentum=0.9,name='SGD')
