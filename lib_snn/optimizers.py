@@ -14,12 +14,17 @@ class LRSchedule_step(tf.keras.optimizers.schedules.LearningRateSchedule):
         self.decay_factor = decay_factor
 
     def __call__(self,step):
-        mod = tf.math.floormod(step,self.decay_step)
-        factor_n = tf.math.divide(step,self.decay_step)
-        cond = tf.math.equal(mod,0)
+        #mod = tf.math.floormod(step,self.decay_step)
+        factor_n = tf.cast(tf.math.floordiv(step,self.decay_step),tf.float32)
+        #cond = tf.math.equal(mod,0)
 
-        factor = tf.where(cond,tf.math.pow(self.decay_factor,factor_n),1.0)
+        factor = tf.math.pow(self.decay_factor,factor_n)
+        #factor = tf.where(cond,tf.math.pow(self.decay_factor,factor_n),1.0)
         learning_rate = self.initial_learning_rate*factor
+
+        #print(step)
+        #print(factor_n)
+        #print(factor)
 
         return learning_rate
 
