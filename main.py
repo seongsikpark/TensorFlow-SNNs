@@ -492,7 +492,7 @@ if lr_schedule=='COS':
 elif lr_schedule == 'COSR':
     learning_rate = tf.keras.optimizers.schedules.CosineDecayRestarts(learning_rate, lr_schedule_first_decay_step)
 elif lr_schedule == 'STEP':
-    learning_rate = lib_snn.optimizers.LRSchedule_step(learning_rate, 100, 0.1)
+    learning_rate = lib_snn.optimizers.LRSchedule_step(learning_rate, 100*100, 0.1)
 
 else:
     assert False
