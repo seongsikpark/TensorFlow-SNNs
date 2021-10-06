@@ -42,7 +42,7 @@ dataset_name = 'CIFAR10'
 #dataset_name='ImageNet'
 
 #
-learning_rate = 0.1
+learning_rate = 0.2
 #learning_rate = 0.01
 
 #
@@ -88,6 +88,9 @@ import lib_snn
 
 #
 import datasets
+
+
+# lr schedule
 
 
 
@@ -475,9 +478,10 @@ if load_model:
 run_eagerly=False
 #run_eagerly=True
 
-lr_schedule_first_decay_step=100*10 # in iteration
-learning_rate = tf.keras.optimizers.schedules.CosineDecayRestarts(
-                                                        learning_rate, lr_schedule_first_decay_step)
+#lr_schedule_first_decay_step=100*10 # in iteration
+#learning_rate = tf.keras.optimizers.schedules.CosineDecayRestarts(learning_rate, lr_schedule_first_decay_step)
+#learning_rate = tf.keras.optimizers.schedules.CosineDecay(learning_rate, 100*300)
+learning_rate = lib_snn.optimizers.LRSchedule_step(learning_rate,100,0.1)
 
 if opt=='SGD':
     optimizer = tf.keras.optimizers.SGD(learning_rate=learning_rate,momentum=0.9,name='SGD')

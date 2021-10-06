@@ -375,3 +375,9 @@ def ResNet152(input_shape, conf, include_top, weights, classes, **kwargs):
     num_blocks = [3,8,36,3]
     return ResNet(input_shape=input_shape, block=block_bottleneck, num_blocks=num_blocks, conf=conf, include_top=include_top,
                   weights=weights, classes=classes, **kwargs)
+
+#
+def ResNet18V2(input_shape, conf, include_top, weights, classes, **kwargs):
+    num_blocks = [2,2,2,2]
+    return ResNet(preact=True, input_shape=input_shape, block=block_basic, num_blocks=num_blocks, conf=conf, include_top=include_top,
+                  weights=weights, classes=classes, **kwargs)
