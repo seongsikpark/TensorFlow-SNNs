@@ -439,6 +439,8 @@ class MaxPool2D(Layer,tf.keras.layers.MaxPool2D):
 
 
 
+
+
 #
 #class Neuron(tf.layers.Layer):
 class Neuron(tf.keras.layers.Layer):

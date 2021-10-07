@@ -28,19 +28,21 @@ def VGG16_TR(
         input_tensor=None,
         pooling=None,
         classes=1000,
-        classifier_activation='softmax'):
+        classifier_activation='softmax',
+        n_dim_classifier=None,
+        **kwargs):
 
 
-    data_format = conf.data_format
+    #data_format = conf.data_format
 
 
     #
     #dropout_conv = tf.keras.layers.Dropout(0.3)
-    dropout_conv2 = tf.keras.layers.Dropout(0.4)
-    dropout = tf.keras.layers.Dropout(0.5)
-    dropout_conv_r = [0.3,0.4,0.5]
+    #dropout_conv2 = tf.keras.layers.Dropout(0.4)
+    #dropout = tf.keras.layers.Dropout(0.5)
+    #dropout_conv_r = [0.3,0.4,0.5]
 
-    use_bn=False
+    #use_bn=False
 
     #
     lmb=conf.lmb
@@ -63,13 +65,13 @@ def VGG16_TR(
     model.add(pretrained_model)
     model.add(tf.keras.layers.Flatten(name='flatten'))
     model.add(tf.keras.layers.Dropout(0.5))
-    model.add(tf.keras.layers.Dense(4096, activation=None, kernel_regularizer=tf.keras.regularizers.L2(lmb),
-                                    name='fc1'))
+    #model.add(tf.keras.layers.Dense(4096, activation=None, kernel_regularizer=tf.keras.regularizers.L2(lmb), name='fc1'))
+    model.add(tf.keras.layers.Dense(512, activation=None, kernel_regularizer=tf.keras.regularizers.L2(lmb), name='fc1'))
     model.add(tf.keras.layers.BatchNormalization(name='fc1_bn'))
     model.add(tf.keras.layers.ReLU())
     model.add(tf.keras.layers.Dropout(0.5))
-    model.add(tf.keras.layers.Dense(4096, activation=None, kernel_regularizer=tf.keras.regularizers.L2(lmb),
-                                    name='fc2'))
+    #model.add(tf.keras.layers.Dense(4096, activation=None, kernel_regularizer=tf.keras.regularizers.L2(lmb), name='fc2'))
+    model.add(tf.keras.layers.Dense(512, activation=None, kernel_regularizer=tf.keras.regularizers.L2(lmb), name='fc2'))
     model.add(tf.keras.layers.BatchNormalization(name='fc2_bn'))
     model.add(tf.keras.layers.ReLU())
     model.add(tf.keras.layers.Dropout(0.5))
