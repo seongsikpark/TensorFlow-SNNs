@@ -1,14 +1,75 @@
 
 
-from tensorboard.plugins.hparams import api as hp
-## hparmas
-#HP_OPTMIZER = hp.HParam('optimizez',hp.Discrete())
-HP_LEARNINGRATE = hp.HParam('learning_rate',hp.Discrete([0,1, 0.01, 0.2]))
-HP_LAMBDA = hp.HParam('lmb',hp.Discrete([5e-4, 1e-4, 5e-5, 1e-5]))
-METRIC_ACCURACY = 'val_acc'
+
+########
+# HP Tune
+########
+
+def model_builder(hp):
+    #
+    # pretrained_model = model(input_shape=image_shape, conf=conf, include_top=include_top, weights='imagenet', train=train)
+
+    # model_top = model_top(input_shape=image_shape, conf=conf, include_top=include_top,
+    # weights=load_weight, classes=num_class, n_dim_classifier=n_dim_classifier,name=model_name)
+
+    hp_lmb = hp.Choice('lmb', values = [5e-4, 1e-4, 5e-5, 1e-5])
+    hp_learning_rate = hp.Choice('learning_rate', values = [0.1, 0.01, 0.2])
+
+    model_top = model_top_glb(input_shape=image_shape, conf=conf, include_top=include_top,
+                              weights=load_weight, classes=num_class, name=model_name, lmb=hp_lmb)
+
+    # model = model(input_shape=image_shape, conf=conf, include_top=False, weights=load_weight, train=train, add_top=True)
+    # model = model(input_shape=image_shape, conf=conf, include_top=include_top, train=train, add_top=add_top)
+    # pretrained_model = model(input_shape=image_shape, include_top=include_top, weights='imagenet',classifier_activation=None)
+    # pretrained_model = VGG16(include_top=True, weights='imagenet')
+    # pretrained_model = VGG19(include_top=True, weights='imagenet')
+    # pretrained_model = ResNet50(include_top=True, weights='imagenet')
+    # pretrained_model = ResNet101(include_top=True, weights='imagenet')
+
+    # TODO: move to parameter
+    run_eagerly = False
+    # run_eagerly=True
+
+    # TODO: parameterize
+    lr_schedule_first_decay_step = train_steps_per_epoch * 10  # in iteration
+
+    if lr_schedule == 'COS':
+        learning_rate = tf.keras.optimizers.schedules.CosineDecay(hp_learning_rate, train_steps_per_epoch * 300)
+    elif lr_schedule == 'COSR':
+        learning_rate = tf.keras.optimizers.schedules.CosineDecayRestarts(hp_learning_rate, lr_schedule_first_decay_step)
+    elif lr_schedule == 'STEP':
+        # learning_rate = lib_snn.optimizers.LRSchedule_step(learning_rate, 100*100, 0.1)
+        learning_rate = lib_snn.optimizers.LRSchedule_step(hp_learning_rate, train_steps_per_epoch * 100, 0.1)
+    elif lr_schedule == 'STEP_WUP':
+        learning_rate = lib_snn.optimizers.LRSchedule_step_wup(hp_learning_rate, train_steps_per_epoch * 100, 0.1,
+                                                               train_steps_per_epoch * 30)
+    else:
+        assert False
+
+    if opt == 'SGD':
+        optimizer = tf.keras.optimizers.SGD(learning_rate=learning_rate, momentum=0.9, name='SGD')
+    else:
+        assert False
+
+    # TODO: model_top wrapper use check - from scratch, transfer learning
+
+    model = model_top.model
+
+    if load_model:
+        model.load_weights(load_weight)
+        # model.load_weights(load_weight,by_name=True)
+
+    # opt = tf.keras.optimizers.Adam(learning_rate=0.001)
+    model.compile(optimizer=optimizer,
+                  # loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
+                  loss=tf.keras.losses.CategoricalCrossentropy(),
+                  metrics=[metric_accuracy, metric_accuracy_top5], run_eagerly=run_eagerly)
 
 
-#
+    return model
+
+
+
 #global input_size
 #global input_size_pre_crop_ratio
 global model_name
@@ -35,7 +96,9 @@ load_model=False
 overwrite_train_model=False
 
 #epoch = 20000
-epoch = 20472
+#epoch = 20472
+train_epoch = 300
+#train_epoch = 10
 root_model = './models'
 
 # model
@@ -75,6 +138,9 @@ import shutil
 
 import tensorflow as tf
 
+# HP tune
+#import kerastuner as kt
+import keras_tuner as kt
 
 
 
@@ -108,13 +174,6 @@ import datasets
 
 # lr schedule
 
-
-## HParams
-with tf.summary.create_file_writer('logs/hparam_tuning').as_default():
-    hp.hparams_config(
-        hparams=[HP_LEARNINGRATE,HP_LAMBDA],
-        metrics=[hp.Metric(METRIC_ACCURACY,display_name='Accuracy')]
-    )
 
 
 # models
@@ -474,143 +533,94 @@ else:
 
 
 
+# for HP tune
+model_top_glb = model_top
+
+#tuner = kt.Hyperband(model_builder,
+tuner=kt.RandomSearch(model_builder,
+                     objective='val_acc',
+                     max_trials=12,
+                     #max_epochs = 300,
+                     #factor=3,
+                     #overwrite=True,
+                     directory='Keras_Tune',
+                     project_name='keras_tune_random',
+                     #directory='test_hp_dir',
+                     #project_name='test_hp')
+                      )
+
+#tuner.results_summary()
+#assert False
+
 
 #
-#pretrained_model = model(input_shape=image_shape, conf=conf, include_top=include_top, weights='imagenet', train=train)
+#if train:
+    #print('Train mode')
+# remove dir - train model
+if not load_model:
+    if overwrite_train_model:
+        if os.path.isdir(filepath):
+            shutil.rmtree(filepath)
 
-#model_top = model_top(input_shape=image_shape, conf=conf, include_top=include_top,
-              #weights=load_weight, classes=num_class, n_dim_classifier=n_dim_classifier,name=model_name)
+# path_tensorboard = root_tensorboard+exp_set_name
+# path_tensorboard = root_tensorboard+filepath
+path_tensorboard = os.path.join(root_tensorboard, exp_set_name)
+path_tensorboard = os.path.join(path_tensorboard, config_name)
 
-model_top = model_top(input_shape=image_shape, conf=conf, include_top=include_top,
-                        weights=load_weight, classes=num_class, name=model_name, n_dim_classifier=n_dim_classifier, lmb=lmb)
+if os.path.isdir(path_tensorboard):
+    date_cur = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M')
+    path_dest_tensorboard = path_tensorboard + '_' + date_cur
+    print('tensorboard data already exists')
+    print('move {} to {}'.format(path_tensorboard, path_dest_tensorboard))
 
-#model = model(input_shape=image_shape, conf=conf, include_top=False, weights=load_weight, train=train, add_top=True)
-#model = model(input_shape=image_shape, conf=conf, include_top=include_top, train=train, add_top=add_top)
-#pretrained_model = model(input_shape=image_shape, include_top=include_top, weights='imagenet',classifier_activation=None)
-#pretrained_model = VGG16(include_top=True, weights='imagenet')
-#pretrained_model = VGG19(include_top=True, weights='imagenet')
-#pretrained_model = ResNet50(include_top=True, weights='imagenet')
-#pretrained_model = ResNet101(include_top=True, weights='imagenet')
+    shutil.move(path_tensorboard, path_dest_tensorboard)
 
-# TODO: model_top wrapper use check - from scratch, transfer learning
-model = model_top.model
-
+#
 if load_model:
-    model.load_weights(load_weight)
-    #model.load_weights(load_weight,by_name=True)
-
-
-# TODO: move to parameter
-run_eagerly=False
-#run_eagerly=True
-
-# TODO: parameterize
-lr_schedule_first_decay_step=train_steps_per_epoch*10 # in iteration
-
-if lr_schedule=='COS':
-    learning_rate = tf.keras.optimizers.schedules.CosineDecay(learning_rate, train_steps_per_epoch*300)
-elif lr_schedule == 'COSR':
-    learning_rate = tf.keras.optimizers.schedules.CosineDecayRestarts(learning_rate, lr_schedule_first_decay_step)
-elif lr_schedule == 'STEP':
-    #learning_rate = lib_snn.optimizers.LRSchedule_step(learning_rate, 100*100, 0.1)
-    learning_rate = lib_snn.optimizers.LRSchedule_step(learning_rate, train_steps_per_epoch*100, 0.1)
-elif lr_schedule == 'STEP_WUP':
-    learning_rate = lib_snn.optimizers.LRSchedule_step_wup(learning_rate, train_steps_per_epoch * 100, 0.1,
-                                                           train_steps_per_epoch * 30)
-else:
-    assert False
-
-
-if opt=='SGD':
-    optimizer = tf.keras.optimizers.SGD(learning_rate=learning_rate,momentum=0.9,name='SGD')
-else:
-    assert False
-
-#opt = tf.keras.optimizers.Adam(learning_rate=0.001)
-model.compile(optimizer=optimizer,
-              #loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
-              loss=tf.keras.losses.CategoricalCrossentropy(),
-              metrics=[metric_accuracy, metric_accuracy_top5], run_eagerly=run_eagerly)
-
-#print(image_shape)
-#assert False
-# flops
-#flops = lib_snn.util.get_flops(model,image_shape)
-#print("{:E}".format(flops))
-#assert False
-
-#assert False
-
-
-if train:
-    print('Train mode')
-    # remove dir - train model
-    if not load_model:
-        if overwrite_train_model:
-            if os.path.isdir(filepath):
-                shutil.rmtree(filepath)
-
-    # path_tensorboard = root_tensorboard+exp_set_name
-    # path_tensorboard = root_tensorboard+filepath
-    path_tensorboard = os.path.join(root_tensorboard, exp_set_name)
-    path_tensorboard = os.path.join(path_tensorboard, config_name)
-
-    if os.path.isdir(path_tensorboard):
-        date_cur = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M')
-        path_dest_tensorboard = path_tensorboard + '_' + date_cur
-        print('tensorboard data already exists')
-        print('move {} to {}'.format(path_tensorboard, path_dest_tensorboard))
-
-        shutil.move(path_tensorboard, path_dest_tensorboard)
-
-    #
-    if load_model:
-        print('Evaluate pretrained model')
-        assert monitor_cri == 'val_acc', 'currently only consider monitor criterion - val_acc'
-        result = model.evaluate(valid_ds)
-        idx_monitor_cri = model.metrics_names.index('acc')
-        best = result[idx_monitor_cri]
-        print('previous best result - {}'.format(best))
-    else:
-        best = None
-
-    #model.save_weights(filepath+'ep-1085',save_format='h5')
-
-    #model.trainable=True
-    #model.save_weights(filepath+'/test.h5',save_format='h5')
-    #assert False
-
-    #
-    callbacks = [
-        # tf.keras.callbacks.ModelCheckpoint(
-        lib_snn.callbacks.ModelCheckpointResume(
-            #filepath=filepath + '/ep-{epoch:04d}',
-            #filepath=filepath + '/ep-{epoch:04d}.ckpt',
-            filepath=filepath + '/ep-{epoch:04d}.hdf5',
-            save_weight_only=True,
-            #save_weight_only=False,
-            save_best_only=True,
-            # monitor='val_acc',
-            monitor=monitor_cri,
-            # period=1,
-            verbose=1,
-            best=best
-        ),
-        tf.keras.callbacks.TensorBoard(log_dir=path_tensorboard, update_freq='epoch'),
-        lib_snn.callbacks.ManageSavedModels(filepath=filepath),
-        hp.KerasCallback('./hparams_test/',hparams)
-    ]
-
-    train_histories = model.fit(train_ds, epochs=epoch, initial_epoch=init_epoch, validation_data=valid_ds,
-                                callbacks=callbacks)
-
-else:
-    print('Test mode')
+    print('Evaluate pretrained model')
+    assert monitor_cri == 'val_acc', 'currently only consider monitor criterion - val_acc'
     result = model.evaluate(valid_ds)
-    # result = model.predict(test_ds)
+    idx_monitor_cri = model.metrics_names.index('acc')
+    best = result[idx_monitor_cri]
+    print('previous best result - {}'.format(best))
+else:
+    best = Non#e
 
-    print(result)
+#model.save_weights(filepath+'ep-1085',save_format='h5')
+
+#model.trainable=True
+#model.save_weights(filepath+'/test.h5',save_format='h5')
+#assert False
+
+#
+callbacks = [
+    # tf.keras.callbacks.ModelCheckpoint(
+    lib_snn.callbacks.ModelCheckpointResume(
+        #filepath=filepath + '/ep-{epoch:04d}',
+        #filepath=filepath + '/ep-{epoch:04d}.ckpt',
+        filepath=filepath + '/ep-{epoch:04d}.hdf5',
+        save_weight_only=True,
+        #save_weight_only=False,
+        save_best_only=True,
+        # monitor='val_acc',
+        monitor=monitor_cri,
+        # period=1,
+        verbose=1,
+        best=best
+    ),
+    tf.keras.callbacks.TensorBoard(log_dir=path_tensorboard, update_freq='epoch'),
+    lib_snn.callbacks.ManageSavedModels(filepath=filepath)
+]
+
+tuner.search(train_ds, epochs=train_epoch, initial_epoch=init_epoch, validation_data=valid_ds,
+             callbacks=callbacks)
+
+#train_histories = model.fit(train_ds, epochs=epoch, initial_epoch=init_epoch, validation_data=valid_ds,
+#                            callbacks=callbacks)
 
 
+########################################
+#
+########################################
 
 
