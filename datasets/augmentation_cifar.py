@@ -226,14 +226,14 @@ def resize_with_crop_aug(image, label, input_size, input_size_pre_crop_ratio, nu
         assert False
 
     # color jitter
-    i=tf.image.random_brightness(i,max_delta=0.8)
-    i=tf.image.random_contrast(i,lower=0.2,upper=1.8)
-    i=tf.image.random_saturation(i,lower=0.2,upper=1.8)
-    i=tf.image.random_hue(i,0.2)
+    #i=tf.image.random_brightness(i,max_delta=0.8)
+    #i=tf.image.random_contrast(i,lower=0.2,upper=1.8)
+    #i=tf.image.random_saturation(i,lower=0.2,upper=1.8)
+    #i=tf.image.random_hue(i,0.2)
 
-    #i=tf.image.random_contrast(i,lower=0.0,upper=0.8)
-    #i=tf.image.random_saturation(i,lower=0.0,upper=0.8)
-    #i=tf.image.random_hue(i,max_delta=0.2)
+    #i=tf.image.random_contrast(i,lower=0.0,upper=0.4)
+    #i=tf.image.random_saturation(i,lower=0.0,upper=0.4)
+    #i=tf.image.random_hue(i,max_delta=0.1)
     #i=tf.clip_by_value(i,0,1)
 
     # random transformation

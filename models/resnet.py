@@ -227,7 +227,7 @@ class ResNet(lib_snn.model.Model):
         #
         cifar_stack = True if len(num_blocks) == 3 else False
 
-        lib_snn.model.Model.__init__(self, input_shape, data_format, classes, conf)
+        lib_snn.model.Model.__init__(self, input_shape, data_format, classes, conf, **kwargs)
 
         #print(input_shape)
         #assert False

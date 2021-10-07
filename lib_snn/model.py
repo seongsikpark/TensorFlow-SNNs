@@ -17,20 +17,23 @@ import lib_snn
 
 
 
-
-
 #
 class Model(tf.keras.Model):
     count=0
-    def __init__(self, input_shape, data_format, num_class, conf,**kwargs):
+    def __init__(self, input_shape, data_format, num_class, conf, **kwargs):
         #print("lib_SNN - Layer - init")
+
+
+        lmb = kwargs.pop('lmb', None)
+        n_dim_classifier = kwargs.pop('n_dim_classifier', None)
+
 
         #
         super(Model, self).__init__(**kwargs)
 
         #
         Model.count += 1
-        assert Model.count==1, 'We have only one Model instance'
+        #assert Model.count==1, 'We have only one Model instance'
 
         #
         self.verbose = conf.verbose
@@ -105,8 +108,10 @@ class Model(tf.keras.Model):
         #kernel_initializer = initializers.variance_scaling_initializer(factor=2.0,mode='FAN_IN')    # MSRA init. = He init
 
         regularizer_type = {
-            'L1': regularizers.l1(conf.lmb),
-            'L2': regularizers.l2(conf.lmb)
+            #'L1': regularizers.l1(conf.lmb),
+            #'L2': regularizers.l2(conf.lmb)
+            'L1': regularizers.l1(lmb),
+            'L2': regularizers.l2(lmb),
         }
 
         Model.kernel_regularizer = regularizer_type[self.conf.regularizer]

@@ -98,7 +98,7 @@ class Layer():
         #tf.keras.layers.Conv2D.build(self,input_shapes)
         #self.__mro__[2].build(self,input_shapes)
 
-        print('build layer')
+        #print('build layer')
         super().build(input_shapes)
         #print(super())
         #print(super().build)

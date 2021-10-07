@@ -1,5 +1,14 @@
 
 
+from tensorboard.plugins.hparams import api as hp
+## hparmas
+#HP_OPTMIZER = hp.HParam('optimizez',hp.Discrete())
+HP_LEARNINGRATE = hp.HParam('learning_rate',hp.Discrete([0,1, 0.01, 0.2]))
+HP_LAMBDA = hp.HParam('lmb',hp.Discrete([5e-4, 1e-4, 5e-5, 1e-5]))
+METRIC_ACCURACY = 'val_acc'
+
+
+#
 #global input_size
 #global input_size_pre_crop_ratio
 global model_name
@@ -99,6 +108,13 @@ import datasets
 
 # lr schedule
 
+
+## HParams
+with tf.summary.create_file_writer('logs/hparam_tuning').as_default():
+    hp.hparams_config(
+        hparams=[HP_LEARNINGRATE,HP_LAMBDA],
+        metrics=[hp.Metric(METRIC_ACCURACY,display_name='Accuracy')]
+    )
 
 
 # models
@@ -581,11 +597,13 @@ if train:
             best=best
         ),
         tf.keras.callbacks.TensorBoard(log_dir=path_tensorboard, update_freq='epoch'),
-        lib_snn.callbacks.ManageSavedModels(filepath=filepath)
+        lib_snn.callbacks.ManageSavedModels(filepath=filepath),
+        hp.KerasCallback('./hparams_test/',hparams)
     ]
 
     train_histories = model.fit(train_ds, epochs=epoch, initial_epoch=init_epoch, validation_data=valid_ds,
                                 callbacks=callbacks)
+
 else:
     print('Test mode')
     result = model.evaluate(valid_ds)
@@ -593,153 +611,6 @@ else:
 
     print(result)
 
-
-########################################
-#
-########################################
-
-assert False
-# set weights by layer from transfer learning model
-# keep
-if False:
-    model = model(input_shape=image_shape, conf=conf, include_top=include_top, weights=None, train=train,
-                  add_top=add_top, classes=num_class)
-    model.model.get_layer('conv1').set_weights(pre_model.get_layer('vgg16').get_layer('block1_conv1').get_weights())
-    model.model.get_layer('conv1_1').set_weights(pre_model.get_layer('vgg16').get_layer('block1_conv2').get_weights())
-    model.model.get_layer('conv2').set_weights(pre_model.get_layer('vgg16').get_layer('block2_conv1').get_weights())
-    model.model.get_layer('conv2_1').set_weights(pre_model.get_layer('vgg16').get_layer('block2_conv2').get_weights())
-    model.model.get_layer('conv3').set_weights(pre_model.get_layer('vgg16').get_layer('block3_conv1').get_weights())
-    model.model.get_layer('conv3_1').set_weights(pre_model.get_layer('vgg16').get_layer('block3_conv2').get_weights())
-    model.model.get_layer('conv3_2').set_weights(pre_model.get_layer('vgg16').get_layer('block3_conv3').get_weights())
-    model.model.get_layer('conv4').set_weights(pre_model.get_layer('vgg16').get_layer('block4_conv1').get_weights())
-    model.model.get_layer('conv4_1').set_weights(pre_model.get_layer('vgg16').get_layer('block4_conv2').get_weights())
-    model.model.get_layer('conv4_2').set_weights(pre_model.get_layer('vgg16').get_layer('block4_conv3').get_weights())
-    model.model.get_layer('conv5').set_weights(pre_model.get_layer('vgg16').get_layer('block5_conv1').get_weights())
-    model.model.get_layer('conv5_1').set_weights(pre_model.get_layer('vgg16').get_layer('block5_conv2').get_weights())
-    model.model.get_layer('conv5_2').set_weights(pre_model.get_layer('vgg16').get_layer('block5_conv3').get_weights())
-    w_bn_list = pre_model.get_layer('fc1').get_weights()
-    w_bn_list += pre_model.get_layer('batch_normalization').get_weights()
-    model.model.get_layer('fc1').set_weights(w_bn_list)
-    w_bn_list = pre_model.get_layer('fc2').get_weights()
-    w_bn_list += pre_model.get_layer('batch_normalization_1').get_weights()
-    model.model.get_layer('fc2').set_weights(w_bn_list)
-    model.model.get_layer('predictions').set_weights(pre_model.get_layer('predictions').get_weights())
-
-    model.compile(optimizer='adam',
-                 loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
-                 metrics=[metric_accuracy, metric_accuracy_top5],run_eagerly=True)
-
-    result = model.evaluate(valid_ds)
-
-
-
-
-assert False
-#assert False
-
-#
-#pretrained_model = model(input_shape=image_shape, conf=conf, include_top=False, weights='imagenet', train=train)
-#pretrained_model.trainable = False
-
-pretrained_model = VGG16_KERAS(input_shape=image_shape, conf=conf, include_top=False, weights=load_weight, classes=num_class)
-
-
-
-
-assert False
-model = tf.keras.Sequential()
-
-# train = True
-# data augmentation
-if train:
-    # model.add(tf.keras.layers.GaussianNoise(0.1))
-    model.add(tf.keras.layers.experimental.preprocessing.RandomZoom((-0.1, 0.1)))
-    model.add(tf.keras.layers.experimental.preprocessing.RandomRotation((-0.03, 0.03)))
-
-model.add(pretrained_model)
-model.add(tf.keras.layers.Flatten(name='vgg16/flatten'))
-model.add(tf.keras.layers.Dropout(0.5))
-model.add(tf.keras.layers.Dense(4096, activation='relu', kernel_regularizer=tf.keras.regularizers.L2(lmb), name='vgg16/fc1'))
-model.add(tf.keras.layers.BatchNormalization())
-model.add(tf.keras.layers.Dropout(0.5))
-model.add(tf.keras.layers.Dense(4096, activation='relu', kernel_regularizer=tf.keras.regularizers.L2(lmb), name='fc2'))
-model.add(tf.keras.layers.BatchNormalization())
-model.add(tf.keras.layers.Dropout(0.5))
-model.add(tf.keras.layers.Dense(10, activation='softmax', name='predictions'))
-
-model.load_weights(load_weight)
-
-
-assert False
-
-if train:
-    print('Train mode')
-    # remove dir - train model
-    if not load_model:
-        if overwrite_train_model:
-            if os.path.isdir(filepath):
-                shutil.rmtree(filepath)
-
-    # path_tensorboard = root_tensorboard+exp_set_name
-    # path_tensorboard = root_tensorboard+filepath
-    path_tensorboard = os.path.join(root_tensorboard, exp_set_name)
-    path_tensorboard = os.path.join(path_tensorboard, config_name)
-
-    if os.path.isdir(path_tensorboard):
-        date_cur = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M')
-        path_dest_tensorboard = path_tensorboard + '_' + date_cur
-        print('tensorboard data already exists')
-        print('move {} to {}'.format(path_tensorboard, path_dest_tensorboard))
-
-        shutil.move(path_tensorboard, path_dest_tensorboard)
-
-    #
-    if load_model:
-        print('Evaluate pretrained model')
-        assert monitor_cri == 'val_acc', 'currently only consider monitor criterion - val_acc'
-        idx_monitor_cri = model.metrics_names.index('acc')
-        result = model.evaluate(valid_ds)
-        best = result[idx_monitor_cri]
-        print('previous best result - {}'.format(best))
-    else:
-        best = None
-
-    #model.save_weights(filepath+'ep-1085',save_format='h5')
-
-    #model.trainable=True
-    #model.save_weights(filepath+'/test.h5',save_format='h5')
-    #assert False
-
-    #
-    callbacks = [
-        # tf.keras.callbacks.ModelCheckpoint(
-        lib_snn.callbacks.ModelCheckpointResume(
-            filepath=filepath + '/ep-{epoch:04d}',
-            save_weight_only=True,
-            save_best_only=True,
-            # monitor='val_acc',
-            monitor=monitor_cri,
-            # period=1,
-            verbose=1,
-            best=best
-        ),
-        tf.keras.callbacks.TensorBoard(log_dir=path_tensorboard, update_freq='epoch'),
-        lib_snn.callbacks.ManageSavedModels(filepath=filepath)
-    ]
-
-    train_histories = model.fit(train_ds, epochs=epoch, initial_epoch=init_epoch, validation_data=valid_ds,
-                                callbacks=callbacks)
-    # train_results = training_model.fit(train_ds,epochs=3,validation_data=valid_ds)
-
-    # assert False
-
-    # result = pretrained_model.evaluate(ds)
-else:
-    print('Test mode')
-    result = model.evaluate(valid_ds)
-    # result = model.predict(test_ds)
-
-    print(result)
 
 
 
