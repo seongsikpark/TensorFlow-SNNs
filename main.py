@@ -251,8 +251,8 @@ batch_size_train_sel = {
 # TODO:
 dataset_sel = {
     'ImageNet': datasets.imagenet,
-    'CIFAR10': datasets.cifar10,
-    'CIFAR100': datasets.cifar10,
+    'CIFAR10': datasets.cifar,
+    'CIFAR100': datasets.cifar,
 }
 
 
@@ -309,6 +309,8 @@ image_shape = (input_size, input_size, 3)
 #train_ds, valid_ds, test_ds = dataset.load(dataset_name,input_size,input_size_pre_crop_ratio,num_class,train,NUM_PARALLEL_CALL,conf,input_prec_mode)
 train_ds, valid_ds, test_ds, num_class = datasets.datasets.load(dataset_name,input_size,train_type,train,conf,NUM_PARALLEL_CALL)
 
+#assert False
+train_steps_per_epoch = train_ds.cardinality().numpy()
 
 # models
 model_sel_tr = {
@@ -485,14 +487,16 @@ if load_model:
 run_eagerly=False
 #run_eagerly=True
 
-lr_schedule_first_decay_step=100*10 # in iteration
+lr_schedule_first_decay_step=train_steps_per_epoch*10 # in iteration
+
 
 if lr_schedule=='COS':
-    learning_rate = tf.keras.optimizers.schedules.CosineDecay(learning_rate, 100 * 300)
+    learning_rate = tf.keras.optimizers.schedules.CosineDecay(learning_rate, train_steps_per_epoch*300)
 elif lr_schedule == 'COSR':
     learning_rate = tf.keras.optimizers.schedules.CosineDecayRestarts(learning_rate, lr_schedule_first_decay_step)
 elif lr_schedule == 'STEP':
-    learning_rate = lib_snn.optimizers.LRSchedule_step(learning_rate, 100*100, 0.1)
+    #learning_rate = lib_snn.optimizers.LRSchedule_step(learning_rate, 100*100, 0.1)
+    learning_rate = lib_snn.optimizers.LRSchedule_step(learning_rate, train_steps_per_epoch*100, 0.1)
 
 else:
     assert False
