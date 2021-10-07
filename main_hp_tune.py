@@ -584,7 +584,7 @@ if load_model:
     best = result[idx_monitor_cri]
     print('previous best result - {}'.format(best))
 else:
-    best = Non#e
+    best = None
 
 #model.save_weights(filepath+'ep-1085',save_format='h5')
 
