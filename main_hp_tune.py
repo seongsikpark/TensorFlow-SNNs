@@ -82,7 +82,8 @@ global model_name
 #NUM_PARALLEL_CALL = 7
 NUM_PARALLEL_CALL = 15
 
-
+# exp set name
+exp_set_name = 'HPTune-RS'
 
 #
 train=True
@@ -97,8 +98,10 @@ overwrite_train_model=False
 
 #epoch = 20000
 #epoch = 20472
-train_epoch = 300
+train_epoch = 500
 #train_epoch = 10
+
+#
 root_model = './models'
 
 # model
@@ -201,7 +204,7 @@ from models.resnet import ResNet152
 #tf.config.functions_run_eagerly()
 
 #
-gpu_number=0
+gpu_number=1
 os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
 
 # TODO: gpu mem usage - parameterize
@@ -426,11 +429,13 @@ metric_accuracy_top5.name = metric_name_acc_top5
 
 batch_size = batch_size_train
 
-
 # TODO: configuration & file naming
-exp_set_name = model_name + '_' + dataset_name
+#exp_set_name = model_name + '_' + dataset_name
+model_dataset_name = model_name + '_' + dataset_name
+
 # dir_model = './'+exp_set_name
-dir_model = os.path.join(root_model, exp_set_name)
+#dir_model = os.path.join(root_model, exp_set_name)
+dir_model = os.path.join(root_model, model_dataset_name)
 
 
 # TODO: functionalize
@@ -565,6 +570,7 @@ if not load_model:
 # path_tensorboard = root_tensorboard+exp_set_name
 # path_tensorboard = root_tensorboard+filepath
 path_tensorboard = os.path.join(root_tensorboard, exp_set_name)
+path_tensorboard = os.path.join(path_tensorboard, model_dataset_name)
 path_tensorboard = os.path.join(path_tensorboard, config_name)
 
 if os.path.isdir(path_tensorboard):

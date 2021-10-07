@@ -43,6 +43,7 @@ dataset_name = 'CIFAR10'
 
 #
 learning_rate = 0.1
+learning_rate = 0.01
 #learning_rate = 0.01
 
 #
@@ -126,7 +127,7 @@ from models.resnet import ResNet152
 #tf.config.functions_run_eagerly()
 
 #
-gpu_number=0
+gpu_number=1
 os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
 
 # TODO: gpu mem usage - parameterize
