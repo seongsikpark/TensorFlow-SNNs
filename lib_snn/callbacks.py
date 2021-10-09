@@ -57,7 +57,13 @@ class ModelCheckpointResume(tf.keras.callbacks.ModelCheckpoint):
                 save_freq = 'epoch',
                 options = None,
                 best = None,
+                tensorboard_writer = None,
+                log_dir = None,
                 ** kwargs):
+
+        if save_freq is not 'epoch':
+            assert False, 'only supported save_freq=epoch'
+
         super(ModelCheckpointResume, self).__init__(
             filepath=filepath,
             monitor=monitor,
@@ -72,6 +78,56 @@ class ModelCheckpointResume(tf.keras.callbacks.ModelCheckpoint):
         if best is not None:
             self.best = best
 
-        print('ModelCheckpointResume - init - previous best: '.format(self.best))
+        #tf.summary.create_file_writer()
+
+        #print('ModelCheckpointResume - init - previous best: '.format(self.best))
 
 
+    # from keras.callbacks.ModelCheckpoint
+    def on_epoch_end(self, epoch, logs=None):
+
+        super(ModelCheckpointResume, self).on_epoch_end(epoch=epoch,logs=logs)
+
+        #print(self.best)
+        #tf.summary.scalar('best_acc_val', data=self.best, step=epoch)
+        logs['best_acc_val'] = self.best
+
+
+#
+class TensorboardBestValAcc(tf.keras.callbacks.Callback):
+    def __init__(self,
+                 best_val_acc,
+                 **kwargs):
+
+        self.best_val_acc = best_val_acc
+        super(TensorboardBestValAcc, self).__init__(**kwargs)
+
+    def on_epoch_begin(self, epoch, logs=None):
+        print('on_epoch_begin')
+        print(logs)
+
+    def on_epoch_end(self, epoch, logs=None):
+        print('best val_acc')
+        #print(cb_model_checkpoint.best)
+        print(self.best_val_acc)
+        print(logs)
+
+
+
+
+
+########
+# callback test
+class CallbackTest(tf.keras.callbacks.Callback):
+    def __init__(self,
+                 **kwargs):
+        super(CallbackTest, self).__init__(
+            **kwargs)
+
+    def on_epoch_begin(self, epoch, logs=None):
+        print('on_epoch_begin')
+        print(logs)
+
+    def on_epoch_end(self, epoch, logs=None):
+        print('on_epoch_begin')
+        print(logs)

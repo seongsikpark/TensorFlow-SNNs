@@ -242,7 +242,7 @@ tf.compat.v1.app.flags.DEFINE_bool("en_tensorboard_write", False, "Tensorboard w
 ########################################
 
 # common
-tf.compat.v1.app.flags.DEFINE_integer('batch_size', 100, '')
+tf.compat.v1.app.flags.DEFINE_integer('batch_size', 500, '')
 tf.compat.v1.app.flags.DEFINE_string('regularizer', 'L2', 'L2 or L1 regularizer')
 # l2 norm
 tf.compat.v1.app.flags.DEFINE_float('lmb',5.0E-5, 'lambda')

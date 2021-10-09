@@ -83,7 +83,8 @@ global model_name
 NUM_PARALLEL_CALL = 15
 
 # exp set name
-exp_set_name = 'HPTune-RS'
+#exp_set_name = 'HPTune-RS'
+exp_set_name = 'HPTune-TEST'
 
 #
 train=True
@@ -98,8 +99,8 @@ overwrite_train_model=False
 
 #epoch = 20000
 #epoch = 20472
-train_epoch = 500
-#train_epoch = 10
+#train_epoch = 300
+train_epoch = 1
 
 #
 root_model = './models'
@@ -144,6 +145,7 @@ import tensorflow as tf
 # HP tune
 #import kerastuner as kt
 import keras_tuner as kt
+#import tensorboard.plugins.hparams import api as hp
 
 
 
@@ -204,7 +206,7 @@ from models.resnet import ResNet152
 #tf.config.functions_run_eagerly()
 
 #
-gpu_number=1
+gpu_number=0
 os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
 
 # TODO: gpu mem usage - parameterize
@@ -542,14 +544,15 @@ else:
 model_top_glb = model_top
 
 #tuner = kt.Hyperband(model_builder,
-tuner=kt.RandomSearch(model_builder,
+#tuner=kt.RandomSearch(model_builder,
+tuner=lib_snn.hp_tune.GridSearch(model_builder,
                      objective='val_acc',
-                     max_trials=12,
+                     #max_trials=12,
                      #max_epochs = 300,
                      #factor=3,
-                     #overwrite=True,
+                     overwrite=True,
                      directory='Keras_Tune',
-                     project_name='keras_tune_random',
+                     project_name='Grid',
                      #directory='test_hp_dir',
                      #project_name='test_hp')
                       )
@@ -599,25 +602,40 @@ else:
 #assert False
 
 #
+#with tf.summary.create_file_writer('path_tensorboard/hptune').as_default():
+    #hp.hparams_config(
+        #hparams
+    #)
+
+
+########
+# Callbacks
+########
+# model checkpoint save and resume
+cb_model_checkpoint = lib_snn.callbacks.ModelCheckpointResume(
+    # filepath=filepath + '/ep-{epoch:04d}',
+    # filepath=filepath + '/ep-{epoch:04d}.ckpt',
+    filepath=filepath + '/ep-{epoch:04d}.hdf5',
+    save_weight_only=True,
+    save_best_only=True,
+    monitor=monitor_cri,
+    verbose=1,
+    best=best,
+    log_dir=path_tensorboard,
+    # tensorboard_writer=cb_tensorboard._writers['train']
+)
+
+cb_tensorboard = tf.keras.callbacks.TensorBoard(log_dir=path_tensorboard, update_freq='epoch')
+cb_manage_saved_model = lib_snn.callbacks.ManageSavedModels(filepath=filepath)
+
+#
 callbacks = [
-    # tf.keras.callbacks.ModelCheckpoint(
-    lib_snn.callbacks.ModelCheckpointResume(
-        #filepath=filepath + '/ep-{epoch:04d}',
-        #filepath=filepath + '/ep-{epoch:04d}.ckpt',
-        filepath=filepath + '/ep-{epoch:04d}.hdf5',
-        save_weight_only=True,
-        #save_weight_only=False,
-        save_best_only=True,
-        # monitor='val_acc',
-        monitor=monitor_cri,
-        # period=1,
-        verbose=1,
-        best=best
-    ),
-    tf.keras.callbacks.TensorBoard(log_dir=path_tensorboard, update_freq='epoch'),
-    lib_snn.callbacks.ManageSavedModels(filepath=filepath)
+    cb_model_checkpoint,
+    cb_tensorboard,
+    cb_manage_saved_model
 ]
 
+#
 tuner.search(train_ds, epochs=train_epoch, initial_epoch=init_epoch, validation_data=valid_ds,
              callbacks=callbacks)
 
