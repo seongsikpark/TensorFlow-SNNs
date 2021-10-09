@@ -12,11 +12,13 @@ def model_builder(hp):
     # model_top = model_top(input_shape=image_shape, conf=conf, include_top=include_top,
     # weights=load_weight, classes=num_class, n_dim_classifier=n_dim_classifier,name=model_name)
 
-    hp_lmb = hp.Choice('lmb', values = [5e-4, 1e-4, 5e-5, 1e-5])
-    hp_learning_rate = hp.Choice('learning_rate', values = [0.1, 0.01, 0.2])
+    #hp_lmb = hp.Choice('lmb', values = [5e-4, 1e-4, 5e-5, 1e-5])
+    hp_lmb = hp.Choice('lmb', values = [5e-4, 1e-4])
+    hp_learning_rate = hp.Choice('learning_rate', values = [0.1, 0.2])
+    hp_initial_channels = hp.Choice('initial_channel', values = [16, 64])
 
     model_top = model_top_glb(input_shape=image_shape, conf=conf, include_top=include_top,
-                              weights=load_weight, classes=num_class, name=model_name, lmb=hp_lmb)
+                              weights=load_weight, classes=num_class, name=model_name, lmb=hp_lmb, initial_channels=hp_initial_channels)
 
     # model = model(input_shape=image_shape, conf=conf, include_top=False, weights=load_weight, train=train, add_top=True)
     # model = model(input_shape=image_shape, conf=conf, include_top=include_top, train=train, add_top=add_top)
@@ -80,11 +82,40 @@ global model_name
 
 # Parallel CPU
 #NUM_PARALLEL_CALL = 7
-NUM_PARALLEL_CALL = 15
+#NUM_PARALLEL_CALL = 15
+
+
+# GPU setting
+#
+GPU_NUMBER=0
+
+GPU_PARALLEL_RUN = 1
+#GPU_PARALLEL_RUN = 2
+#GPU_PARALLEL_RUN = 3
+
+# RTX3090
+if GPU_PARALLEL_RUN == 1:
+    gpu_mem = -1
+    NUM_PARALLEL_CALL = 15
+elif GPU_PARALLEL_RUN == 2:
+    gpu_mem = 10240
+    NUM_PARALLEL_CALL = 7
+elif GPU_PARALLEL_RUN == 3:
+    gpu_mem = 6144
+    NUM_PARALLEL_CALL = 5
+else:
+    assert False
+
+
 
 # exp set name
 #exp_set_name = 'HPTune-RS'
-exp_set_name = 'HPTune-TEST'
+#exp_set_name = 'HPTune-TEST'
+#exp_set_name = 'HPTune-GRID'
+exp_set_name = 'HPTune-GRID'
+
+# hyperparamter tune mode
+f_hp_tune = True
 
 #
 train=True
@@ -99,18 +130,24 @@ overwrite_train_model=False
 
 #epoch = 20000
 #epoch = 20472
-#train_epoch = 300
-train_epoch = 1
+train_epoch = 300
+#train_epoch = 1
+
+#
+root_hp_tune = './hp_tune'
 
 #
 root_model = './models'
 
 # model
-model_name = 'VGG16'
+#model_name = 'VGG16'
 model_name = 'ResNet18'
-model_name = 'ResNet20'
+#model_name = 'ResNet20'
+#model_name = 'ResNet32'
 #model_name = 'ResNet34'
 #model_name = 'ResNet50'
+#model_name = 'ResNet18V2'
+#model_name = 'ResNet20V2'
 
 # dataset
 dataset_name = 'CIFAR10'
@@ -188,10 +225,13 @@ from models.vgg16_tr import VGG16_TR
 from models.vgg16 import VGG16
 from models.resnet import ResNet18
 from models.resnet import ResNet20
+from models.resnet import ResNet32
 from models.resnet import ResNet34
 from models.resnet import ResNet50
 from models.resnet import ResNet101
 from models.resnet import ResNet152
+from models.resnet import ResNet18V2
+from models.resnet import ResNet20V2
 #from tensorflow.keras.applications.vgg16 import VGG16
 
 
@@ -205,17 +245,15 @@ from models.resnet import ResNet152
 #
 #tf.config.functions_run_eagerly()
 
-#
-gpu_number=0
-os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
+
+os.environ["CUDA_VISIBLE_DEVICES"]=str(GPU_NUMBER)
 
 # TODO: gpu mem usage - parameterize
 # GPU mem usage
 #if False:
-#gpu_mem = 6144
-gpu_mem = 10240
-if False:
+#if False:
 #if True:
+if gpu_mem != -1:
     gpu = tf.config.experimental.list_physical_devices('GPU')
     if gpu:
         try:
@@ -290,6 +328,8 @@ assert conf.data_format == 'channels_last', 'not support "{}", only support chan
 ########################################
 # DO NOT TOUCH
 ########################################
+
+
 # data augmentation - mix
 
 
@@ -402,10 +442,13 @@ model_sel_sc = {
     'VGG16': VGG16,
     'ResNet18': ResNet18,
     'ResNet20': ResNet20,
+    'ResNet32': ResNet32,
     'ResNet34': ResNet34,
     'ResNet50': ResNet50,
     'ResNet101': ResNet101,
     'ResNet152': ResNet152,
+    'ResNet18V2': ResNet18V2,
+    'ResNet20V2': ResNet20V2,
 }
 
 
@@ -431,6 +474,10 @@ metric_accuracy_top5.name = metric_name_acc_top5
 
 batch_size = batch_size_train
 
+################
+# name set
+################
+
 # TODO: configuration & file naming
 #exp_set_name = model_name + '_' + dataset_name
 model_dataset_name = model_name + '_' + dataset_name
@@ -440,13 +487,16 @@ model_dataset_name = model_name + '_' + dataset_name
 dir_model = os.path.join(root_model, model_dataset_name)
 
 
+# hyperparameter tune name
+hp_tune_name = exp_set_name+'_'+model_dataset_name+'_ep-'+str(train_epoch)
+
 # TODO: functionalize
 # file_name='checkpoint-epoch-{}-batch-{}.h5'.format(epoch,batch_size)
 # config_name='ep-{epoch:04d}_bat-{}_lmb-{:.1E}'.format(batch_size,lmb)
 # config_name='bat-{}_lmb-{:.1E}'.format(batch_size,lmb)
 
 #config_name = 'bat-{}_opt-{}_lr-{:.0E}_lmb-{:.0E}'.format(batch_size,opt,learning_rate,lmb)
-config_name = 'bat-{}_opt-{}_lr-{}-{:.0E}_lmb-{:.0E}'.format(batch_size,opt,lr_schedule,learning_rate,lmb)
+config_name = 'ep-{}_bat-{}_opt-{}_lr-{}-{:.0E}_lmb-{:.0E}'.format(train_epoch,batch_size,opt,lr_schedule,learning_rate,lmb)
 
 #config_name = 'bat-{}_lmb-{:.0E}'.format(batch_size, lmb)
 #config_name = 'bat-512_lmb-{:.1E}'.format(lmb)
@@ -551,8 +601,8 @@ tuner=lib_snn.hp_tune.GridSearch(model_builder,
                      #max_epochs = 300,
                      #factor=3,
                      overwrite=True,
-                     directory='Keras_Tune',
-                     project_name='Grid',
+                     directory=root_hp_tune,
+                     project_name=hp_tune_name,
                      #directory='test_hp_dir',
                      #project_name='test_hp')
                       )
@@ -572,9 +622,14 @@ if not load_model:
 
 # path_tensorboard = root_tensorboard+exp_set_name
 # path_tensorboard = root_tensorboard+filepath
-path_tensorboard = os.path.join(root_tensorboard, exp_set_name)
-path_tensorboard = os.path.join(path_tensorboard, model_dataset_name)
-path_tensorboard = os.path.join(path_tensorboard, config_name)
+
+if f_hp_tune:
+    path_tensorboard = os.path.join(root_tensorboard, hp_tune_name)
+
+else:
+    path_tensorboard = os.path.join(root_tensorboard, exp_set_name)
+    path_tensorboard = os.path.join(path_tensorboard, model_dataset_name)
+    path_tensorboard = os.path.join(path_tensorboard, config_name)
 
 if os.path.isdir(path_tensorboard):
     date_cur = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M')

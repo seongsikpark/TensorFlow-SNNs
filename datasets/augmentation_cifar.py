@@ -54,7 +54,7 @@ def get_box(lambda_value,input_size):
     return boundaryx1, boundaryy1, target_w, target_h
 
 #
-def eager_cutmix(ds_one, ds_two, alpha=0.2):
+def eager_cutmix(ds_one, ds_two, alpha=1.0):
     return tf.py_function(mixup, [ds_one, ds_two, alpha],[tf.float32,tf.float32])
 
 #
@@ -107,7 +107,7 @@ def cutmix(train_ds_one, train_ds_two, input_size, input_size_pre_crop_ratio, nu
 # mixup data augmentation
 # from keras.io
 
-def eager_mixup(ds_one, ds_two, alpha=0.2):
+def eager_mixup(ds_one, ds_two, alpha=1.0):
     return tf.py_function(mixup, [ds_one, ds_two, alpha],[tf.float32,tf.float32])
     #return tf.py_function(mixup, [ds_one, ds_two, alpha],[tf.uint8,tf.uint8,tf.int64),tf.float32])
     #return tf.py_function(mixup, [ds_one, ds_two, alpha],[(tf.uint8,tf.int64),(tf.uint8,tf.int64),tf.float32])
