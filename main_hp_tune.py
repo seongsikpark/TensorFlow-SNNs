@@ -13,14 +13,23 @@ def model_builder(hp):
     # weights=load_weight, classes=num_class, n_dim_classifier=n_dim_classifier,name=model_name)
 
     #hp_lmb = hp.Choice('lmb', values = [5e-4, 1e-4, 5e-5, 1e-5])
-    hp_lmb = hp.Choice('lmb', values = [5e-4, 1e-4])
+
+    dataset_name_list = [dataset_name]
+    model_name_list = [model_name]
+
+
+    hp_dataset= hp.Choice('dataset', values=dataset_name_list)
+    hp_model= hp.Choice('model', values=model_name_list)
+
+    hp_lmb = hp.Choice('lmb', values = [5e-4, 1e-4, 5e-5])
     hp_learning_rate = hp.Choice('learning_rate', values = [0.1, 0.2])
-    hp_initial_channels = hp.Choice('initial_channel', values = [16, 64])
+    #hp_initial_channels = hp.Choice('initial_channel', values = [64])
 
     model_top = model_top_glb(input_shape=image_shape, conf=conf, include_top=include_top,
-                              weights=load_weight, classes=num_class, name=model_name, lmb=hp_lmb, initial_channels=hp_initial_channels)
+                              #weights=load_weight, classes=num_class, name=model_name, lmb=hp_lmb, initial_channels=hp_initial_channels)
+                              weights=load_weight, classes=num_class, name=model_name, lmb=hp_lmb)
 
-    # model = model(input_shape=image_shape, conf=conf, include_top=False, weights=load_weight, train=train, add_top=True)
+                              # model = model(input_shape=image_shape, conf=conf, include_top=False, weights=load_weight, train=train, add_top=True)
     # model = model(input_shape=image_shape, conf=conf, include_top=include_top, train=train, add_top=add_top)
     # pretrained_model = model(input_shape=image_shape, include_top=include_top, weights='imagenet',classifier_activation=None)
     # pretrained_model = VGG16(include_top=True, weights='imagenet')
@@ -41,7 +50,7 @@ def model_builder(hp):
         learning_rate = tf.keras.optimizers.schedules.CosineDecayRestarts(hp_learning_rate, lr_schedule_first_decay_step)
     elif lr_schedule == 'STEP':
         # learning_rate = lib_snn.optimizers.LRSchedule_step(learning_rate, 100*100, 0.1)
-        learning_rate = lib_snn.optimizers.LRSchedule_step(hp_learning_rate, train_steps_per_epoch * 100, 0.1)
+        learning_rate = lib_snn.optimizers.LRSchedule_step(hp_learning_rate, train_steps_per_epoch * step_decay_epoch, 0.1)
     elif lr_schedule == 'STEP_WUP':
         learning_rate = lib_snn.optimizers.LRSchedule_step_wup(hp_learning_rate, train_steps_per_epoch * 100, 0.1,
                                                                train_steps_per_epoch * 30)
@@ -133,6 +142,10 @@ overwrite_train_model=False
 train_epoch = 300
 #train_epoch = 1
 
+
+# learning rate schedule - step_decay
+step_decay_epoch = 100
+
 #
 root_hp_tune = './hp_tune'
 
@@ -140,8 +153,8 @@ root_hp_tune = './hp_tune'
 root_model = './models'
 
 # model
-#model_name = 'VGG16'
-model_name = 'ResNet18'
+model_name = 'VGG16'
+#model_name = 'ResNet18'
 #model_name = 'ResNet20'
 #model_name = 'ResNet32'
 #model_name = 'ResNet34'
@@ -162,8 +175,8 @@ learning_rate = 0.1
 opt='SGD'
 
 #
-lr_schedule = 'COS'     # COSine
-#lr_schedule = 'COSR'    # COSine with Restart
+#lr_schedule = 'COS'     # COSine
+lr_schedule = 'COSR'    # COSine with Restart
 #lr_schedule = 'STEP'    # STEP wise
 #lr_schedule = 'STEP_WUP'    # STEP wise, warmup
 
@@ -221,18 +234,20 @@ import datasets
 # models
 #from models.vgg16 import VGG16
 from models.vgg16_keras_toh5 import VGG16 as VGG16_KERAS
-from models.vgg16_tr import VGG16_TR
-from models.vgg16 import VGG16
-from models.resnet import ResNet18
-from models.resnet import ResNet20
-from models.resnet import ResNet32
-from models.resnet import ResNet34
-from models.resnet import ResNet50
-from models.resnet import ResNet101
-from models.resnet import ResNet152
-from models.resnet import ResNet18V2
-from models.resnet import ResNet20V2
-#from tensorflow.keras.applications.vgg16 import VGG16
+
+#from models.vgg16_tr import VGG16_TR
+#from models.vgg16 import VGG16
+#from models.resnet import ResNet18
+#from models.resnet import ResNet20
+#from models.resnet import ResNet32
+#from models.resnet import ResNet34
+#from models.resnet import ResNet50
+#from models.resnet import ResNet101
+#from models.resnet import ResNet152
+#from models.resnet import ResNet18V2
+#from models.resnet import ResNet20V2
+
+from models.models import model_sel
 
 
 #
@@ -433,23 +448,23 @@ train_ds, valid_ds, test_ds, num_class = datasets.datasets.load(dataset_name,inp
 #assert False
 train_steps_per_epoch = train_ds.cardinality().numpy()
 
-# models
-model_sel_tr = {
-    'VGG16': VGG16_TR,
-}
-
-model_sel_sc = {
-    'VGG16': VGG16,
-    'ResNet18': ResNet18,
-    'ResNet20': ResNet20,
-    'ResNet32': ResNet32,
-    'ResNet34': ResNet34,
-    'ResNet50': ResNet50,
-    'ResNet101': ResNet101,
-    'ResNet152': ResNet152,
-    'ResNet18V2': ResNet18V2,
-    'ResNet20V2': ResNet20V2,
-}
+## models
+#model_sel_tr = {
+    #'VGG16': VGG16_TR,
+#}
+#
+#model_sel_sc = {
+    #'VGG16': VGG16,
+    #'ResNet18': ResNet18,
+    #'ResNet20': ResNet20,
+    #'ResNet32': ResNet32,
+    #'ResNet34': ResNet34,
+    #'ResNet50': ResNet50,
+    #'ResNet101': ResNet101,
+    #'ResNet152': ResNet152,
+    #'ResNet18V2': ResNet18V2,
+    #'ResNet20V2': ResNet20V2,
+#}
 
 
 
@@ -535,6 +550,8 @@ filepath = os.path.join(dir_model, config_name)
 #
 ########################################
 
+model_top = model_sel(model_name,train_type)
+
 if load_model:
     # get latest saved model
     #latest_model = lib_snn.util.get_latest_saved_model(filepath)
@@ -563,26 +580,26 @@ if load_model:
     include_top = True
     add_top = False
 
-    if train_type == 'transfer':
-        model_top = model_sel_tr[model_name]
-    elif train_type == 'scratch':
-        model_top = model_sel_sc[model_name]
-    else:
-        assert False
+    #if train_type == 'transfer':
+        #model_top = model_sel_tr[model_name]
+    #elif train_type == 'scratch':
+        #model_top = model_sel_sc[model_name]
+    #else:
+        #assert False
 else:
     if train_type == 'transfer':
         load_weight = 'imagenet'
         include_top = False
         add_top = True
 
-        model_top = model_sel_tr[model_name]
+        #model_top = model_sel_tr[model_name]
 
     elif train_type == 'scratch':
         load_weight = None
         include_top = True
         add_top = False
 
-        model_top = model_sel_sc[model_name]
+        #model_top = model_sel_sc[model_name]
     else:
         assert False
 

@@ -50,7 +50,8 @@ class VGG16(lib_snn.model.Model):
         n_dim_classifer = kwargs.pop('n_dim_classifier', None)
 
         if n_dim_classifer is None:
-            n_dim_classifer = (4096, 4096)
+            #n_dim_classifer = (4096, 4096)
+            n_dim_classifer = (512, 512)
 
 
         #
