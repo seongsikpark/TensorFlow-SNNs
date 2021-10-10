@@ -16,10 +16,13 @@ def model_builder(hp):
 
     dataset_name_list = [dataset_name]
     model_name_list = [model_name]
-
+    optimizer_list = [opt]
+    lr_schedule_list = [lr_schedule]
 
     hp_dataset= hp.Choice('dataset', values=dataset_name_list)
     hp_model= hp.Choice('model', values=model_name_list)
+    hp_optimizer = hp.Choice('optimizer', values=optimizer_list)
+    hp_lr_schedule = hp.Choice('lr_schedule', values=lr_schedule_list)
 
     hp_lmb = hp.Choice('lmb', values = [5e-4, 1e-4, 5e-5])
     hp_learning_rate = hp.Choice('learning_rate', values = [0.1, 0.2])
@@ -176,8 +179,8 @@ opt='SGD'
 
 #
 #lr_schedule = 'COS'     # COSine
-lr_schedule = 'COSR'    # COSine with Restart
-#lr_schedule = 'STEP'    # STEP wise
+#lr_schedule = 'COSR'    # COSine with Restart
+lr_schedule = 'STEP'    # STEP wise
 #lr_schedule = 'STEP_WUP'    # STEP wise, warmup
 
 
