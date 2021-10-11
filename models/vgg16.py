@@ -1,5 +1,7 @@
 import tensorflow as tf
 
+from tensorflow.python.keras.engine import training
+
 #
 import lib_snn
 
@@ -18,111 +20,86 @@ class VGG16(lib_snn.model.Model):
         pooling=None,
         classes=1000,
         classifier_activation='softmax',
+        model_name = 'VGG16',
         **kwargs):
-        #train=False,
-        #add_top=False):
 
         data_format = conf.data_format
 
-
         lib_snn.model.Model.__init__(self, input_shape, data_format, classes, conf)
-        #lib_snn.layers.Layer.__init__(self, input_shape, data_format, conf)
-        #tf.keras.layers.Layer.__init__(self,name='')
 
         #
-        self.kernel_size = 3
-
-        padding = 'SAME'
-        #act_relu=tf.nn.relu
-        #act_relu=tf.keras.layers.ReLU()
-        #act_sm = tf.keras.layers.Softmax()
         act_relu = 'relu'
         act_sm = 'softmax'
 
-
         #
-        #self.dropout_conv = tf.keras.layers.Dropout(0.3)
-        #self.dropout_conv2 = tf.keras.layers.Dropout(0.4)
-        #self.dropout = tf.keras.layers.Dropout(0.5)
         self.dropout_conv_r = [0.3,0.4,0.5]
 
         #
-        n_dim_classifer = kwargs.pop('n_dim_classifier', None)
-
-        if n_dim_classifer is None:
-            #n_dim_classifer = (4096, 4096)
-            n_dim_classifer = (512, 512)
-
+        initial_channels = kwargs.pop('initial_channels', None)
+        assert initial_channels is not None
 
         #
-        self.model = tf.keras.Sequential()
-
-        #use_bn_feat = False
         use_bn_feat = True
         use_bn_cls = True
 
-        #if train:
-            #self.model.add(tf.keras.layers.experimental.preprocessing.RandomZoom((-0.1, 0.1)))
-            #self.model.add(tf.keras.layers.experimental.preprocessing.RandomRotation((-0.03, 0.03)))
+        #
+        channels = initial_channels
 
-        self.model.add(lib_snn.layers.InputLayer(input_shape=input_shape,batch_size=conf.batch_size,name='in'))
-        self.model.add(lib_snn.layers.InputGenLayer())
-        #self.model.add(lib_snn.layers.InputLayer(input_shape=input_shape,name='in'))
-        self.model.add(lib_snn.layers.Conv2D(64,self.kernel_size,padding=padding,
-                                             activation=act_relu,use_bn=use_bn_feat,name='conv1'))
-        self.model.add(tf.keras.layers.Dropout(self.dropout_conv_r[0],name='conv1_do'))
-        self.model.add(lib_snn.layers.Conv2D(64,self.kernel_size,padding=padding,
-                                             activation=act_relu,use_bn=use_bn_feat,name='conv1_1'))
-        self.model.add(lib_snn.layers.MaxPool2D((2,2),(2,2),name='conv1_p'))
+        img_input = tf.keras.layers.Input(shape=input_shape)
+        #x = img_input
+        x = lib_snn.layers.InputGenLayer(name='in') (img_input)
 
-        self.model.add(lib_snn.layers.Conv2D(128,self.kernel_size,padding=padding,
-                                             activation=act_relu,use_bn=use_bn_feat,name='conv2'))
-        self.model.add(tf.keras.layers.Dropout(self.dropout_conv_r[0],name='conv2_do'))
-        self.model.add(lib_snn.layers.Conv2D(128,self.kernel_size,padding=padding,
-                                             activation=act_relu,use_bn=use_bn_feat,name='conv2_1'))
-        self.model.add(lib_snn.layers.MaxPool2D((2,2),(2,2),name='conv2_p'))
+        #
+        x = lib_snn.layers.Conv2D(channels,3, padding='SAME', activation=act_relu,use_bn=use_bn_feat,name='conv1') (x)
+        x = tf.keras.layers.Dropout(self.dropout_conv_r[0],name='conv1_do') (x)
+        x = lib_snn.layers.Conv2D(channels,3, padding='SAME', activation=act_relu,use_bn=use_bn_feat,name='conv1_1') (x)
+        x = lib_snn.layers.MaxPool2D((2,2),(2,2),name='conv1_p') (x)
 
-        self.model.add(lib_snn.layers.Conv2D(256,self.kernel_size,padding=padding,
-                                             activation=act_relu,use_bn=use_bn_feat,name='conv3'))
-        self.model.add(tf.keras.layers.Dropout(self.dropout_conv_r[1],name='conv3_do'))
-        self.model.add(lib_snn.layers.Conv2D(256,self.kernel_size,padding=padding,
-                                             activation=act_relu,use_bn=use_bn_feat,name='conv3_1'))
-        self.model.add(tf.keras.layers.Dropout(self.dropout_conv_r[1],name='conv3_1_do'))
-        self.model.add(lib_snn.layers.Conv2D(256,self.kernel_size,padding=padding,
-                                             activation=act_relu,use_bn=use_bn_feat,name='conv3_2'))
-        self.model.add(lib_snn.layers.MaxPool2D((2,2),(2,2),name='conv3_p'))
+        #
+        channels = channels*2
+        x = lib_snn.layers.Conv2D(channels,3, padding='SAME', activation=act_relu,use_bn=use_bn_feat,name='conv2') (x)
+        x = tf.keras.layers.Dropout(self.dropout_conv_r[0],name='conv2_do') (x)
+        x = lib_snn.layers.Conv2D(channels,3, padding='SAME', activation=act_relu,use_bn=use_bn_feat,name='conv2_1') (x)
+        x = lib_snn.layers.MaxPool2D((2,2),(2,2),name='conv2_p') (x)
 
-        self.model.add(lib_snn.layers.Conv2D(512,self.kernel_size,padding=padding,
-                                             activation=act_relu,use_bn=use_bn_feat,name='conv4'))
-        self.model.add(tf.keras.layers.Dropout(self.dropout_conv_r[1],name='conv4_do'))
-        self.model.add(lib_snn.layers.Conv2D(512,self.kernel_size,padding=padding,
-                                             activation=act_relu,use_bn=use_bn_feat,name='conv4_1'))
-        self.model.add(tf.keras.layers.Dropout(self.dropout_conv_r[1],name='conv4_1_do'))
-        self.model.add(lib_snn.layers.Conv2D(512,self.kernel_size,padding=padding,
-                                             activation=act_relu,use_bn=use_bn_feat,name='conv4_2'))
-        self.model.add(lib_snn.layers.MaxPool2D((2,2),(2,2),name='conv4_p'))
+        #
+        channels = channels*2
+        x = lib_snn.layers.Conv2D(channels,3, padding='SAME', activation=act_relu,use_bn=use_bn_feat,name='conv3') (x)
+        x = tf.keras.layers.Dropout(self.dropout_conv_r[1],name='conv3_do') (x)
+        x = lib_snn.layers.Conv2D(channels,3, padding='SAME', activation=act_relu,use_bn=use_bn_feat,name='conv3_1') (x)
+        x = tf.keras.layers.Dropout(self.dropout_conv_r[1],name='conv3_1_do') (x)
+        x = lib_snn.layers.Conv2D(channels,3, padding='SAME', activation=act_relu,use_bn=use_bn_feat,name='conv3_2') (x)
+        x = lib_snn.layers.MaxPool2D((2,2),(2,2),name='conv3_p') (x)
 
-        self.model.add(lib_snn.layers.Conv2D(512,self.kernel_size,padding=padding,
-                                             activation=act_relu,use_bn=use_bn_feat,name='conv5'))
-        self.model.add(tf.keras.layers.Dropout(self.dropout_conv_r[1],name='conv5_do'))
-        self.model.add(lib_snn.layers.Conv2D(512,self.kernel_size,padding=padding,
-                                             activation=act_relu,use_bn=use_bn_feat,name='conv5_1'))
-        self.model.add(tf.keras.layers.Dropout(self.dropout_conv_r[1],name='conv5_1_do'))
-        self.model.add(lib_snn.layers.Conv2D(512,self.kernel_size,padding=padding,
-                                             activation=act_relu,use_bn=use_bn_feat,name='conv5_2'))
-        self.model.add(lib_snn.layers.MaxPool2D((2,2),(2,2),name='conv5_p'))
+        #
+        channels = channels * 2
+        x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, name='conv4')(x)
+        x = tf.keras.layers.Dropout(self.dropout_conv_r[1], name='conv4_do')(x)
+        x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, name='conv4_1')(x)
+        x = tf.keras.layers.Dropout(self.dropout_conv_r[1], name='conv4_1_do')(x)
+        x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, name='conv4_2')(x)
+        x = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='conv4_p') (x)
 
-        self.model.add(tf.keras.layers.Flatten(data_format=data_format))
-        self.model.add(tf.keras.layers.Dropout(self.dropout_conv_r[2],name='flatten_do'))
-        #self.model.add(lib_snn.layers.Dense(4096,activation=act_relu,use_bn=use_bn_cls,name='fc1'))
-        #self.model.add(lib_snn.layers.Dense(512,activation=act_relu,use_bn=use_bn_cls,name='fc1'))
-        self.model.add(lib_snn.layers.Dense(n_dim_classifer[0],activation=act_relu,use_bn=use_bn_cls,name='fc1'))
-        self.model.add(tf.keras.layers.Dropout(self.dropout_conv_r[2],name='fc1_do'))
-        #self.model.add(lib_snn.layers.Dense(4096,activation=act_relu,use_bn=use_bn_cls,name='fc2'))
-        #self.model.add(lib_snn.layers.Dense(512,activation=act_relu,use_bn=use_bn_cls,name='fc2'))
-        self.model.add(lib_snn.layers.Dense(n_dim_classifer[1],activation=act_relu,use_bn=use_bn_cls,name='fc2'))
-        self.model.add(tf.keras.layers.Dropout(self.dropout_conv_r[2],name='fc2_do'))
-        self.model.add(lib_snn.layers.Dense(classes,activation=act_sm,use_bn=False,name='predictions'))
+        #
+        x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, name='conv5')(x)
+        x = tf.keras.layers.Dropout(self.dropout_conv_r[1], name='conv5_do')(x)
+        x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, name='conv5_1')(x)
+        x = tf.keras.layers.Dropout(self.dropout_conv_r[1], name='conv5_1_do')(x)
+        x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, name='conv5_2')(x)
+        x = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='conv5_p') (x)
+
+        #
+        x = tf.keras.layers.Flatten(data_format=data_format) (x)
+        x = tf.keras.layers.Dropout(self.dropout_conv_r[2],name='flatten_do') (x)
+        x = lib_snn.layers.Dense(512,activation=act_relu,use_bn=use_bn_cls,name='fc1') (x)
+        x = tf.keras.layers.Dropout(self.dropout_conv_r[2],name='fc1_do') (x)
+        x = lib_snn.layers.Dense(512,activation=act_relu,use_bn=use_bn_cls,name='fc2') (x)
+        x = tf.keras.layers.Dropout(self.dropout_conv_r[2],name='fc2_do') (x)
+        x = lib_snn.layers.Dense(classes,activation=act_sm,use_bn=False,name='predictions') (x)
+
+        # create model
+        self.model = training.Model(img_input, x, name=model_name)
+
 
         #self.model.load_weights(weights)
 

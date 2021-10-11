@@ -214,7 +214,7 @@ class ResNet(lib_snn.model.Model):
         conf,
         preact=False,
         #use_bias=True,
-        model_name='resnet',
+        model_name='ResNet',
         include_top=True,
         weights='imagenet',
         input_tensor=None,
@@ -320,10 +320,8 @@ class ResNet(lib_snn.model.Model):
         #else:
             #inputs = img_input
 
-        inputs = img_input
-
         # Create model.
-        self.model = training.Model(inputs, x, name=model_name)
+        self.model = training.Model(img_input, x, name=model_name)
 
         # Load weights.
         if (weights == 'imagenet') and (model_name in WEIGHTS_HASHES):

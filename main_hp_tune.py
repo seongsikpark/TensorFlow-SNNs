@@ -18,27 +18,28 @@ def model_builder(hp):
     model_name_list = [model_name]
     optimizer_list = [opt]
     lr_schedule_list = [lr_schedule]
+    train_epoch_list = [train_epoch]
 
     hp_dataset= hp.Choice('dataset', values=dataset_name_list)
     hp_model= hp.Choice('model', values=model_name_list)
     hp_optimizer = hp.Choice('optimizer', values=optimizer_list)
     hp_lr_schedule = hp.Choice('lr_schedule', values=lr_schedule_list)
+    hp_train_epoch = hp.Choice('train_epoch', values=train_epoch_list)
 
-    hp_lmb = hp.Choice('lmb', values = [5e-4, 1e-4, 5e-5])
-    hp_learning_rate = hp.Choice('learning_rate', values = [0.1, 0.2])
-    #hp_initial_channels = hp.Choice('initial_channel', values = [64])
+    #hp_lmb = hp.Choice('lmb', values = [5e-4, 1e-4, 5e-5])
+    hp_lmb = hp.Choice('lmb', values = [1e-4])
+
+    #hp_learning_rate = hp.Choice('learning_rate', values = [0.1, 0.2])
+    hp_learning_rate = hp.Choice('learning_rate', values = [0.2])
+
+    hp_initial_channels = hp.Choice('initial_channel', values = [16])
 
     model_top = model_top_glb(input_shape=image_shape, conf=conf, include_top=include_top,
-                              #weights=load_weight, classes=num_class, name=model_name, lmb=hp_lmb, initial_channels=hp_initial_channels)
-                              weights=load_weight, classes=num_class, name=model_name, lmb=hp_lmb)
+                              weights=load_weight, classes=num_class, name=model_name, lmb=hp_lmb, initial_channels=hp_initial_channels)
+                              #weights=load_weight, classes=num_class, name=model_name, lmb=hp_lmb)
 
                               # model = model(input_shape=image_shape, conf=conf, include_top=False, weights=load_weight, train=train, add_top=True)
     # model = model(input_shape=image_shape, conf=conf, include_top=include_top, train=train, add_top=add_top)
-    # pretrained_model = model(input_shape=image_shape, include_top=include_top, weights='imagenet',classifier_activation=None)
-    # pretrained_model = VGG16(include_top=True, weights='imagenet')
-    # pretrained_model = VGG19(include_top=True, weights='imagenet')
-    # pretrained_model = ResNet50(include_top=True, weights='imagenet')
-    # pretrained_model = ResNet101(include_top=True, weights='imagenet')
 
     # TODO: move to parameter
     run_eagerly = False
@@ -48,11 +49,10 @@ def model_builder(hp):
     lr_schedule_first_decay_step = train_steps_per_epoch * 10  # in iteration
 
     if lr_schedule == 'COS':
-        learning_rate = tf.keras.optimizers.schedules.CosineDecay(hp_learning_rate, train_steps_per_epoch * 300)
+        learning_rate = tf.keras.optimizers.schedules.CosineDecay(hp_learning_rate, train_steps_per_epoch * train_epoch)
     elif lr_schedule == 'COSR':
         learning_rate = tf.keras.optimizers.schedules.CosineDecayRestarts(hp_learning_rate, lr_schedule_first_decay_step)
     elif lr_schedule == 'STEP':
-        # learning_rate = lib_snn.optimizers.LRSchedule_step(learning_rate, 100*100, 0.1)
         learning_rate = lib_snn.optimizers.LRSchedule_step(hp_learning_rate, train_steps_per_epoch * step_decay_epoch, 0.1)
     elif lr_schedule == 'STEP_WUP':
         learning_rate = lib_snn.optimizers.LRSchedule_step_wup(hp_learning_rate, train_steps_per_epoch * 100, 0.1,
@@ -91,11 +91,6 @@ global model_name
 ########################################
 # configuration
 ########################################
-
-# Parallel CPU
-#NUM_PARALLEL_CALL = 7
-#NUM_PARALLEL_CALL = 15
-
 
 # GPU setting
 #
@@ -451,24 +446,6 @@ train_ds, valid_ds, test_ds, num_class = datasets.datasets.load(dataset_name,inp
 #assert False
 train_steps_per_epoch = train_ds.cardinality().numpy()
 
-## models
-#model_sel_tr = {
-    #'VGG16': VGG16_TR,
-#}
-#
-#model_sel_sc = {
-    #'VGG16': VGG16,
-    #'ResNet18': ResNet18,
-    #'ResNet20': ResNet20,
-    #'ResNet32': ResNet32,
-    #'ResNet34': ResNet34,
-    #'ResNet50': ResNet50,
-    #'ResNet101': ResNet101,
-    #'ResNet152': ResNet152,
-    #'ResNet18V2': ResNet18V2,
-    #'ResNet20V2': ResNet20V2,
-#}
-
 
 
 
@@ -506,7 +483,8 @@ dir_model = os.path.join(root_model, model_dataset_name)
 
 
 # hyperparameter tune name
-hp_tune_name = exp_set_name+'_'+model_dataset_name+'_ep-'+str(train_epoch)
+#hp_tune_name = exp_set_name+'_'+model_dataset_name+'_ep-'+str(train_epoch)
+hp_tune_name = exp_set_name
 
 # TODO: functionalize
 # file_name='checkpoint-epoch-{}-batch-{}.h5'.format(epoch,batch_size)

@@ -271,7 +271,7 @@ class InputGenLayer(Layer,tf.keras.layers.Layer):
         Layer.index+= 1
         self.depth = Layer.index
 
-    def call(self, inputs):
+    def call(self, inputs, training):
         #print('input gen layer - call')
         #print(inputs)
         return inputs
