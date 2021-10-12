@@ -15,3 +15,7 @@ from lib_snn import optimizers
 #from lib_snn import hp_tune
 
 from lib_snn import hp_tune
+
+from lib_snn import hp_tune_model
+
+from lib_snn import model_builder

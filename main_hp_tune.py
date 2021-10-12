@@ -1,91 +1,12 @@
 
 
 
-########
-# HP Tune
-########
-
-def model_builder(hp):
-    #
-    # pretrained_model = model(input_shape=image_shape, conf=conf, include_top=include_top, weights='imagenet', train=train)
-
-    # model_top = model_top(input_shape=image_shape, conf=conf, include_top=include_top,
-    # weights=load_weight, classes=num_class, n_dim_classifier=n_dim_classifier,name=model_name)
-
-    #hp_lmb = hp.Choice('lmb', values = [5e-4, 1e-4, 5e-5, 1e-5])
-
-    dataset_name_list = [dataset_name]
-    model_name_list = [model_name]
-    optimizer_list = [opt]
-    lr_schedule_list = [lr_schedule]
-    train_epoch_list = [train_epoch]
-
-    hp_dataset= hp.Choice('dataset', values=dataset_name_list)
-    hp_model= hp.Choice('model', values=model_name_list)
-    hp_optimizer = hp.Choice('optimizer', values=optimizer_list)
-    hp_lr_schedule = hp.Choice('lr_schedule', values=lr_schedule_list)
-    hp_train_epoch = hp.Choice('train_epoch', values=train_epoch_list)
-
-    #hp_lmb = hp.Choice('lmb', values = [5e-4, 1e-4, 5e-5])
-    hp_lmb = hp.Choice('lmb', values = [1e-4])
-
-    #hp_learning_rate = hp.Choice('learning_rate', values = [0.1, 0.2])
-    hp_learning_rate = hp.Choice('learning_rate', values = [0.2])
-
-    hp_initial_channels = hp.Choice('initial_channel', values = [16])
-
-    model_top = model_top_glb(input_shape=image_shape, conf=conf, include_top=include_top,
-                              weights=load_weight, classes=num_class, name=model_name, lmb=hp_lmb, initial_channels=hp_initial_channels)
-                              #weights=load_weight, classes=num_class, name=model_name, lmb=hp_lmb)
-
-                              # model = model(input_shape=image_shape, conf=conf, include_top=False, weights=load_weight, train=train, add_top=True)
-    # model = model(input_shape=image_shape, conf=conf, include_top=include_top, train=train, add_top=add_top)
-
-    # TODO: move to parameter
-    run_eagerly = False
-    # run_eagerly=True
-
-    # TODO: parameterize
-    lr_schedule_first_decay_step = train_steps_per_epoch * 10  # in iteration
-
-    if lr_schedule == 'COS':
-        learning_rate = tf.keras.optimizers.schedules.CosineDecay(hp_learning_rate, train_steps_per_epoch * train_epoch)
-    elif lr_schedule == 'COSR':
-        learning_rate = tf.keras.optimizers.schedules.CosineDecayRestarts(hp_learning_rate, lr_schedule_first_decay_step)
-    elif lr_schedule == 'STEP':
-        learning_rate = lib_snn.optimizers.LRSchedule_step(hp_learning_rate, train_steps_per_epoch * step_decay_epoch, 0.1)
-    elif lr_schedule == 'STEP_WUP':
-        learning_rate = lib_snn.optimizers.LRSchedule_step_wup(hp_learning_rate, train_steps_per_epoch * 100, 0.1,
-                                                               train_steps_per_epoch * 30)
-    else:
-        assert False
-
-    if opt == 'SGD':
-        optimizer = tf.keras.optimizers.SGD(learning_rate=learning_rate, momentum=0.9, name='SGD')
-    else:
-        assert False
-
-    # TODO: model_top wrapper use check - from scratch, transfer learning
-
-    model = model_top.model
-
-    if load_model:
-        model.load_weights(load_weight)
-        # model.load_weights(load_weight,by_name=True)
-
-    # opt = tf.keras.optimizers.Adam(learning_rate=0.001)
-    model.compile(optimizer=optimizer,
-                  # loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
-                  loss=tf.keras.losses.CategoricalCrossentropy(),
-                  metrics=[metric_accuracy, metric_accuracy_top5], run_eagerly=run_eagerly)
-
-
-    return model
-
 
 
 #global input_size
 #global input_size_pre_crop_ratio
+import collections
+
 global model_name
 
 ########################################
@@ -119,10 +40,13 @@ else:
 #exp_set_name = 'HPTune-RS'
 #exp_set_name = 'HPTune-TEST'
 #exp_set_name = 'HPTune-GRID'
-exp_set_name = 'HPTune-GRID'
+#exp_set_name = 'HPTune-GRID'
+#exp_set_name = 'CODE_TEST'
+exp_set_name = 'Train_SC'
 
 # hyperparamter tune mode
-f_hp_tune = True
+#hp_tune = True
+hp_tune = False
 
 #
 train=True
@@ -134,6 +58,9 @@ load_model=False
 #
 #overwrite_train_model =True
 overwrite_train_model=False
+
+#
+overwrite_tensorboard = True
 
 #epoch = 20000
 #epoch = 20472
@@ -151,13 +78,13 @@ root_hp_tune = './hp_tune'
 root_model = './models'
 
 # model
-model_name = 'VGG16'
+#model_name = 'VGG16'
 #model_name = 'ResNet18'
 #model_name = 'ResNet20'
 #model_name = 'ResNet32'
 #model_name = 'ResNet34'
 #model_name = 'ResNet50'
-#model_name = 'ResNet18V2'
+model_name = 'ResNet18V2'
 #model_name = 'ResNet20V2'
 
 # dataset
@@ -166,7 +93,7 @@ dataset_name = 'CIFAR10'
 #dataset_name='ImageNet'
 
 #
-learning_rate = 0.1
+learning_rate = 0.2
 #learning_rate = 0.01
 
 #
@@ -187,6 +114,8 @@ root_tensorboard = './tensorboard/'
 import re
 import datetime
 import shutil
+
+from functools import partial
 
 import tensorflow as tf
 
@@ -225,6 +154,8 @@ import lib_snn
 import datasets
 
 
+
+
 # lr schedule
 
 
@@ -246,6 +177,11 @@ from models.vgg16_keras_toh5 import VGG16 as VGG16_KERAS
 #from models.resnet import ResNet20V2
 
 from models.models import model_sel
+
+#
+#from lib_snn.hp_tune_model import model_builder
+
+
 
 
 #
@@ -281,28 +217,7 @@ if gpu_mem != -1:
 #train_type='finetuning' # not supported yet
 #train_type='transfer'
 train_type='scratch'
-#train_type='scratch-4k-4k'
-#train_type='scratch-4k-2k'
-#train_type='scratch-4k-1k'
-#train_type='scratch-4k-0.5k'
-#train_type='scratch-2k-2k'
-#train_type='scratch-2k-1k'
-#train_type='scratch-2k-0.5k'
-#train_type='scratch-1k-1k'
-#train_type='scratch-1k-0.5k'
-#train_type='scratch-0.5k-0.5k'
 
-#n_dim_classifier=None
-#n_dim_classifier=(4096,4096)
-#n_dim_classifier=(4096,2048)
-#n_dim_classifier=(4096,1024)
-#n_dim_classifier=(4096,512)
-#n_dim_classifier=(2048,2048)
-#n_dim_classifier=(2048,1024)
-#n_dim_classifier=(2048,512)
-#n_dim_classifier=(1024,1024)
-#n_dim_classifier=(1024,512)
-n_dim_classifier=(512,512)
 
 #
 #model_name='Xception'
@@ -342,6 +257,8 @@ assert conf.data_format == 'channels_last', 'not support "{}", only support chan
 # DO NOT TOUCH
 ########################################
 
+#
+f_hp_tune = train and hp_tune
 
 # data augmentation - mix
 
@@ -421,10 +338,17 @@ input_size_sel ={
     'CIFAR10': input_sizes_cifar,
     'CIFAR100': input_sizes_cifar,
 }
-
 # TODO: integrate input size selector
 input_size = input_size_sel[dataset_name].get(model_name,input_size_default[dataset_name])
 #input_size = input_sizes.get(model_name,224)
+
+
+#
+initial_channels_sel= {
+    'VGG16': 64,
+}
+initial_channels = initial_channels_sel.get(model_name,64)
+
 
 
 #batch_size_inference = batch_size_inference_sel.get(model_name,256)
@@ -501,9 +425,9 @@ if train_type=='transfer':
     config_name += '_tr'
 elif train_type=='scratch':
     config_name += '_sc'
-    if n_dim_classifier is not None:
-        if model_name == 'VGG16':
-            config_name = config_name+'-'+str(n_dim_classifier[0])+'-'+str(n_dim_classifier[1])
+    #if n_dim_classifier is not None:
+        #if model_name == 'VGG16':
+            #config_name = config_name+'-'+str(n_dim_classifier[0])+'-'+str(n_dim_classifier[1])
 else:
     assert False
 
@@ -591,22 +515,65 @@ else:
 # for HP tune
 model_top_glb = model_top
 
-#tuner = kt.Hyperband(model_builder,
-#tuner=kt.RandomSearch(model_builder,
-tuner=lib_snn.hp_tune.GridSearch(model_builder,
-                     objective='val_acc',
-                     #max_trials=12,
-                     #max_epochs = 300,
-                     #factor=3,
-                     overwrite=True,
-                     directory=root_hp_tune,
-                     project_name=hp_tune_name,
-                     #directory='test_hp_dir',
-                     #project_name='test_hp')
-                      )
+#
+# model builder
+if f_hp_tune:
 
-#tuner.results_summary()
-#assert False
+    # TODO: move to config.py
+    #hp_model_builder = model_builder
+    hps = collections.OrderedDict()
+    hps['dataset'] = [dataset_name]
+    hps['model'] = [model_name]
+    hps['opt'] = [opt]
+    hps['lr_schedule'] = [lr_schedule]
+    hps['train_epoch'] = [train_epoch]
+    hps['step_decay_epoch'] = [step_decay_epoch]
+
+    # main to hp_tune, need to seperate configuration
+    hp_tune_args = collections.OrderedDict()
+    hp_tune_args['model_top'] = model_top
+    hp_tune_args['image_shape'] = image_shape
+    hp_tune_args['conf'] = conf
+    hp_tune_args['include_top'] = include_top
+    hp_tune_args['load_weight'] = load_weight
+    hp_tune_args['num_class'] = num_class
+    hp_tune_args['metric_accuracy'] = metric_accuracy
+    hp_tune_args['metric_accuracy_top_5'] = metric_accuracy_top5
+    hp_tune_args['train_steps_per_epoch'] = train_steps_per_epoch
+
+    #hp_model_builder = partial(model_builder, hp, hps)
+    hp_model_builder = lib_snn.hp_tune_model.CustomHyperModel(hp_tune_args, hps)
+
+
+    #tuner = kt.Hyperband(model_builder,
+    #tuner=kt.RandomSearch(model_builder,
+    tuner=lib_snn.hp_tune.GridSearch(hp_model_builder,
+                         objective='val_acc',
+                         #max_trials=12,
+                         #max_epochs = 300,
+                         #factor=3,
+                         overwrite=True,
+                         directory=root_hp_tune,
+                         project_name=hp_tune_name,
+                         #directory='test_hp_dir',
+                         #project_name='test_hp')
+                          )
+
+    #tuner.results_summary()
+    #assert False
+else:
+    model = lib_snn.model_builder.model_builder(
+        model_top, image_shape, conf, include_top, load_weight, num_class, model_name, lmb, initial_channels,
+        train_epoch, train_steps_per_epoch,
+        opt, learning_rate,
+        lr_schedule, step_decay_epoch,
+        metric_accuracy, metric_accuracy_top5)
+
+
+
+if load_model:
+    model.load_weights(load_weight)
+    # model.load_weights(load_weight,by_name=True)
 
 
 #
@@ -629,13 +596,14 @@ else:
     path_tensorboard = os.path.join(path_tensorboard, model_dataset_name)
     path_tensorboard = os.path.join(path_tensorboard, config_name)
 
-if os.path.isdir(path_tensorboard):
-    date_cur = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M')
-    path_dest_tensorboard = path_tensorboard + '_' + date_cur
-    print('tensorboard data already exists')
-    print('move {} to {}'.format(path_tensorboard, path_dest_tensorboard))
+if not overwrite_tensorboard:
+    if os.path.isdir(path_tensorboard):
+        date_cur = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M')
+        path_dest_tensorboard = path_tensorboard + '_' + date_cur
+        print('tensorboard data already exists')
+        print('move {} to {}'.format(path_tensorboard, path_dest_tensorboard))
 
-    shutil.move(path_tensorboard, path_dest_tensorboard)
+        shutil.move(path_tensorboard, path_dest_tensorboard)
 
 #
 if load_model:
@@ -677,27 +645,36 @@ cb_model_checkpoint = lib_snn.callbacks.ModelCheckpointResume(
     log_dir=path_tensorboard,
     # tensorboard_writer=cb_tensorboard._writers['train']
 )
-
-cb_tensorboard = tf.keras.callbacks.TensorBoard(log_dir=path_tensorboard, update_freq='epoch')
 cb_manage_saved_model = lib_snn.callbacks.ManageSavedModels(filepath=filepath)
+cb_tensorboard = tf.keras.callbacks.TensorBoard(log_dir=path_tensorboard, update_freq='epoch')
+
+
 
 #
-callbacks = [
-    cb_model_checkpoint,
-    cb_tensorboard,
-    cb_manage_saved_model
-]
+if train:
+    if hp_tune:
+        print('HP Tune mode')
 
-#
-tuner.search(train_ds, epochs=train_epoch, initial_epoch=init_epoch, validation_data=valid_ds,
-             callbacks=callbacks)
+        callbacks = [cb_tensorboard]
 
-#train_histories = model.fit(train_ds, epochs=epoch, initial_epoch=init_epoch, validation_data=valid_ds,
-#                            callbacks=callbacks)
+        tuner.search(train_ds, epochs=train_epoch, initial_epoch=init_epoch, validation_data=valid_ds,
+                     callbacks=callbacks)
+    else:
+        print('Train mode')
 
+        callbacks = [
+            cb_model_checkpoint,
+            cb_tensorboard,
+            cb_manage_saved_model
+        ]
 
-########################################
-#
-########################################
+        train_histories = model.fit(train_ds, epochs=train_epoch, initial_epoch=init_epoch, validation_data=valid_ds,
+                                    callbacks=callbacks)
+else:
+    print('Test mode')
+    result = model.evaluate(valid_ds)
+    # result = model.predict(test_ds)
+
+    print(result)
 
 
