@@ -2,12 +2,56 @@
 
 
 
+import re
+import datetime
+import shutil
 
+from functools import partial
+
+import tensorflow as tf
+
+# HP tune
+#import kerastuner as kt
+import keras_tuner as kt
+#import tensorboard.plugins.hparams import api as hp
+
+
+
+from tensorflow.keras.applications import imagenet_utils
+
+#from tensorflow.keras.preprocessing import img_to_array, load_img
+
+#
+import tensorflow_datasets as tfds
+tfds.disable_progress_bar()
+
+#
+import tqdm
+
+import os
+import matplotlib as plt
+
+import numpy as np
+import argparse
+import cv2
+
+# configuration
+from config import flags
+
+# snn library
+import lib_snn
+
+#
+import datasets
 #global input_size
 #global input_size_pre_crop_ratio
 import collections
 
 global model_name
+
+
+#
+conf = flags.FLAGS
 
 ########################################
 # configuration
@@ -64,8 +108,8 @@ overwrite_tensorboard = True
 
 #epoch = 20000
 #epoch = 20472
-train_epoch = 300
-#train_epoch = 1
+#train_epoch = 300
+train_epoch = 1
 
 
 # learning rate schedule - step_decay
@@ -75,7 +119,7 @@ step_decay_epoch = 100
 root_hp_tune = './hp_tune'
 
 #
-root_model = './models'
+root_model = './models_trained'
 
 # model
 #model_name = 'VGG16'
@@ -84,13 +128,15 @@ root_model = './models'
 #model_name = 'ResNet32'
 #model_name = 'ResNet34'
 #model_name = 'ResNet50'
-model_name = 'ResNet18V2'
+#model_name = 'ResNet18V2'
 #model_name = 'ResNet20V2'
+model_name = conf.model
 
 # dataset
-dataset_name = 'CIFAR10'
+#dataset_name = 'CIFAR10'
 #dataset_name = 'CIFAR100'
 #dataset_name='ImageNet'
+dataset_name = conf.dataset
 
 #
 learning_rate = 0.2
@@ -109,49 +155,6 @@ lr_schedule = 'STEP'    # STEP wise
 #
 root_tensorboard = './tensorboard/'
 
-
-
-import re
-import datetime
-import shutil
-
-from functools import partial
-
-import tensorflow as tf
-
-# HP tune
-#import kerastuner as kt
-import keras_tuner as kt
-#import tensorboard.plugins.hparams import api as hp
-
-
-
-from tensorflow.keras.applications import imagenet_utils
-
-#from tensorflow.keras.preprocessing import img_to_array, load_img
-
-#
-import tensorflow_datasets as tfds
-tfds.disable_progress_bar()
-
-#
-import tqdm
-
-import os
-import matplotlib as plt
-
-import numpy as np
-import argparse
-import cv2
-
-# configuration
-from config import flags
-
-# snn library
-import lib_snn
-
-#
-import datasets
 
 
 
@@ -247,8 +250,7 @@ train_type='scratch'
 #model_name='EfficientNetB6'
 #model_name='EfficientNetB7'
 
-#
-conf = flags.FLAGS
+
 
 #
 assert conf.data_format == 'channels_last', 'not support "{}", only support channels_last'.format(conf.data_format)
@@ -338,6 +340,7 @@ input_size_sel ={
     'CIFAR10': input_sizes_cifar,
     'CIFAR100': input_sizes_cifar,
 }
+
 # TODO: integrate input size selector
 input_size = input_size_sel[dataset_name].get(model_name,input_size_default[dataset_name])
 #input_size = input_sizes.get(model_name,224)

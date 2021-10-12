@@ -76,7 +76,7 @@ tf.compat.v1.app.flags.DEFINE_string('config_name', '', 'config name')
 tf.compat.v1.app.flags.DEFINE_string('n_type', 'LIF', 'LIF or IF: neuron type')
 
 #
-tf.compat.v1.app.flags.DEFINE_string('dataset', 'MNIST', 'dataset')
+#tf.compat.v1.app.flags.DEFINE_string('dataset', 'MNIST', 'dataset')
 tf.compat.v1.app.flags.DEFINE_string('ann_model', 'MLP', 'neural network model')
 
 #
@@ -257,3 +257,5 @@ tf.compat.v1.app.flags.DEFINE_string('data_format', 'channels_last', 'data forma
 #tf.compat.v1.app.flags.DEFINE_string('data_aug_mix', 'cutmix', 'data augmentation - mixup or cutmix')
 tf.compat.v1.app.flags.DEFINE_string('data_aug_mix', 'cutmix', 'data augmentation - mixup or cutmix')
 
+tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet18V2', 'model')
+tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR10', 'dataset')
