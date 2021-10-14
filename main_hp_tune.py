@@ -8,6 +8,11 @@ import shutil
 
 from functools import partial
 
+import os
+
+# TF logging setup
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
 import tensorflow as tf
 
 # HP tune
@@ -16,24 +21,18 @@ import keras_tuner as kt
 #import tensorboard.plugins.hparams import api as hp
 
 
-
-from tensorflow.keras.applications import imagenet_utils
-
-#from tensorflow.keras.preprocessing import img_to_array, load_img
-
 #
 import tensorflow_datasets as tfds
 tfds.disable_progress_bar()
 
 #
-import tqdm
+#import tqdm
 
-import os
 import matplotlib as plt
 
-import numpy as np
-import argparse
-import cv2
+#import numpy as np
+#import argparse
+#import cv2
 
 # configuration
 from config import flags
@@ -56,6 +55,10 @@ conf = flags.FLAGS
 ########################################
 # configuration
 ########################################
+
+# logging
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+
 
 # GPU setting
 #
@@ -92,12 +95,13 @@ exp_set_name = 'Train_SC'
 #hp_tune = True
 hp_tune = False
 
-#
-train=True
-#train=False
 
-#load_model=True
-load_model=False
+#
+#train=True
+train=False
+
+load_model=True
+#load_model=False
 
 #
 #overwrite_train_model =True
@@ -108,8 +112,8 @@ overwrite_tensorboard = True
 
 #epoch = 20000
 #epoch = 20472
-#train_epoch = 300
-train_epoch = 1
+train_epoch = 300
+#train_epoch = 1
 
 
 # learning rate schedule - step_decay
@@ -139,8 +143,9 @@ model_name = conf.model
 dataset_name = conf.dataset
 
 #
-learning_rate = 0.2
+#learning_rate = 0.2
 #learning_rate = 0.01
+learning_rate = conf.learning_rate
 
 #
 opt='SGD'
@@ -153,7 +158,8 @@ lr_schedule = 'STEP'    # STEP wise
 
 
 #
-root_tensorboard = './tensorboard/'
+#root_tensorboard = './tensorboard/'
+root_tensorboard = conf.root_tensorboard
 
 
 
@@ -468,6 +474,7 @@ if load_model:
     #latest_model = 'ep-1085'
     latest_model = lib_snn.util.get_latest_saved_model(filepath)
     load_weight = os.path.join(filepath, latest_model)
+    print('load weight: '+load_weight)
     #pre_model = tf.keras.models.load_model(load_weight)
     #print(pre_model.evaluate(valid_ds))
     #assert False
@@ -576,7 +583,7 @@ else:
 
 if load_model:
     model.load_weights(load_weight)
-    # model.load_weights(load_weight,by_name=True)
+    # model.load_weights(load_weight,by_name=True
 
 
 #
@@ -608,8 +615,14 @@ if not overwrite_tensorboard:
 
         shutil.move(path_tensorboard, path_dest_tensorboard)
 
+
+
+########
+# Callbacks
+########
+
 #
-if load_model:
+if train and load_model:
     print('Evaluate pretrained model')
     assert monitor_cri == 'val_acc', 'currently only consider monitor criterion - val_acc'
     result = model.evaluate(valid_ds)
@@ -619,22 +632,6 @@ if load_model:
 else:
     best = None
 
-#model.save_weights(filepath+'ep-1085',save_format='h5')
-
-#model.trainable=True
-#model.save_weights(filepath+'/test.h5',save_format='h5')
-#assert False
-
-#
-#with tf.summary.create_file_writer('path_tensorboard/hptune').as_default():
-    #hp.hparams_config(
-        #hparams
-    #)
-
-
-########
-# Callbacks
-########
 # model checkpoint save and resume
 cb_model_checkpoint = lib_snn.callbacks.ModelCheckpointResume(
     # filepath=filepath + '/ep-{epoch:04d}',
@@ -667,8 +664,8 @@ if train:
 
         callbacks = [
             cb_model_checkpoint,
-            cb_tensorboard,
-            cb_manage_saved_model
+            cb_manage_saved_model,
+            cb_tensorboard
         ]
 
         train_histories = model.fit(train_ds, epochs=train_epoch, initial_epoch=init_epoch, validation_data=valid_ds,

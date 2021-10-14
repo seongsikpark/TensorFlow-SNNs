@@ -230,23 +230,22 @@ class ResNet(lib_snn.model.Model):
 
         lib_snn.model.Model.__init__(self, input_shape, data_format, classes, conf, **kwargs)
 
-        #print(input_shape)
-        #assert False
-
         #bn_axis = 3 if backend.image_data_format() == 'channels_last' else 1
         bn_axis = 3
 
         imagenet_pretrain = False
         #imagenet_pretrain = True
 
-        img_input = tf.keras.layers.Input(shape=input_shape)
+        img_input = tf.keras.layers.Input(shape=input_shape, batch_size=conf.batch_size)
+        x = lib_snn.layers.InputGenLayer()(img_input)
         #img_input = lib_snn.layers.InputLayer(input_shape=input_shape,batch_size=conf.batch_size,name='in')
 
         if imagenet_pretrain:
             # ImageNet pretrained model - tf.keras.applications
-            x = tf.keras.layers.ZeroPadding2D(padding=((3, 3), (3, 3)), name='conv1_pad')(img_input)
+            x = tf.keras.layers.ZeroPadding2D(padding=((3, 3), (3, 3)), name='conv1_pad')(x)
         else:
-            x = img_input
+            pass
+            #x = img_input
             #x = tf.keras.layers.ZeroPadding2D(padding=((1, 1), (1, 1)), name='conv1_pad')(x)
 
         if not preact:
@@ -340,6 +339,7 @@ class ResNet(lib_snn.model.Model):
         elif weights is not None:
             self.model.load_weights(weights)
 
+        #
         self.model.summary()
 
 #

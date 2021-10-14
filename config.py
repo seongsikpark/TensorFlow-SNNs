@@ -16,7 +16,6 @@ tf.compat.v1.app.flags.DEFINE_string('gpu_fraction', '1/3', 'define the gpu frac
 tf.compat.v1.app.flags.DEFINE_string('activation', 'ReLU', '')
 tf.compat.v1.app.flags.DEFINE_string('optim_type', 'adam', '[exp_decay, adam]')
 
-tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'ANN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
 #tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'ANN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
 
 tf.compat.v1.app.flags.DEFINE_string('output_dir', './tensorboard', 'Directory to write TensorBoard summaries')
@@ -73,7 +72,6 @@ tf.compat.v1.app.flags.DEFINE_boolean('use_bias', True, 'use bias')
 tf.compat.v1.app.flags.DEFINE_string('model_name', 'snn_train_mlp_mnist', 'model name')
 tf.compat.v1.app.flags.DEFINE_string('config_name', '', 'config name')
 
-tf.compat.v1.app.flags.DEFINE_string('n_type', 'LIF', 'LIF or IF: neuron type')
 
 #
 #tf.compat.v1.app.flags.DEFINE_string('dataset', 'MNIST', 'dataset')
@@ -237,25 +235,56 @@ tf.compat.v1.app.flags.DEFINE_bool("en_tensorboard_write", False, "Tensorboard w
 #tf.compat.v1.app.flags.DEFINE_integer('rep',-1,'repeat - noise experiments')
 
 
-########################################
-# new
-########################################
+################################################################################
+# new configurations
+################################################################################
 
-# common
+################
+# Common
+################
+
+# neural network mode
+tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'ANN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
+#tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'SNN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
+
+# models
+#tf.compat.v1.app.flags.DEFINE_string('model', 'VGG16', 'model')
+tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet18V2', 'model')
+
+# datasets
+tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR10', 'dataset')
+
 tf.compat.v1.app.flags.DEFINE_integer('batch_size', 100, '')
+
+#
+# VGG
+#tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.005, 'learning rate')
+# ResNet
+tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.2, 'learning rate')
+
+# regularizer
 tf.compat.v1.app.flags.DEFINE_string('regularizer', 'L2', 'L2 or L1 regularizer')
-# l2 norm
-#tf.compat.v1.app.flags.DEFINE_float('lmb',5.0E-5, 'lambda')
+# VGG
+#tf.compat.v1.app.flags.DEFINE_float('lmb',5.0E-6, 'lambda')
+# ResNet
 tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-4, 'lambda')
 
-## not frequently used
+## data_format - DO NOT TOUCH
 tf.compat.v1.app.flags.DEFINE_string('data_format', 'channels_last', 'data format')
 
-
 # data augmentation
-#tf.compat.v1.app.flags.DEFINE_bool('mixup', False, 'data augmentation - mixup')
-#tf.compat.v1.app.flags.DEFINE_string('data_aug_mix', 'cutmix', 'data augmentation - mixup or cutmix')
-tf.compat.v1.app.flags.DEFINE_string('data_aug_mix', 'cutmix', 'data augmentation - mixup or cutmix')
+tf.compat.v1.app.flags.DEFINE_string('data_aug_mix', 'cutmix', 'data augmentation - mixup or cutmix or None')
 
-tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet18V2', 'model')
-tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR10', 'dataset')
+
+################
+# Directories
+################
+tf.compat.v1.app.flags.DEFINE_string('root_tensorboard', './tensorboard/', 'root - tensorboard')
+
+
+################
+# SNN
+################
+
+# neuron type in SNN
+tf.compat.v1.app.flags.DEFINE_string('n_type', 'IF', 'LIF or IF: neuron type')
