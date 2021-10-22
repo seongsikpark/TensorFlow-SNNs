@@ -27,11 +27,6 @@ tf.compat.v1.app.flags.DEFINE_bool('en_load_model', False, 'Enable to load model
 #
 tf.compat.v1.app.flags.DEFINE_boolean('en_train', False, 'enable training')
 
-#
-tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.7, 'initial value of vth')
-tf.compat.v1.app.flags.DEFINE_float('n_in_init_vth', 0.7, 'initial value of vth of n_in')
-tf.compat.v1.app.flags.DEFINE_float('n_init_vinit', 0.0, 'initial value of vinit')
-tf.compat.v1.app.flags.DEFINE_float('n_init_vrest', 0.0, 'initial value of vrest')
 
 # exponetial decay
 '''
@@ -51,12 +46,13 @@ tf.compat.v1.app.flags.DEFINE_float('momentum', 0.9, 'momentum')
 tf.compat.v1.app.flags.DEFINE_float('lr_decay', 0.1, '')
 tf.compat.v1.app.flags.DEFINE_integer('lr_decay_step', 50, '')
 
-tf.compat.v1.app.flags.DEFINE_integer('time_step', 10, 'time steps per sample in SNN')
 
 
-tf.compat.v1.app.flags.DEFINE_integer('idx_test_dataset_s', 0, 'start index of test dataset')
-tf.compat.v1.app.flags.DEFINE_integer('num_test_dataset', 10000, 'number of test datset')
+
+# deprecated -> delete
 tf.compat.v1.app.flags.DEFINE_integer('size_test_batch', 1, 'size of test batch') # not used now
+
+
 
 tf.compat.v1.app.flags.DEFINE_string('pooling', 'max', 'max or avg, only for CNN')
 
@@ -65,8 +61,6 @@ tf.compat.v1.app.flags.DEFINE_integer('save_interval', 10, 'save interval of mod
 tf.compat.v1.app.flags.DEFINE_bool('en_remove_output_dir', False, 'enable removing output dir')
 
 
-#
-tf.compat.v1.app.flags.DEFINE_boolean('use_bias', True, 'use bias')
 
 
 tf.compat.v1.app.flags.DEFINE_string('model_name', 'snn_train_mlp_mnist', 'model name')
@@ -82,23 +76,17 @@ tf.compat.v1.app.flags.DEFINE_boolean('verbose',True, 'verbose mode')
 tf.compat.v1.app.flags.DEFINE_boolean('verbose_visual',True, 'verbose visual mode')
 
 #
-tf.compat.v1.app.flags.DEFINE_integer('time_step_save_interval',10,'snn test save interval')
+
 
 #
-tf.compat.v1.app.flags.DEFINE_bool('f_fused_bn',False,'f_fused_bn')
-
-#
-tf.compat.v1.app.flags.DEFINE_bool('f_stat_train_mode',False,'f_stat_train_mode')
 tf.compat.v1.app.flags.DEFINE_bool('f_real_value_input_snn',False,'f_real_value_input_snn')
 tf.compat.v1.app.flags.DEFINE_bool('f_spike_max_pool',False,'f_spike_max_pool')
-tf.compat.v1.app.flags.DEFINE_bool('f_w_norm_data',False,'f_w_norm_data')
+
 tf.compat.v1.app.flags.DEFINE_bool('f_ws',False,'wieghted synapse')
 tf.compat.v1.app.flags.DEFINE_float('p_ws',8,'period of wieghted synapse')
 
 #tf.compat.v1.app.flags.DEFINE_integer('num_class',1000,'number_of_class')
 
-tf.compat.v1.app.flags.DEFINE_string('input_spike_mode','POISSON','input spike mode - POISSON, WEIGHTED_SPIKE, ROPOSED')
-tf.compat.v1.app.flags.DEFINE_string('neural_coding','RATE','neural coding - RATE, WEIGHTED_SPIKE, PROPOSED')
 
 tf.compat.v1.app.flags.DEFINE_bool('f_positive_vmem',False,'positive vmem')
 tf.compat.v1.app.flags.DEFINE_bool('f_tot_psp',False,'accumulate total psp')
@@ -108,8 +96,8 @@ tf.compat.v1.app.flags.DEFINE_bool('f_refractory',False,'refractory mode')
 
 tf.compat.v1.app.flags.DEFINE_bool('f_comp_act',False,'compare activation')
 tf.compat.v1.app.flags.DEFINE_bool('f_entropy',False,'entropy test')
-tf.compat.v1.app.flags.DEFINE_bool('f_write_stat',False,'write stat')
-tf.compat.v1.app.flags.DEFINE_string('act_save_mode','channel','activation save mode')
+
+
 tf.compat.v1.app.flags.DEFINE_bool('f_save_result',True,'save result to xlsx file')
 
 # data.py - imagenet data
@@ -119,8 +107,6 @@ tf.compat.v1.app.flags.DEFINE_integer('input_size', 28, 'input image width / hei
 
 
 #
-tf.compat.v1.app.flags.DEFINE_string('path_stat','./stat/', 'path stat')
-tf.compat.v1.app.flags.DEFINE_string('prefix_stat','act_n_train', 'prefix of stat file name')
 
 
 #
@@ -162,8 +148,6 @@ tf.compat.v1.app.flags.DEFINE_integer('n_tau_fire_duration',4,'n tau - fire dura
 tf.compat.v1.app.flags.DEFINE_integer('n_tau_time_window',4,'n tau - time window')
 
 
-#
-tf.compat.v1.app.flags.DEFINE_enum('snn_output_type',"VMEM", ["SPIKE", "VMEM", "FIRST_SPIKE_TIME"], "snn output type")
 
 # SNN trianing w/ TTFS coding
 tf.compat.v1.app.flags.DEFINE_integer("init_first_spike_time_n",-1,"init_first_spike_time = init_first_spike_n x time_windw")
@@ -225,8 +209,10 @@ tf.compat.v1.app.flags.DEFINE_bool("en_tensorboard_write", False, "Tensorboard w
 ##
 #tf.compat.v1.app.flags.DEFINE_string('tfboard_log_file_name',None,'tfboard log file name')
 #
+
+
 ## noise
-#tf.compat.v1.app.flags.DEFINE_bool('noise_en',False,'noise injection mode enable')
+tf.compat.v1.app.flags.DEFINE_bool('noise_en',False,'noise injection mode enable')
 #tf.compat.v1.app.flags.DEFINE_string('noise_type',None,'noise type - DEL ..')
 #tf.compat.v1.app.flags.DEFINE_float('noise_pr',0.1,'noise probability for DEL')
 #tf.compat.v1.app.flags.DEFINE_bool('noise_robust_en',False,'noise robust mode enable')
@@ -239,52 +225,126 @@ tf.compat.v1.app.flags.DEFINE_bool("en_tensorboard_write", False, "Tensorboard w
 # new configurations
 ################################################################################
 
-################
+################################
 # Common
-################
+################################
+
+# train mode
+tf.compat.v1.app.flags.DEFINE_bool('train', False, 'train mode')
+#tf.compat.v1.app.flags.DEFINE_bool('train', True, 'train mode')
+
+#
+#tf.compat.v1.app.flags.DEFINE_bool('dnn_to_snn', False, 'dnn-to-snn conversion')
+tf.compat.v1.app.flags.DEFINE_bool('dnn_to_snn', True, 'dnn-to-snn conversion')
 
 # neural network mode
-tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'ANN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
-#tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'SNN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
+#tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'ANN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
+tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'SNN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
 
 # models
-#tf.compat.v1.app.flags.DEFINE_string('model', 'VGG16', 'model')
-tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet18V2', 'model')
+tf.compat.v1.app.flags.DEFINE_string('model', 'VGG16', 'model')
+#tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet18', 'model')
 
 # datasets
 tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR10', 'dataset')
 
+#
+tf.compat.v1.app.flags.DEFINE_bool('load_best_model', True, 'load best model (model, dataset)')
+#tf.compat.v1.app.flags.DEFINE_bool('load_best_model', False, 'load best model (model, dataset)')
+
+#
 tf.compat.v1.app.flags.DEFINE_integer('batch_size', 100, '')
+tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 500, '')
 
 #
 # VGG
-#tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.005, 'learning rate')
+tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.005, 'learning rate')
 # ResNet
-tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.2, 'learning rate')
+#tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.2, 'learning rate')
 
 # regularizer
 tf.compat.v1.app.flags.DEFINE_string('regularizer', 'L2', 'L2 or L1 regularizer')
 # VGG
-#tf.compat.v1.app.flags.DEFINE_float('lmb',5.0E-6, 'lambda')
+tf.compat.v1.app.flags.DEFINE_float('lmb',5.0E-6, 'lambda')
 # ResNet
-tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-4, 'lambda')
+#tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-4, 'lambda')
 
-## data_format - DO NOT TOUCH
-tf.compat.v1.app.flags.DEFINE_string('data_format', 'channels_last', 'data format')
 
 # data augmentation
 tf.compat.v1.app.flags.DEFINE_string('data_aug_mix', 'cutmix', 'data augmentation - mixup or cutmix or None')
 
+
+
+
+## data_format - DO NOT TOUCH
+tf.compat.v1.app.flags.DEFINE_string('data_format', 'channels_last', 'data format')
+
+#
+tf.compat.v1.app.flags.DEFINE_boolean('use_bias', True, 'use bias')
 
 ################
 # Directories
 ################
 tf.compat.v1.app.flags.DEFINE_string('root_tensorboard', './tensorboard/', 'root - tensorboard')
 
+tf.compat.v1.app.flags.DEFINE_string('root_model_best', './models_best', 'root model best')
 
 ################
-# SNN
+# Debug
 ################
+#tf.compat.v1.app.flags.DEFINE_bool('full_test', True, 'full dataset test')
+tf.compat.v1.app.flags.DEFINE_bool('full_test', False, 'full dataset test')
+
+tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 0, 'start index of test data')
+tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 1, 'number of test data')
+
+################################
+# SNN
+################################
 
 # neuron type in SNN
 tf.compat.v1.app.flags.DEFINE_string('n_type', 'IF', 'LIF or IF: neuron type')
+
+tf.compat.v1.app.flags.DEFINE_string('input_spike_mode','REAL','input spike mode - REAL, POISSON, WEIGHTED_SPIKE, others...')
+tf.compat.v1.app.flags.DEFINE_string('neural_coding','RATE','neural coding - RATE, WEIGHTED_SPIKE, PROPOSED')
+
+#
+tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 1.0, 'initial value of vth')
+tf.compat.v1.app.flags.DEFINE_float('n_in_init_vth', 0.1, 'initial value of vth of n_in')
+tf.compat.v1.app.flags.DEFINE_float('n_init_vinit', 0.0, 'initial value of vinit')
+tf.compat.v1.app.flags.DEFINE_float('n_init_vrest', 0.0, 'initial value of vrest')
+
+#
+tf.compat.v1.app.flags.DEFINE_enum('snn_output_type',"VMEM", ["SPIKE", "VMEM", "FIRST_SPIKE_TIME"], "snn output type")
+
+#
+tf.compat.v1.app.flags.DEFINE_integer('time_step', 10, 'time steps per sample in SNN')
+tf.compat.v1.app.flags.DEFINE_integer('time_step_save_interval',10,'snn test save interval')
+
+
+################
+# DNN-to-SNN conversion
+################
+
+# weight normalization
+#
+tf.compat.v1.app.flags.DEFINE_bool('f_fused_bn',True,'f_fused_bn')
+#tf.compat.v1.app.flags.DEFINE_bool('f_fused_bn',False,'f_fused_bn')
+
+#
+tf.compat.v1.app.flags.DEFINE_bool('f_w_norm_data',True,'f_w_norm_data')
+#tf.compat.v1.app.flags.DEFINE_bool('f_w_norm_data',False,'f_w_norm_data')
+
+tf.compat.v1.app.flags.DEFINE_bool('f_write_stat',False,'write stat')
+tf.compat.v1.app.flags.DEFINE_bool('f_stat_train_mode',True,'stat with train data')
+
+tf.compat.v1.app.flags.DEFINE_string('path_stat','./stat/', 'path stat')
+tf.compat.v1.app.flags.DEFINE_string('prefix_stat', '', 'prefix of stat file name')
+
+#tf.compat.v1.app.flags.DEFINE_string('act_save_mode','channel','activation save mode')
+
+
+
+
+
+conf = flags.FLAGS

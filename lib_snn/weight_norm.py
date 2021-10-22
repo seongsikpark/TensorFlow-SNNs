@@ -11,11 +11,14 @@ import threading
 # save activation for data-based normalization
 ##############################################################
 # distribution of activation - neuron-wise or channel-wise?
+#def save_act_stat(self):
 def save_act_stat(self):
 
     #path_stat='/home/sspark/Projects/05_SNN/stat/'
     #path_stat='./stat/'
     path_stat=self.conf.path_stat
+    model_dataset=self.conf.model+'_'+self.conf.dataset
+    path_stat=os.path.join(path_stat,model_dataset)
     #f_name_stat='act_n_train_after_w_norm_max_999'
     #f_name_stat='act_n_train'
     f_name_stat_pre=self.conf.prefix_stat
@@ -27,13 +30,21 @@ def save_act_stat(self):
     #wr_stat=collections.OrderedDict()
 
     #
+    if not os.path.isdir(path_stat):
+        os.mkdir(path_stat)
+
+
+
+    #
     threads=[]
 
-    for idx_l, l in enumerate(self.list_layer_name_write_stat):
+    #for idx_l, l in enumerate(self.list_layer_name_write_stat):
+    for idx_l, l in enumerate(self.layers_record):
         for idx_c, c in enumerate(stat_conf):
-            key=l+'_'+c
+            key=l.name+'_'+c
 
-            f_name_stat = f_name_stat_pre+'_'+key
+            #f_name_stat = f_name_stat_pre+'_'+key
+            f_name_stat = key
             f_name=os.path.join(path_stat,f_name_stat)
             #f_stat[key]=open(path_stat+f_name_stat+'_'+key+'_'+self.conf.model_name,'w')
             #f_stat[key]=open(path_stat'/'f_name_stat)
@@ -44,7 +55,7 @@ def save_act_stat(self):
 
 
             #for idx_l, l in enumerate(self.list_layer_name_write_stat):
-            threads.append(threading.Thread(target=write_stat, args=(self,f_stat[key], l, c)))
+            threads.append(threading.Thread(target=write_stat, args=(self,f_stat[key], l.name, c)))
 
     for thread in threads:
         thread.start()
@@ -56,11 +67,9 @@ def save_act_stat(self):
 def write_stat(self, f_stat, layer_name, stat_conf_name):
     print('---- write_stat ----')
 
-    l = layer_name
-    c = stat_conf_name
-    s_layer=self.dict_stat_w[l].numpy()
+    s_layer=self.dict_stat_w[layer_name].numpy()
 
-    _write_stat(self,f_stat,s_layer,c)
+    _write_stat(self,f_stat,s_layer,stat_conf_name)
 
 
 def _write_stat(self, f_stat, s_layer, conf_name):

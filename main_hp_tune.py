@@ -30,12 +30,17 @@ tfds.disable_progress_bar()
 
 import matplotlib as plt
 
-#import numpy as np
+import numpy as np
+#np.set_printoptions(precision=4)
+#np.set_printoptions(linewidth=np.inf)
+#import tensorflow.experimental.numpy as tnp
+#tnp.set_printoptions(linewidth=np.inf)
+
 #import argparse
 #import cv2
 
 # configuration
-from config import flags
+from config import conf
 
 # snn library
 import lib_snn
@@ -50,14 +55,14 @@ global model_name
 
 
 #
-conf = flags.FLAGS
+#conf = flags.FLAGS
 
 ########################################
 # configuration
 ########################################
 
-# logging
-tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+# logging - ignore warning
+#tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 
 # GPU setting
@@ -98,10 +103,15 @@ hp_tune = False
 
 #
 #train=True
-train=False
+#train=False
+train=conf.train
 
 load_model=True
 #load_model=False
+
+#
+#save_model = False
+save_model = True
 
 #
 #overwrite_train_model =True
@@ -119,6 +129,8 @@ train_epoch = 300
 # learning rate schedule - step_decay
 step_decay_epoch = 100
 
+
+# TODO: move to config
 #
 root_hp_tune = './hp_tune'
 
@@ -361,8 +373,14 @@ initial_channels = initial_channels_sel.get(model_name,64)
 
 
 #batch_size_inference = batch_size_inference_sel.get(model_name,256)
-batch_size_inference = conf.batch_size
 batch_size_train = conf.batch_size
+if conf.full_test:
+    batch_size_inference = conf.batch_size_inf
+else:
+    if conf.batch_size_inf > conf.num_test_data:
+        batch_size_inference = conf.num_test_data
+    else:
+        batch_size_inference = conf.batch_size_inf
 #batch_size_train = batch_size_train_sel.get(model_name,256)
 
 
@@ -375,6 +393,11 @@ image_shape = (input_size, input_size, 3)
 #dataset = dataset_sel[dataset_name]
 #train_ds, valid_ds, test_ds = dataset.load(dataset_name,input_size,input_size_pre_crop_ratio,num_class,train,NUM_PARALLEL_CALL,conf,input_prec_mode)
 train_ds, valid_ds, test_ds, num_class = datasets.datasets.load(dataset_name,input_size,train_type,train,conf,NUM_PARALLEL_CALL)
+
+
+# data-based weight normalization (DNN-to-SNN conversion)
+if conf.f_write_stat and conf.f_stat_train_mode:
+    test_ds = train_ds
 
 #assert False
 train_steps_per_epoch = train_ds.cardinality().numpy()
@@ -400,11 +423,19 @@ metric_accuracy_top5.name = metric_name_acc_top5
               ## metrics=['accuracy'])
               #metrics=[metric_accuracy, metric_accuracy_top5])
 
-batch_size = batch_size_train
+if train:
+    batch_size = batch_size_train
+else:
+    batch_size = batch_size_inference
 
 ################
 # name set
 ################
+
+#
+if conf.load_best_model:
+    root_model = conf.root_model_best
+
 
 # TODO: configuration & file naming
 #exp_set_name = model_name + '_' + dataset_name
@@ -425,7 +456,7 @@ hp_tune_name = exp_set_name
 # config_name='bat-{}_lmb-{:.1E}'.format(batch_size,lmb)
 
 #config_name = 'bat-{}_opt-{}_lr-{:.0E}_lmb-{:.0E}'.format(batch_size,opt,learning_rate,lmb)
-config_name = 'ep-{}_bat-{}_opt-{}_lr-{}-{:.0E}_lmb-{:.0E}'.format(train_epoch,batch_size,opt,lr_schedule,learning_rate,lmb)
+config_name = 'ep-{}_bat-{}_opt-{}_lr-{}-{:.0E}_lmb-{:.0E}'.format(train_epoch,batch_size_train,opt,lr_schedule,learning_rate,lmb)
 
 #config_name = 'bat-{}_lmb-{:.0E}'.format(batch_size, lmb)
 #config_name = 'bat-512_lmb-{:.1E}'.format(lmb)
@@ -455,7 +486,14 @@ if en_mixup:
 elif en_cutmix:
     config_name += '_cm'
 
-filepath = os.path.join(dir_model, config_name)
+#
+if train:
+    filepath = os.path.join(dir_model, config_name)
+else:
+    if conf.load_best_model:
+        filepath = dir_model
+    else:
+        filepath = os.path.join(dir_model, config_name)
 
 
 
@@ -470,23 +508,14 @@ if load_model:
     # get latest saved model
     #latest_model = lib_snn.util.get_latest_saved_model(filepath)
 
-    #assert False, 'not yet implemented'
-    #latest_model = 'ep-1085'
     latest_model = lib_snn.util.get_latest_saved_model(filepath)
     load_weight = os.path.join(filepath, latest_model)
     print('load weight: '+load_weight)
     #pre_model = tf.keras.models.load_model(load_weight)
-    #print(pre_model.evaluate(valid_ds))
-    #assert False
 
     #latest_model = lib_snn.util.get_latest_saved_model(filepath)
     #load_weight = os.path.join(filepath, latest_model)
 
-
-
-    #model.load_weights(load_path)
-    #tf.keras.models.save_model(model,filepath+'/ttt')
-    #model.save_weights(filepath+'/weight_1.h5')
 
     if not latest_model.startswith('ep-'):
         assert False, 'the dir name of latest model should start with ''ep-'''
@@ -522,6 +551,17 @@ else:
 
 
 
+# TODO: move to parameter
+# eager mode
+if conf.f_write_stat:
+    eager_mode=True
+    #eager_mode=False
+else:
+    eager_mode=False
+
+
+eager_mode=True
+
 # for HP tune
 model_top_glb = model_top
 
@@ -542,6 +582,7 @@ if f_hp_tune:
     # main to hp_tune, need to seperate configuration
     hp_tune_args = collections.OrderedDict()
     hp_tune_args['model_top'] = model_top
+    hp_tune_args['batch_size'] = batch_size
     hp_tune_args['image_shape'] = image_shape
     hp_tune_args['conf'] = conf
     hp_tune_args['include_top'] = include_top
@@ -573,18 +614,108 @@ if f_hp_tune:
     #assert False
 else:
     model = lib_snn.model_builder.model_builder(
-        model_top, image_shape, conf, include_top, load_weight, num_class, model_name, lmb, initial_channels,
+        eager_mode, model_top, batch_size, image_shape, conf, include_top, load_weight, num_class, model_name, lmb, initial_channels,
         train_epoch, train_steps_per_epoch,
         opt, learning_rate,
         lr_schedule, step_decay_epoch,
         metric_accuracy, metric_accuracy_top5)
 
 
+#
+if conf.nn_mode=='SNN' and conf.dnn_to_snn:
+    nn_mode_ori = conf.nn_mode
+    conf.nn_mode='ANN'
+    model_ann = lib_snn.model_builder.model_builder(
+        eager_mode, model_top, batch_size, image_shape, conf, include_top, load_weight, num_class, model_name, lmb, initial_channels,
+        train_epoch, train_steps_per_epoch,
+        opt, learning_rate,
+        lr_schedule, step_decay_epoch,
+        metric_accuracy, metric_accuracy_top5)
+    conf.nn_mode=nn_mode_ori
 
-if load_model:
+    model_ann.load_weights(load_weight)
+    model.load_weights_dnn_to_snn(model_ann)
+    #del(model_ann)
+
+
+elif load_model:
     model.load_weights(load_weight)
-    # model.load_weights(load_weight,by_name=True
+    #model.load_weights(load_weight, by_name=True, skip_mismatch=True)
+    #model.load_weights_custom(load_weight)
+    #model.load_weights(load_weight, by_name=True)
+    # model.load_weights(load_weight,by_name=
 
+
+#ann_kernel={}
+#snn_kernel={}
+#
+#ann_bias={}
+#snn_bias={}
+#
+#ann_bn={}
+#snn_bn={}
+#
+#print('loaded kernel')
+#for layer in model_ann.layers:
+#    if hasattr(layer,'kernel'):
+#        print('{} - {}'.format(layer.name,tf.reduce_sum(layer.kernel)))
+#        ann_kernel[layer.name] = tf.reduce_sum(layer.kernel)
+#
+#
+#print('loaded bias')
+#for layer in model_ann.layers:
+#    if hasattr(layer,'bias'):
+#        print('{} - {}'.format(layer.name,tf.reduce_sum(layer.bias)))
+#        ann_bias[layer.name] = tf.reduce_sum(layer.bias)
+#
+#print('loaded bn')
+#for layer in model_ann.layers:
+#    if hasattr(layer, 'bn') and layer.bn is not None:
+#        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.beta)))
+#        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.gamma)))
+#        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.moving_mean)))
+#        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.moving_variance)))
+#        ann_bn[layer.name] = tf.reduce_sum(layer.bn.beta)
+#
+#
+#print('loaded kernel')
+#for layer in model.layers:
+#    if hasattr(layer,'kernel'):
+#        print('{} - {}'.format(layer.name,tf.reduce_sum(layer.kernel)))
+#        snn_kernel[layer.name] = tf.reduce_sum(layer.kernel)
+#
+#
+#print('loaded bias')
+#for layer in model.layers:
+#    if hasattr(layer,'bias'):
+#        print('{} - {}'.format(layer.name,tf.reduce_sum(layer.bias)))
+#        snn_bias[layer.name] = tf.reduce_sum(layer.bias)
+#
+#print('loaded bn')
+#for layer in model.layers:
+#    if hasattr(layer, 'bn') and layer.bn is not None:
+#        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.beta)))
+#        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.gamma)))
+#        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.moving_mean)))
+#        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.moving_variance)))
+#        snn_bn[layer.name] = tf.reduce_sum(layer.bn.beta)
+#
+#
+##for layer in model.layers:
+#for layer_name in snn_kernel.keys():
+#    assert snn_kernel[layer_name]==ann_kernel[layer_name]
+#
+#for layer_name in snn_bias.keys():
+#    assert snn_bias[layer_name]==ann_bias[layer_name]
+#
+#for layer_name in snn_bn.keys():
+#    assert snn_bn[layer_name]==ann_bn[layer_name]
+
+#assert False
+
+
+#
+#model.make_test_function = lib_snn.training.make_test_function(model)
 
 #
 #if train:
@@ -648,33 +779,80 @@ cb_model_checkpoint = lib_snn.callbacks.ModelCheckpointResume(
 cb_manage_saved_model = lib_snn.callbacks.ManageSavedModels(filepath=filepath)
 cb_tensorboard = tf.keras.callbacks.TensorBoard(log_dir=path_tensorboard, update_freq='epoch')
 
+#cb_dnntosnn = lib_snn.callbacks.DNNtoSNN()
+cb_libsnn = lib_snn.callbacks.SNNLIB(conf)
+cb_libsnn_ann = lib_snn.callbacks.SNNLIB(conf)
 
+#
+callbacks_train = [cb_tensorboard]
+if save_model:
+    callbacks_train.append(cb_model_checkpoint)
+    callbacks_train.append(cb_manage_saved_model)
+
+callbacks_test = []
+# TODO: move to parameters
+#dnn_to_snn = True
+#if dnn_to_snn:
+    #callbacks_test.append(cb_dnntosnn)
+
+callbacks_test = [cb_libsnn]
+callbacks_test_ann = [cb_libsnn_ann]
 
 #
 if train:
     if hp_tune:
         print('HP Tune mode')
 
-        callbacks = [cb_tensorboard]
+        #callbacks = [cb_tensorboard]
 
         tuner.search(train_ds, epochs=train_epoch, initial_epoch=init_epoch, validation_data=valid_ds,
-                     callbacks=callbacks)
+                     callbacks=callbacks_train)
     else:
         print('Train mode')
 
-        callbacks = [
-            cb_model_checkpoint,
-            cb_manage_saved_model,
-            cb_tensorboard
-        ]
+        #callbacks = [
+            #cb_model_checkpoint,
+            #cb_manage_saved_model,
+            #cb_tensorboard
+        #]
 
         train_histories = model.fit(train_ds, epochs=train_epoch, initial_epoch=init_epoch, validation_data=valid_ds,
-                                    callbacks=callbacks)
+                                    callbacks=callbacks_train)
 else:
     print('Test mode')
-    result = model.evaluate(valid_ds)
+    result = model.evaluate(test_ds, callbacks=callbacks_test)
     # result = model.predict(test_ds)
 
     print(result)
 
 
+#
+if False:
+    zeros_input = tf.zeros([1,32,32,3])
+    zeros_output = tf.zeros([1,10])
+    #zeros_output = tf.constant([0,0,0,0,0,0,0,0,1,0])
+    result = model.evaluate(x=zeros_input,y=zeros_output,callbacks=callbacks_test)
+    #result = model.evaluate(test_ds,callbacks=callbacks_test)
+    print(result)
+
+    #for layer in model.layers:
+    #    if hasattr(layer,'record_output'):
+    #        print('{} - {}'.format(layer.name,tf.reduce_mean(layer.record_output)))
+
+# debug - compare activation
+if False:
+    result_ann = model_ann.evaluate(test_ds, callbacks=callbacks_test_ann)
+
+    for layer in model.layers:
+        if hasattr(layer,'record_output'):
+            snn = layer.record_output
+            ann = model_ann.get_layer(layer.name).record_output
+
+            #assert snn == ann
+            if snn is not None:
+                if tf.reduce_mean(snn) != tf.reduce_mean(ann):
+                    print(ann)
+                    print(layer.name)
+                    print(tf.reduce_mean(snn))
+                    print(tf.reduce_mean(ann))
+                    assert False

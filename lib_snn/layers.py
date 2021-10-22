@@ -1,13 +1,12 @@
 import tensorflow as tf
-#import tensorflow.contrib.eager as tfe
+# import tensorflow.contrib.eager as tfe
 
-#import tensorflow_probability as tfp
+# import tensorflow_probability as tfp
 
 import tensorflow.keras.initializers as initializers
 import tensorflow.keras.regularizers as regularizers
 
 import sys
-
 
 from tensorflow.python.ops import math_ops
 
@@ -22,40 +21,68 @@ import lib_snn
 
 #
 from lib_snn.model import Model
+from lib_snn.sim import glb_t
+#from main_hp_tune import conf
 
+from config import conf
 
 #
-#~class Layer(tf.keras.layers.Layer):
-    #def __init__(self, input_shape, data_format, conf):
+# ~class Layer(tf.keras.layers.Layer):
+# def __init__(self, input_shape, data_format, conf):
 
 
 # abstract class
 # Layer
 class Layer():
-    index=-1
-    def __init__(self,use_bn,activation,**kwargs):
+    index = -1
+
+    def __init__(self, use_bn, activation, last_layer=False, **kwargs):
         #
-        self.depth=-1
+        self.depth = -1
 
         #
-        self.conf = Model.conf
-        #self.use_bn = Model.use_bn
-        self.use_bn=use_bn
-        self.en_snn = Model.en_snn
+        self.conf = conf
+        # self.use_bn = Model.use_bn
+        self.use_bn = use_bn
+        #self.en_snn = Model.en_snn
+        self.en_snn = (self.conf.nn_mode == 'SNN' or self.conf.f_validation_snn)
+
+        #self.use_bias = True
+        #self.use_bias = conf.use_bias
+
+        self.lmb = conf.lmb
+        regularizer_type = {
+            #'L1': regularizers.l1(conf.lmb),
+            #'L2': regularizers.l2(conf.lmb)
+            'L1': regularizers.l1(self.lmb),
+            'L2': regularizers.l2(self.lmb),
+        }
+
+        self.kernel_regularizer = regularizer_type[self.conf.regularizer]
 
         #
-        self.prev_layer=None
+        #last_layer = kwargs.pop('last_layer', None)
+        #if last_layer:
+            #self.last_layer = True
+        #else:
+            #self.last_layer = False
+
+        self.synapse=False
+        self.last_layer = last_layer
 
         #
-        self.out_s = None       # output - synapse
-        self.out_b = None       # output - batch norm.
-        self.out_n = None       # output - neuron
+        self.prev_layer = None
+
+        #
+        self.out_s = None  # output - synapse
+        self.out_b = None  # output - batch norm.
+        self.out_n = None  # output - neuron
 
         # name
         name = kwargs.pop('name', None)
         if name is not None:
-            name_bn = name+'_bn'
-            name_act = name+'_act'
+            name_bn = name + '_bn'
+            name_act = name + '_act'
         else:
             name_bn = None
             name_act = None
@@ -63,9 +90,13 @@ class Layer():
         # batch norm.
         if self.use_bn:
             self.bn = tf.keras.layers.BatchNormalization(name=name_bn)
-            #self.bn = tf.keras.layers.BatchNormalization(epsilon=1.001e-5,name=name_bn)
+            # self.bn = tf.keras.layers.BatchNormalization(epsilon=1.001e-5,name=name_bn)
         else:
             self.bn = None
+
+        self.f_skip_bn = False
+        #self.f_skip_bn = (self.conf.nn_mode == 'ANN' and self.conf.f_fused_bn) or (self.conf.nn_mode == 'SNN')
+        #self.f_skip_bn = self.conf.f_fused_bn
 
         # activation, neuron
         # DNN mode
@@ -76,59 +107,72 @@ class Layer():
         else:
             self.act_dnn = None
 
-        #self.act_dnn = activation
+        # self.act_dnn = activation
         self.act_snn = None
 
         #
         self.shape_n = None
 
         #
-        self.output_shape_fixed_batch=None
+        self.output_shape_fixed_batch = None
+
+        #
+        self.en_record_output = False
+        self.record_output = None
 
         # neuron setup
         if self.en_snn:
-            self.n_type = self.conf.n_type
+            if self.last_layer:
+                self.n_type = 'OUT'
+            else:
+                self.n_type = self.conf.n_type
 
 
 
     #
     def build(self, input_shapes):
-        #super(Conv2D,self).build(input_shapes)
-        #print(Conv2D.__mro__[2])
-        #tf.keras.layers.Conv2D.build(self,input_shapes)
-        #self.__mro__[2].build(self,input_shapes)
+        # super(Conv2D,self).build(input_shapes)
+        # print(Conv2D.__mro__[2])
+        # tf.keras.layers.Conv2D.build(self,input_shapes)
+        # self.__mro__[2].build(self,input_shapes)
 
-        #print('build layer')
+        # build ann model
+        print('build layer - {}'.format(self.name))
         super().build(input_shapes)
-        #print(super())
+        # print(super())
+        # print(super().build)
+
+
         #print(super().build)
 
+        #assert False
 
         #
-        self.output_shape_fixed_batch = super().compute_output_shape(input_shapes)
-        #print(self.output_shape_fixed_batch)
+        if isinstance(self,lib_snn.layers.InputGenLayer):
+            self.output_shape_fixed_batch = input_shapes
+        else:
+            self.output_shape_fixed_batch = super().compute_output_shape(input_shapes)
 
-        #self.act_snn = lib_snn.layers.Neuron(self.output_shape_fixed_batch,self.conf,\
-                                             #n_type,self.conf.neural_coding,depth,self.name)
+        # self.act_snn = lib_snn.layers.Neuron(self.output_shape_fixed_batch,self.conf,\
+        # n_type,self.conf.neural_coding,depth,self.name)
 
-        #self.act_dnn = tf.keras.layers.ReLU()
+        # self.act_dnn = tf.keras.layers.ReLU()
 
-        #if not self.en_snn:
-            #self.act = self.act_dnn
+        # if not self.en_snn:
+        # self.act = self.act_dnn
 
         if self.en_snn:
-            print('---- SNN Mode ----')
-            print('Neuron setup')
+            #print('---- SNN Mode ----')
+            #print('Neuron setup')
 
-            #self.shape_n = lib_snn.util.cal_output_shape_Conv2D(self.data_format,input_shapes,self.filters,self.kernel_size,self.strides[0])
-            #self.output_shape_fixed_batch = super().compute_output_shape(input_shapes)
+            # self.shape_n = lib_snn.util.cal_output_shape_Conv2D(self.data_format,input_shapes,self.filters,self.kernel_size,self.strides[0])
+            # self.output_shape_fixed_batch = super().compute_output_shape(input_shapes)
 
-            #print('output')
-            #print(self.output_shape_fixed_batch)
+            # print('output')
+            # print(self.output_shape_fixed_batch)
 
-
-            self.act_snn = lib_snn.neurons.Neuron(self.output_shape_fixed_batch,self.conf,\
-                                                self.n_type,self.conf.neural_coding,self.depth,self.name)
+            self.act_snn = lib_snn.neurons.Neuron(self.output_shape_fixed_batch, self.conf, \
+                                                  self.n_type, self.conf.neural_coding, self.depth, 'n_'+self.name)
 
         # setup activation
         if self.en_snn:
@@ -138,87 +182,156 @@ class Layer():
 
         #
         self.built = True
+        print('build layer - done')
 
     #
-    #def call(self,input,training):
-        #s = super().call(input)
-#
-        #s = tf.nn.relu(s)
-#
-        #return s
+    # def call(self,input,training):
+    # s = super().call(input)
+    #
+    # s = tf.nn.relu(s)
+    #
+    # return s
 
     #
-    #def call_set_aside_for_future(self,input,training):
-    def call(self,input,training):
-        #print('layer call')
+    # def call_set_aside_for_future(self,input,training):
+    def call(self, input, training):
+        #print('layer call - {}'.format(self.name))
         s = super().call(input)
 
-        #print('depth: {}, name: {}'.format(self.depth, self.name))
-        #if self.depth==1:
-            #print(super().call(input))
+        # print('depth: {}, name: {}'.format(self.depth, self.name))
+        # if self.depth==1:
+        # print(super().call(input))
         #    print(super().call)
-            #print(s)
-            #print(self.kernel)
+        # print(s)
+        # print(self.kernel)
 
-
-        if (self.use_bn) and (not Model.f_skip_bn):
-            b = self.bn(s,training=training)
+        if (self.use_bn) and (not self.f_skip_bn):
+            b = self.bn(s, training=training)
         else:
             b = s
+            #print('here')
+            #print(self.name)
 
         if self.act is None:
             n = b
-            #assert False
         else:
             if self.en_snn:
-                n = self.act(b,Model.t)
+                n = self.act(b, glb_t.t)
             else:
                 n = self.act(b)
         ret = n
 
+        if self.en_record_output:
+            self.record_output = ret
+
+        # debug
+        debug=True
+        if debug:
+            #print('neuron input')
+            #print('{}: {} - in {}, out {}'.format(glb_t.t,self.depth,tf.reduce_mean(b),tf.reduce_mean(n)))
+
+            #print('neuron output')
+            #print('{}: {} - {}'.format(glb_t.t,self.depth,tf.reduce_mean(n)))
+            #print('{}: {}'.format(self.depth,tf.reduce_mean(self.act_snn.vmem)))
+            #print('{}: {}'.format(self.depth,tf.reduce_mean(self.act_snn.vmem)))
+
+            #if self.depth==0:
+                #print('input')
+                #print(tf.reduce_mean(input))
+
+            #if (self.depth==1):
+                #print(self.name)
+                #print('{}: {} - {}'.format(glb_t.t, self.depth, self.act.out))
+                #print('{}: {} - {}'.format(glb_t.t, self.depth, n[0,0,0]))
+
+            #if (self.depth == 15) and (glb_t.t % 10 == 0):
+            #    print(tf.reduce_mean(self.act.get_spike_count()))
+
+            #if self.depth==1:
+                #print(input)
+                #print(tf.reduce_mean(input))
+                #print(tf.reduce_mean(s))
+                #print(tf.reduce_mean(b))
+                #print(tf.reduce_mean(n))
+
+            print_period=10
+            #if (self.depth==4 or self.depth==8 or self.depth==12) and (glb_t.t%print_period==(print_period-1)):
+            if glb_t.t % print_period == (print_period - 1):
+                #print('{}: {} - spike count {}'.format(glb_t.t, self.depth, self.act.get_spike_count()))
+                #print('{}: {} - spike count mean {}'.format(glb_t.t, self.depth, tf.reduce_mean(self.act.get_spike_count())))
+                print('{}: {} - spike count max {}, mean {}'.format(glb_t.t, self.depth,
+                                                                   tf.reduce_max(self.act.get_spike_count()),tf.reduce_mean(self.act.get_spike_count())))
+
+                #if (self.depth==4 or self.depth==8 or self.depth==12 or self.depth==16) and (glb_t.t%print_period==(print_period-1)):
+            #if (self.depth == 1) and (glb_t.t % 1 == 0):
+                #print('{}: {} - {}'.format(self.depth,glb_t.t,tf.reduce_mean(self.act_snn.spike_counter)))
+                #print('{}: {} - in {}, out {}'.format(glb_t.t,self.depth,tf.reduce_mean(self.act_snn.input),tf.reduce_mean(self.act_snn.out)))
+                #print('{}: {} - {}'.format(glb_t.t,self.depth,self.act_snn.out))
+
+            if (self.depth == 16) and (glb_t.t % print_period == (print_period - 1)):
+
+                if self.en_snn:
+                    #print('{}: {} - input {}'.format(glb_t.t, self.depth, input))
+                    #print('{}: {} - s {}'.format(glb_t.t, self.depth, s))
+                    print('{}: {} - out {}'.format(glb_t.t, self.depth, self.act.out))
+                    #print('{}: {} - {}'.format(glb_t.t, self.depth, self.act.vth))
+                else:
+                    print('{}: {} - {}'.format(glb_t.t, self.depth, b))
+
+            #print('{}: {} - {}'.format(glb_t.t,self.depth,tf.reduce_mean(self.act_snn.out)))
+
+
+
         return ret
 
     #
-    def bn_fusion(self):
-        self._bn_fusion(self,self.bn)
+    def reset(self):
+        if self.en_snn:
+            if self.act_snn is not None:
+                self.act_snn.reset()
 
-
-    # batch normalization fusion - conv, fc
-    def _bn_fusion(self, layer, bn):
-        gamma=bn.gamma
-        beta=bn.beta
-        mean=bn.moving_mean
-        var=bn.moving_variance
-        ep=bn.epsilon
-        inv=math_ops.rsqrt(var+ep)
-        inv*=gamma
-
-        layer.kernel = layer.kernel*math_ops.cast(inv,layer.kernel.dtype)
-        layer.bias = ((layer.bias-mean)*inv+beta)
 
     #
+    def bn_fusion(self):
+        self._bn_fusion(self.bn)
+        self.f_skip_bn = True
+
+
     def bn_defusion(self):
 
         assert False, 'not implemented and verified yet'
-        self._bn_defusion(self,self.bn)
+        self._bn_defusion(self, self.bn)
 
-    #
-    def _bn_defusion(self, layer, bn):
-        gamma=bn.gamma
-        beta=bn.beta
-        mean=bn.moving_mean
-        var=bn.moving_variance
-        ep=bn.epsilon
-        inv=math_ops.rsqrt(var+ep)
-        inv*=gamma
+    # batch normalization fusion - conv, fc
+    def _bn_fusion(self, bn):
+        gamma = bn.gamma
+        beta = bn.beta
+        mean = bn.moving_mean
+        var = bn.moving_variance
+        ep = bn.epsilon
+        inv = math_ops.rsqrt(var + ep)
+        inv *= gamma
 
-        layer.kernel = layer.kernel/inv
-        layer.bias = (layer.bias-beta)/inv+mean
+        self.kernel = self.kernel * math_ops.cast(inv, self.kernel.dtype)
+        self.bias = ((self.bias - mean) * inv + beta)
+        #self.bias = self.bias*2
 
+#
+def _bn_defusion(layer, bn):
+    gamma = bn.gamma
+    beta = bn.beta
+    mean = bn.moving_mean
+    var = bn.moving_variance
+    ep = bn.epsilon
+    inv = math_ops.rsqrt(var + ep)
+    inv *= gamma
+
+    layer.kernel = layer.kernel / inv
+    layer.bias = (layer.bias - beta) / inv + mean
 
 # Input
-class InputLayer(Layer,tf.keras.layers.InputLayer):
-#class InputLayer(Layer):
+class InputLayer(Layer, tf.keras.layers.InputLayer):
+    # class InputLayer(Layer):
     def __init__(self,
                  input_shape=None,
                  batch_size=None,
@@ -240,21 +353,19 @@ class InputLayer(Layer,tf.keras.layers.InputLayer):
             ragged,
             type_spec,
             **kwargs)
-        Layer.__init__(self,False,None,**kwargs)
-
-
+        Layer.__init__(self, False, None, **kwargs)
 
         print('init')
-        #assert False
+        # assert False
 
     def build(self, input_shapes):
         print('build input')
-        #super().build(input_shapes)
+        # super().build(input_shapes)
 
         assert False
 
-    #def call(self, inputs):
-    #def call(self, inputs, *args, ** kwargs):
+    # def call(self, inputs):
+    # def call(self, inputs, *args, ** kwargs):
     def call(self, inputs, training):
         print('call input')
 
@@ -262,37 +373,43 @@ class InputLayer(Layer,tf.keras.layers.InputLayer):
 
 
 # custom input layer - for spike input generation
-class InputGenLayer(Layer,tf.keras.layers.Layer):
-    def __init__(self,**kwargs):
-        Layer.__init__(self,False,None,**kwargs)
-        tf.keras.layers.Layer.__init__(self)
+class InputGenLayer(Layer, tf.keras.layers.Layer):
+    def __init__(self, **kwargs):
+        tf.keras.layers.Layer.__init__(self, **kwargs)
+        Layer.__init__(self, False, None, **kwargs)
+
+        #self.act_dnn = tf.identity()
 
         #
-        Layer.index+= 1
+        Layer.index += 1
         self.depth = Layer.index
+        self.n_type = 'IN'
 
-    def call(self, inputs, training):
-        #print('input gen layer - call')
+    #def call(self, inputs, training):
+        # print('input gen layer - call')
         #print(inputs)
-        return inputs
+    #    return inputs
+
 
 
 
 # Conv2D
-class Conv2D(Layer,tf.keras.layers.Conv2D):
-#class Conv2D(tf.keras.layers.Conv2D,Layer):
+class Conv2D(Layer, tf.keras.layers.Conv2D):
+    # class Conv2D(tf.keras.layers.Conv2D,Layer):
     def __init__(self,
                  filters,
                  kernel_size,
-                 strides=(1,1),
+                 strides=(1, 1),
                  padding='valid',
                  dilation_rate=(1, 1),
                  activation=None,
                  activity_regularizer=None,
                  kernel_constraint=None,
                  bias_constraint=None,
-                 use_bn=False,                          # use batch norm.
+                 use_bn=False,  # use batch norm.
                  **kwargs):
+
+        Layer.__init__(self, use_bn, activation, **kwargs)
 
         tf.keras.layers.Conv2D.__init__(
             self,
@@ -300,74 +417,74 @@ class Conv2D(Layer,tf.keras.layers.Conv2D):
             kernel_size=kernel_size,
             strides=strides,
             padding=padding,
-            data_format=Model.data_format,
+            data_format=conf.data_format,
             dilation_rate=dilation_rate,
             activation=None,
-            use_bias=Model.use_bias,
-            #kernel_initializer=Model.kernel_initializer,
+            use_bias=conf.use_bias,
+            # kernel_initializer=Model.kernel_initializer,
             bias_initializer='zeros',
-            kernel_regularizer=Model.kernel_regularizer,
+            kernel_regularizer=self.kernel_regularizer,
             bias_regularizer=None,
             activity_regularizer=activity_regularizer,
             kernel_constraint=kernel_constraint,
             bias_constraint=bias_constraint,
-            #dynamic=True,
+            # dynamic=True,
             **kwargs)
 
-        Layer.__init__(self,use_bn,activation,**kwargs)
-
         #
-        Layer.index+= 1
+        Layer.index += 1
         self.depth = Layer.index
-
+        self.synapse=True
 
 
 # Dense
-class Dense(Layer,tf.keras.layers.Dense):
+class Dense(Layer, tf.keras.layers.Dense):
     def __init__(self,
                  units,
                  activation=None,
-                 #use_bias=True
-                 #kernel_initializer='glorot_uniform',
-                 #bias_initializer='zeros',
-                 #kernel_regularizer=None,
-                 #bias_regularizer=None,
+                 # use_bias=True
+                 # kernel_initializer='glorot_uniform',
+                 # bias_initializer='zeros',
+                 # kernel_regularizer=None,
+                 # bias_regularizer=None,
                  activity_regularizer=None,
                  kernel_constraint=None,
                  bias_constraint=None,
-                 use_bn=False,                          # use batch norm.
+                 use_bn=False,  # use batch norm.
+                 last_layer=False,
                  **kwargs):
+
+        Layer.__init__(self, use_bn, activation, last_layer, **kwargs)
 
         tf.keras.layers.Dense.__init__(
             self,
             units,
             activation=None,
-            use_bias=Model.use_bias,
-            #kernel_initializer=Model.kernel_initializer,
+            use_bias=conf.use_bias,
+            # kernel_initializer=Model.kernel_initializer,
             bias_initializer='zeros',
-            kernel_regularizer=Model.kernel_regularizer,
+            kernel_regularizer=self.kernel_regularizer,
             bias_regularizer=None,
             activity_regularizer=activity_regularizer,
             kernel_constraint=kernel_constraint,
             bias_constraint=bias_constraint,
-            #dynamic=True,
+            # dynamic=True,
             **kwargs)
-
-        Layer.__init__(self,use_bn,activation,**kwargs)
 
         #
         Layer.index += 1
         self.depth = Layer.index
+        self.synapse=True
 
 
 #
-class Add(Layer,tf.keras.layers.Add):
+class Add(Layer, tf.keras.layers.Add):
     def __init__(self, use_bn=False, epsilon=0.001, activation=None, **kwargs):
         tf.keras.layers.Add.__init__(self, **kwargs)
 
-        Layer.__init__(self,use_bn=use_bn,epsilon=epsilon,activation=activation,**kwargs)
+        Layer.__init__(self, use_bn=use_bn, epsilon=epsilon, activation=activation, **kwargs)
 
-        #self.act = activation
+        # self.act = activation
 
         #
         Layer.index += 1
@@ -381,14 +498,44 @@ class Add(Layer,tf.keras.layers.Add):
         })
         return config
 
+#
+class Identity(Layer, tf.keras.layers.Layer):
+    def __init__(self, use_bn=False, epsilon=0.001, activation=None, **kwargs):
+        tf.keras.layers.Layer.__init__(self, **kwargs)
+        Layer.__init__(self, use_bn=use_bn, epsilon=epsilon, activation=activation, **kwargs)
+
+        self.kernel = tf.constant(1.0, shape=[], name='kernel')
+
+    #def build(self,input_shape):
+        ##self.kernel = self.add_weight("kernel",shape=[],initializer='ones',trainable=False)
+        #self.kernel = tf.Variable("kernel",shape=[],initializer='ones',trainable=False)
+
+    def call(self, inputs, training):
+        ret = tf.multiply(inputs,self.kernel)
+
+        if self.en_record_output:
+            self.record_output = ret
+
+        return ret
+
+    def get_config(self):
+        config = super().get_config().copy()
+
+        config.update({
+            'use_bn': self.use_bn,
+            'act': self.act,
+            #'kernel': self.kernel,
+        })
+        return config
+
 
 # MaxPolling2D
-class MaxPool2D(Layer,tf.keras.layers.MaxPool2D):
+class MaxPool2D(Layer, tf.keras.layers.MaxPool2D):
     def __init__(self,
-                 pool_size=(2,2),
+                 pool_size=(2, 2),
                  strides=None,
                  padding='valid',
-                 #data_format=None,
+                 # data_format=None,
                  **kwargs):
 
         tf.keras.layers.MaxPool2D.__init__(
@@ -396,79 +543,70 @@ class MaxPool2D(Layer,tf.keras.layers.MaxPool2D):
             pool_size=pool_size,
             strides=strides,
             padding=padding,
-            data_format=Model.data_format,
+            data_format=conf.data_format,
             **kwargs)
 
-        Layer.__init__(self,False,None,**kwargs)
+        Layer.__init__(self, False, None, **kwargs)
 
+        self.prev_layer_set_done=False
 
     def build(self, input_shapes):
-        tf.keras.layers.MaxPool2D.build(self,input_shapes)
+        tf.keras.layers.MaxPool2D.build(self, input_shapes)
 
         self.output_shape_fixed_batch = super().compute_output_shape(input_shapes)
         print('maxpool')
         print(self.output_shape_fixed_batch)
 
-
-    def call(self,inputs):
-        #s = super().call(self,inputs)
-        #return s
+    def call_tmp(self, inputs):
+        # s = super().call(self,inputs)
+        # return s
         return tf.keras.layers.MaxPool2D.call(self, inputs)
 
+    def call(self, inputs):
+
+        #assert False
+        #if not Model.f_load_model_done:
+            #return tf.keras.layers.MaxPool2D.call(self, inputs)
+
+        if self.en_snn and self.prev_layer_set_done:
+
+            #print('current_layer - {}'.format(self.name))
+            #print('prev layer - {}'.format(self.prev_layer.name))
 
 
-    def call_set_aside(self,inputs):
-
-        if not Model.f_load_model_done:
-            return tf.keras.layers.MaxPool2D.call(self,inputs)
-
-        if self.en_snn:
-
-            #spike_count = Model.model.get_layer(name=self.prev_layer_name).act.get_spike_count()
+            # spike_count = Model.model.get_layer(name=self.prev_layer_name).act.get_spike_count()
             spike_count = self.prev_layer.act.get_spike_count()
+            #print(spike_count)
             output_shape = self.output_shape_fixed_batch
 
-            #print('spike count - {}'.format(tf.reduce_sum(spike_count)))
-            return lib_snn.layers.spike_max_pool(inputs,spike_count,output_shape)
+            # print('spike count - {}'.format(tf.reduce_sum(spike_count)))
+            return lib_snn.layers.spike_max_pool(inputs, spike_count, output_shape)
         else:
-            return tf.keras.layers.MaxPool2D.call(self,inputs)
-
-
-
-
-
-
-
-
-
-
-
-
+            return tf.keras.layers.MaxPool2D.call(self, inputs)
 
 
 ############################################################
 ## spike max pool (spike count based gating function)
 ############################################################
 def spike_max_pool(feature_map, spike_count, output_shape):
-    #tmp = tf.reshape(spike_count,(1,-1,)+spike_count.numpy().shape[2:])
-    tmp = tf.reshape(spike_count,(1,-1,)+tuple(tf.shape(spike_count)[2:]))
-    _, arg = tf.nn.max_pool_with_argmax(tmp,(1,2,2,1),(1,2,2,1),padding='SAME')
-    #arg = tf.reshape(arg,output_shape)
-    conv_f = tf.reshape(feature_map,[-1])
-    arg = tf.reshape(arg,[-1])
+    # tmp = tf.reshape(spike_count,(1,-1,)+spike_count.numpy().shape[2:])
+    tmp = tf.reshape(spike_count, (1, -1,) + tuple(tf.shape(spike_count)[2:]))
+    _, arg = tf.nn.max_pool_with_argmax(tmp, (1, 2, 2, 1), (1, 2, 2, 1), padding='SAME')
+    # arg = tf.reshape(arg,output_shape)
+    conv_f = tf.reshape(feature_map, [-1])
+    arg = tf.reshape(arg, [-1])
 
     p_conv = tf.gather(conv_f, arg)
-    p_conv = tf.reshape(p_conv,output_shape)
+    p_conv = tf.reshape(p_conv, output_shape)
 
-    #p_conv = tf.convert_to_tensor(conv_f.numpy()[arg],dtype=tf.float32)
+    # p_conv = tf.convert_to_tensor(conv_f.numpy()[arg],dtype=tf.float32)
 
     return p_conv
 
+# def spike_max_pool_temporal(feature_map, spike_count, output_shape):
 
-#def spike_max_pool_temporal(feature_map, spike_count, output_shape):
 
-
-#def spike_max_pool(feature_map, spike_count, output_shape):
+# def spike_max_pool(feature_map, spike_count, output_shape):
 #
 #    max_pool = {
 #        'TEMPORAL': spike_max_pool_rate

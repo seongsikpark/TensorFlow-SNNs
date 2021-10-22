@@ -20,3 +20,9 @@ from lib_snn import hp_tune
 from lib_snn import hp_tune_model
 
 from lib_snn import model_builder
+
+from lib_snn import proc
+
+from lib_snn import training
+
+from lib_snn import sim

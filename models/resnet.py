@@ -52,7 +52,9 @@ def block_basic(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=No
     if conv_shortcut:
         shortcut = lib_snn.layers.Conv2D(filters, 1, strides=stride, use_bn=True, activation=None, name=name + '_conv0')(x)
     else:
-        shortcut = x
+        #shortcut = x
+        shortcut = lib_snn.layers.Identity(name=name + '_conv0_i') (x)
+        #shortcut = lib_snn.layers.Conv2D(1,1,strides=1,use_bn=False,activation=None,name=name+'_conv0_i',kernel_initializer='ones',trainable=False)(x)
 
     x = lib_snn.layers.Conv2D(filters, kernel_size, strides=stride, padding='SAME', use_bn=True, activation='relu',name=name + '_conv1')(x)
     x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation='relu',name=name + '_conv2')(x)
@@ -84,7 +86,9 @@ def block_bottleneck(x, filters, kernel_size=3, stride=1, conv_shortcut=True, na
     if conv_shortcut:
         shortcut = lib_snn.layers.Conv2D(4 * filters, 1, strides=stride, use_bn=True, activation=None, name=name + '_conv0')(x)
     else:
-        shortcut = x
+        #shortcut = x
+        shortcut = lib_snn.layers.Identity(name=name + '_conv0_i') (x)
+        #shortcut = lib_snn.layers.Conv2D(1,1,strides=1,use_bn=False,activation=None,name=name+'_conv0_i',kernel_initializer='ones',trainable=False) (x)
 
     #x = lib_snn.layers.Conv2D(filters, 1, strides=stride, use_bn=True, activation='relu', epsilon=1.001e-5, name=name + '_conv_1')(x)
     x = lib_snn.layers.Conv2D(filters, 1, strides=stride, use_bn=True, activation='relu', name=name + '_conv1')(x)
@@ -207,6 +211,7 @@ Returns:
 # keras, resnet.py based
 class ResNet(lib_snn.model.Model):
     def __init__(self,
+        batch_size,
         input_shape,
         block,
         initial_channels,
@@ -230,13 +235,12 @@ class ResNet(lib_snn.model.Model):
 
         lib_snn.model.Model.__init__(self, input_shape, data_format, classes, conf, **kwargs)
 
-        #bn_axis = 3 if backend.image_data_format() == 'channels_last' else 1
         bn_axis = 3
 
         imagenet_pretrain = False
         #imagenet_pretrain = True
 
-        img_input = tf.keras.layers.Input(shape=input_shape, batch_size=conf.batch_size)
+        img_input = tf.keras.layers.Input(shape=input_shape, batch_size=batch_size)
         x = lib_snn.layers.InputGenLayer()(img_input)
         #img_input = lib_snn.layers.InputLayer(input_shape=input_shape,batch_size=conf.batch_size,name='in')
 
@@ -255,34 +259,17 @@ class ResNet(lib_snn.model.Model):
             preact_bn = False
             preact_act = None
 
-        #x = lib_snn.layers.Conv2D(64, 7, strides=2, use_bias=use_bias, use_bn = preact_bn, activation=preact_act, name='conv1_conv')(x)
-        #x = lib_snn.layers.Conv2D(64, 7, strides=2, use_bn = preact_bn, activation=preact_act, epsilon=1.001e-5, name='conv1_conv')(x)
         if imagenet_pretrain:
-            x = lib_snn.layers.Conv2D(64, 7, strides=2, use_bn=preact_bn, activation=preact_act, name='conv1_conv')(x)
+            x = lib_snn.layers.Conv2D(initial_channels, 7, strides=2, use_bn=preact_bn, activation=preact_act, name='conv1_conv')(x)
         else:
-            #x = lib_snn.layers.Conv2D(64, 3, padding='same', use_bn=preact_bn, activation=preact_act, name='conv1_conv')(x)
-            #x = lib_snn.layers.Conv2D(64, 3, strides=2, padding='same', use_bn=preact_bn, activation=preact_act, name='conv1_conv')(x)
-            x = lib_snn.layers.Conv2D(16, 3, strides=1, padding='same', use_bn=preact_bn, activation=preact_act, name='conv1_conv')(x)
-
-        #if not preact:
-            #x = layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5, name='conv1_bn')(x)
-            #x = layers.Activation('relu', name='conv1_relu')(x)
+            x = lib_snn.layers.Conv2D(initial_channels, 3, strides=1, padding='same', use_bn=preact_bn, activation=preact_act, name='conv1_conv')(x)
 
         if imagenet_pretrain:
             x = tf.keras.layers.ZeroPadding2D(padding=((1, 1), (1, 1)), name='pool1_pad')(x)
-            # x = lib_snn.layers.MaxPooling2D(3, strides=2, name='pool1_pool')(x)
             x = lib_snn.layers.MaxPool2D(3, strides=2, name='pool1_pool')(x)
         else:
             pass
-            #x = lib_snn.layers.MaxPool2D(3, strides=2, name='pool1_pool')(x)
-            #x = lib_snn.layers.MaxPool2D(2, strides=2, name='pool1_pool')(x)
-            #x = lib_snn.layers.MaxPool2D(name='pool1_pool')(x)
 
-        #x = stack_fn(x)
-        #x = stack1(x, 64, block, num_blocks[0], stride=1, name='conv2')
-        #x = stack1(x, 128, block, num_blocks[1], name='conv3')
-        #x = stack1(x, 256, block, num_blocks[2], name='conv4')
-        #x = stack1(x, 512, block, num_blocks[3], name='conv5')
 
         if cifar_stack:
             x = stack1(x, initial_channels, block, num_blocks[0], stride=1, name='conv2')
@@ -296,15 +283,11 @@ class ResNet(lib_snn.model.Model):
 
 
         if preact:
-            #x = tf.keras.layers.BatchNormalization( axis=bn_axis, epsilon=1.001e-5, name='post_bn')(x)
-            #x = tf.keras.layers.BatchNormalization(axis=bn_axis, name='post_bn')(x)
-            #x = tf.keras.layers.BatchNormalization(epsilon=1.001e-5, name='post_bn')(x)
             x = tf.keras.layers.BatchNormalization(name='post_bn')(x)
             x = tf.keras.layers.Activation('relu', name='post_relu')(x)
 
         if include_top:
             x = tf.keras.layers.GlobalAveragePooling2D(name='avg_pool')(x)
-            #imagenet_utils.validate_activation(classifier_activation, weights)
             x = tf.keras.layers.Dense(classes, activation=classifier_activation, name='predictions')(x)
         else:
             if pooling == 'avg':
@@ -312,12 +295,6 @@ class ResNet(lib_snn.model.Model):
             elif pooling == 'max':
                 x = tf.keras.layers.GlobalMaxPooling2D(name='max_pool')(x)
 
-        # Ensure that the model takes into account
-        # any potential predecessors of `input_tensor`.
-        #if input_tensor is not None:
-            #inputs = layer_utils.get_source_inputs(input_tensor)
-        #else:
-            #inputs = img_input
 
         # Create model.
         self.model = training.Model(img_input, x, name=model_name)

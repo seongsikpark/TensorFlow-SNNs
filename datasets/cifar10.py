@@ -53,9 +53,9 @@ def load(dataset_name,input_size,input_size_pre_crop_ratio,num_class,train,num_p
                                        split=['train' ,'test'],
                                        shuffle_files=True,
                                        as_supervised=True)
-    test_ds = tfds.load(dataset_name,
-                        split='test',
-                        as_supervised=True)
+    #test_ds = tfds.load(dataset_name,
+                        #split='test',
+                        #as_supervised=True)
 
     #input_prec_mode = 'torch'
 
@@ -92,5 +92,5 @@ def load(dataset_name,input_size,input_size_pre_crop_ratio,num_class,train,num_p
     valid_ds = valid_ds.batch(batch_size_train)
     valid_ds = valid_ds.prefetch(num_parallel)
 
-    return train_ds, valid_ds, test_ds
+    return train_ds, valid_ds, valid_ds
 

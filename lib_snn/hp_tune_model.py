@@ -54,6 +54,7 @@ def model_builder_default(hp, args, hps):
 
     # args
     model_top = args['model_top']
+    batch_size = args['batch_size']
     image_shape = args['image_shape']
     conf = args['conf']
     include_top = args['include_top']
@@ -82,7 +83,7 @@ def model_builder_default(hp, args, hps):
 
 
     model = lib_snn.model_builder.model_builder(
-        model_top, image_shape, conf, include_top, load_weight, num_class, hp_model, hp_lmb, hp_initial_channels,
+        True, model_top, batch_size,  image_shape, conf, include_top, load_weight, num_class, hp_model, hp_lmb, hp_initial_channels,
         hp_train_epoch, train_steps_per_epoch,
         hp_optimizer, hp_learning_rate,
         hp_lr_schedule, hp_step_decay_epoch,

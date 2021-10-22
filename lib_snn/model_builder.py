@@ -4,7 +4,7 @@ import lib_snn
 
 
 def model_builder(
-    model_top, image_shape, conf, include_top, load_weight, num_class, model_name, lmb, initial_channels,
+    eager_mode, model_top, batch_size, image_shape, conf, include_top, load_weight, num_class, model_name, lmb, initial_channels,
     train_epoch, train_steps_per_epoch,
     opt, learning_rate,
     lr_schedule, step_decay_epoch,
@@ -12,9 +12,10 @@ def model_builder(
 ):
 
     # model
-    model_top = model_top(input_shape=image_shape, conf=conf, include_top=include_top,
+    model_top = model_top(batch_size=batch_size, input_shape=image_shape, conf=conf, include_top=include_top,
                           weights=load_weight, classes=num_class, name=model_name, lmb=lmb,
                           initial_channels=initial_channels)
+
 
     # TODO: parameterize
     # lr schedule
@@ -42,16 +43,17 @@ def model_builder(
     else:
         assert False
 
-    model = model_top.model
+    #model = model_top.model
+    model = model_top
+
+    # dummy
+    img_input = tf.keras.layers.Input(shape=image_shape, batch_size=batch_size)
+    model(img_input)
 
     # compile
-    # TODO: move to parameter
-    run_eagerly = False
-    # run_eagerly=True
-
     model.compile(optimizer=optimizer,
                   # loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
                   loss=tf.keras.losses.CategoricalCrossentropy(),
-                  metrics=[metric_accuracy, metric_accuracy_top5], run_eagerly=run_eagerly)
+                  metrics=[metric_accuracy, metric_accuracy_top5], run_eagerly=eager_mode)
 
     return model

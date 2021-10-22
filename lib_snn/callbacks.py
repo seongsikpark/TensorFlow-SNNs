@@ -6,6 +6,8 @@ import tensorflow as tf
 
 from tensorflow.python.keras.utils.io_utils import path_to_string
 
+#
+import lib_snn
 
 class ManageSavedModels(tf.keras.callbacks.Callback):
     def __init__(self,
@@ -112,9 +114,65 @@ class TensorboardBestValAcc(tf.keras.callbacks.Callback):
         print(self.best_val_acc)
         print(logs)
 
+#
+class SNNLIB(tf.keras.callbacks.Callback):
+    def __init__(self, conf, **kwargs):
+        super(SNNLIB, self).__init__(**kwargs)
+        self.conf = conf
+
+        self.f_skip_bn=False
+        self.layers_w_kernel=[]
 
 
+    #def build(self):
+        #lib_snn.proc.set_init(self)
 
+    def on_test_begin(self, logs=None):
+
+        # initialization
+        lib_snn.proc.preproc(self)
+
+
+    def on_test_end(self, logs=None):
+
+        #print(self.model.get_layer('conv1'))
+        lib_snn.proc.postproc(self)
+
+    def on_test_batch_begin(self, batch, logs=None):
+        lib_snn.proc.preproc_batch(self)
+
+    def on_test_batch_end(self, batch, logs=None):
+        lib_snn.proc.postproc_batch(self)
+
+
+#
+class DNNtoSNN(tf.keras.callbacks.Callback):
+    def __init__(self, conf, **kwargs):
+        super(DNNtoSNN, self).__init__(**kwargs)
+        self.conf = conf
+
+    def on_test_begin(self, logs=None):
+        #print(self.model)
+
+        #print(self.model.model)
+        #self.model.get_layer()
+
+        #list_layer = self.model.layers[0:]
+
+        #print(self.model.get_layer('conv1').kernel[0,0,0])
+        #print(self.model.get_layer('conv1').bias)
+
+
+        # bn fusion
+        if (self.conf.nn_mode=='ANN' and self.conf.f_fused_bn) or (self.conf.nn_mode=='SNN'):
+            for layer in self.model.layers:
+                if hasattr(layer, 'bn') and (layer.bn is not None):
+                    layer.bn_fusion()
+
+        #assert False
+
+        #print(self.model.get_layer('conv1').kernel[0,0,0])
+        #print(self.model.get_layer('conv1').bias)
 
 ########
 # callback test

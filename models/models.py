@@ -1,6 +1,7 @@
 
 from models.vgg16_tr import VGG16_TR
-from models.vgg16 import VGG16
+#from models.vgg16 import VGG16
+from models.vgg16_func import VGG16
 from models.resnet import ResNet18
 from models.resnet import ResNet20
 from models.resnet import ResNet32

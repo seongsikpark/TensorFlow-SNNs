@@ -70,9 +70,16 @@ def get_flops(model,input_shape_one_batch):
 ##############################################################
 def get_latest_saved_model(path):
     mtime = lambda f: os.stat(os.path.join(path, f)).st_mtime
-    list_dir_sorted = list(sorted(os.listdir(path), key=mtime))
+    list_dir_sorted_by_time = list(sorted(os.listdir(path), key=mtime))
 
-    latest_model = list_dir_sorted[-1]
+    list_dir_sorted_by_name = list(sorted(os.listdir(path)))
+
+    latest_model_by_time = list_dir_sorted_by_time[-1]
+    latest_model_by_name = list_dir_sorted_by_name[-1]
+
+    #assert latest_model_by_time==latest_model_by_name
+    latest_model = list_dir_sorted_by_name[-1]
+    #latest_model = list_dir_sorted[-1]
 
     return latest_model
 

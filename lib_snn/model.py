@@ -4,6 +4,7 @@ import tensorflow as tf
 import tensorflow.keras.initializers as initializers
 import tensorflow.keras.regularizers as regularizers
 
+
 #
 import os
 import csv
@@ -14,26 +15,32 @@ import collections
 
 #
 import lib_snn
-
+from lib_snn.sim import glb_t
 
 
 #
 class Model(tf.keras.Model):
     count=0
-    def __init__(self, input_shape, data_format, num_class, conf, **kwargs):
+    def __init__(self, inputs, outputs, batch_size, input_shape, data_format, num_class, conf, **kwargs):
+    #def __init__(self, batch_size, input_shape, data_format, num_class, conf, **kwargs):
+
         #print("lib_SNN - Layer - init")
 
 
         lmb = kwargs.pop('lmb', None)
         n_dim_classifier = kwargs.pop('n_dim_classifier', None)
 
-
         #
-        super(Model, self).__init__(**kwargs)
+        super(Model, self).__init__(inputs=inputs,outputs=outputs,**kwargs)
+        #super(Model, self).__init__(**kwargs)
 
         #
         Model.count += 1
         #assert Model.count==1, 'We have only one Model instance'
+
+        #
+        self.batch_size = batch_size
+        self.in_shape = input_shape
 
         #
         self.verbose = conf.verbose
@@ -84,19 +91,19 @@ class Model(tf.keras.Model):
         # input
         #self._input_shape = [-1]+input_shape.as_list()
         self._input_shape = [-1]+list(input_shape)
-        self.in_shape = [self.conf.batch_size]+self._input_shape[1:]
+        #self.in_shape = [self.conf.batch_size]+self._input_shape[1:]
         self.in_shape_snn = [self.conf.batch_size] + self._input_shape[1:]
 
 
         # output
-        if False:
-            self.count_accuracy_time_point=0
-            self.accuracy_time_point = list(range(conf.time_step_save_interval,conf.time_step,conf.time_step_save_interval))
-            self.accuracy_time_point.append(conf.time_step)
-            self.num_accuracy_time_point = len(self.accuracy_time_point)
-            self.snn_output_neuron = None
-            self.snn_output = None
-            self.spike_count = None
+        #if False:
+        self.count_accuracy_time_point=0
+        self.accuracy_time_point = list(range(conf.time_step_save_interval,conf.time_step,conf.time_step_save_interval))
+        self.accuracy_time_point.append(conf.time_step)
+        self.num_accuracy_time_point = len(self.accuracy_time_point)
+        self.snn_output_neuron = None
+        self.snn_output = None
+        self.spike_count = None
 
         #
         self.activation = tf.nn.relu
@@ -107,14 +114,7 @@ class Model(tf.keras.Model):
         #Model.kernel_initializer = initializers.Zeros()
         #kernel_initializer = initializers.variance_scaling_initializer(factor=2.0,mode='FAN_IN')    # MSRA init. = He init
 
-        regularizer_type = {
-            #'L1': regularizers.l1(conf.lmb),
-            #'L2': regularizers.l2(conf.lmb)
-            'L1': regularizers.l1(lmb),
-            'L2': regularizers.l2(lmb),
-        }
 
-        Model.kernel_regularizer = regularizer_type[self.conf.regularizer]
 
         #pooling_type= {
         #    'max': tf.keras.layers.MaxPooling2D((2,2),(2,2),padding='SAME',data_format=data_format),
@@ -140,7 +140,8 @@ class Model(tf.keras.Model):
         self.en_train = self.conf.en_train
 
         # SNN mode
-        Model.en_snn = (self.conf.nn_mode == 'SNN' or self.conf.f_validation_snn)
+        #Model.en_snn = (self.conf.nn_mode == 'SNN' or self.conf.f_validation_snn)
+        self.en_snn = (self.conf.nn_mode == 'SNN' or self.conf.f_validation_snn)
 
         # DNN-to-SNN conversion, save dist. act. of DNN
         self.en_write_stat = (self.conf.nn_mode=='ANN' and self.conf.f_write_stat)
@@ -165,9 +166,47 @@ class Model(tf.keras.Model):
             self.debug_visual_axes = []
             self.debug_visual_list_neuron = collections.OrderedDict()
 
+    #def init_graph(self, inputs, outputs,**kwargs):
+        #super(Model, self).__init__(inputs=inputs,outputs=outputs,**kwargs)
 
 
+    #def build(self, input_shape):
+        #super(Model, self).build(input_shape)
+        ## initialize the graph
+        #img_input = tf.keras.layers.Input(shape=self.in_shape, batch_size=self.batch_size)
+        #out = self.call_ann(img_input,training=False)
+        #self._is_graph_network = True
+        #self._init_graph_network(inputs=img_input,outputs=out)
 
+#    # build new
+#    def build(self, input_shapes):
+#        assert False
+#        super(Model, self).build(input_shapes)
+#
+#        if self.en_snn:
+#            self.spike_max_pool_setup()
+
+    # TODO: move this function
+    def spike_max_pool_setup(self):
+
+        nodes_by_depth = self._nodes_by_depth
+        depth_keys = list(nodes_by_depth.keys())
+        depth_keys.sort(reverse=True)
+
+        #print(depth_keys)
+        prev_layer = None
+        for depth in depth_keys:
+            nodes = nodes_by_depth[depth]
+            for node in nodes:
+
+                #print(node.layer)
+                if isinstance(node.layer,lib_snn.layers.MaxPool2D):
+                    node.layer.prev_layer = prev_layer
+                    node.layer.prev_layer_set_done  = True
+
+                prev_layer = node.layer
+
+        #assert False
     #
     # after init
     def build_set_aside(self, input_shapes):
@@ -261,7 +300,15 @@ class Model(tf.keras.Model):
     ## call
     ###########################################################################
 
-    def call(self, inputs, training=False, epoch=-1, f_val_snn=False):
+    def call(self, inputs, training=None, mask=None):
+
+        #ret_val = self.run_mode[self.conf.nn_mode](inputs, training, self.conf.time_step, epoch)
+        ret_val = self.run_mode[self.conf.nn_mode](inputs, training)
+
+        return ret_val
+
+
+    def call_no(self, inputs, training=False, epoch=-1, f_val_snn=False):
 
         ret_val = self.call_ann(inputs, training)
 
@@ -328,28 +375,46 @@ class Model(tf.keras.Model):
         return ret_val
 
     #
-    def call_ann(self,inputs,training, tw=0, epoch=0):
-#
-        #a_in = tf.reshape(inputs,self._input_shape)
-        a_in = inputs
-        a_out = self.model(a_in,training=training)
-
-        return a_out
+    def call_ann(self,inputs,training=None,mask=None):
+        ret = self._run_internal_graph(inputs, training=training, mask=mask)
+        return ret
 
     #
-    def call_snn(self,inputs,training, tw, epoch):
+    #def call_snn(self,inputs,training, tw, epoch):
+    def call_snn(self,inputs,training=None, mask=None):
 
-        #
-        for t in range(tw):
-            self.t=t
-            #a_in = tf.reshape(inputs,self._input_shape)
-            a_in = inputs
-            a_out = self.model(a_in,training=training)
+        #for t in range(500):
+            #self.bias_control(t)
+            #glb_t()
+            #ret = self.call_ann(inputs,training)
 
+        graph_model=True
+        if graph_model:
             #
-            self.postproc_snn_time_step()
+            #for t in range(tw):
+            #for t in range(self.conf.tw):
+            #for t in range(1000):
+            #for t in range(2000):
+            #for t in range(500):
+            #glb_t()
+            for t in range(200):
+                #print(t)
+                #self.bias_control(t)
 
-        return self.snn_output
+                #self.bias_disable()
+
+                ret = self._run_internal_graph(inputs, training=training, mask=mask)
+                glb_t()
+
+                #print(ret.numpy())
+                #print(ret)
+
+                #
+                #self.postproc_snn_time_step()
+
+            #return self.snn_output
+        return ret
+
 
 
     ###########################################################################
@@ -433,6 +498,17 @@ class Model(tf.keras.Model):
 
 
     ###########################################################
+    # init snn
+    ###########################################################
+    #
+    def init_snn(self):
+        for layer in self.layers:
+            if isinstance(layer.act_snn,lib_snn.neurons.Neuron):
+                layer.act_snn.init()
+
+
+
+    ###########################################################
     # reset snn
     ###########################################################
     #
@@ -454,9 +530,17 @@ class Model(tf.keras.Model):
 
     #
     def reset_snn_neuron(self):
-        for layer in self.list_layer:
-            layer.act.reset()
+        for layer in self.layers_w_neuron:
+            print(layer.name)
+            layer.reset()
 
+    # set layers with neuron
+    def set_layers_w_neuron(self):
+        self.layers_w_neuron = []
+        for layer in self.layers:
+            if hasattr(layer, 'act_snn'):
+                if layer.act_snn is not None:
+                    self.layers_w_neuron.append(layer)
 
     ###########################################################
     # BN fusion
@@ -782,6 +866,15 @@ class Model(tf.keras.Model):
     ###########################################
     # TODO: bias control
     def bias_control(self,t):
+        if self.conf.neural_coding == "RATE":
+            if t == 0:
+                self.bias_enable()
+            else:
+                self.bias_disable()
+        else:
+            assert False
+
+    def bias_control_old(self,t):
         if self.conf.neural_coding=="RATE":
             if t==0:
                 self.bias_enable()
@@ -827,14 +920,23 @@ class Model(tf.keras.Model):
                 #l.bias = l.bias*0.0
 
     def bias_enable(self):
-        for k, l in self.list_layer.items():
-            if not 'bn' in k:
-                l.use_bias = True
+        #for k, l in self.list_layer.items():
+        #    if not 'bn' in k:
+        #        l.use_bias = True
+        for layer in self.layers:
+            if hasattr(layer, 'use_bias'):
+                layer.use_bias = True
+
 
     def bias_disable(self):
-        for k, l in self.list_layer.items():
-            if not 'bn' in k:
-                l.use_bias = False
+        #for k, l in self.list_layer.items():
+            #if not 'bn' in k:
+                #l.use_bias = False
+        for layer in self.layers:
+            if hasattr(layer, 'use_bias'):
+                layer.use_bias = False
+                #layer.bias = tf.zeros(tf.shape(layer.bias))
+                #layer.bias = tf.ones(tf.shape(layer.bias))
 
     def bias_restore(self):
         if self.conf.use_bias:
@@ -853,3 +955,25 @@ class Model(tf.keras.Model):
 
 
 
+    ###########################################################
+    # load weights
+    ###########################################################
+    def load_weights_dnn_to_snn(self, model_ann):
+
+        for layer_ann in model_ann.layers:
+            if isinstance(layer_ann,lib_snn.layers.Conv2D) or isinstance(layer_ann, lib_snn.layers.Dense):
+                layer_name = layer_ann.name
+                layer_snn = self.get_layer(layer_name)
+                layer_snn.kernel = layer_ann.kernel
+                layer_snn.bias = layer_ann.bias
+                if layer_snn.bn is not None:
+                    layer_snn.bn.set_weights(layer_ann.bn.get_weights())
+
+        #for layer in self.layers:
+            #if isinstance(layer,lib_snn.layers.Conv2D):
+                #print(layer.name)
+                #assert False
+
+            #self.bn = tf.keras.layers.BatchNormalization(name=name_bn)
+
+        #self.model.get_layer('conv1').set_weights(pre_model.get_layer('vgg16').get_layer('block1_conv1').get_weights())
