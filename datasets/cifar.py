@@ -11,15 +11,16 @@ from datasets.augmentation_cifar import cutmix
 
 f_cross_valid = False
 
-def load(dataset_name,input_size,input_size_pre_crop_ratio,num_class,train,num_parallel,conf,input_prec_mode):
+def load(dataset_name,batch_size,input_size,input_size_pre_crop_ratio,num_class,train,num_parallel,conf,input_prec_mode):
 
     dataset_name = dataset_name.lower()
 
     num_class = num_class
-    batch_size_train = conf.batch_size
-    batch_size_inference = conf.batch_size_inf
+    #batch_size_train = conf.batch_size
+    #batch_size_inference = conf.batch_size_inf
     input_size = input_size
     input_size_pre_crop_ratio = input_size_pre_crop_ratio
+
 
     if train:
         if f_cross_valid:
@@ -90,14 +91,14 @@ def load(dataset_name,input_size,input_size_pre_crop_ratio,num_class,train,num_p
                 lambda image, label: resize_with_crop_aug(image, label, input_size, input_size_pre_crop_ratio, num_class, input_prec_mode),
                 num_parallel_calls=num_parallel)
 
-        train_ds = train_ds.batch(batch_size_train)
+        train_ds = train_ds.batch(batch_size)
         train_ds = train_ds.prefetch(num_parallel)
     else:
         train_ds = train_ds.map(
             lambda image, label: resize_with_crop(image, label, input_size, input_size_pre_crop_ratio, num_class, input_prec_mode),
             num_parallel_calls=num_parallel)
 
-        train_ds = train_ds.batch(batch_size_inference)
+        train_ds = train_ds.batch(batch_size)
         train_ds = train_ds.prefetch(num_parallel)
 
     # valid_ds=valid_ds.map(resize_with_crop_cifar,num_parallel_calls=tf.data.experimental.AUTOTUNE)
@@ -106,7 +107,7 @@ def load(dataset_name,input_size,input_size_pre_crop_ratio,num_class,train,num_p
     valid_ds = valid_ds.map(
         lambda image, label: resize_with_crop(image, label, input_size, input_size_pre_crop_ratio, num_class, input_prec_mode),
         num_parallel_calls=num_parallel)
-    valid_ds = valid_ds.batch(batch_size_inference)
+    valid_ds = valid_ds.batch(batch_size)
     valid_ds = valid_ds.prefetch(num_parallel)
 
     return train_ds, valid_ds, valid_ds

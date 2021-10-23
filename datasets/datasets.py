@@ -2,7 +2,7 @@
 
 import datasets
 
-def load(dataset_name,input_size,train_type,train,conf,num_parallel_call):
+def load(dataset_name,batch_size,input_size,train_type,train,conf,num_parallel_call):
 
     dataset_sel = {
         'ImageNet': datasets.imagenet,
@@ -46,7 +46,7 @@ def load(dataset_name,input_size,train_type,train,conf,num_parallel_call):
 
 
     train_ds, valid_ds, test_ds = dataset.load(dataset_name,
-                                               input_size, input_size_pre_crop_ratio, num_class, train,
+                                               batch_size,input_size, input_size_pre_crop_ratio, num_class, train,
                                                num_parallel_call, conf, input_prec_mode)
 
     return train_ds, valid_ds, test_ds, num_class

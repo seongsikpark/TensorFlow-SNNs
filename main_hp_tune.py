@@ -373,7 +373,7 @@ initial_channels_sel= {
 initial_channels = initial_channels_sel.get(model_name,64)
 
 
-
+# TODO: batch size calulation unification
 #batch_size_inference = batch_size_inference_sel.get(model_name,256)
 batch_size_train = conf.batch_size
 if train:
@@ -389,6 +389,12 @@ else:
     #batch_size_train = batch_size_train_sel.get(model_name,256)
 
 
+#
+if train:
+    batch_size = batch_size_train
+else:
+    batch_size = batch_size_inference
+
 
 #
 image_shape = (input_size, input_size, 3)
@@ -397,7 +403,7 @@ image_shape = (input_size, input_size, 3)
 # dataset load
 #dataset = dataset_sel[dataset_name]
 #train_ds, valid_ds, test_ds = dataset.load(dataset_name,input_size,input_size_pre_crop_ratio,num_class,train,NUM_PARALLEL_CALL,conf,input_prec_mode)
-train_ds, valid_ds, test_ds, num_class = datasets.datasets.load(dataset_name,input_size,train_type,train,conf,NUM_PARALLEL_CALL)
+train_ds, valid_ds, test_ds, num_class = datasets.datasets.load(dataset_name,batch_size,input_size,train_type,train,conf,NUM_PARALLEL_CALL)
 
 
 # data-based weight normalization (DNN-to-SNN conversion)
@@ -427,11 +433,6 @@ metric_accuracy_top5.name = metric_name_acc_top5
               #loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
               ## metrics=['accuracy'])
               #metrics=[metric_accuracy, metric_accuracy_top5])
-
-if train:
-    batch_size = batch_size_train
-else:
-    batch_size = batch_size_inference
 
 ################
 # name set
