@@ -11,7 +11,7 @@ from functools import partial
 import os
 
 # TF logging setup
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+#os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 import tensorflow as tf
 
@@ -106,8 +106,8 @@ hp_tune = False
 #train=False
 train=conf.train
 
-load_model=True
-#load_model=False
+#load_model=True
+load_model=False
 
 #
 #save_model = False
@@ -122,12 +122,14 @@ overwrite_tensorboard = True
 
 #epoch = 20000
 #epoch = 20472
-train_epoch = 300
+#train_epoch = 300
+train_epoch = 1000
 #train_epoch = 1
 
 
 # learning rate schedule - step_decay
-step_decay_epoch = 100
+#step_decay_epoch = 100
+step_decay_epoch = 200
 
 
 # TODO: move to config
@@ -374,14 +376,17 @@ initial_channels = initial_channels_sel.get(model_name,64)
 
 #batch_size_inference = batch_size_inference_sel.get(model_name,256)
 batch_size_train = conf.batch_size
-if conf.full_test:
-    batch_size_inference = conf.batch_size_inf
+if train:
+    batch_size_inference = batch_size_train
 else:
-    if conf.batch_size_inf > conf.num_test_data:
-        batch_size_inference = conf.num_test_data
-    else:
+    if conf.full_test:
         batch_size_inference = conf.batch_size_inf
-#batch_size_train = batch_size_train_sel.get(model_name,256)
+    else:
+        if conf.batch_size_inf > conf.num_test_data:
+            batch_size_inference = conf.num_test_data
+        else:
+            batch_size_inference = conf.batch_size_inf
+    #batch_size_train = batch_size_train_sel.get(model_name,256)
 
 
 
@@ -560,7 +565,7 @@ else:
     eager_mode=False
 
 
-eager_mode=True
+#eager_mode=True
 
 # for HP tune
 model_top_glb = model_top

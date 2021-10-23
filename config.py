@@ -230,27 +230,27 @@ tf.compat.v1.app.flags.DEFINE_bool('noise_en',False,'noise injection mode enable
 ################################
 
 # train mode
-tf.compat.v1.app.flags.DEFINE_bool('train', False, 'train mode')
-#tf.compat.v1.app.flags.DEFINE_bool('train', True, 'train mode')
+#tf.compat.v1.app.flags.DEFINE_bool('train', False, 'train mode')
+tf.compat.v1.app.flags.DEFINE_bool('train', True, 'train mode')
 
 #
-#tf.compat.v1.app.flags.DEFINE_bool('dnn_to_snn', False, 'dnn-to-snn conversion')
-tf.compat.v1.app.flags.DEFINE_bool('dnn_to_snn', True, 'dnn-to-snn conversion')
+tf.compat.v1.app.flags.DEFINE_bool('dnn_to_snn', False, 'dnn-to-snn conversion')
+#tf.compat.v1.app.flags.DEFINE_bool('dnn_to_snn', True, 'dnn-to-snn conversion')
 
 # neural network mode
-#tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'ANN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
-tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'SNN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
+tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'ANN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
+#tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'SNN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
 
 # models
 tf.compat.v1.app.flags.DEFINE_string('model', 'VGG16', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet18', 'model')
 
 # datasets
-tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR10', 'dataset')
+tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR100', 'dataset')
 
 #
-tf.compat.v1.app.flags.DEFINE_bool('load_best_model', True, 'load best model (model, dataset)')
-#tf.compat.v1.app.flags.DEFINE_bool('load_best_model', False, 'load best model (model, dataset)')
+#tf.compat.v1.app.flags.DEFINE_bool('load_best_model', True, 'load best model (model, dataset)')
+tf.compat.v1.app.flags.DEFINE_bool('load_best_model', False, 'load best model (model, dataset)')
 
 #
 tf.compat.v1.app.flags.DEFINE_integer('batch_size', 100, '')
