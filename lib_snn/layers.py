@@ -22,6 +22,7 @@ import lib_snn
 #
 from lib_snn.model import Model
 from lib_snn.sim import glb_t
+from lib_snn.sim import glb
 #from main_hp_tune import conf
 
 from config import conf
@@ -137,7 +138,7 @@ class Layer():
         # self.__mro__[2].build(self,input_shapes)
 
         # build ann model
-        print('build layer - {}'.format(self.name))
+        #print('build layer - {}'.format(self.name))
         super().build(input_shapes)
         # print(super())
         # print(super().build)
@@ -182,7 +183,7 @@ class Layer():
 
         #
         self.built = True
-        print('build layer - done')
+        #print('build layer - done')
 
     #
     # def call(self,input,training):
@@ -225,8 +226,8 @@ class Layer():
             self.record_output = ret
 
         # debug
-        debug=True
-        if debug:
+        #if False:
+        if self.conf.debug_mode and self.conf.nn_mode=='SNN':
             #print('neuron input')
             #print('{}: {} - in {}, out {}'.format(glb_t.t,self.depth,tf.reduce_mean(b),tf.reduce_mean(n)))
 
@@ -254,13 +255,22 @@ class Layer():
                 #print(tf.reduce_mean(b))
                 #print(tf.reduce_mean(n))
 
-            print_period=10
+            #print(self.name)
+            #print(self.built)
+
+            #print_period=10
+            print_period=self.conf.time_step_save_interval
             #if (self.depth==4 or self.depth==8 or self.depth==12) and (glb_t.t%print_period==(print_period-1)):
-            if glb_t.t % print_period == (print_period - 1):
+            #if glb_t.t % print_period == (print_period - 1):
+            #if (glb_t.t % print_period == 0) and (self.depth>1):
+            if (glb_t.t % print_period == 0) and (glb.model_compiled):
+                #print(self.name)
                 #print('{}: {} - spike count {}'.format(glb_t.t, self.depth, self.act.get_spike_count()))
                 #print('{}: {} - spike count mean {}'.format(glb_t.t, self.depth, tf.reduce_mean(self.act.get_spike_count())))
-                print('{}: {} - spike count max {}, mean {}'.format(glb_t.t, self.depth,
-                                                                   tf.reduce_max(self.act.get_spike_count()),tf.reduce_mean(self.act.get_spike_count())))
+                print('{:4d}: {:3d} - spike count max {:8.2f}, mean_s {:8.4f}, mean_s_t {:8.4f}'.format(glb_t.t, self.depth,
+                                                                    tf.reduce_max(self.act.get_spike_count()),
+                                                                    tf.reduce_mean(self.act.get_spike_count()),
+                                                                    tf.reduce_mean(self.act.get_spike_count())/glb_t.t))
 
                 #if (self.depth==4 or self.depth==8 or self.depth==12 or self.depth==16) and (glb_t.t%print_period==(print_period-1)):
             #if (self.depth == 1) and (glb_t.t % 1 == 0):
@@ -268,15 +278,16 @@ class Layer():
                 #print('{}: {} - in {}, out {}'.format(glb_t.t,self.depth,tf.reduce_mean(self.act_snn.input),tf.reduce_mean(self.act_snn.out)))
                 #print('{}: {} - {}'.format(glb_t.t,self.depth,self.act_snn.out))
 
-            if (self.depth == 16) and (glb_t.t % print_period == (print_period - 1)):
+            if False:
+                if (self.depth == 16) and (glb_t.t % print_period == 0):
 
-                if self.en_snn:
-                    #print('{}: {} - input {}'.format(glb_t.t, self.depth, input))
-                    #print('{}: {} - s {}'.format(glb_t.t, self.depth, s))
-                    print('{}: {} - out {}'.format(glb_t.t, self.depth, self.act.out))
-                    #print('{}: {} - {}'.format(glb_t.t, self.depth, self.act.vth))
-                else:
-                    print('{}: {} - {}'.format(glb_t.t, self.depth, b))
+                    if self.en_snn:
+                        #print('{}: {} - input {}'.format(glb_t.t, self.depth, input))
+                        #print('{}: {} - s {}'.format(glb_t.t, self.depth, s))
+                        print('{}: {} - out {}'.format(glb_t.t, self.depth, self.act.out))
+                        #print('{}: {} - {}'.format(glb_t.t, self.depth, self.act.vth))
+                    else:
+                        print('{}: {} - {}'.format(glb_t.t, self.depth, b))
 
             #print('{}: {} - {}'.format(glb_t.t,self.depth,tf.reduce_mean(self.act_snn.out)))
 
@@ -359,7 +370,7 @@ class InputLayer(Layer, tf.keras.layers.InputLayer):
         # assert False
 
     def build(self, input_shapes):
-        print('build input')
+        #print('build input')
         # super().build(input_shapes)
 
         assert False
@@ -367,7 +378,7 @@ class InputLayer(Layer, tf.keras.layers.InputLayer):
     # def call(self, inputs):
     # def call(self, inputs, *args, ** kwargs):
     def call(self, inputs, training):
-        print('call input')
+        #print('call input')
 
         assert False
 
@@ -554,8 +565,8 @@ class MaxPool2D(Layer, tf.keras.layers.MaxPool2D):
         tf.keras.layers.MaxPool2D.build(self, input_shapes)
 
         self.output_shape_fixed_batch = super().compute_output_shape(input_shapes)
-        print('maxpool')
-        print(self.output_shape_fixed_batch)
+        #print('maxpool')
+        #print(self.output_shape_fixed_batch)
 
     def call_tmp(self, inputs):
         # s = super().call(self,inputs)
@@ -588,13 +599,25 @@ class MaxPool2D(Layer, tf.keras.layers.MaxPool2D):
 ############################################################
 ## spike max pool (spike count based gating function)
 ############################################################
+#@tf.function
 def spike_max_pool(feature_map, spike_count, output_shape):
     # tmp = tf.reshape(spike_count,(1,-1,)+spike_count.numpy().shape[2:])
-    tmp = tf.reshape(spike_count, (1, -1,) + tuple(tf.shape(spike_count)[2:]))
+
+    #assert False
+    #tmp = tf.reshape(spike_count, (1, -1,) + tuple(tf.shape(spike_count)[2:]))
+    tmp = tf.reshape(spike_count, (1, -1,) + tuple(spike_count.shape[2:]))
+    #print(output_shape)
+    #print(tf.shape(spike_count)[2:].numpy())
+
+    #print(tmp)
+    #assert False
+    #tmp = tf.reshape(spike_count, (1, -1,) + tf.shape(spike_count)[2:])
     _, arg = tf.nn.max_pool_with_argmax(tmp, (1, 2, 2, 1), (1, 2, 2, 1), padding='SAME')
+    #_, arg = tf.nn.max_pool_with_argmax(tmp, (1, 2, 2, 1), (1, 2, 2, 1), padding='SAME', include_batch_in_index=True)
     # arg = tf.reshape(arg,output_shape)
     conv_f = tf.reshape(feature_map, [-1])
     arg = tf.reshape(arg, [-1])
+
 
     p_conv = tf.gather(conv_f, arg)
     p_conv = tf.reshape(p_conv, output_shape)

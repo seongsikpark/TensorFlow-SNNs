@@ -1,12 +1,14 @@
 
 #
+import tensorflow as tf
+
+#
 import collections
 import os
 import csv
 import numpy as np
+import pandas as pd
 
-#
-import tensorflow as tf
 
 #
 import lib_snn
@@ -38,12 +40,13 @@ def preproc(self):
 
 
 #
-def reset_run_ann(self):
+def reset_batch_ann(self):
     pass
 
-def reset_run_snn(self):
+def reset_batch_snn(self):
 
-    #
+    # TODO: move to model.py
+    self.model.reset_snn()
     self.model.reset_snn_neuron()
     reset_snn_time_step(self)
 
@@ -56,8 +59,8 @@ def set_init(self):
         if hasattr(layer, 'kernel'):
             self.layers_w_kernel.append(layer)
 
-    self.en_record_output = (self.conf.nn_mode=='ANN' and self.conf.f_write_stat)
-    self.en_record_output = True
+    self.en_record_output = self.model._run_eagerly and ((self.conf.nn_mode=='ANN' and self.conf.f_write_stat) or self.conf.debug_mode)
+    #self.en_record_output = True
 
     if self.en_record_output:
         self.layers_record=self.layers_w_kernel
@@ -74,30 +77,12 @@ def set_init(self):
 
 #
 def init_snn_run(self):
+    self.model.init_snn()
 
-    self.count_accuracy_time_point = 0
-    self.accuracy_time_point = list(range(self.conf.time_step_save_interval, self.conf.time_step, self.conf.time_step_save_interval))
-    self.accuracy_time_point.append(self.conf.time_step)
-    self.num_accuracy_time_point = len(self.accuracy_time_point)
-    self.snn_output_neuron = None
-    self.snn_output = None
-    self.spike_count = None
-
-    #self.layers_w_neuron = []
-    #for layer in self.model.layers:
-        #if hasattr(layer, 'act_snn'):
-            #if layer.act_snn is not None:
-                #self.layers_w_neuron.append(layer)
-    self.model.set_layers_w_neuron()
-
-    #
-    zeros = tf.zeros([self.num_accuracy_time_point, len(self.model.layers_w_neuron) + 1])
-    self.total_spike_count = tf.Variable(initial_value=zeros,trainable=False,name='total_spike_count')
-    self.total_spike_count_int = tf.Variable(initial_value=zeros,trainable=False,name='total_spike_count_int')
+    #self.model.set_layers_w_neuron()
 
     # spike max pool setup
-    self.model.spike_max_pool_setup()
-
+    #self.model.spike_max_pool_setup()
 
 #
 def set_en_record_output(self):
@@ -160,13 +145,14 @@ def preproc_ann_to_snn(self):
 # reset (on_test_batch_begin)
 ########################################
 def preproc_batch(self):
+    #print('on_test_batch_begin')
 
     # reset
-    reset_run_sel={
-        'ANN': reset_run_ann,
-        'SNN': reset_run_snn,
+    reset_batch_sel={
+        'ANN': reset_batch_ann,
+        'SNN': reset_batch_snn,
     }
-    reset_run_sel[self.conf.nn_mode](self)
+    reset_batch_sel[self.conf.nn_mode](self)
 
     #
     preproc_batch_sel={
@@ -238,6 +224,76 @@ def postproc(self):
     if self.conf.f_write_stat:
         lib_snn.weight_norm.save_act_stat(self)
 
+    # results
+    cal_results(self)
+
+    # print results
+    print_results(self)
+
+    #
+    if self.conf.full_test:
+        save_results(self)
+
+
+#
+def cal_results(self):
+    self.results_acc = np.zeros(self.model.num_accuracy_time_point)
+    self.results_spike = np.zeros(self.model.num_accuracy_time_point)
+
+    for idx in range(self.model.num_accuracy_time_point):
+        self.results_acc[idx] = self.model.accuracy_results[idx]['acc'].numpy()
+
+    for layer_spike in self.model.total_spike_count_int.values():
+        self.results_spike += layer_spike
+
+    self.results_df = pd.DataFrame({'time step': self.model.accuracy_time_point, 'accuracy': self.results_acc,
+                                    'spike count': self.results_spike / self.test_ds_num})
+    self.results_df.set_index('time step', inplace=True)
+
+
+def print_results(self):
+    pd.set_option('display.float_format', '{:.4g}'.format)
+
+    #
+    # df=pd.DataFrame({'time step': model.accuracy_time_point, 'spike count': list(model.total_spike_count[:,-1]),'accuracy': accuracy_result})
+    # df=pd.DataFrame({'time step': model.accuracy_time_point, 'accuracy': accuracy_result, 'spike count': model.total_spike_count_int[:,-1]})
+    print(self.results_df)
+
+def save_results(self):
+
+
+    model_dataset = self.conf.model+'_'+self.conf.dataset
+
+    # TODO: modify
+    if self.conf.f_w_norm_data:
+        _norm = 'M999'
+    else:
+        _norm = 'NO'
+
+    _n = self.conf.n_type
+    _in = self.conf.input_spike_mode
+    _nc = self.conf.neural_coding
+    _ts = self.conf.time_step
+    _tsi = self.conf.time_step_save_interval
+    _vth = self.conf.n_init_vth
+
+    config = 'norm-{}_n-{}_in-{}_nc-{}_ts-{}-{}_vth-{}'.format(_norm,_n,_in,_nc,_ts,_tsi,_vth)
+
+    file = config+'.xlsx'
+
+    # set path
+    path = self.conf.root_results
+    path = os.path.join(path,model_dataset)
+    f_name_result = os.path.join(path,file)
+
+    #
+    os.makedirs(path,exist_ok=True)
+
+
+    #
+    print('output file: {}'.format(f_name_result))
+    self.results_df.to_excel(f_name_result)
+
 
 ########################################
 # processing kernel
@@ -263,11 +319,13 @@ def w_norm_data(self):
     self.norm = collections.OrderedDict()
     self.norm_b = collections.OrderedDict()
 
-    path_stat=self.conf.path_stat
-    #f_name_stat_pre=self.conf.prefix_stat
-    model_dataset = self.conf.model+'_'+self.conf.dataset
-    f_name_stat_pre=model_dataset
-    path_stat = os.path.join(path_stat,model_dataset)
+    #path_stat=self.conf.path_stat
+    ##f_name_stat_pre=self.conf.prefix_stat
+    #model_dataset = self.conf.model+'_'+self.conf.dataset
+    #f_name_stat_pre=model_dataset
+    #path_stat = os.path.join(path_stat,model_dataset)
+
+    path_stat = os.path.join(self.path_model,self.conf.path_stat)
 
     #stat_conf=['max','mean','max_999','max_99','max_98']
 
@@ -338,9 +396,10 @@ def w_norm_data_layer_wise(self):
         layer.bias = layer.bias / self.norm_b[layer.name]
 
     #
-    if False:
+    #if False:
+    if True:
         for idx_layer, layer in enumerate(self.layers_w_kernel):
-            const = (0.05*idx_layer+1)
+            const = (0.01*idx_layer+1)
             # tmp
             layer.kernel = layer.kernel * const
             layer.bias = layer.bias * const

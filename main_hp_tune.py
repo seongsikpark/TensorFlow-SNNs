@@ -94,7 +94,8 @@ else:
 #exp_set_name = 'HPTune-GRID'
 #exp_set_name = 'HPTune-GRID'
 #exp_set_name = 'CODE_TEST'
-exp_set_name = 'Train_SC'
+#exp_set_name = 'Train_SC'
+exp_set_name = 'DNN-to-SNN'
 
 # hyperparamter tune mode
 #hp_tune = True
@@ -106,8 +107,8 @@ hp_tune = False
 #train=False
 train=conf.train
 
-#load_model=True
-load_model=False
+load_model=True
+#load_model=False
 
 #
 #save_model = False
@@ -403,7 +404,8 @@ image_shape = (input_size, input_size, 3)
 # dataset load
 #dataset = dataset_sel[dataset_name]
 #train_ds, valid_ds, test_ds = dataset.load(dataset_name,input_size,input_size_pre_crop_ratio,num_class,train,NUM_PARALLEL_CALL,conf,input_prec_mode)
-train_ds, valid_ds, test_ds, num_class = datasets.datasets.load(dataset_name,batch_size,input_size,train_type,train,conf,NUM_PARALLEL_CALL)
+train_ds, valid_ds, test_ds, train_ds_num, valid_ds_num, test_ds_num, num_class =\
+    datasets.datasets.load(dataset_name,batch_size,input_size,train_type,train,conf,NUM_PARALLEL_CALL)
 
 
 # data-based weight normalization (DNN-to-SNN conversion)
@@ -447,9 +449,9 @@ if conf.load_best_model:
 #exp_set_name = model_name + '_' + dataset_name
 model_dataset_name = model_name + '_' + dataset_name
 
-# dir_model = './'+exp_set_name
-#dir_model = os.path.join(root_model, exp_set_name)
-dir_model = os.path.join(root_model, model_dataset_name)
+# path_model = './'+exp_set_name
+#path_model = os.path.join(root_model, exp_set_name)
+path_model = os.path.join(root_model, model_dataset_name)
 
 
 # hyperparameter tune name
@@ -494,12 +496,12 @@ elif en_cutmix:
 
 #
 if train:
-    filepath = os.path.join(dir_model, config_name)
+    filepath = os.path.join(path_model, config_name)
 else:
     if conf.load_best_model:
-        filepath = dir_model
+        filepath = path_model
     else:
-        filepath = os.path.join(dir_model, config_name)
+        filepath = os.path.join(path_model, config_name)
 
 
 
@@ -524,7 +526,7 @@ if load_model:
 
 
     if not latest_model.startswith('ep-'):
-        assert False, 'the dir name of latest model should start with ''ep-'''
+        assert False, 'the name of latest model should start with ''ep-'''
     init_epoch = int(re.split('-|\.',latest_model)[1])
 
     include_top = True
@@ -559,14 +561,19 @@ else:
 
 # TODO: move to parameter
 # eager mode
-if conf.f_write_stat:
-    eager_mode=True
-    #eager_mode=False
-else:
+if train:
     eager_mode=False
+else:
+    if conf.f_write_stat:
+        eager_mode=True
+        #eager_mode=False
+    else:
+        eager_mode=False
 
+if conf.debug_mode:
+    # TODO: parameterize - debug mode
+    eager_mode=True
 
-#eager_mode=True
 
 # for HP tune
 model_top_glb = model_top
@@ -626,9 +633,9 @@ else:
         lr_schedule, step_decay_epoch,
         metric_accuracy, metric_accuracy_top5)
 
-
 #
 if conf.nn_mode=='SNN' and conf.dnn_to_snn:
+    print('DNN-to-SNN mode')
     nn_mode_ori = conf.nn_mode
     conf.nn_mode='ANN'
     model_ann = lib_snn.model_builder.model_builder(
@@ -640,8 +647,9 @@ if conf.nn_mode=='SNN' and conf.dnn_to_snn:
     conf.nn_mode=nn_mode_ori
 
     model_ann.load_weights(load_weight)
+    print('-- model_ann - load done')
     model.load_weights_dnn_to_snn(model_ann)
-    #del(model_ann)
+    del(model_ann)
 
 
 elif load_model:
@@ -786,8 +794,8 @@ cb_manage_saved_model = lib_snn.callbacks.ManageSavedModels(filepath=filepath)
 cb_tensorboard = tf.keras.callbacks.TensorBoard(log_dir=path_tensorboard, update_freq='epoch')
 
 #cb_dnntosnn = lib_snn.callbacks.DNNtoSNN()
-cb_libsnn = lib_snn.callbacks.SNNLIB(conf)
-cb_libsnn_ann = lib_snn.callbacks.SNNLIB(conf)
+cb_libsnn = lib_snn.callbacks.SNNLIB(conf,path_model,test_ds_num)
+cb_libsnn_ann = lib_snn.callbacks.SNNLIB(conf,path_model,test_ds_num)
 
 #
 callbacks_train = [cb_tensorboard]
@@ -827,6 +835,7 @@ if train:
 else:
     print('Test mode')
     result = model.evaluate(test_ds, callbacks=callbacks_test)
+    #result = model.evaluate(test_ds)
     # result = model.predict(test_ds)
 
     print(result)

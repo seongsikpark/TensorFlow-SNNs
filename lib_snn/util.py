@@ -72,7 +72,16 @@ def get_latest_saved_model(path):
     mtime = lambda f: os.stat(os.path.join(path, f)).st_mtime
     list_dir_sorted_by_time = list(sorted(os.listdir(path), key=mtime))
 
-    list_dir_sorted_by_name = list(sorted(os.listdir(path)))
+    #list_dir_sorted_by_name = list(sorted(os.listdir(path)))
+    #list_dir_sorted_by_name = list(sorted(files for files in os.listdir(path) if os.path.isfile(files)))
+    list_dir_sorted_by_name = [files for files in os.listdir(path) if os.path.isfile(os.path.join(path,files))]
+    list_dir_sorted_by_name.sort()
+    #print(files)
+    #print(os.listdir(path))
+    #print(os.listdir(path))
+    #print(list_dir_sorted_by_name)
+
+    #assert False
 
     latest_model_by_time = list_dir_sorted_by_time[-1]
     latest_model_by_name = list_dir_sorted_by_name[-1]

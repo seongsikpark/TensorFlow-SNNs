@@ -116,9 +116,11 @@ class TensorboardBestValAcc(tf.keras.callbacks.Callback):
 
 #
 class SNNLIB(tf.keras.callbacks.Callback):
-    def __init__(self, conf, **kwargs):
+    def __init__(self, conf, path_model, test_ds_num, **kwargs):
         super(SNNLIB, self).__init__(**kwargs)
         self.conf = conf
+        self.path_model = path_model
+        self.test_ds_num = test_ds_num
 
         self.f_skip_bn=False
         self.layers_w_kernel=[]
@@ -128,20 +130,19 @@ class SNNLIB(tf.keras.callbacks.Callback):
         #lib_snn.proc.set_init(self)
 
     def on_test_begin(self, logs=None):
-
         # initialization
         lib_snn.proc.preproc(self)
 
 
     def on_test_end(self, logs=None):
-
-        #print(self.model.get_layer('conv1'))
         lib_snn.proc.postproc(self)
 
     def on_test_batch_begin(self, batch, logs=None):
+        #print('on_test_batch_begin')
         lib_snn.proc.preproc_batch(self)
 
     def on_test_batch_end(self, batch, logs=None):
+        #print('on_test_batch_end')
         lib_snn.proc.postproc_batch(self)
 
 

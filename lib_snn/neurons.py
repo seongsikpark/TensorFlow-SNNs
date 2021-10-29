@@ -40,6 +40,9 @@ class Neuron(tf.keras.layers.Layer):
 
         self.depth = depth
 
+        #
+        self.num_neurons = tf.cast(tf.reduce_prod(self.dim),dtype=tf.float32)
+
         # if self.conf.f_record_first_spike_time:
         # self.init_first_spike_time = -1.0
         # self.init_first_spike_time = self.conf.time_fire_duration*self.conf.init_first_spike_time_n
@@ -68,15 +71,15 @@ class Neuron(tf.keras.layers.Layer):
                 self.time_end_integ_init = self.time_start_integ_init + self.conf.time_fire_duration
                 self.time_end_fire_init = self.time_start_fire_init + self.conf.time_fire_duration
 
-        # self.spike_counter = tf.Variable(name="spike_counter",dtype=tf.float32,initial_value=tf.zeros(self.dim,dtype=tf.float32),trainable=False)
-        # self.spike_counter_int = tf.Variable(name="spike_counter_int",dtype=tf.float32,initial_value=tf.zeros(self.dim,dtype=tf.float32),trainable=False)
+        # self.spike_count = tf.Variable(name="spike_count",dtype=tf.float32,initial_value=tf.zeros(self.dim,dtype=tf.float32),trainable=False)
+        # self.spike_count_int = tf.Variable(name="spike_count_int",dtype=tf.float32,initial_value=tf.zeros(self.dim,dtype=tf.float32),trainable=False)
         # self.f_fire = tf.Variable(name='f_fire', dtype=tf.bool, initial_value=tf.constant(False,dtype=tf.bool,shape=self.dim),trainable=False)
 
         #
         # self.vmem = tf.Variable(shape=self.dim,dtype=tf.float32,initial_value=tf.constant(self.conf.n_init_vinit,shape=self.dim),trainable=False,name='vmem')
 
     def build(self, input_shapes):
-        print('neuron build - {}'.format(self.name))
+        #print('neuron build - {}'.format(self.name))
         super().build(input_shapes)
 
 
@@ -105,8 +108,8 @@ class Neuron(tf.keras.layers.Layer):
         self.first_spike_time = tf.constant(self.init_first_spike_time,dtype=tf.float32,shape=self.dim, name='first_spike_time')
 
 
-        self.spike_counter_int = tf.Variable(initial_value=tf.zeros(self.dim, dtype=tf.float32), trainable=False, name="spike_counter_int")
-        self.spike_counter = tf.Variable(initial_value=tf.zeros(self.dim, dtype=tf.float32), trainable=False, name="spike_counter")
+        self.spike_count_int = tf.Variable(initial_value=tf.zeros(self.dim, dtype=tf.float32), trainable=False, name="spike_count_int")
+        self.spike_count = tf.Variable(initial_value=tf.zeros(self.dim, dtype=tf.float32), trainable=False, name="spike_count")
 
 
         self.f_fire = tf.Variable(initial_value=tf.constant(False,dtype=tf.bool,shape=self.dim), trainable=False, name="f_fire")
@@ -271,16 +274,16 @@ class Neuron(tf.keras.layers.Layer):
             self.reset_first_spike_time()
 
     def reset_spike_count(self):
-        # self.spike_counter = tf.zeros(self.dim)
-        # self.spike_counter_int = tf.zeros(self.dim)
+        # self.spike_count = tf.zeros(self.dim)
+        # self.spike_count_int = tf.zeros(self.dim)
 
-        self.spike_counter.assign(tf.zeros(self.dim ,dtype=tf.float32))
-        self.spike_counter_int.assign(tf.zeros(self.dim ,dtype=tf.float32))
+        self.spike_count.assign(tf.zeros(self.dim ,dtype=tf.float32))
+        self.spike_count_int.assign(tf.zeros(self.dim ,dtype=tf.float32))
 
-        # self.spike_counter.assign(self.zeros)
-        # self.spike_counter.assign(tf.zeros(self.dim))
-        # self.spike_counter_int = tf.zeros(self.out.shape)
-        # self.spike_counter_int.assign(tf.zeros(self.dim))
+        # self.spike_count.assign(self.zeros)
+        # self.spike_count.assign(tf.zeros(self.dim))
+        # self.spike_count_int = tf.zeros(self.out.shape)
+        # self.spike_count_int.assign(tf.zeros(self.dim))
 
     #
     def reset_vmem(self):
@@ -999,18 +1002,18 @@ class Neuron(tf.keras.layers.Layer):
         }.get(self.neural_coding, self.count_spike_default)(t)
 
     def count_spike_default(self, t):
-        # self.spike_counter_int = tf.where(self.f_fire,self.spike_counter_int+1.0,self.spike_counter_int)
-        # self.spike_counter = tf.add(self.spike_counter, self.out)
+        # self.spike_count_int = tf.where(self.f_fire,self.spike_count_int+1.0,self.spike_count_int)
+        # self.spike_count = tf.add(self.spike_count, self.out)
 
-        self.spike_counter_int.assign(tf.where(self.f_fire, self.spike_counter_int + 1.0, self.spike_counter_int))
-        self.spike_counter.assign(tf.add(self.spike_counter, self.out))
+        self.spike_count_int.assign(tf.where(self.f_fire, self.spike_count_int + 1.0, self.spike_count_int))
+        self.spike_count.assign(tf.add(self.spike_count, self.out))
         ## here
-        #print(self.spike_counter)
+        #print(self.spike_count)
         #print(self.out)
 
     def count_spike_temporal(self, t):
-        self.spike_counter_int = tf.add(self.spike_counter_int, self.out)
-        self.spike_counter = tf.where(self.f_fire, tf.add(self.spike_counter, self.vth), self.spike_counter_int)
+        self.spike_count_int = tf.add(self.spike_count_int, self.out)
+        self.spike_count = tf.where(self.f_fire, tf.add(self.spike_count, self.vth), self.spike_count_int)
 
         if self.conf.f_record_first_spike_time:
             # spike_time = self.relative_time_fire(t)
@@ -1072,13 +1075,13 @@ class Neuron(tf.keras.layers.Layer):
         self.vth.assign(vth)
 
     def get_spike_count(self):
-        #spike_count = tf.reshape(self.spike_counter, self.dim)
-        #print(self.spike_counter)
-        return self.spike_counter
+        #spike_count = tf.reshape(self.spike_count, self.dim)
+        #print(self.spike_count)
+        return self.spike_count
 
     def get_spike_count_int(self):
-        # spike_count_int = tf.reshape(self.spike_counter_int,self.dim)
-        return self.spike_counter_int
+        # spike_count_int = tf.reshape(self.spike_count_int,self.dim)
+        return self.spike_count_int
 
     def get_spike_rate(self):
         # return self.get_spike_count_int()/self.conf.time_step
@@ -1376,7 +1379,7 @@ class Neuron(tf.keras.layers.Layer):
 
     #
     def flag_fire(self):
-        ret = tf.not_equal(self.spike_counter, tf.constant(0.0, tf.float32, self.spike_counter.shape))
+        ret = tf.not_equal(self.spike_count, tf.constant(0.0, tf.float32, self.spike_count.shape))
         return ret
 
     ###########################################################################

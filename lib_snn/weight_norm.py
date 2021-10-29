@@ -16,9 +16,13 @@ def save_act_stat(self):
 
     #path_stat='/home/sspark/Projects/05_SNN/stat/'
     #path_stat='./stat/'
-    path_stat=self.conf.path_stat
-    model_dataset=self.conf.model+'_'+self.conf.dataset
-    path_stat=os.path.join(path_stat,model_dataset)
+    #path_stat=self.conf.path_stat
+    #model_dataset=self.conf.model+'_'+self.conf.dataset
+    #path_stat=os.path.join(path_stat,model_dataset)
+
+
+    path_stat = os.path.join(self.path_model,self.conf.path_stat)
+
     #f_name_stat='act_n_train_after_w_norm_max_999'
     #f_name_stat='act_n_train'
     f_name_stat_pre=self.conf.prefix_stat

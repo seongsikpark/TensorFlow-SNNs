@@ -14,6 +14,10 @@ import numpy as np
 import collections
 
 #
+from tensorflow.python.keras.engine import data_adapter
+from tensorflow.python.keras.engine import compile_utils
+
+#
 import lib_snn
 from lib_snn.sim import glb_t
 
@@ -46,7 +50,7 @@ class Model(tf.keras.Model):
         self.verbose = conf.verbose
 
         #
-        Model.conf = conf
+        self.conf = conf
         Model.data_format = data_format
         self.kernel_size = None                 # for conv layer
         #self.num_class = conf.num_class
@@ -65,6 +69,9 @@ class Model(tf.keras.Model):
 
         # keras model
         self.model = None
+
+        # init done
+        self.init_done = False
 
         #
         self.ts=conf.time_step
@@ -99,8 +106,21 @@ class Model(tf.keras.Model):
         #if False:
         self.count_accuracy_time_point=0
         self.accuracy_time_point = list(range(conf.time_step_save_interval,conf.time_step,conf.time_step_save_interval))
+        #self.accuracy_time_point = list(tf.range(conf.time_step_save_interval,conf.time_step,delta=conf.time_step_save_interval))
         self.accuracy_time_point.append(conf.time_step)
         self.num_accuracy_time_point = len(self.accuracy_time_point)
+        #self.accuracy_metrics = [None] * len(self.accuracy_time_point)
+        self.accuracy_results = list(range(self.num_accuracy_time_point))
+        self.accuracy_metrics = list(range(self.num_accuracy_time_point))
+
+    #
+        #self.total_spike_count=np.zeros([self.num_accuracy_time_point,len(self.list_layer_name)+1])
+        #self.total_spike_count_int=np.zeros([self.num_accuracy_time_point,len(self.list_layer_name)+1])
+        #self.total_residual_vmem=np.zeros(len(self.list_layer_name)+1)
+        self.total_spike_count=None
+        self.total_spike_count_int=None
+        self.total_residual_vmem=None
+
         self.snn_output_neuron = None
         self.snn_output = None
         self.spike_count = None
@@ -237,10 +257,6 @@ class Model(tf.keras.Model):
 
         self.list_layer_name_write_stat = self.list_layer_name
 
-        # TODO: np -> tf.Variables
-        self.total_spike_count=np.zeros([self.num_accuracy_time_point,len(self.list_layer_name)+1])
-        self.total_spike_count_int=np.zeros([self.num_accuracy_time_point,len(self.list_layer_name)+1])
-        self.total_residual_vmem=np.zeros(len(self.list_layer_name)+1)
 
 
         # data-based weight normalization
@@ -303,7 +319,9 @@ class Model(tf.keras.Model):
     def call(self, inputs, training=None, mask=None):
 
         #ret_val = self.run_mode[self.conf.nn_mode](inputs, training, self.conf.time_step, epoch)
-        ret_val = self.run_mode[self.conf.nn_mode](inputs, training)
+        #ret_val = self.run_mode[self.conf.nn_mode](inputs, training)
+
+        ret_val = self.call_snn(inputs,training,mask)
 
         return ret_val
 
@@ -380,6 +398,7 @@ class Model(tf.keras.Model):
         return ret
 
     #
+    #@tf.function
     #def call_snn(self,inputs,training, tw, epoch):
     def call_snn(self,inputs,training=None, mask=None):
 
@@ -388,33 +407,152 @@ class Model(tf.keras.Model):
             #glb_t()
             #ret = self.call_ann(inputs,training)
 
-        graph_model=True
-        if graph_model:
+        #print(self.accuracy_time_point)
+        #assert False
+
+        #
+        #for t in range(tw):
+        #for t in range(self.conf.tw):
+        #for t in range(1000):
+        #for t in range(2000):
+        #for t in range(500):
+        #glb_t()
+        #for t in range(200):
+        for t in range(1,self.conf.time_step+1):
+            #self.bias_control(t)
+
+            #self.bias_disable()
+
+            ret = self._run_internal_graph(inputs, training=training, mask=mask)
+
             #
-            #for t in range(tw):
-            #for t in range(self.conf.tw):
-            #for t in range(1000):
-            #for t in range(2000):
-            #for t in range(500):
-            #glb_t()
-            for t in range(200):
-                #print(t)
-                #self.bias_control(t)
+            #print(t)
+            #print(self.count_accuracy_time_point)
+            #if False:
+            if self.init_done and (t == self.accuracy_time_point[self.count_accuracy_time_point]):
+            #if (t == self.accuracy_time_point[self.count_accuracy_time_point]):
+                self.record_acc_spike_time_point(inputs,ret)
 
-                #self.bias_disable()
+            # end of time step - increase global time
+            glb_t()
 
-                ret = self._run_internal_graph(inputs, training=training, mask=mask)
-                glb_t()
+            #print(ret.numpy())
+            #print(ret)
 
-                #print(ret.numpy())
-                #print(ret)
+            #
+            #self.postproc_snn_time_step()
 
-                #
-                #self.postproc_snn_time_step()
+        #return self.snn_output
 
-            #return self.snn_output
         return ret
 
+    # this function is based on Model.test_step in training.py
+    # TODO: override Model.test_step
+    def test_step(self, data):
+        """The logic for one evaluation step.
+
+        This method can be overridden to support custom evaluation logic.
+        This method is called by `Model.make_test_function`.
+
+        This function should contain the mathematical logic for one step of
+        evaluation.
+        This typically includes the forward pass, loss calculation, and metrics
+        updates.
+
+        Configuration details for *how* this logic is run (e.g. `tf.function` and
+        `tf.distribute.Strategy` settings), should be left to
+        `Model.make_test_function`, which can also be overridden.
+
+        Args:
+          data: A nested structure of `Tensor`s.
+
+        Returns:
+          A `dict` containing values that will be passed to
+          `tf.keras.callbacks.CallbackList.on_train_batch_end`. Typically, the
+          values of the `Model`'s metrics are returned.
+        """
+        data = data_adapter.expand_1d(data)
+        x, y, sample_weight = data_adapter.unpack_x_y_sample_weight(data)
+
+        # for test during SNN inference
+        self.y = y
+        self.sample_weight=sample_weight
+        y_pred = self(x, training=False)
+        # Updates stateful loss metrics.
+        self.compiled_loss(
+            y, y_pred, sample_weight, regularization_losses=self.losses)
+        self.compiled_metrics.update_state(y, y_pred, sample_weight)
+
+        # Collect metrics to return
+        return_metrics = {}
+        for metric in self.metrics:
+            result = metric.result()
+            if isinstance(result, dict):
+                return_metrics.update(result)
+            else:
+                return_metrics[metric.name] = result
+        return return_metrics
+
+    # TODO: move other part
+    def record_acc_spike_time_point(self,inputs,outputs):
+        #print('record_acc_spike_time_point')
+
+        y_pred=outputs
+        # accuracy
+        # Updates stateful loss metrics.
+        self.compiled_loss(self.y, y_pred, self.sample_weight, regularization_losses=self.losses)
+        #self.compiled_metrics.update_state(self.y, y_pred, self.sample_weight)
+        metrics=self.accuracy_metrics[self.count_accuracy_time_point]
+        metrics.update_state(self.y, y_pred, self.sample_weight)
+
+        # Collect metrics to return
+        #self.reset_metrics()
+        return_metrics = {}
+        #metrics = self.accuracy_time_point[self.count_accuracy_time_point]
+        #for metric in metrics:
+        for metric in metrics.metrics:
+            result = metric.result()
+            if isinstance(result, dict):
+                return_metrics.update(result)
+            else:
+                return_metrics[metric.name] = result
+
+        self.accuracy_results[self.count_accuracy_time_point]=return_metrics
+
+
+        # spike count - layer wise
+        for layer_name in self.total_spike_count_int.keys():
+            #print(layer_name)
+            #print(self.count_accuracy_time_point)
+            #print(tf.reduce_sum(self.get_layer(layer_name).act_snn.spike_count_int))
+
+            #self.total_spike_count_int[layer_name][self.count_accuracy_time_point]=\
+            #    tf.reduce_sum(self.get_layer(layer_name).act_snn.spike_count_int)
+
+            #self.total_spike_count[layer_name][self.count_accuracy_time_point]= \
+            #    tf.reduce_sum(self.get_layer(layer_name).act_snn.spike_count)
+
+            #self.total_residual_vmem[layer_name][self.count_accuracy_time_point]= \
+            #    tf.reduce_sum(self.get_layer(layer_name).act_snn.vmem)
+
+            self.total_spike_count_int[layer_name] = tf.tensor_scatter_nd_update(
+                self.total_spike_count_int[layer_name],
+                [[self.count_accuracy_time_point]],
+                [tf.reduce_sum(self.get_layer(layer_name).act_snn.spike_count_int)])
+
+            self.total_spike_count[layer_name] = tf.tensor_scatter_nd_update(
+                self.total_spike_count[layer_name],
+                [[self.count_accuracy_time_point]],
+                [tf.reduce_sum(self.get_layer(layer_name).act_snn.spike_count)])
+
+            self.total_residual_vmem[layer_name] = tf.tensor_scatter_nd_update(
+                self.total_residual_vmem[layer_name],
+                [[self.count_accuracy_time_point]],
+                [tf.reduce_sum(self.get_layer(layer_name).act_snn.vmem)])
+
+
+        #
+        self.count_accuracy_time_point+=1
 
 
     ###########################################################################
@@ -502,11 +640,51 @@ class Model(tf.keras.Model):
     ###########################################################
     #
     def init_snn(self):
-        for layer in self.layers:
-            if isinstance(layer.act_snn,lib_snn.neurons.Neuron):
-                layer.act_snn.init()
+
+        #
+        self.set_layers_w_neuron()
+
+        #
+        self.spike_max_pool_setup()
 
 
+        # init - neuron
+        for layer in self.layers_w_neuron:
+            layer.act_snn.init()
+
+        #
+        # dummy run
+        #self.compiled_metrics.update_state(self.y, self.y, self.sample_weight)
+        metrics = self.compiled_metrics._metrics
+        for idx in range(self.num_accuracy_time_point):
+            #self.accuracy_metrics[idx] = self.compiled_metrics
+            self.accuracy_metrics[idx] = compile_utils.MetricsContainer(
+                                    metrics, None, output_names=self.output_names, from_serialized=False)
+
+            self.accuracy_metrics[idx].reset_state()
+
+        #print(self.compiled_metrics.metrics)
+        #print(self._is_compiled)
+        #assert False
+
+        # total spike count init - layer wise at each accuracy time point
+        # TODO: np -> tf.Variables, tf.constant? - nesseccary?
+        self.total_spike_count=collections.OrderedDict()
+        self.total_spike_count_int=collections.OrderedDict()
+        self.total_residual_vmem=collections.OrderedDict()
+
+        for layer in self.layers_w_neuron:
+            #if isinstance(layer.act_snn,lib_snn.neurons.Neuron):
+            #self.total_spike_count_int[layer.name]=np.zeros([self.num_accuracy_time_point])
+            #self.total_spike_count_int[layer.name]=np.empty_like([self.num_accuracy_time_point],dtype=object)
+
+            self.total_spike_count[layer.name]=tf.zeros([self.num_accuracy_time_point])
+            self.total_spike_count_int[layer.name]=tf.zeros([self.num_accuracy_time_point])
+            self.total_residual_vmem[layer.name]=tf.zeros([self.num_accuracy_time_point])
+
+
+        #
+        self.init_done=True
 
     ###########################################################
     # reset snn
@@ -528,10 +706,15 @@ class Model(tf.keras.Model):
     def reset_snn_time_step(self):
         Model.t = 0
 
+    def reset_snn(self):
+        # reset count accuracy_time_point
+        #if self.verbose:
+            #print('reset_snn')
+        self.count_accuracy_time_point=0
+
     #
     def reset_snn_neuron(self):
         for layer in self.layers_w_neuron:
-            print(layer.name)
             layer.reset()
 
     # set layers with neuron
@@ -539,7 +722,8 @@ class Model(tf.keras.Model):
         self.layers_w_neuron = []
         for layer in self.layers:
             if hasattr(layer, 'act_snn'):
-                if layer.act_snn is not None:
+                #if layer.act_snn is not None:
+                if isinstance(layer.act_snn,lib_snn.neurons.Neuron):
                     self.layers_w_neuron.append(layer)
 
     ###########################################################
