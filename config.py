@@ -255,7 +255,9 @@ tf.compat.v1.app.flags.DEFINE_bool('load_best_model', True, 'load best model (mo
 
 #
 tf.compat.v1.app.flags.DEFINE_integer('batch_size', 100, '')
+#tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 1000, '')
 tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 500, '')
+#tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 1, '')
 
 #
 # VGG
@@ -297,14 +299,19 @@ tf.compat.v1.app.flags.DEFINE_string('root_results', './results', 'root results'
 ################
 # Debug
 ################
-#tf.compat.v1.app.flags.DEFINE_bool('debug_mode', False, 'full dataset test')
-tf.compat.v1.app.flags.DEFINE_bool('debug_mode', True, 'full dataset test')
+#tf.compat.v1.app.flags.DEFINE_bool('debug_mode', False, 'debug mode')
+tf.compat.v1.app.flags.DEFINE_bool('debug_mode', True, 'debug mode')
 
 #tf.compat.v1.app.flags.DEFINE_bool('full_test', True, 'full dataset test')
 tf.compat.v1.app.flags.DEFINE_bool('full_test', False, 'full dataset test')
 
-tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 0, 'start index of test data')
-tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 500, 'number of test data')
+tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 8, 'start index of test data')
+#tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 9, 'start index of test data')
+#tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 500, 'number of test data')
+tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 100, 'number of test data')
+#tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 10, 'number of test data')
+#tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 3, 'number of test data')
+#tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 1, 'number of test data')
 
 ################################
 # SNN
@@ -317,9 +324,19 @@ tf.compat.v1.app.flags.DEFINE_string('input_spike_mode','REAL','input spike mode
 tf.compat.v1.app.flags.DEFINE_string('neural_coding','RATE','neural coding - RATE, WEIGHTED_SPIKE, PROPOSED')
 
 #
-#tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 1.0, 'initial value of vth')
-tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.5, 'initial value of vth')
+tf.compat.v1.app.flags.DEFINE_bool('binary_spike', True, 'binary spike activation, if false - vth activation')
+
+#
+tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 1.0, 'initial value of vth')
+#tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.9, 'initial value of vth')
+#tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.7, 'initial value of vth')
+#tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.5, 'initial value of vth')
+#tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.4, 'initial value of vth')
+#tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.3, 'initial value of vth')
+#tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.2, 'initial value of vth')
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.1, 'initial value of vth')
+#tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.01, 'initial value of vth')
+
 tf.compat.v1.app.flags.DEFINE_float('n_in_init_vth', 0.1, 'initial value of vth of n_in')
 tf.compat.v1.app.flags.DEFINE_float('n_init_vinit', 0.0, 'initial value of vinit')
 tf.compat.v1.app.flags.DEFINE_float('n_init_vrest', 0.0, 'initial value of vrest')
@@ -328,9 +345,16 @@ tf.compat.v1.app.flags.DEFINE_float('n_init_vrest', 0.0, 'initial value of vrest
 tf.compat.v1.app.flags.DEFINE_enum('snn_output_type',"VMEM", ["SPIKE", "VMEM", "FIRST_SPIKE_TIME"], "snn output type")
 
 #
-#tf.compat.v1.app.flags.DEFINE_integer('time_step', 2048, 'time steps per sample in SNN')
-tf.compat.v1.app.flags.DEFINE_integer('time_step', 128, 'time steps per sample in SNN')
+#tf.compat.v1.app.flags.DEFINE_integer('time_step', 1024, 'time steps per sample in SNN')
+tf.compat.v1.app.flags.DEFINE_integer('time_step', 256, 'time steps per sample in SNN')
+#tf.compat.v1.app.flags.DEFINE_integer('time_step', 128, 'time steps per sample in SNN')
+#tf.compat.v1.app.flags.DEFINE_integer('time_step', 64, 'time steps per sample in SNN')
+#tf.compat.v1.app.flags.DEFINE_integer('time_step', 32, 'time steps per sample in SNN')
 tf.compat.v1.app.flags.DEFINE_integer('time_step_save_interval',10,'snn test save interval')
+#tf.compat.v1.app.flags.DEFINE_integer('time_step_save_interval',2,'snn test save interval')
+#tf.compat.v1.app.flags.DEFINE_integer('time_step_save_interval',1,'snn test save interval')
+
+#
 
 
 ################
@@ -350,6 +374,7 @@ tf.compat.v1.app.flags.DEFINE_bool('f_write_stat',False,'write stat')
 #tf.compat.v1.app.flags.DEFINE_bool('f_write_stat',True,'write stat')
 
 tf.compat.v1.app.flags.DEFINE_bool('f_stat_train_mode',True,'stat with train data')
+#tf.compat.v1.app.flags.DEFINE_bool('f_stat_train_mode',False,'stat with train data')
 
 tf.compat.v1.app.flags.DEFINE_string('path_stat','./stat/', 'path stat')
 tf.compat.v1.app.flags.DEFINE_string('prefix_stat', '', 'prefix of stat file name')
@@ -357,6 +382,29 @@ tf.compat.v1.app.flags.DEFINE_string('prefix_stat', '', 'prefix of stat file nam
 #tf.compat.v1.app.flags.DEFINE_string('act_save_mode','channel','activation save mode')
 
 
+################
+# calibration - DNN-to-SNN conversion
+################
+tf.compat.v1.app.flags.DEFINE_bool('calibration_weight',True,'calibration - weight')
+#tf.compat.v1.app.flags.DEFINE_bool('calibration_weight',False,'calibration - weight')
+
+#tf.compat.v1.app.flags.DEFINE_bool('calibration_bias',True,'calibration - weight')
+tf.compat.v1.app.flags.DEFINE_bool('calibration_bias',False,'calibration - weight')
+
+#tf.compat.v1.app.flags.DEFINE_bool('calibration_vth',True,'calibration - vth')
+tf.compat.v1.app.flags.DEFINE_bool('calibration_vth',False,'calibration - vth')
+
+#tf.compat.v1.app.flags.DEFINE_bool('calibration_vmem',True,'calibration - vmem')
+tf.compat.v1.app.flags.DEFINE_bool('calibration_vmem',False,'calibration - vmem')
+
+tf.compat.v1.app.flags.DEFINE_bool('bias_control',True,'bias control')
+#tf.compat.v1.app.flags.DEFINE_bool('bias_control',False,'bias control')
+
+#tf.compat.v1.app.flags.DEFINE_bool('vth_toggle',True,'vth toggle mode')
+tf.compat.v1.app.flags.DEFINE_bool('vth_toggle',False,'vth toggle mode')
+
+#tf.compat.v1.app.flags.DEFINE_float('vth_toggle_init',0.5,'vth toggle init - toggle between {init, 2-init}')
+tf.compat.v1.app.flags.DEFINE_float('vth_toggle_init',0.8,'vth toggle init - toggle between {init, 2-init}')
 
 
 #

@@ -19,7 +19,11 @@ from tensorflow.python.keras.engine import compile_utils
 
 #
 import lib_snn
+from lib_snn.sim import glb
 from lib_snn.sim import glb_t
+from lib_snn.sim import glb_plot
+from lib_snn.sim import glb_plot_1
+from lib_snn.sim import glb_plot_2
 
 
 #
@@ -418,6 +422,17 @@ class Model(tf.keras.Model):
         #for t in range(500):
         #glb_t()
         #for t in range(200):
+
+        # bias control
+
+        # plot control
+        f_plot = (not self.conf.full_test) and (glb.model_compiled) and (self.conf.debug_mode and self.conf.nn_mode == 'SNN')
+
+        # tf.expand_dims(self.bias_ctrl_sub,axis=(1,2))
+        if self.conf.bias_control:
+            self.bias_control_test_pre()
+
+        #
         for t in range(1,self.conf.time_step+1):
             #self.bias_control(t)
 
@@ -433,6 +448,22 @@ class Model(tf.keras.Model):
             #if (t == self.accuracy_time_point[self.count_accuracy_time_point]):
                 self.record_acc_spike_time_point(inputs,ret)
 
+
+            # plot output
+            #self.plot_output()
+
+            #
+            #if (glb.model_compiled) and (self.conf.debug_mode and self.conf.nn_mode == 'SNN'):
+            if f_plot:
+                self.plot_layer_neuron(glb_plot)
+                self.plot_layer_neuron_vmem(glb_plot_1)
+                self.plot_layer_neuron_input(glb_plot_2)
+
+            if self.conf.bias_control:
+                self.bias_control_test()
+
+
+
             # end of time step - increase global time
             glb_t()
 
@@ -445,6 +476,134 @@ class Model(tf.keras.Model):
         #return self.snn_output
 
         return ret
+
+    #
+    def bias_control_test_pre(self):
+        if (glb.model_compiled) and (self.conf.debug_mode and self.conf.nn_mode == 'SNN'):
+            for idx_layer, layer in enumerate(self.layers_w_neuron):
+                layer.f_bias_ctrl = tf.fill(tf.shape(layer.f_bias_ctrl), True)
+                # print(layer.f_bias_ctrl)
+                # assert False
+
+                layer.use_bias = self.conf.use_bias
+
+                # if (idx_layer == 0) or (self.conf.input_spike_mode and idx_layer==1) :
+                if (idx_layer == 0) or (idx_layer == 1):
+                    if self.conf.use_bias:
+                        layer.bias_en_time = 0
+                        # layer.f_bias_ctrl = False
+                        layer.f_bias_ctrl = tf.fill(tf.shape(layer.f_bias_ctrl), False)
+                else:
+                    # layer.use_bias = T
+                    layer.f_bias_ctrl = tf.fill(tf.shape(layer.f_bias_ctrl), True)
+                    layer.bias_ctrl_sub = tf.broadcast_to(layer.bias, layer.output_shape_fixed_batch)
+
+    #
+    def bias_control_test(self):
+        if (glb.model_compiled) and (self.conf.debug_mode and self.conf.nn_mode == 'SNN'):
+            # print('fired neuron')
+            # print(np.sum(self.get_layer('conv1').act.spike_count_int.numpy()))
+            # print(np.sum(self.get_layer('conv2').act.spike_count_int.numpy()))
+            # print(np.sum(self.get_layer('conv3').act.spike_count_int.numpy()))
+            # print(np.sum(self.get_layer('conv4').act.spike_count_int.numpy()))
+            # print(np.sum(self.get_layer('conv5').act.spike_count_int.numpy()))
+            # print(np.sum(self.get_layer('fc1').act.spike_count_int.numpy()))
+            # print(np.sum(self.get_layer('fc2').act.spike_count_int.numpy()))
+
+            for idx_layer, layer in enumerate(self.layers_w_neuron):
+                # if layer.use_bias != self.conf.use_bias:
+                # print(layer.use_bias)
+                # print(tf.reduce_any(layer.f_bias_ctrl))
+                if layer.use_bias == tf.reduce_any(layer.f_bias_ctrl):
+                    #print('test here')
+                    #print(layer.name)
+                    perv_layer = self.layers_w_neuron[idx_layer - 1]
+                    #print(perv_layer.name)
+                    #print(perv_layer.act.dim)
+
+                    if isinstance(perv_layer, lib_snn.layers.Conv2D):
+                        axis = [1, 2, 3]
+                    elif isinstance(perv_layer, lib_snn.layers.Dense):
+                        axis = [1]
+                    else:
+                        assert False
+
+                    # spike = tf.reduce_sum(self.layers_w_neuron[idx_layer-1].act.spike_count_int,axis=axis)
+                    spike = tf.reduce_sum(perv_layer.act.spike_count_int, axis=axis)
+                    # print(spike.shape)
+                    # assert False
+                    n_neurons = layer.act.num_neurons
+                    #rate_bias_on = 0.001
+                    #rate_bias_on = 0.005
+                    rate_bias_on = 0.01
+                    #rate_bias_on = 0.1
+                    # f_spike = tf.greater(spike,0)
+                    f_spike = tf.greater(spike / n_neurons, rate_bias_on)
+                    # layer.f_bias_ctrl = tf.greater(spike/n_neurons,rate_bias_on)
+
+                    # print(f_spike)
+                    # print(f_spike.shape)
+                    # print(layer.f_bias_ctrl)
+                    # assert False
+
+                    if tf.reduce_any(f_spike):
+                        # if layer.f_bias_ctrl
+                        #print('{} - {}: bias on - control off'.format(glb_t.t, layer.name))
+                        # layer.use_bias = f_spike
+                        layer.bias_en_time = glb_t.t
+                        layer.f_bias_ctrl = tf.math.logical_not(f_spike)
+
+                        if isinstance(layer, lib_snn.layers.Conv2D):
+                            ctrl = tf.expand_dims(layer.f_bias_ctrl, axis=1)
+                            ctrl = tf.expand_dims(ctrl, axis=2)
+                            ctrl = tf.expand_dims(ctrl, axis=3)
+                        elif isinstance(layer, lib_snn.layers.Dense):
+                            ctrl = tf.expand_dims(layer.f_bias_ctrl, axis=1)
+                        else:
+                            assert False
+
+                        bias_batch = tf.broadcast_to(layer.bias, layer.bias_ctrl_sub.shape)
+
+                        # layer.bias_ctrl_sub = tf.where(layer.f_bias_ctrl,layer)
+                        layer.bias_ctrl_sub = tf.where(ctrl, bias_batch, tf.zeros(layer.bias_ctrl_sub.shape))
+
+                    # print(layer.name)
+                    # print(layer.use_bias)
+                    # print(spike)
+                    # print(f_spike)
+
+    #
+    def plot_layer_neuron(self,plot):
+        for idx, layer_name in enumerate(plot.layers):
+            layer = self.get_layer(layer_name)
+            idx_neuron = plot.idx_neurons[idx]
+            axe = plot.axes.flatten()[idx]
+            out = layer.act.get_spike_count_int().numpy().flatten()[idx_neuron]  # spike
+            lib_snn.util.plot(glb_t.t, out / (glb_t.t-layer.bias_en_time), axe=axe)
+    #
+    def plot_layer_neuron_vmem(self,plot):
+        for idx, layer_name in enumerate(plot.layers):
+            layer = self.get_layer(layer_name)
+            idx_neuron = plot.idx_neurons[idx]
+            axe = plot.axes.flatten()[idx]
+            vmem = layer.act.vmem.numpy().flatten()[idx_neuron]
+            lib_snn.util.plot(glb_t.t, vmem, axe=axe)
+
+    #
+    def plot_layer_neuron_input(self, plot):
+        for idx, layer_name in enumerate(plot.layers):
+            layer = self.get_layer(layer_name)
+            idx_neuron = plot.idx_neurons[idx]
+            axe = plot.axes.flatten()[idx]
+            inputs = layer.act.inputs.numpy().flatten()[idx_neuron]
+            lib_snn.util.plot(glb_t.t, inputs, axe=axe)
+
+            # plot bias
+            if glb_t.t==1:
+                idx_bias = idx_neuron % layer.bias.shape[0]
+                axe.axhline(y=layer.bias[idx_bias], color='m')
+
+
 
     # this function is based on Model.test_step in training.py
     # TODO: override Model.test_step
@@ -716,6 +875,7 @@ class Model(tf.keras.Model):
     def reset_snn_neuron(self):
         for layer in self.layers_w_neuron:
             layer.reset()
+
 
     # set layers with neuron
     def set_layers_w_neuron(self):

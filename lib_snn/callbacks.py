@@ -91,7 +91,7 @@ class ModelCheckpointResume(tf.keras.callbacks.ModelCheckpoint):
         super(ModelCheckpointResume, self).on_epoch_end(epoch=epoch,logs=logs)
 
         #print(self.best)
-        #tf.summary.scalar('best_acc_val', data=self.best, step=epoch)
+        tf.summary.scalar('best_acc_val', data=self.best, step=epoch)
         logs['best_acc_val'] = self.best
 
 

@@ -14,6 +14,7 @@ def model_builder(
 ):
 
     print('Model Builder - {}'.format(conf.nn_mode))
+    glb.model_compile_done_reset()
 
     # model
     model_top = model_top(batch_size=batch_size, input_shape=image_shape, conf=conf, include_top=include_top,

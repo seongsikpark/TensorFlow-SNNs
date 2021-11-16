@@ -28,7 +28,9 @@ tfds.disable_progress_bar()
 #
 #import tqdm
 
-import matplotlib as plt
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
 
 import numpy as np
 #np.set_printoptions(precision=4)
@@ -649,7 +651,8 @@ if conf.nn_mode=='SNN' and conf.dnn_to_snn:
     model_ann.load_weights(load_weight)
     print('-- model_ann - load done')
     model.load_weights_dnn_to_snn(model_ann)
-    del(model_ann)
+
+    #del(model_ann)
 
 
 elif load_model:
@@ -834,12 +837,29 @@ if train:
                                     callbacks=callbacks_train)
 else:
     print('Test mode')
+
+    dnn_snn_compare=True
+    #dnn_snn_compare=False
+    if (conf.nn_mode=='SNN') and dnn_snn_compare:
+        nn_mode_ori = conf.nn_mode
+        conf.nn_mode = 'ANN'
+        result_ann = model_ann.evaluate(test_ds, callbacks=callbacks_test_ann)
+        conf.nn_mode = nn_mode_ori
+
+    #
     result = model.evaluate(test_ds, callbacks=callbacks_test)
     #result = model.evaluate(test_ds)
     # result = model.predict(test_ds)
 
     print(result)
 
+    #
+    #for layer in model.layers_w_neuron:
+    #    print('{} - {}'.format(layer.name,tf.reduce_sum(layer.act.spike_count_int)))
+
+    # ANN for comparison
+
+    #print(result_ann)
 
 #
 if False:

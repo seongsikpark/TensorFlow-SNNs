@@ -23,6 +23,8 @@ import lib_snn
 from lib_snn.model import Model
 from lib_snn.sim import glb_t
 from lib_snn.sim import glb
+from lib_snn.sim import glb_plot
+
 #from main_hp_tune import conf
 
 from config import conf
@@ -35,7 +37,8 @@ from config import conf
 # abstract class
 # Layer
 class Layer():
-    index = -1
+    index = None    # layer index count starts from InputGenLayer
+
 
     def __init__(self, use_bn, activation, last_layer=False, **kwargs):
         #
@@ -128,7 +131,10 @@ class Layer():
             else:
                 self.n_type = self.conf.n_type
 
-
+        # bias control
+        self.bias_en_time = 0
+        self.f_bias_ctrl = False
+        self.bias_ctrl_sub = None
 
     #
     def build(self, input_shapes):
@@ -142,7 +148,6 @@ class Layer():
         super().build(input_shapes)
         # print(super())
         # print(super().build)
-
 
         #print(super().build)
 
@@ -175,6 +180,10 @@ class Layer():
             self.act_snn = lib_snn.neurons.Neuron(self.output_shape_fixed_batch, self.conf, \
                                                   self.n_type, self.conf.neural_coding, self.depth, 'n_'+self.name)
 
+            #
+            self.bias_ctrl_sub = tf.zeros(self.output_shape_fixed_batch)
+            self.f_bias_ctrl = tf.constant(False,dtype=tf.bool,shape=self.output_shape_fixed_batch[0])
+
         # setup activation
         if self.en_snn:
             self.act = self.act_snn
@@ -206,8 +215,23 @@ class Layer():
         # print(s)
         # print(self.kernel)
 
+        # bias control test
+        #if (glb.model_compiled) and (self.depth*2 > glb_t.t) and (self.conf.nn_mode=='SNN'):
+            #self.use_bias = False
+        #else:
+            #self.use_bias = self.conf.use_bias
+
+        #self.use_bias = False
+
+        # bias control
+        if self.conf.bias_control:
+            s = self.bias_control(s)
+
+
         if (self.use_bn) and (not self.f_skip_bn):
             b = self.bn(s, training=training)
+            if glb.model_compiled:
+                assert False
         else:
             b = s
             #print('here')
@@ -226,8 +250,22 @@ class Layer():
             self.record_output = ret
 
         # debug
-        #if False:
-        if self.conf.debug_mode and self.conf.nn_mode=='SNN':
+        # TODO: debug mode set - glb.model_compiled and self.conf.debug_mode and ~~
+        #if (glb.model_compiled) and (self.conf.debug_mode and self.conf.nn_mode=='SNN'):
+            #self.plot()
+
+        #
+        if (not self.conf.full_test) and (glb.model_compiled) and (self.conf.debug_mode and self.conf.nn_mode=='SNN'):
+            if self.name=='conv1':
+                print('{:4d}: {}'.format(glb_t.t, b.numpy().flatten()[0:10]))
+                print('{:4d}: {}'.format(glb_t.t, self.act.vmem.numpy().flatten()[0:10]))
+                print(': {}'.format(self.act.spike_count_int.numpy().flatten()[0:10]))
+
+        #if (glb.model_compiled) and (self.conf.debug_mode and self.conf.nn_mode == 'SNN'):
+        #    self.plot_neuron()
+
+        if False:
+        #if self.conf.debug_mode and self.conf.nn_mode=='SNN':
             #print('neuron input')
             #print('{}: {} - in {}, out {}'.format(glb_t.t,self.depth,tf.reduce_mean(b),tf.reduce_mean(n)))
 
@@ -267,7 +305,8 @@ class Layer():
                 #print(self.name)
                 #print('{}: {} - spike count {}'.format(glb_t.t, self.depth, self.act.get_spike_count()))
                 #print('{}: {} - spike count mean {}'.format(glb_t.t, self.depth, tf.reduce_mean(self.act.get_spike_count())))
-                print('{:4d}: {:3d} - spike count max {:8.2f}, mean_s {:8.4f}, mean_s_t {:8.4f}'.format(glb_t.t, self.depth,
+                print('{:4d}: {:3d} {:>8} - spike count max {:8.2f}, mean_s {:8.4f}, mean_s_t {:8.4f}'.format(glb_t.t, self.depth,
+                                                                    self.name,
                                                                     tf.reduce_max(self.act.get_spike_count()),
                                                                     tf.reduce_mean(self.act.get_spike_count()),
                                                                     tf.reduce_mean(self.act.get_spike_count())/glb_t.t))
@@ -294,6 +333,48 @@ class Layer():
 
 
         return ret
+
+    #
+    def bias_control(self, synaptic_output):
+        if hasattr(self, 'bias') and self.conf.nn_mode == 'SNN':
+            if self.conf.use_bias and tf.reduce_any(self.f_bias_ctrl):
+                ret = tf.subtract(synaptic_output, self.bias_ctrl_sub)
+                return ret
+            else:
+                return synaptic_output
+        else:
+            return synaptic_output
+
+
+    # TODO: move
+    def plot(self):
+
+        #if self.name=='conv1':
+
+        axe=glb_plot.axes.flatten()[self.depth]
+
+        #idx=0,0,0,0
+        #idx=7
+        idx=glb_plot.idx
+
+        if self.name=='predictions':
+            idx=7
+            out = self.act.vmem.numpy().flatten()[idx]                      # vmem
+        else:
+            out = self.act.get_spike_count_int().numpy().flatten()[idx]     # spike
+
+        #print('{} - {}, {}'.format(glb_t.t,spike,spike/glb_t.t))
+        #lib_snn.util.plot(glb_t.t,spike/glb_t.t,axe=axe)
+        lib_snn.util.plot(glb_t.t,out/glb_t.t,axe=axe)
+
+    def plot_neuron(self):
+        assert False
+        #for idx, layer_name in glb_plot.layers:
+
+        for idx in range(0, 16):
+            axe = glb_plot.axes.flatten()[idx]
+            out = self.act.get_spike_count_int().numpy().flatten()[idx]  # spike
+            lib_snn.util.plot(glb_t.t, out / glb_t.t, axe=axe)
 
     #
     def reset(self):
@@ -392,7 +473,7 @@ class InputGenLayer(Layer, tf.keras.layers.Layer):
         #self.act_dnn = tf.identity()
 
         #
-        Layer.index += 1
+        Layer.index = 0             # start of models
         self.depth = Layer.index
         self.n_type = 'IN'
 
