@@ -32,7 +32,8 @@ def preproc(self):
     self.model.summary()
 
     # initialization
-    set_init(self)
+    if not self.init_done:
+        set_init(self)
 
     #
     preproc_sel={
@@ -61,6 +62,10 @@ def reset_batch_snn(self):
 def set_init(self):
     #print('SNNLIB callback initialization')
 
+    # check
+    snn_condition_check(self)
+
+
     for layer in self.model.layers:
         if hasattr(layer, 'kernel'):
             self.layers_w_kernel.append(layer)
@@ -80,6 +85,13 @@ def set_init(self):
     #
     if self.conf.nn_mode=='SNN':
         init_snn_run(self)
+
+
+    self.init_done=True
+
+#
+def snn_condition_check(self):
+    assert (not self.conf.binary_spike) or (self.conf.binary_spike and (self.conf.n_init_vth==1.0)), 'vth should be 1.0 in binary_spike mode'
 
 #
 def init_snn_run(self):
@@ -120,30 +132,87 @@ def preproc_snn(self):
 
 #
 def preproc_ann_norm(self):
-    if self.conf.f_fused_bn:
-        bn_fusion(self)
+    if not self.bn_fusion_done:
+        if self.conf.f_fused_bn:
+            bn_fusion(self)
+        self.bn_fusion_done = True
 
     # data-based weight normalization
-    if self.conf.f_w_norm_data:
-        w_norm_data(self)
+    if not self.w_norm_done:
+        if self.conf.f_w_norm_data:
+            w_norm_data(self)
+        self.w_norm_done=True
 
     #print(self.model.get_layer('conv1').bias)
     ## for debug
     #self.model.bias_disable()
     #print(self.model.get_layer('conv1').bias)
 
-
 #
 def preproc_ann_to_snn(self):
     if self.conf.verbose:
         print('preprocessing: ANN to SNN')
 
-    if self.conf.f_fused_bn or ((self.conf.nn_mode == 'ANN') and (self.conf.f_validation_snn)):
-        bn_fusion(self)
+    if not self.bn_fusion_done:
+        if self.conf.f_fused_bn or ((self.conf.nn_mode == 'ANN') and (self.conf.f_validation_snn)):
+            bn_fusion(self)
+        self.bn_fusion_done = True
 
     # data-based weight normalization
-    if self.conf.f_w_norm_data:
-        w_norm_data(self)
+    if not self.w_norm_done:
+        if self.conf.f_w_norm_data:
+            w_norm_data(self)
+        self.w_norm_done=True
+
+    # calibration
+    if not self.calibration_static_done:
+        calibration_static(self)
+
+    if not self.run_for_calibration:
+        calibration_data_based(self)
+
+#
+def calibration_static(self):
+
+    if self.conf.nn_mode=='SNN':
+        if self.conf.calibration_vth:
+            #lib_snn.calibration.vth_calibration_stat(self,f_norm,stat)
+            lib_snn.calibration.vth_calibration_stat(self)
+            #lib_snn.calibration.vth_calibration_manual(self)
+
+        if self.conf.vth_toggle:
+            lib_snn.calibration.vth_toggle(self)
+
+    #
+    if self.conf.calibration_weight:
+        lib_snn.calibration.weight_calibration(self)
+    #    #lib_snn.calibration.weight_calibration_inv_vth(self)
+
+    #
+    if self.conf.calibration_bias:
+        lib_snn.calibration.bias_calibration(self)
+
+    self.calibration_static_done = True
+
+
+def calibration_data_based(self):
+    ########
+    # bias
+    ########
+    #assert tf.math.logical_not(tf.math.reduce_all(self.conf.calibration_bias,self.conf.calibration_bias_ICLR_21,self.conf.calibration_bias_ICML_21))
+    assert tf.math.logical_not(tf.math.logical_and(self.conf.calibration_vmem,self.conf.calibration_vmem_ICML_21))
+
+    #if self.conf.calibration_weight:
+    #    lib_snn.calibration.weight_calibration_post(self)
+
+    if self.conf.calibration_bias_ICLR_21:
+        lib_snn.calibration.bias_calibration_ICLR_21(self)
+
+    if self.conf.calibration_bias_ICML_21:
+        lib_snn.calibration.bias_calibration_ICML_21(self)
+
+    if self.conf.calibration_vmem_ICML_21:
+        lib_snn.calibration.vmem_calibration_ICML_21(self)
 
 
 
@@ -246,7 +315,7 @@ def postproc_ann(self):
         #idx=7
         plot_dnn_act(self)
         #plot_act_dist(self)
-        pass
+        #pass
 
 #
 def plot_act_dist(self,fig=None):
@@ -269,6 +338,93 @@ def plot_act_dist(self,fig=None):
         axe.set_title(layer.name)
 
     plt.show()
+
+# TODO: move
+def plot_spike_time_diff_hist_dnn_ann(self, fig=None):
+
+    diffs = collections.OrderedDict()
+
+    if fig is None:
+        fig = glb_plot
+
+    for layer in self.layers_w_kernel:
+        #if self.conf.snn_output_type == 'VMEM' and layer.name=='predictions':
+        if self.conf.snn_output_type == 'VMEM' and layer == self.layers_w_kernel[-1]:
+            continue
+
+        axe = fig.axes.flatten()[layer.depth]
+        ann_act = self.model_ann.get_layer(layer.name).record_output
+
+        estimated_first_spike_time = self.conf.n_init_vth/ann_act
+        first_spike_time = layer.act.first_spike_time
+        diff = first_spike_time - estimated_first_spike_time
+        diff = tf.where(tf.math.is_inf(diff),tf.constant(np.nan,shape=diff.shape),diff)
+        diff = tf.where(tf.less(ann_act,tf.constant(1/self.conf.time_step)),tf.constant(np.nan,shape=diff.shape),diff)
+
+        diff = tf.reshape(diff,shape=-1)
+        diffs[layer.name] = diff
+
+        #self.estimated_first_spike_time = estimated_first_spike_time
+        #self.first_spike_time = first_spike_time
+        #self.diff = diff
+
+        #print(estimated_first_spike_time)
+        #print(first_spike_time)
+        #print(diff)
+
+        axe.hist(diff)
+        #axe.axvline(x=np.max(act), color='b')
+        #axe.set_ylim([0, n[10]])
+        axe.set_title(layer.name)
+
+    plt.show()
+
+
+
+    print('time diff')
+    for layer in self.layers_w_kernel:
+        if self.conf.snn_output_type == 'VMEM' and layer == self.layers_w_kernel[-1]:
+            continue
+        diff_mean=tf.experimental.numpy.nanmean(tf.abs(diffs[layer.name]))
+        print(diff_mean)
+
+
+    print('\n first spike time of previous layer - bias en time of layer')
+    for (idx_layer, layer) in enumerate(self.layers_w_kernel):
+        if self.conf.snn_output_type == 'VMEM' and layer == self.layers_w_kernel[-1]:
+            continue
+        if idx_layer!=0:
+            first_spike_time_in_mean = tf.experimental.numpy.nanmean(prev_layer.act.first_spike_time)
+            bias_en_time = tf.reduce_mean(layer.bias_en_time)
+            bias_en_time = tf.cast(bias_en_time,tf.float32)
+            print(first_spike_time_in_mean - bias_en_time)
+        prev_layer = layer
+
+    #print('non zero ratio')
+    print('\n act diff - dnn_act - snn_act')
+    for layer in self.layers_w_kernel:
+        if self.conf.snn_output_type == 'VMEM' and layer == self.layers_w_kernel[-1]:
+            continue
+        ann_act = self.model_ann.get_layer(layer.name).record_output
+        snn_act = layer.act.spike_count_int/self.conf.time_step
+
+        err = tf.reduce_mean(tf.abs(ann_act-snn_act))
+        print('ann_act_mean - {}, err - {}'.format(tf.reduce_mean(ann_act),err))
+
+#    print('\n act diff - dnn_act - snn_act (only non zero dnn_act)')
+#    for layer in self.layers_w_kernel:
+#        if self.conf.snn_output_type == 'VMEM' and layer == self.layers_w_kernel[-1]:
+#            continue
+#        ann_act = self.model_ann.get_layer(layer.name).record_output
+#        ann_act = tf.where(ann_act==0,np.nan,ann_act)
+#        snn_act = layer.act.spike_count_int/self.conf.time_step
+#
+#        #err = tf.reduce_mean(tf.abs(ann_act-snn_act))
+#        err = tf.experimental.numpy.nanmean(tf.abs(ann_act-snn_act))
+#
+#        print('ann_act_mean - {}, err - {}'.format(tf.experimental.numpy.nanmean(ann_act),err))
+
+
 
 
 # TODO: move
@@ -322,6 +478,11 @@ def postproc_snn(self):
     if (not self.conf.full_test) and dnn_snn_compare:
         fig = lib_snn.sim.GLB_PLOT()
         plot_act_dist(self, fig)
+
+    if (not self.conf.full_test) and dnn_snn_compare and self.conf.nn_mode=='SNN':
+        # difference btw - estimated first spike time (DNN,vth/act) and first spike time (SNN)
+        fig = lib_snn.sim.GLB_PLOT()
+        plot_spike_time_diff_hist_dnn_ann(self,fig)
 
 #
 def cal_results(self):
@@ -472,22 +633,7 @@ def w_norm_data(self):
     #w_norm_data_layer_wise(self,f_norm)
     w_norm_data_channel_wise(self,f_norm)
 
-    #
-    if self.conf.nn_mode=='SNN':
-        if self.conf.calibration_vth:
-            lib_snn.calibration.vth_calibration(self,f_norm,stat)
 
-        if self.conf.vth_toggle:
-            lib_snn.calibration.vth_toggle(self)
-
-    #
-    if self.conf.calibration_weight:
-        lib_snn.calibration.weight_calibration(self)
-        #lib_snn.calibration.weight_calibration_inv_vth(self)
-
-    #
-    if self.conf.calibration_bias:
-        lib_snn.calibration.bias_calibration(self)
 
 
 #

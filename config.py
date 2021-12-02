@@ -132,7 +132,8 @@ tf.compat.v1.app.flags.DEFINE_integer('time_window',20,'time window of each laye
 #tf.compat.v1.app.flags.DEFINE_integer('time_fire_duration',20,'time fire duration for temporal coding')
 tf.compat.v1.app.flags.DEFINE_float('time_fire_start',20,'time fire start (integration time before starting fire) for temporal coding')
 tf.compat.v1.app.flags.DEFINE_float('time_fire_duration',20,'time fire duration for temporal coding')
-tf.compat.v1.app.flags.DEFINE_bool('f_record_first_spike_time',False,'flag - recording first spike time of each neuron')
+# moved to new
+#tf.compat.v1.app.flags.DEFINE_bool('f_record_first_spike_time',False,'flag - recording first spike time of each neuron')
 tf.compat.v1.app.flags.DEFINE_bool('f_visual_record_first_spike_time',False,'flag - visual recording first spike time of each neuron')
 tf.compat.v1.app.flags.DEFINE_bool('f_train_tk',False,'flag - enable to train time constant for temporal coding')
 tf.compat.v1.app.flags.DEFINE_bool('f_train_tk_outlier',True,'flag - enable to outlier roubst train time constant for temporal coding')
@@ -325,8 +326,12 @@ tf.compat.v1.app.flags.DEFINE_string('neural_coding','RATE','neural coding - RAT
 
 #
 tf.compat.v1.app.flags.DEFINE_bool('binary_spike', True, 'binary spike activation, if false - vth activation')
+#tf.compat.v1.app.flags.DEFINE_bool('binary_spike', False, 'binary spike activation, if false - vth activation')
 
 #
+#tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 4.0, 'initial value of vth')
+#tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 3.0, 'initial value of vth')
+#tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 2.0, 'initial value of vth')
 tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 1.0, 'initial value of vth')
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.9, 'initial value of vth')
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.7, 'initial value of vth')
@@ -355,6 +360,8 @@ tf.compat.v1.app.flags.DEFINE_integer('time_step_save_interval',10,'snn test sav
 #tf.compat.v1.app.flags.DEFINE_integer('time_step_save_interval',1,'snn test save interval')
 
 #
+tf.compat.v1.app.flags.DEFINE_bool('f_record_first_spike_time',True,'flag - recording first spike time of each neuron')
+#tf.compat.v1.app.flags.DEFINE_bool('f_record_first_spike_time',False,'flag - recording first spike time of each neuron')
 
 
 ################
@@ -388,6 +395,9 @@ tf.compat.v1.app.flags.DEFINE_string('prefix_stat', '', 'prefix of stat file nam
 tf.compat.v1.app.flags.DEFINE_bool('calibration_weight',True,'calibration - weight')
 #tf.compat.v1.app.flags.DEFINE_bool('calibration_weight',False,'calibration - weight')
 
+#tf.compat.v1.app.flags.DEFINE_bool('calibration_weight_post',True,'calibration - weight')
+tf.compat.v1.app.flags.DEFINE_bool('calibration_weight_post',False,'calibration - weight')
+
 #tf.compat.v1.app.flags.DEFINE_bool('calibration_bias',True,'calibration - weight')
 tf.compat.v1.app.flags.DEFINE_bool('calibration_bias',False,'calibration - weight')
 
@@ -403,8 +413,24 @@ tf.compat.v1.app.flags.DEFINE_bool('bias_control',True,'bias control')
 #tf.compat.v1.app.flags.DEFINE_bool('vth_toggle',True,'vth toggle mode')
 tf.compat.v1.app.flags.DEFINE_bool('vth_toggle',False,'vth toggle mode')
 
+#tf.compat.v1.app.flags.DEFINE_float('vth_toggle_init',0.3,'vth toggle init - toggle between {init, 2-init}')
 #tf.compat.v1.app.flags.DEFINE_float('vth_toggle_init',0.5,'vth toggle init - toggle between {init, 2-init}')
-tf.compat.v1.app.flags.DEFINE_float('vth_toggle_init',0.8,'vth toggle init - toggle between {init, 2-init}')
+#tf.compat.v1.app.flags.DEFINE_float('vth_toggle_init',0.6,'vth toggle init - toggle between {init, 2-init}')
+#tf.compat.v1.app.flags.DEFINE_float('vth_toggle_init',0.7,'vth toggle init - toggle between {init, 2-init}')
+#tf.compat.v1.app.flags.DEFINE_float('vth_toggle_init',0.8,'vth toggle init - toggle between {init, 2-init}')
+tf.compat.v1.app.flags.DEFINE_float('vth_toggle_init',0.9,'vth toggle init - toggle between {init, 2-init}')
+#tf.compat.v1.app.flags.DEFINE_float('vth_toggle_init',0.95,'vth toggle init - toggle between {init, 2-init}')
+
+
+#
+tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_ICLR_21',False,'calibration - bias, ICML-21')
+#tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_ICLR_21',True,'calibration - bias, ICML-21')
+
+tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_ICML_21',False,'calibration - bias, ICML-21')
+#tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_ICML_21',True,'calibration - bias, ICML-21')
+
+tf.compat.v1.app.flags.DEFINE_bool('calibration_vmem_ICML_21',False,'calibration - bias, ICML-21')
+#tf.compat.v1.app.flags.DEFINE_bool('calibration_vmem_ICML_21',True,'calibration - bias, ICML-21')
 
 
 #

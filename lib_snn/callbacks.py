@@ -116,14 +116,25 @@ class TensorboardBestValAcc(tf.keras.callbacks.Callback):
 
 #
 class SNNLIB(tf.keras.callbacks.Callback):
-    def __init__(self, conf, path_model, test_ds_num, **kwargs):
+    def __init__(self, conf, path_model, test_ds_num, model_ann=None, **kwargs):
         super(SNNLIB, self).__init__(**kwargs)
         self.conf = conf
         self.path_model = path_model
         self.test_ds_num = test_ds_num
+        self.model_ann = model_ann
+
 
         self.f_skip_bn=False
         self.layers_w_kernel=[]
+
+        #
+        self.init_done = False
+        self.bn_fusion_done = False
+        self.w_norm_done = False
+
+        # calibration
+        self.calibration_static_done = False
+        self.run_for_calibration = False
 
 
     #def build(self):

@@ -133,7 +133,7 @@ class Layer():
 
         # bias control
         self.bias_en_time = 0
-        self.f_bias_ctrl = False
+        #self.f_bias_ctrl = False
         self.bias_ctrl_sub = None
 
     #
@@ -182,7 +182,8 @@ class Layer():
 
             #
             self.bias_ctrl_sub = tf.zeros(self.output_shape_fixed_batch)
-            self.f_bias_ctrl = tf.constant(False,dtype=tf.bool,shape=self.output_shape_fixed_batch[0])
+            #self.f_bias_ctrl = tf.constant(False,dtype=tf.bool,shape=self.output_shape_fixed_batch[0])
+            self.f_bias_ctrl = tf.constant(False,dtype=tf.bool,shape=[self.output_shape_fixed_batch[0],self.output_shape_fixed_batch[-1]])
 
         # setup activation
         if self.en_snn:

@@ -37,6 +37,8 @@ class GLB_PLOT():
         self.layers=layer_names
         self.idx_neurons = idx_neurons
 
+        self.mark = 'bo'
+
         # subplot title
         for idx, layer_name in enumerate(self.layers):
             axe = self.axes.flatten()[idx]

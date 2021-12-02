@@ -53,8 +53,15 @@ import datasets
 #global input_size_pre_crop_ratio
 import collections
 
+
+# TODO: check use
 global model_name
 
+
+#
+from lib_snn.sim import glb_plot
+from lib_snn.sim import glb_plot_1
+from lib_snn.sim import glb_plot_2
 
 #
 #conf = flags.FLAGS
@@ -797,7 +804,7 @@ cb_manage_saved_model = lib_snn.callbacks.ManageSavedModels(filepath=filepath)
 cb_tensorboard = tf.keras.callbacks.TensorBoard(log_dir=path_tensorboard, update_freq='epoch')
 
 #cb_dnntosnn = lib_snn.callbacks.DNNtoSNN()
-cb_libsnn = lib_snn.callbacks.SNNLIB(conf,path_model,test_ds_num)
+cb_libsnn = lib_snn.callbacks.SNNLIB(conf,path_model,test_ds_num,model_ann)
 cb_libsnn_ann = lib_snn.callbacks.SNNLIB(conf,path_model,test_ds_num)
 
 #
@@ -840,12 +847,48 @@ else:
 
     dnn_snn_compare=True
     #dnn_snn_compare=False
-    if (conf.nn_mode=='SNN') and dnn_snn_compare:
+
+    act_based_calibration = conf.calibration_bias_ICML_21 or conf.calibration_vmem_ICML_21 or conf.calibration_weight_post
+    #if (conf.nn_mode=='SNN') and (dnn_snn_compare or conf.calibration_bias_ICML_21 or conf.calibration_vmem_ICML_21) :
+    if (conf.nn_mode == 'SNN') and (dnn_snn_compare or act_based_calibration):
+        #if conf.calibration_bias_ICML_21 or conf.calibration_vmem_ICML_21:
+        if act_based_calibration:
+            # TODO: random sampling
+            #test_ds_one_batch = tf.data.experimental.get_single_element(test_ds)
+            #test_ds_one_batch = tf.data.Dataset.from_tensors(test_ds_one_batch)
+            images_one_batch, labels_one_batch = next(iter(test_ds))
+            test_ds_one_batch = tf.data.Dataset.from_tensors((images_one_batch,labels_one_batch))
+            test_ds_ann = test_ds_one_batch
+        else:
+            test_ds_ann = test_ds
+
         nn_mode_ori = conf.nn_mode
         conf.nn_mode = 'ANN'
-        result_ann = model_ann.evaluate(test_ds, callbacks=callbacks_test_ann)
+        result_ann = model_ann.evaluate(test_ds_ann, callbacks=callbacks_test_ann)
         conf.nn_mode = nn_mode_ori
 
+    #
+    # calibration ICML-21
+    #
+    #if (conf.nn_mode == 'SNN') and (conf.calibration_bias_ICML_21 or conf.calibration_vmem_ICML_21):
+    if (conf.nn_mode == 'SNN') and (act_based_calibration):
+        # pre
+        cb_libsnn.run_for_calibration = True
+        glb_plot.mark='ro'
+        glb_plot_1.mark='ro'
+        glb_plot_2.mark='ro'
+
+        # run
+        model.evaluate(test_ds_one_batch, callbacks=callbacks_test)
+
+        # post
+        cb_libsnn.run_for_calibration = False
+        glb_plot.mark = 'bo'
+        glb_plot_1.mark = 'bo'
+        glb_plot_2.mark = 'bo'
+
+    #
+    # run
     #
     result = model.evaluate(test_ds, callbacks=callbacks_test)
     #result = model.evaluate(test_ds)
