@@ -6,6 +6,8 @@ import os
 
 import tensorflow as tf
 
+import tensorflow_probability as tfp
+
 import matplotlib.pyplot as plt
 
 import lib_snn
@@ -328,6 +330,7 @@ def weight_calibration(self):
 
     # layer-wise norm, max_90
     #if stat=='max_90':
+    #if True:
     if False:
         norm['conv1']   = 0.3
         norm['conv1_1'] = 0.3
@@ -366,7 +369,8 @@ def weight_calibration(self):
         norm['fc2']     = 1.0
         norm['predictions'] = 1.0
 
-    elif False:
+    #elif False:
+    elif True:
         #norm['conv1']   = const
         norm['conv1']   = 0.95
         #norm['conv1']   = 0.9
@@ -393,13 +397,18 @@ def weight_calibration(self):
         norm['fc2']     = const
         norm['predictions'] = const
 
-    elif True:
+    elif False:
         for idx_l, l in enumerate(self.layers_w_kernel):
-            norm[l.name]=0.9
+            norm[l.name]=1.0
 
-        #norm['conv1']=0.5
+        norm['conv1']=0.7
+
+        #norm['conv1']=0.9
+        #norm['conv1_1']=0.8
+
 
     elif False:
+    #elif True:
         norm['conv1']   = 0.3
         norm['conv1_1'] = 0.9
         norm['conv2']   = 1.0
@@ -492,74 +501,107 @@ def weight_calibration_post(self):
     #
     self.cal=collections.OrderedDict()
 
-    # layer-wise norm, max_90
-    #if stat=='max_90':
-    if False:
-        norm['conv1']   = 0.3
-        norm['conv1_1'] = 0.3
-        norm['conv2']   = 0.75
-        norm['conv2_1'] = 0.9
-        norm['conv3']   = 1.0
-        norm['conv3_1'] = 0.9
-        norm['conv3_2'] = 1.0
-        norm['conv4']   = 1.0
-        norm['conv4_1'] = 1.0
-        norm['conv4_2'] = 1.0
-        norm['conv5']   = 1.0
-        norm['conv5_1'] = 0.9
-        norm['conv5_2'] = 0.4
-        norm['fc1']     = 1.0
-        norm['fc2']     = 0.4
-        norm['predictions'] = 0.1
 
-    # stat=='max_99', channel-wise
+    #if True:
+    if False:
+        for idx_l, l in enumerate(self.layers_w_kernel):
+            norm[l.name]=1.0
+
+        #norm['conv1']=0.9
+        #norm['conv1_1']=0.8
+
+    # act (DNN) / act (SNN)
     #elif True:
     elif False:
-        norm['conv1']   = 0.3
-        norm['conv1_1'] = 0.9
-        norm['conv2']   = 0.8
-        norm['conv2_1'] = 0.8
-        norm['conv3']   = 1.0
-        norm['conv3_1'] = 1.0
-        norm['conv3_2'] = 0.9
-        norm['conv4']   = 0.9
-        norm['conv4_1'] = 0.9
-        norm['conv4_2'] = 1.0
-        norm['conv5']   = 1.0
-        norm['conv5_1'] = 1.0
-        norm['conv5_2'] = 1.0
-        norm['fc1']     = 1.0
-        norm['fc2']     = 1.0
-        norm['predictions'] = 1.0
 
-    elif False:
-        #norm['conv1']   = const
-        norm['conv1']   = 0.95
-        #norm['conv1']   = 0.9
-        #norm['conv1']   = [0.7]*64
-        #norm['conv1'][5] = 0.5
-        norm['conv1_1'] = const
-        #norm['conv1_1'] = 0.5
-        norm['conv2']   = const
-        #norm['conv2']   = 0.5
-        #norm['conv2_1'] = const
-        norm['conv2_1'] = 0.9
-        #norm['conv3']   = const
-        norm['conv3']   = 0.8
-        #norm['conv3_1'] = const
-        norm['conv3_1'] = 0.8
-        norm['conv3_2'] = const
-        norm['conv4']   = const
-        norm['conv4_1'] = const
-        norm['conv4_2'] = const
-        norm['conv5']   = const
-        norm['conv5_1'] = const
-        norm['conv5_2'] = const
-        norm['fc1']     = const
-        norm['fc2']     = const
-        norm['predictions'] = const
+        error_level = 'layer'
+        # error_level = 'channel'
 
+        for idx_l, l in enumerate(self.layers_w_kernel):
+
+            if idx_l == len(self.layers_w_kernel)-1:
+                norm[l.name]=1.0
+                continue
+
+            if self.conf.bias_control:
+                time = tf.cast(self.conf.time_step - tf.reduce_mean(l.bias_en_time), tf.float32)
+            else:
+                time = self.conf.time_step
+
+            ann_act = self.model_ann.get_layer(l.name).record_output
+            snn_act = l.act.spike_count_int/time
+
+            if error_level == 'layer':
+                if isinstance(l, lib_snn.layers.Conv2D):
+                    axis = [0, 1, 2, 3]
+                elif isinstance(l, lib_snn.layers.Dense):
+                    axis = [0, 1]
+                else:
+                    assert False
+            elif error_level == 'channel':
+                if isinstance(l, lib_snn.layers.Conv2D):
+                    axis = [0, 1, 2]
+                elif isinstance(l, lib_snn.layers.Dense):
+                    axis = [0]
+                else:
+                    assert False
+            else:
+                assert False
+
+            ann_act = tf.reduce_mean(ann_act,axis=axis)
+            snn_act = tf.reduce_mean(snn_act,axis=axis)
+
+            error_r = snn_act / ann_act
+
+            norm[l.name] = error_r
+
+    # firing rate -> to 1
     elif True:
+
+        error_level = 'layer'
+        #error_level = 'channel'
+
+        for idx_l, l in enumerate(self.layers_w_kernel):
+
+            if idx_l == len(self.layers_w_kernel)-1:
+                norm[l.name]=1.0
+                continue
+
+            if self.conf.bias_control:
+                time = tf.cast(self.conf.time_step - tf.reduce_mean(l.bias_en_time), tf.float32)
+            else:
+                time = self.conf.time_step
+
+            snn_act = l.act.spike_count_int/time
+
+            if error_level == 'layer':
+                if isinstance(l, lib_snn.layers.Conv2D):
+                    axis = [0, 1, 2, 3]
+                elif isinstance(l, lib_snn.layers.Dense):
+                    axis = [0, 1]
+                else:
+                    assert False
+            elif error_level == 'channel':
+                if isinstance(l, lib_snn.layers.Conv2D):
+                    axis = [0, 1, 2]
+                elif isinstance(l, lib_snn.layers.Dense):
+                    axis = [0]
+                else:
+                    assert False
+            else:
+                assert False
+
+
+            #fire_r_m = tf.reduce_mean(snn_act,axis=axis)
+            #fire_r_m = tf.reduce_max(snn_act,axis=axis)
+            fire_r_m = tfp.stats.percentile(snn_act,99.5,axis=axis)
+
+            norm[l.name] = fire_r_m
+
+
+
+    #if True:
+    elif False:
         for idx_l, l in enumerate(self.layers_w_kernel):
             ann_act = self.model_ann.get_layer(l.name).record_output
             if isinstance(l,lib_snn.layers.Conv2D):
@@ -615,30 +657,6 @@ def weight_calibration_post(self):
             vth_cal = tf.broadcast_to(vth_cal, l.act.dim)
 
             #l.act.set_vth_init(vth_cal)
-
-    elif True:
-        for idx_l, l in enumerate(self.layers_w_kernel):
-            norm[l.name]=0.4
-
-        #norm['conv1']=0.5
-
-    elif False:
-        norm['conv1']   = 0.3
-        norm['conv1_1'] = 0.9
-        norm['conv2']   = 1.0
-        norm['conv2_1'] = 0.8
-        norm['conv3']   = 1.0
-        norm['conv3_1'] = 1.0
-        norm['conv3_2'] = 0.9
-        norm['conv4']   = 0.9
-        norm['conv4_1'] = 0.9
-        norm['conv4_2'] = 1.0
-        norm['conv5']   = 1.0
-        norm['conv5_1'] = 1.0
-        norm['conv5_2'] = 1.0
-        norm['fc1']     = 1.0
-        norm['fc2']     = 1.0
-        norm['predictions'] = 1.0
 
     else:
         #
@@ -778,6 +796,8 @@ def bias_calibration_ICLR_21(self):
 
         l.bias += bias_comp
 
+    print('- Done')
+
 # light pipeline
 def bias_calibration_ICML_21(self):
     #print('here to stop')
@@ -824,6 +844,9 @@ def bias_calibration_ICML_21(self):
 
         l.bias += bias_comp
 
+    print('- Done')
+
+
 # adv. pipeline
 def vmem_calibration_ICML_21(self):
     print('vmem_calibration_ICML_21')
@@ -860,4 +883,7 @@ def vmem_calibration_ICML_21(self):
         #print(bias_comp)
 
         #l.bias += bias_comp
+
+    print('- Done')
+
 

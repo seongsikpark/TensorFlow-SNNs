@@ -303,8 +303,8 @@ tf.compat.v1.app.flags.DEFINE_string('root_results', './results', 'root results'
 #tf.compat.v1.app.flags.DEFINE_bool('debug_mode', False, 'debug mode')
 tf.compat.v1.app.flags.DEFINE_bool('debug_mode', True, 'debug mode')
 
-#tf.compat.v1.app.flags.DEFINE_bool('full_test', True, 'full dataset test')
-tf.compat.v1.app.flags.DEFINE_bool('full_test', False, 'full dataset test')
+tf.compat.v1.app.flags.DEFINE_bool('full_test', True, 'full dataset test')
+#tf.compat.v1.app.flags.DEFINE_bool('full_test', False, 'full dataset test')
 
 tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 8, 'start index of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 9, 'start index of test data')
@@ -351,8 +351,8 @@ tf.compat.v1.app.flags.DEFINE_enum('snn_output_type',"VMEM", ["SPIKE", "VMEM", "
 
 #
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 1024, 'time steps per sample in SNN')
-tf.compat.v1.app.flags.DEFINE_integer('time_step', 256, 'time steps per sample in SNN')
-#tf.compat.v1.app.flags.DEFINE_integer('time_step', 128, 'time steps per sample in SNN')
+#tf.compat.v1.app.flags.DEFINE_integer('time_step', 256, 'time steps per sample in SNN')
+tf.compat.v1.app.flags.DEFINE_integer('time_step', 128, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 64, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 32, 'time steps per sample in SNN')
 tf.compat.v1.app.flags.DEFINE_integer('time_step_save_interval',10,'snn test save interval')
@@ -395,8 +395,8 @@ tf.compat.v1.app.flags.DEFINE_string('prefix_stat', '', 'prefix of stat file nam
 tf.compat.v1.app.flags.DEFINE_bool('calibration_weight',True,'calibration - weight')
 #tf.compat.v1.app.flags.DEFINE_bool('calibration_weight',False,'calibration - weight')
 
-#tf.compat.v1.app.flags.DEFINE_bool('calibration_weight_post',True,'calibration - weight')
-tf.compat.v1.app.flags.DEFINE_bool('calibration_weight_post',False,'calibration - weight')
+tf.compat.v1.app.flags.DEFINE_bool('calibration_weight_post',True,'calibration - weight')
+#tf.compat.v1.app.flags.DEFINE_bool('calibration_weight_post',False,'calibration - weight')
 
 #tf.compat.v1.app.flags.DEFINE_bool('calibration_bias',True,'calibration - weight')
 tf.compat.v1.app.flags.DEFINE_bool('calibration_bias',False,'calibration - weight')
@@ -426,8 +426,8 @@ tf.compat.v1.app.flags.DEFINE_float('vth_toggle_init',0.9,'vth toggle init - tog
 tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_ICLR_21',False,'calibration - bias, ICML-21')
 #tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_ICLR_21',True,'calibration - bias, ICML-21')
 
-tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_ICML_21',False,'calibration - bias, ICML-21')
-#tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_ICML_21',True,'calibration - bias, ICML-21')
+#tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_ICML_21',False,'calibration - bias, ICML-21')
+tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_ICML_21',True,'calibration - bias, ICML-21')
 
 tf.compat.v1.app.flags.DEFINE_bool('calibration_vmem_ICML_21',False,'calibration - bias, ICML-21')
 #tf.compat.v1.app.flags.DEFINE_bool('calibration_vmem_ICML_21',True,'calibration - bias, ICML-21')

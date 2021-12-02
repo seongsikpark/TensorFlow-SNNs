@@ -202,8 +202,8 @@ def calibration_data_based(self):
     #assert tf.math.logical_not(tf.math.reduce_all(self.conf.calibration_bias,self.conf.calibration_bias_ICLR_21,self.conf.calibration_bias_ICML_21))
     assert tf.math.logical_not(tf.math.logical_and(self.conf.calibration_vmem,self.conf.calibration_vmem_ICML_21))
 
-    #if self.conf.calibration_weight:
-    #    lib_snn.calibration.weight_calibration_post(self)
+    if self.conf.calibration_weight_post:
+        lib_snn.calibration.weight_calibration_post(self)
 
     if self.conf.calibration_bias_ICLR_21:
         lib_snn.calibration.bias_calibration_ICLR_21(self)
@@ -379,7 +379,11 @@ def plot_spike_time_diff_hist_dnn_ann(self, fig=None):
 
     plt.show()
 
+    if self.conf.bias_control:
+        print('bias en time')
 
+        for layer in self.layers_w_kernel:
+            print('{:<8} - {:3d}'.format(layer.name,tf.reduce_mean(layer.bias_en_time)))
 
     print('time diff')
     for layer in self.layers_w_kernel:
@@ -402,14 +406,23 @@ def plot_spike_time_diff_hist_dnn_ann(self, fig=None):
 
     #print('non zero ratio')
     print('\n act diff - dnn_act - snn_act')
+    errs = []
     for layer in self.layers_w_kernel:
         if self.conf.snn_output_type == 'VMEM' and layer == self.layers_w_kernel[-1]:
             continue
+
+        if self.conf.bias_control:
+            time = tf.cast(self.conf.time_step - tf.reduce_mean(layer.bias_en_time), tf.float32)
+        else:
+            time = self.conf.time_step
+
         ann_act = self.model_ann.get_layer(layer.name).record_output
-        snn_act = layer.act.spike_count_int/self.conf.time_step
+        snn_act = layer.act.spike_count_int/time
 
         err = tf.reduce_mean(tf.abs(ann_act-snn_act))
+        errs.append(err)
         print('ann_act_mean - {}, err - {}'.format(tf.reduce_mean(ann_act),err))
+    print('total mean - {}'.format(tf.reduce_mean(errs)))
 
 #    print('\n act diff - dnn_act - snn_act (only non zero dnn_act)')
 #    for layer in self.layers_w_kernel:
