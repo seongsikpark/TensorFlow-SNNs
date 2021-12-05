@@ -72,7 +72,16 @@ def get_latest_saved_model(path):
     mtime = lambda f: os.stat(os.path.join(path, f)).st_mtime
     list_dir_sorted_by_time = list(sorted(os.listdir(path), key=mtime))
 
-    list_dir_sorted_by_name = list(sorted(os.listdir(path)))
+    #list_dir_sorted_by_name = list(sorted(os.listdir(path)))
+    #list_dir_sorted_by_name = list(sorted(files for files in os.listdir(path) if os.path.isfile(files)))
+    list_dir_sorted_by_name = [files for files in os.listdir(path) if os.path.isfile(os.path.join(path,files))]
+    list_dir_sorted_by_name.sort()
+    #print(files)
+    #print(os.listdir(path))
+    #print(os.listdir(path))
+    #print(list_dir_sorted_by_name)
+
+    #assert False
 
     latest_model_by_time = list_dir_sorted_by_time[-1]
     latest_model_by_name = list_dir_sorted_by_name[-1]
@@ -285,16 +294,24 @@ def collect_dnn_act(self,inputs):
 ############################################################
 ## plot
 ############################################################
-def plot(self, x, y, mark):
+def plot(x, y, axe=None, mark='bo', f_animation=False):
     #plt.ion()
-    #plt.hist(self.list_neuron['fc3'].vmem)
-    plt.plot(x, y, mark)
-    plt.draw()
-    plt.pause(0.00000001)
-    #plt.ioff()
+    if axe==None:
+        plt.interactive(False)
+        plt.plot(x, y, mark)
+        #plt.draw()
+        if f_animation:
+            plt.pause(0.00000001)      # comment out - real time animation
+    else:
+        plt.interactive(False)
+        axe.plot(x, y, mark)
+        #plt.draw()
+        if f_animation:
+            plt.pause(0.00000001)      # comment out - real time animation
 
 
-def scatter(self, x, y, color, axe=None, marker='o'):
+#def scatter(self, x, y, color, axe=None, marker='o'):
+def scatter(x, y, color, axe=None, marker='o'):
     if axe==None:
         plt.scatter(x, y, c=color, s=1, marker=marker)
         plt.draw()
