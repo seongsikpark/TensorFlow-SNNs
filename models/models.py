@@ -11,6 +11,9 @@ from models.resnet import ResNet101
 from models.resnet import ResNet152
 from models.resnet import ResNet18V2
 from models.resnet import ResNet20V2
+#from models.resnet import ResNet32V2
+#from models.resnet import ResNet34V2
+#from models.resnet import ResNet50V2
 
 
 # model selector
@@ -31,6 +34,9 @@ model_sel_sc = {
     'ResNet152': ResNet152,
     'ResNet18V2': ResNet18V2,
     'ResNet20V2': ResNet20V2,
+#    'ResNet32V2': ResNet32V2,
+#    'ResNet34V2': ResNet34V2,
+#    'ResNet50V2': ResNet50V2,
 }
 
 

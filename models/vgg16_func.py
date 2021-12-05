@@ -39,7 +39,7 @@ def VGG16(
     act_sm = 'softmax'
 
     #
-    dropout_conv_r = [0, 0, 0]
+    dropout_conv_r = [0.2, 0.2, 0.2]
 
     #
     initial_channels = kwargs.pop('initial_channels', None)

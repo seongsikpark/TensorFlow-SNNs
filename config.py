@@ -258,14 +258,14 @@ tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 500, '')
 
 #
 # VGG
-tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.005, 'learning rate')
+tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.1, 'learning rate')
 # ResNet
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.2, 'learning rate')
 
 # regularizer
 tf.compat.v1.app.flags.DEFINE_string('regularizer', 'L2', 'L2 or L1 regularizer')
 # VGG
-tf.compat.v1.app.flags.DEFINE_float('lmb',5.0E-6, 'lambda')
+tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-4, 'lambda')
 # ResNet
 #tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-4, 'lambda')
 
