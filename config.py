@@ -71,9 +71,6 @@ tf.compat.v1.app.flags.DEFINE_string('config_name', '', 'config name')
 #tf.compat.v1.app.flags.DEFINE_string('dataset', 'MNIST', 'dataset')
 tf.compat.v1.app.flags.DEFINE_string('ann_model', 'MLP', 'neural network model')
 
-#
-tf.compat.v1.app.flags.DEFINE_boolean('verbose',True, 'verbose mode')
-tf.compat.v1.app.flags.DEFINE_boolean('verbose_visual',True, 'verbose visual mode')
 
 #
 
@@ -226,6 +223,11 @@ tf.compat.v1.app.flags.DEFINE_bool('noise_en',False,'noise injection mode enable
 # new configurations
 ################################################################################
 
+#
+tf.compat.v1.app.flags.DEFINE_boolean('verbose',True, 'verbose mode')
+tf.compat.v1.app.flags.DEFINE_boolean('verbose_visual',False, 'verbose visual mode')
+
+
 ################################
 # Common
 ################################
@@ -308,8 +310,8 @@ tf.compat.v1.app.flags.DEFINE_bool('full_test', True, 'full dataset test')
 
 tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 8, 'start index of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 9, 'start index of test data')
-#tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 500, 'number of test data')
-tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 100, 'number of test data')
+tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 500, 'number of test data')
+#tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 100, 'number of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 10, 'number of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 3, 'number of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 1, 'number of test data')
@@ -350,9 +352,10 @@ tf.compat.v1.app.flags.DEFINE_float('n_init_vrest', 0.0, 'initial value of vrest
 tf.compat.v1.app.flags.DEFINE_enum('snn_output_type',"VMEM", ["SPIKE", "VMEM", "FIRST_SPIKE_TIME"], "snn output type")
 
 #
+#tf.compat.v1.app.flags.DEFINE_integer('time_step', 2048, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 1024, 'time steps per sample in SNN')
-#tf.compat.v1.app.flags.DEFINE_integer('time_step', 256, 'time steps per sample in SNN')
-tf.compat.v1.app.flags.DEFINE_integer('time_step', 128, 'time steps per sample in SNN')
+tf.compat.v1.app.flags.DEFINE_integer('time_step', 256, 'time steps per sample in SNN')
+#tf.compat.v1.app.flags.DEFINE_integer('time_step', 128, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 64, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 32, 'time steps per sample in SNN')
 tf.compat.v1.app.flags.DEFINE_integer('time_step_save_interval',10,'snn test save interval')
@@ -371,7 +374,7 @@ tf.compat.v1.app.flags.DEFINE_bool('f_record_first_spike_time',True,'flag - reco
 # weight normalization
 #
 tf.compat.v1.app.flags.DEFINE_bool('f_fused_bn',True,'f_fused_bn')
-#tf.compat.v1.app.flags.DEFINE_bool('f_fused_bn',False,'f_fused_bn')
+#~tf.compat.v1.app.flags.DEFINE_bool('f_fused_bn',False,'f_fused_bn')
 
 #
 tf.compat.v1.app.flags.DEFINE_bool('f_w_norm_data',True,'f_w_norm_data')

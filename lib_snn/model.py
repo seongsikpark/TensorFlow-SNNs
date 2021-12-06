@@ -18,6 +18,9 @@ from tensorflow.python.keras.engine import data_adapter
 from tensorflow.python.keras.engine import compile_utils
 
 #
+from tqdm import tqdm
+
+#
 import lib_snn
 from lib_snn.sim import glb
 from lib_snn.sim import glb_t
@@ -426,14 +429,21 @@ class Model(tf.keras.Model):
         # bias control
 
         # plot control
-        f_plot = (not self.conf.full_test) and (glb.model_compiled) and (self.conf.debug_mode and self.conf.nn_mode == 'SNN')
+        f_plot = (self.conf.verbose_visual) and (not self.conf.full_test) and (glb.model_compiled) and (self.conf.debug_mode and self.conf.nn_mode == 'SNN')
 
         # tf.expand_dims(self.bias_ctrl_sub,axis=(1,2))
         if self.conf.bias_control:
             self.bias_control_test_pre()
 
         #
-        for t in range(1,self.conf.time_step+1):
+        #for t in range(1,self.conf.time_step+1):
+        if self.conf.full_test:
+            range_ts = range(1, self.conf.time_step + 1)
+        else:
+            range_ts = tqdm(range(1, self.conf.time_step + 1),desc="SNN Run")
+
+        #for t in tqdm(range(1, self.conf.time_step + 1),desc="SNN Run"):
+        for t in range_ts:
             #self.bias_control(t)
 
             #self.bias_disable()

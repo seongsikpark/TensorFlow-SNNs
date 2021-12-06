@@ -594,7 +594,9 @@ def weight_calibration_post(self):
 
             #fire_r_m = tf.reduce_mean(snn_act,axis=axis)
             #fire_r_m = tf.reduce_max(snn_act,axis=axis)
-            fire_r_m = tfp.stats.percentile(snn_act,99.5,axis=axis)
+            #fire_r_m = tfp.stats.percentile(snn_act,99.91,axis=axis)
+            fire_r_m = tfp.stats.percentile(snn_act,99.9,axis=axis)
+            fire_r_m = tf.where(fire_r_m==0,tf.ones(fire_r_m.shape),fire_r_m)
 
             norm[l.name] = fire_r_m
 
@@ -860,12 +862,15 @@ def vmem_calibration_ICML_21(self):
         dnn_act = l_ann.record_output
         snn_act = l.act.spike_count_int
 
-        #time=self.conf.time_step
-        time = tf.cast(self.conf.time_step - tf.reduce_mean(l.bias_en_time), tf.float32)
+        if self.conf.bias_control:
+            time = tf.cast(self.conf.time_step - tf.reduce_mean(l.bias_en_time), tf.float32)
+        else:
+            time=self.conf.time_step
 
         error = dnn_act - self.conf.n_init_vth*snn_act/time
         error = tf.reduce_mean(error,axis=0)
         vmem_comp = error*time
+        #vmem_comp = error
         #vmem_comp = error*self.conf.time_step
         #vmem_comp = error*(self.conf.time_step*0.01)
         #vmem_comp = error

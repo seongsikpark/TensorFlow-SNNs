@@ -231,8 +231,8 @@ class Layer():
 
         if (self.use_bn) and (not self.f_skip_bn):
             b = self.bn(s, training=training)
-            if glb.model_compiled:
-                assert False
+            #if glb.model_compiled:
+            #    assert False
         else:
             b = s
             #print('here')
@@ -256,11 +256,13 @@ class Layer():
             #self.plot()
 
         #
-        if (not self.conf.full_test) and (glb.model_compiled) and (self.conf.debug_mode and self.conf.nn_mode=='SNN'):
-            if self.name=='conv1':
-                print('{:4d}: {}'.format(glb_t.t, b.numpy().flatten()[0:10]))
-                print('{:4d}: {}'.format(glb_t.t, self.act.vmem.numpy().flatten()[0:10]))
-                print(': {}'.format(self.act.spike_count_int.numpy().flatten()[0:10]))
+        #if (not self.conf.full_test) and (glb.model_compiled) and (self.conf.debug_mode and self.conf.nn_mode=='SNN'):
+        #    if self.name=='conv1':
+        #        print('{:4d}'.format(glb_t.t))
+        #        print('{:4d}: {}'.format(glb_t.t, b.numpy().flatten()[0:10]))
+        #        print('{:4d}: {}'.format(glb_t.t, self.act.vmem.numpy().flatten()[0:10]))
+                #print('{:4d}: {}'.format(glb_t.t, self.act.spike_count_int.numpy().flatten()[0:10]))
+        #        print(': {}'.format(self.act.spike_count_int.numpy().flatten()[0:10]))
 
         #if (glb.model_compiled) and (self.conf.debug_mode and self.conf.nn_mode == 'SNN'):
         #    self.plot_neuron()

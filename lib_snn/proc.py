@@ -2,6 +2,8 @@
 #
 import tensorflow as tf
 
+from tensorflow.python.keras.engine import compile_utils
+
 #
 import collections
 import os
@@ -43,6 +45,11 @@ def preproc(self):
     preproc_sel[self.conf.nn_mode](self)
 
 
+# reset on test begin
+def reset(self):
+    for metric in self.model.accuracy_metrics:
+        if isinstance(metric,compile_utils.MetricsContainer):
+            metric.reset_state()
 
 #
 def reset_batch_ann(self):
@@ -310,8 +317,9 @@ def postproc_ann(self):
         return
 
     # TODO
-    dnn_snn_compare=True
-    if (not self.conf.full_test) and dnn_snn_compare:
+    if (not self.conf.full_test) and self.run_for_compare_post_calib:
+    #dnn_snn_compare=True
+    #if (not self.conf.full_test) and dnn_snn_compare:
         #idx=7
         plot_dnn_act(self)
         #plot_act_dist(self)
@@ -445,7 +453,7 @@ def plot_dnn_act(self, layers=None, idx=None):
 
     #
     for idx_layer, layer in enumerate(glb_plot.layers):
-        layer = self.model.get_layer(layer)
+        layer = self.model_ann.get_layer(layer)
         axe = glb_plot.axes.flatten()[idx_layer]
         idx_neuron = glb_plot.idx_neurons[idx_layer]
 
@@ -486,16 +494,31 @@ def postproc_snn(self):
     if self.conf.full_test:
         save_results(self)
 
+
+    if (not self.conf.full_test) and self.run_for_compare_post_calib:
+    #dnn_snn_compare = True
+    #if dnn_snn_compare:
+        dnn_snn_compare_func(self)
+
+#
+def dnn_snn_compare_func(self):
+    dnn_snn_compare = True
+
     #
-    dnn_snn_compare=True
+    #plot_dnn_act(self)
+
+    #
     if (not self.conf.full_test) and dnn_snn_compare:
         fig = lib_snn.sim.GLB_PLOT()
         plot_act_dist(self, fig)
 
+    #
     if (not self.conf.full_test) and dnn_snn_compare and self.conf.nn_mode=='SNN':
         # difference btw - estimated first spike time (DNN,vth/act) and first spike time (SNN)
         fig = lib_snn.sim.GLB_PLOT()
         plot_spike_time_diff_hist_dnn_ann(self,fig)
+
+
 
 #
 def cal_results(self):
@@ -547,6 +570,31 @@ def save_results(self):
     if self.conf.vth_toggle:
         config += '_vth-tg-'+str(self.conf.vth_toggle_init)
 
+
+    #
+    if self.conf.calibration_weight:
+        config += '_cal-w'
+
+    #
+    if self.conf.calibration_weight_post:
+        config += '_cal-w-p'
+
+
+    # calibration bias (ICLR-21)
+    if self.conf.calibration_bias_ICLR_21:
+        config += '_cal-b-LR21'
+
+    # calibration bias (ICML-21)
+    if self.conf.calibration_bias_ICML_21:
+        config += '_cal-b-ML21'
+
+    # calibration vmem (ICML-21)
+    if self.conf.calibration_vmem_ICML_21:
+        config += '_cal-v-ML21'
+
+
+
+    #
     file = config+'.xlsx'
 
     # set path
