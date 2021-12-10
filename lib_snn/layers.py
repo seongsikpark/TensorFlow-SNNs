@@ -50,6 +50,7 @@ class Layer():
         self.use_bn = use_bn
         #self.en_snn = Model.en_snn
         self.en_snn = (self.conf.nn_mode == 'SNN' or self.conf.f_validation_snn)
+        #self.en_snn = None
 
         #self.use_bias = True
         #self.use_bias = conf.use_bias
@@ -124,6 +125,7 @@ class Layer():
         self.en_record_output = False
         self.record_output = None
 
+
         # neuron setup
         if self.en_snn:
             if self.last_layer:
@@ -135,6 +137,8 @@ class Layer():
         self.bias_en_time = 0
         #self.f_bias_ctrl = False
         self.bias_ctrl_sub = None
+
+
 
     #
     def build(self, input_shapes):
@@ -167,6 +171,9 @@ class Layer():
         # if not self.en_snn:
         # self.act = self.act_dnn
 
+
+
+
         if self.en_snn:
             #print('---- SNN Mode ----')
             #print('Neuron setup')
@@ -191,9 +198,20 @@ class Layer():
         else:
             self.act = self.act_dnn
 
+
+
         #
         self.built = True
         #print('build layer - done')
+
+    #
+    #def set_en_snn(self,nn_mode):
+        #if nn_mode=='ANN':
+            #self.en_snn=self.conf.f_validation_snn
+        #elif nn_mode=='SNN':
+            #self.en_snn=True
+        #else:
+            #assert False
 
     #
     # def call(self,input,training):
@@ -339,7 +357,7 @@ class Layer():
 
     #
     def bias_control(self, synaptic_output):
-        if hasattr(self, 'bias') and self.conf.nn_mode == 'SNN':
+        if hasattr(self, 'bias') and self.en_snn:
             if self.conf.use_bias and tf.reduce_any(self.f_bias_ctrl):
                 ret = tf.subtract(synaptic_output, self.bias_ctrl_sub)
                 return ret

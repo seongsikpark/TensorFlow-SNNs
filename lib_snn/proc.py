@@ -2,6 +2,11 @@
 #
 import tensorflow as tf
 
+#from absl import flags
+#flags = flags.FLAGS
+from config import conf
+
+
 from tensorflow.python.keras.engine import compile_utils
 
 #
@@ -30,8 +35,8 @@ from lib_snn.sim import glb_plot
 ########################################
 def preproc(self):
     # print summary model
-    print('summary model')
-    self.model.summary()
+    #print('summary model')
+    #self.model.summary()
 
     # initialization
     if not self.init_done:
@@ -42,7 +47,7 @@ def preproc(self):
         'ANN': preproc_ann,
         'SNN': preproc_snn,
     }
-    preproc_sel[self.conf.nn_mode](self)
+    preproc_sel[self.model.nn_mode](self)
 
 
 # reset on test begin
@@ -77,7 +82,7 @@ def set_init(self):
         if hasattr(layer, 'kernel'):
             self.layers_w_kernel.append(layer)
 
-    self.en_record_output = self.model._run_eagerly and ((self.conf.nn_mode=='ANN' and self.conf.f_write_stat) or self.conf.debug_mode)
+    self.en_record_output = self.model._run_eagerly and ((self.model.nn_mode=='ANN' and self.conf.f_write_stat) or self.conf.debug_mode)
     #self.en_record_output = True
 
     if self.en_record_output:
@@ -90,7 +95,7 @@ def set_init(self):
         set_en_record_output(self)
 
     #
-    if self.conf.nn_mode=='SNN':
+    if self.model.nn_mode=='SNN':
         init_snn_run(self)
 
 
@@ -161,7 +166,7 @@ def preproc_ann_to_snn(self):
         print('preprocessing: ANN to SNN')
 
     if not self.bn_fusion_done:
-        if self.conf.f_fused_bn or ((self.conf.nn_mode == 'ANN') and (self.conf.f_validation_snn)):
+        if self.conf.f_fused_bn or ((self.model.nn_mode == 'ANN') and (self.conf.f_validation_snn)):
             bn_fusion(self)
         self.bn_fusion_done = True
 
@@ -181,7 +186,7 @@ def preproc_ann_to_snn(self):
 #
 def calibration_static(self):
 
-    if self.conf.nn_mode=='SNN':
+    if self.model.nn_mode=='SNN':
         if self.conf.calibration_vth:
             #lib_snn.calibration.vth_calibration_stat(self,f_norm,stat)
             lib_snn.calibration.vth_calibration_stat(self)
@@ -234,14 +239,14 @@ def preproc_batch(self):
         'ANN': reset_batch_ann,
         'SNN': reset_batch_snn,
     }
-    reset_batch_sel[self.conf.nn_mode](self)
+    reset_batch_sel[self.model.nn_mode](self)
 
     #
     preproc_batch_sel={
         'ANN': preproc_batch_ann,
         'SNN': preproc_batch_snn,
     }
-    preproc_batch_sel[self.conf.nn_mode](self)
+    preproc_batch_sel[self.model.nn_mode](self)
 
 def preproc_batch_ann(self):
     pass
@@ -308,7 +313,7 @@ def postproc(self):
         'ANN': postproc_ann,
         'SNN': postproc_snn,
     }
-    postproc_sel[self.conf.nn_mode](self)
+    postproc_sel[self.model.nn_mode](self)
 
 def postproc_ann(self):
     #
@@ -317,7 +322,7 @@ def postproc_ann(self):
         return
 
     # TODO
-    if (not self.conf.full_test) and self.run_for_compare_post_calib:
+    if (not self.conf.full_test) and conf._run_for_visual_debug:
     #dnn_snn_compare=True
     #if (not self.conf.full_test) and dnn_snn_compare:
         #idx=7
@@ -333,7 +338,7 @@ def plot_act_dist(self,fig=None):
 
     for layer in self.layers_w_kernel:
         axe = fig.axes.flatten()[layer.depth]
-        if self.conf.nn_mode=='ANN':
+        if self.model.nn_mode=='ANN':
             act = layer.record_output.numpy().flatten()
             bins = np.arange(0,1,0.03)
         else:
@@ -453,7 +458,7 @@ def plot_dnn_act(self, layers=None, idx=None):
 
     #
     for idx_layer, layer in enumerate(glb_plot.layers):
-        layer = self.model_ann.get_layer(layer)
+        layer = self.model.get_layer(layer)
         axe = glb_plot.axes.flatten()[idx_layer]
         idx_neuron = glb_plot.idx_neurons[idx_layer]
 
@@ -495,7 +500,7 @@ def postproc_snn(self):
         save_results(self)
 
 
-    if (not self.conf.full_test) and self.run_for_compare_post_calib:
+    if (not self.conf.full_test) and conf._run_for_visual_debug:
     #dnn_snn_compare = True
     #if dnn_snn_compare:
         dnn_snn_compare_func(self)
@@ -513,7 +518,7 @@ def dnn_snn_compare_func(self):
         plot_act_dist(self, fig)
 
     #
-    if (not self.conf.full_test) and dnn_snn_compare and self.conf.nn_mode=='SNN':
+    if (not self.conf.full_test) and dnn_snn_compare and self.model.nn_mode=='SNN':
         # difference btw - estimated first spike time (DNN,vth/act) and first spike time (SNN)
         fig = lib_snn.sim.GLB_PLOT()
         plot_spike_time_diff_hist_dnn_ann(self,fig)
@@ -617,7 +622,7 @@ def save_results(self):
 def bn_fusion(self):
     print('---- BN Fusion ----')
     # bn fusion
-    if (self.conf.nn_mode == 'ANN' and self.conf.f_fused_bn) or (self.conf.nn_mode == 'SNN'):
+    if (self.model.nn_mode == 'ANN' and self.conf.f_fused_bn) or (self.model.nn_mode == 'SNN'):
         for layer in self.model.layers:
             if hasattr(layer, 'bn') and (layer.bn is not None):
                 layer.bn_fusion()
@@ -686,10 +691,10 @@ def w_norm_data(self):
         f_stat[key].close()
 
     #
-    f_norm = np.max
+    #f_norm = np.max
     #f_norm = np.median
     #f_norm = np.mean
-    #f_norm = lambda x: np.percentile(x,80)
+    f_norm = lambda x: np.percentile(x,99.9)
 
     #w_norm_data_layer_wise(self,f_norm)
     w_norm_data_channel_wise(self,f_norm)

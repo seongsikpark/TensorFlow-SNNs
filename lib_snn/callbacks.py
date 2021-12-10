@@ -137,7 +137,7 @@ class SNNLIB(tf.keras.callbacks.Callback):
         self.run_for_calibration = False
 
         # compare
-        self.run_for_compare_post_calib = False
+        #self.run_for_compare_post_calib = False
 
 
     #def build(self):

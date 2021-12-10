@@ -16,6 +16,10 @@ import os
 import tensorflow as tf
 import tensorflow_probability as tfp
 
+#
+from absl import app
+from absl import flags
+
 # HP tune
 #import kerastuner as kt
 import keras_tuner as kt
@@ -43,6 +47,7 @@ import numpy as np
 #import cv2
 
 # configuration
+import config
 from config import conf
 
 # snn library
@@ -64,9 +69,15 @@ from lib_snn.sim import glb_plot
 from lib_snn.sim import glb_plot_1
 from lib_snn.sim import glb_plot_2
 
+#def dummy():
+#    pass
+
+#abs.run()
+#app.run(dummy)
 #
 #conf = flags.FLAGS
 
+#def main(_):
 ########################################
 # configuration
 ########################################
@@ -637,7 +648,7 @@ if f_hp_tune:
     #assert False
 else:
     model = lib_snn.model_builder.model_builder(
-        eager_mode, model_top, batch_size, image_shape, conf, include_top, load_weight, num_class, model_name, lmb, initial_channels,
+        eager_mode, model_top, conf.nn_mode, batch_size, image_shape, conf, include_top, load_weight, num_class, model_name, lmb, initial_channels,
         train_epoch, train_steps_per_epoch,
         opt, learning_rate,
         lr_schedule, step_decay_epoch,
@@ -649,14 +660,17 @@ if conf.nn_mode=='SNN' and conf.dnn_to_snn:
     nn_mode_ori = conf.nn_mode
     conf.nn_mode='ANN'
     model_ann = lib_snn.model_builder.model_builder(
-        eager_mode, model_top, batch_size, image_shape, conf, include_top, load_weight, num_class, model_name, lmb, initial_channels,
+        eager_mode, model_top, 'ANN', batch_size, image_shape, conf, include_top, load_weight, num_class, model_name, lmb, initial_channels,
         train_epoch, train_steps_per_epoch,
         opt, learning_rate,
         lr_schedule, step_decay_epoch,
         metric_accuracy, metric_accuracy_top5)
     conf.nn_mode=nn_mode_ori
 
+    #model_ann.set_en_snn('ANN')
+
     model_ann.load_weights(load_weight)
+
     print('-- model_ann - load done')
     model.load_weights_dnn_to_snn(model_ann)
 
@@ -852,20 +866,24 @@ else:
     #dnn_snn_compare=True
     #dnn_snn_compare=False
 
-    compare_control_snn = False
-    #compare_control_snn = True
+    #compare_control_snn = False
+    compare_control_snn = True
 
     act_based_calibration = conf.calibration_bias_ICML_21 or conf.calibration_vmem_ICML_21 or conf.calibration_weight_post
     #if (conf.nn_mode=='SNN') and (dnn_snn_compare or conf.calibration_bias_ICML_21 or conf.calibration_vmem_ICML_21) :
     #if (conf.nn_mode == 'SNN') and (dnn_snn_compare or act_based_calibration):
     if (conf.nn_mode == 'SNN') and (compare_control_snn or act_based_calibration):
 
+        cb_libsnn_ann.run_for_calibration = True
+
         #
         #compare_control_snn = True
-        if compare_control_snn and conf.verbose_visual:
-            cb_libsnn_ann.run_for_compare_post_calib = True
+        if (not conf.full_test) and compare_control_snn and conf.verbose_visual:
+            #cb_libsnn_ann.run_for_compare_post_calib = True
+            lib_snn.sim.set_for_visual_debug(True)
             model_ann.evaluate(test_ds, callbacks=callbacks_test_ann)
-            cb_libsnn_ann.run_for_compare_post_calib=False
+            #cb_libsnn_ann.run_for_compare_post_calib=False
+            lib_snn.sim.set_for_visual_debug(False)
 
 
         #if conf.calibration_bias_ICML_21 or conf.calibration_vmem_ICML_21:
@@ -876,11 +894,6 @@ else:
             images_one_batch, labels_one_batch = next(iter(train_ds))
             #images_one_batch, labels_one_batch = next(iter(test_ds))
             #print(tf.reduce_mean(images_one_batch))
-            #print(tf.reduce_max(images_one_batch))
-            #print(tfp.stats.percentile(images_one_batch,50))
-            #print(labels_one_batch)
-            #assert False
-
         #else:
             #images_one_batch, labels_one_batch = next(iter(test_ds))
 
@@ -890,9 +903,7 @@ else:
 
         #
         nn_mode_ori = conf.nn_mode
-        conf.nn_mode = 'ANN'
-
-
+        #conf.nn_mode = 'ANN'
         result_ann = model_ann.evaluate(ds_ann, callbacks=callbacks_test_ann)
         conf.nn_mode = nn_mode_ori
 
@@ -910,10 +921,10 @@ else:
 
         #
         compare_control_snn=True
-        if compare_control_snn and conf.verbose_visual:
-            cb_libsnn.run_for_compare_post_calib = True
+        if (not conf.full_test) and compare_control_snn and conf.verbose_visual:
+            lib_snn.sim.set_for_visual_debug(True)
             model.evaluate(test_ds, callbacks=callbacks_test)
-            cb_libsnn.run_for_compare_post_calib=False
+            lib_snn.sim.set_for_visual_debug(False)
 
         # run
         model.evaluate(ds_one_batch, callbacks=callbacks_test)
@@ -927,7 +938,10 @@ else:
     #
     # run
     #
+    lib_snn.sim.set_for_visual_debug(True)
     result = model.evaluate(test_ds, callbacks=callbacks_test)
+    lib_snn.sim.set_for_visual_debug(False)
+
     #result = model.evaluate(test_ds)
     # result = model.predict(test_ds)
 
@@ -987,3 +1001,10 @@ if False:
                     print(tf.reduce_mean(snn))
                     print(tf.reduce_mean(ann))
                     assert False
+
+
+
+#if __name__=="__main__":
+#    # logging.set_verbosity(logging.INfO)
+#    config.configurations()
+#    app.run(main)

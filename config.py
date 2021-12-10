@@ -2,13 +2,16 @@
 
 import tensorflow as tf
 
+#from absl import flags
+
 #
 flags = tf.compat.v1.app.flags
-
+#flags = flags.FLAGS
 
 
 #flags = tf.compat.v1.app.flags
-flags = tf.compat.v1.app.flags
+#flags = tf.compat.v1.app.flags
+
 tf.compat.v1.app.flags.DEFINE_string('date','','date')
 
 tf.compat.v1.app.flags.DEFINE_integer('epoch', 300, 'Number os epochs')
@@ -225,7 +228,9 @@ tf.compat.v1.app.flags.DEFINE_bool('noise_en',False,'noise injection mode enable
 
 #
 tf.compat.v1.app.flags.DEFINE_boolean('verbose',True, 'verbose mode')
-tf.compat.v1.app.flags.DEFINE_boolean('verbose_visual',False, 'verbose visual mode')
+
+#tf.compat.v1.app.flags.DEFINE_boolean('verbose_visual',False, 'verbose visual mode')
+tf.compat.v1.app.flags.DEFINE_boolean('verbose_visual',True, 'verbose visual mode')
 
 
 ################################
@@ -395,8 +400,8 @@ tf.compat.v1.app.flags.DEFINE_string('prefix_stat', '', 'prefix of stat file nam
 ################
 # calibration - DNN-to-SNN conversion
 ################
-tf.compat.v1.app.flags.DEFINE_bool('calibration_weight',True,'calibration - weight')
-#tf.compat.v1.app.flags.DEFINE_bool('calibration_weight',False,'calibration - weight')
+#tf.compat.v1.app.flags.DEFINE_bool('calibration_weight',True,'calibration - weight')
+tf.compat.v1.app.flags.DEFINE_bool('calibration_weight',False,'calibration - weight')
 
 tf.compat.v1.app.flags.DEFINE_bool('calibration_weight_post',True,'calibration - weight')
 #tf.compat.v1.app.flags.DEFINE_bool('calibration_weight_post',False,'calibration - weight')
@@ -420,8 +425,8 @@ tf.compat.v1.app.flags.DEFINE_bool('vth_toggle',False,'vth toggle mode')
 #tf.compat.v1.app.flags.DEFINE_float('vth_toggle_init',0.5,'vth toggle init - toggle between {init, 2-init}')
 #tf.compat.v1.app.flags.DEFINE_float('vth_toggle_init',0.6,'vth toggle init - toggle between {init, 2-init}')
 #tf.compat.v1.app.flags.DEFINE_float('vth_toggle_init',0.7,'vth toggle init - toggle between {init, 2-init}')
-#tf.compat.v1.app.flags.DEFINE_float('vth_toggle_init',0.8,'vth toggle init - toggle between {init, 2-init}')
-tf.compat.v1.app.flags.DEFINE_float('vth_toggle_init',0.9,'vth toggle init - toggle between {init, 2-init}')
+tf.compat.v1.app.flags.DEFINE_float('vth_toggle_init',0.8,'vth toggle init - toggle between {init, 2-init}')
+#tf.compat.v1.app.flags.DEFINE_float('vth_toggle_init',0.9,'vth toggle init - toggle between {init, 2-init}')
 #tf.compat.v1.app.flags.DEFINE_float('vth_toggle_init',0.95,'vth toggle init - toggle between {init, 2-init}')
 
 

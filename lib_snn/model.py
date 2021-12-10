@@ -18,6 +18,10 @@ from tensorflow.python.keras.engine import data_adapter
 from tensorflow.python.keras.engine import compile_utils
 
 #
+from absl import flags
+flags = flags.FLAGS
+
+#
 from tqdm import tqdm
 
 #
@@ -29,10 +33,9 @@ from lib_snn.sim import glb_plot_1
 from lib_snn.sim import glb_plot_2
 
 
-#
 class Model(tf.keras.Model):
     count=0
-    def __init__(self, inputs, outputs, batch_size, input_shape, data_format, num_class, conf, **kwargs):
+    def __init__(self, inputs, outputs, batch_size, input_shape, data_format, num_class, conf, nn_mode, **kwargs):
     #def __init__(self, batch_size, input_shape, data_format, num_class, conf, **kwargs):
 
         #print("lib_SNN - Layer - init")
@@ -68,7 +71,7 @@ class Model(tf.keras.Model):
         Model.f_1st_iter = True
         self.f_1st_iter_stat = True
         Model.f_load_model_done = False
-        self.f_debug_visual = conf.verbose_visual
+        #self.f_debug_visual = conf.verbose_visual
         self.f_done_preproc = False
         #self.f_skip_bn = False      # for the 1st iteration
         Model.f_skip_bn = False      # for the 1st iteration
@@ -168,17 +171,19 @@ class Model(tf.keras.Model):
 
         # SNN mode
         #Model.en_snn = (self.conf.nn_mode == 'SNN' or self.conf.f_validation_snn)
-        self.en_snn = (self.conf.nn_mode == 'SNN' or self.conf.f_validation_snn)
+        #self.en_snn = (self.conf.nn_mode == 'SNN' or self.conf.f_validation_snn)
+        self.nn_mode = nn_mode
+        self.en_snn = (self.nn_mode == 'SNN' or self.conf.f_validation_snn)
 
         # DNN-to-SNN conversion, save dist. act. of DNN
-        self.en_write_stat = (self.conf.nn_mode=='ANN' and self.conf.f_write_stat)
+        self.en_write_stat = (self.nn_mode=='ANN' and self.conf.f_write_stat)
 
         # SNN, temporal coding, time const. training after DNN-to-SNN conversion (T2FSNN + GO)
-        self.en_opt_time_const_T2FSNN = (self.conf.nn_mode=='SNN' and not self.conf.en_train \
+        self.en_opt_time_const_T2FSNN = (self.nn_mode=='SNN' and not self.conf.en_train \
                                          and self.conf.neural_coding=='TEMPORAL' and self.conf.f_train_tk)
 
         # comparison activation - ANN vs. SNN
-        self.en_comp_act = (self.conf.nn_mode=='SNN' and self.conf.f_comp_act)
+        self.en_comp_act = (self.nn_mode=='SNN' and self.conf.f_comp_act)
 
 
 
@@ -188,10 +193,14 @@ class Model(tf.keras.Model):
             self.norm_b=collections.OrderedDict()
 
         # debugging
-        if self.f_debug_visual:
+        #if self.f_debug_visual:
+        if flags._run_for_visual_debug:
             #self.debug_visual_threads = []
             self.debug_visual_axes = []
             self.debug_visual_list_neuron = collections.OrderedDict()
+
+
+
 
     #def init_graph(self, inputs, outputs,**kwargs):
         #super(Model, self).__init__(inputs=inputs,outputs=outputs,**kwargs)
@@ -234,6 +243,14 @@ class Model(tf.keras.Model):
                 prev_layer = node.layer
 
         #assert False
+
+    #
+    #def set_layers_nn_mode(self):
+        #for l in self.layers:
+            #if isinstance(l, lib_snn.layers.Layer):
+                #l.set_en_snn(self.nn_mode)
+
+
     #
     # after init
     def build_set_aside(self, input_shapes):
@@ -356,7 +373,7 @@ class Model(tf.keras.Model):
                 self.run_mode['ANN'](inputs,training,self.conf.time_step,epoch)
 
                 # run SNN
-                ret_val = self.run_mode[self.conf.nn_mode](inputs,training,self.conf.time_step,epoch)
+                ret_val = self.run_mode[self.nn_mode](inputs,training,self.conf.time_step,epoch)
 
                 # training time constant
                 self.train_time_const()
@@ -366,7 +383,7 @@ class Model(tf.keras.Model):
                     assert False, 'f_val_snn mode is not validated yet'
                     ret_val = self.call_snn(inputs,training,self.conf.time_step,epoch)
                 else:
-                    ret_val = self.run_mode[self.conf.nn_mode](inputs,training,self.conf.time_step,epoch)
+                    ret_val = self.run_mode[self.nn_mode](inputs,training,self.conf.time_step,epoch)
 
 
             # post-processing
@@ -374,7 +391,7 @@ class Model(tf.keras.Model):
         else:
             print('Dummy run')
 
-            if self.conf.nn_mode=='SNN' and self.conf.f_surrogate_training_model:
+            if self.nn_mode=='SNN' and self.conf.f_surrogate_training_model:
                 ret_val = self.call_ann_surrogate_training(inputs,False,self.conf.time_step,epoch)
 
             # validation on SNN
@@ -383,7 +400,7 @@ class Model(tf.keras.Model):
 
             #ret_val = self.run_mode_load_model[self.conf.nn_mode](inputs,training,self.conf.time_step,epoch)
             #ret_val = self.run_mode_load_model[self.conf.nn_mode](inputs,False,self.conf.time_step,epoch)
-            ret_val = self.run_mode_load_model[self.conf.nn_mode](inputs,False,2,epoch)
+            ret_val = self.run_mode_load_model[self.nn_mode](inputs,False,2,epoch)
 
             Model.f_load_model_done=True
 
@@ -395,7 +412,7 @@ class Model(tf.keras.Model):
 
             self.f_1st_iter = False
 
-            Model.f_skip_bn = (self.conf.nn_mode=='ANN' and self.conf.f_fused_bn) or (self.conf.nn_mode=='SNN')
+            Model.f_skip_bn = (self.nn_mode=='ANN' and self.conf.f_fused_bn) or (self.nn_mode=='SNN')
 
         return ret_val
 
@@ -429,7 +446,8 @@ class Model(tf.keras.Model):
         # bias control
 
         # plot control
-        f_plot = (self.conf.verbose_visual) and (not self.conf.full_test) and (glb.model_compiled) and (self.conf.debug_mode and self.conf.nn_mode == 'SNN')
+        #f_plot = (self.conf.verbose_visual) and (not self.conf.full_test) and (glb.model_compiled) and (self.conf.debug_mode and self.conf.nn_mode == 'SNN')
+        f_plot = (flags._run_for_visual_debug) and (not self.conf.full_test) and (glb.model_compiled) and (self.conf.debug_mode and self.nn_mode == 'SNN')
 
         # tf.expand_dims(self.bias_ctrl_sub,axis=(1,2))
         if self.conf.bias_control:
@@ -489,7 +507,7 @@ class Model(tf.keras.Model):
 
     #
     def bias_control_test_pre(self):
-        if (glb.model_compiled) and (self.conf.debug_mode and self.conf.nn_mode == 'SNN'):
+        if (glb.model_compiled) and (self.conf.debug_mode and self.nn_mode == 'SNN'):
             for idx_layer, layer in enumerate(self.layers_w_neuron):
                 layer.f_bias_ctrl = tf.fill(tf.shape(layer.f_bias_ctrl), True)
                 # print(layer.f_bias_ctrl)
@@ -514,15 +532,8 @@ class Model(tf.keras.Model):
         bias_control_level = 'layer'
         #bias_control_level = 'channel'
 
-        if (glb.model_compiled) and (self.conf.debug_mode and self.conf.nn_mode == 'SNN'):
+        if (glb.model_compiled) and (self.conf.debug_mode and self.nn_mode == 'SNN'):
             # print('fired neuron')
-            # print(np.sum(self.get_layer('conv1').act.spike_count_int.numpy()))
-            # print(np.sum(self.get_layer('conv2').act.spike_count_int.numpy()))
-            # print(np.sum(self.get_layer('conv3').act.spike_count_int.numpy()))
-            # print(np.sum(self.get_layer('conv4').act.spike_count_int.numpy()))
-            # print(np.sum(self.get_layer('conv5').act.spike_count_int.numpy()))
-            # print(np.sum(self.get_layer('fc1').act.spike_count_int.numpy()))
-            # print(np.sum(self.get_layer('fc2').act.spike_count_int.numpy()))
 
             if bias_control_level=='layer':
                 for idx_layer, layer in enumerate(self.layers_w_neuron):
@@ -543,22 +554,13 @@ class Model(tf.keras.Model):
                         else:
                             assert False
 
-
-                        # print(spike.shape)
-                        # assert False
                         n_neurons = prev_layer.act.num_neurons
-                        #n_neurons_ch = tf.reduce_sum(layer.dims,axis=axis_ch)
-                        #rate_bias_on = 0.001
-                        #rate_bias_on = 0.005
-                        #rate_bias_on = 0.01
-                        #rate_bias_on = 0.1
-                        # f_spike = tf.greater(spike,0)
-                        #f_spike = tf.greater(spike / n_neurons, rate_bias_on)
 
                         #
                         # spike ratio
                         # spike = tf.reduce_sum(self.layers_w_neuron[idx_layer-1].act.spike_count_int,axis=axis)
                         spike = tf.reduce_sum(prev_layer.act.spike_count_int, axis=axis)
+                        #spike = tf.math.count_nonzero(prev_layer.act.spike_count_int, dtype=tf.float32, axis=axis)
 
                         # num spike neurons
                         #spike = tf.math.count_nonzero(prev_layer.act.spike_count_int, axis=axis)
@@ -809,7 +811,7 @@ class Model(tf.keras.Model):
         if f_val_snn:
             self.preproc_snn(inputs,training)
         else:
-            preproc_sel[self.conf.nn_mode](inputs, training)
+            preproc_sel[self.nn_mode](inputs, training)
 
 
     def preproc_snn(self,inputs,training):
@@ -851,7 +853,7 @@ class Model(tf.keras.Model):
         if self.conf.verbose:
             print('preprocessing: ANN to SNN')
 
-        if self.conf.f_fused_bn or ((self.conf.nn_mode=='ANN')and(self.conf.f_validation_snn)):
+        if self.conf.f_fused_bn or ((self.nn_mode=='ANN')and(self.conf.f_validation_snn)):
             #self.fused_bn()
             self.bn_fusion()
 
@@ -1154,7 +1156,7 @@ class Model(tf.keras.Model):
             'ANN': self.postproc_ann,
             'SNN': self.postproc_snn
         }
-        postproc_sel[self.conf.nn_mode](inputs)
+        postproc_sel[self.nn_mode](inputs)
 
     def postproc_ann(self,inputs):
 
@@ -1202,7 +1204,8 @@ class Model(tf.keras.Model):
 
 
         # raster plot
-        if self.f_debug_visual:
+        #if self.f_debug_visual:
+        if flags._run_for_visual_debug:
             lib_snn.util.debug_visual_raster(self,self.t)
 
         # compare activation - DNN vs. SNN
@@ -1295,9 +1298,10 @@ class Model(tf.keras.Model):
         self.bias_control_th_ch = collections.OrderedDict()
 
         for idx_layer, layer in enumerate(self.layers_w_neuron):
+            #self.bias_control_th[layer.name] = 0.005
             self.bias_control_th[layer.name] = 0.01
             #self.bias_control_th_ch[layer.name] = tf.constant(0.002,shape=layer.f_bias_ctrl.shape)
-            self.bias_control_th_ch[layer.name] = tf.constant(0.02,shape=layer.f_bias_ctrl.shape)
+            self.bias_control_th_ch[layer.name] = tf.constant(0.01,shape=layer.f_bias_ctrl.shape)
             #self.bias_control_th[layer.name] = 0.0
 
 
