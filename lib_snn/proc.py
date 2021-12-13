@@ -77,54 +77,32 @@ def set_init(self):
     # check
     snn_condition_check(self)
 
-
-    for layer in self.model.layers:
-        if hasattr(layer, 'kernel'):
-            self.layers_w_kernel.append(layer)
-
-    self.en_record_output = self.model._run_eagerly and ((self.model.nn_mode=='ANN' and self.conf.f_write_stat) or self.conf.debug_mode)
-    #self.en_record_output = True
-
-    if self.en_record_output:
-        self.layers_record=self.layers_w_kernel
-
-       #self.layers_record = []
-        #for layer in self.layers_w_kernel[:2]:
-            #self.layers_record.append(layer)
-
-        set_en_record_output(self)
-
     #
-    if self.model.nn_mode=='SNN':
-        init_snn_run(self)
+    #if self.model.nn_mode=='ANN':
+        #init_ann_run(self)
+    #elif self.model.nn_mode=='SNN':
+        #init_snn_run(self)
 
+    self.model.init(self.model_ann)
 
     self.init_done=True
+
+
 
 #
 def snn_condition_check(self):
     assert (not self.conf.binary_spike) or (self.conf.binary_spike and (self.conf.n_init_vth==1.0)), 'vth should be 1.0 in binary_spike mode'
 
 #
-def init_snn_run(self):
-    self.model.init_snn()
-
-    #self.model.set_layers_w_neuron()
-
-    # spike max pool setup
-    #self.model.spike_max_pool_setup()
-
+#def init_snn_run(self):
+    #self.model.init_snn(self.model_ann)
 #
-def set_en_record_output(self):
-    #for layer in self.model.layers:
-    for layer in self.layers_record:
-        layer.en_record_output = True
+    ##self.model.set_layers_w_neuron()
+#
+    ## spike max pool setup
+    ##self.model.spike_max_pool_setup()
 
-    for layer in self.model.layers:
-        if isinstance(layer, lib_snn.layers.InputGenLayer):
-            layer.en_record_output = True
 
-    self.dict_stat_w=collections.OrderedDict()
 
 #
 def preproc_ann(self):
@@ -273,24 +251,61 @@ def reset_snn_time_step(self):
 # (on_test_batch_end)
 ########################################
 def postproc_batch(self):
-    if self.en_record_output:
+    if self.model.en_record_output:
         collect_record_output(self)
 
 
+    #
+    if False:
+        print('non zero ratio in ann act (postproc_batch)')
+        #for layer in self.layers_w_kernel:
 
-#
+        if not hasattr(self,'nonzero_ratios'):
+            self.nonzero_ratios = collections.OrderedDict()
+
+            for layer in self.model.layers_w_kernel:
+                self.nonzero_ratios[layer.name] = []
+
+        for layer in self.model.layers_w_kernel:
+
+            non_zero = tf.math.count_nonzero(layer.record_output, dtype=tf.float32)
+            non_zero_r = non_zero / tf.cast(tf.reduce_prod(layer.record_output.shape),tf.float32)
+
+            non_zero_r_m = tf.reduce_mean(non_zero_r)
+
+            self.nonzero_ratios[layer.name].append(non_zero_r_m)
+
+            #print(layer.name)
+            #print(non_zero_r_m)
+
+
+        #
+        print('')
+        print('mean activation, kernel, bias')
+        for layer in self.model.layers_w_kernel:
+
+            n_m = tf.reduce_mean(self.nonzero_ratios[layer.name])
+            a_m = tf.reduce_mean(layer.record_output)
+            k_m = tf.reduce_mean(layer.kernel)
+            b_m = tf.reduce_mean(layer.bias)
+
+            print('{:<8}: nonzero - {:.4f}, act - {:.4f}, kernel - {:.4f}, bias - {:.4f}'.format(layer.name,n_m,a_m,k_m,b_m))
+
+
+
+# TODO: move to model.py
 def collect_record_output(self):
     with tf.device('CPU:0'):
-        for layer in self.layers_record:
+        for layer in self.model.layers_record:
             #print(layer)
 
             #print(layer.record_output)
 
-            if not (layer.name in self.dict_stat_w.keys()):
+            if not (layer.name in self.model.dict_stat_w.keys()):
                 #self.dict_stat_w[layer.name] = layer.record_output.numpy()
-                self.dict_stat_w[layer.name] = tf.Variable(layer.record_output)
+                self.model.dict_stat_w[layer.name] = tf.Variable(layer.record_output)
             else:
-                self.dict_stat_w[layer.name] = tf.concat([self.dict_stat_w[layer.name],layer.record_output],0)
+                self.model.dict_stat_w[layer.name] = tf.concat([self.model.dict_stat_w[layer.name],layer.record_output],0)
                 #prev = self.dict_stat_w[layer.name]
                 #new = layer.record_output.numpy()
                 #self.dict_stat_w[layer.name] = np.concatenate((prev,new),axis=0)
@@ -330,15 +345,55 @@ def postproc_ann(self):
         #plot_act_dist(self)
         #pass
 
+
+    #
+    if False:
+        print('non zero ratio in ann act (postproc)')
+        #for layer in self.layers_w_kernel:
+        for layer in self.model.layers_w_kernel:
+
+            if isinstance(layer, lib_snn.layers.Conv2D):
+                axis = [1, 2, 3]
+            elif isinstance(layer, lib_snn.layers.Dense):
+                axis = [1]
+            else:
+                assert False
+
+            non_zero = tf.math.count_nonzero(layer.record_output, dtype=tf.float32, axis=axis)
+            non_zero_r = non_zero / tf.cast(tf.reduce_prod(layer.record_output.shape[1:]),tf.float32)
+
+            non_zero_r_m = tf.reduce_mean(non_zero_r)
+
+            print(layer.name)
+            print(non_zero_r_m)
+
+    if False:
+        print('plot nonzero ratio')
+        figs, axes = plt.subplots(5, 5, figsize=(12,10))
+        for layer in self.model.layers_w_kernel:
+            axe = axes.flatten()[layer.depth]
+
+            nonzero = self.nonzero_ratios[layer.name]
+            axe.plot(nonzero)
+
+            #(n, bins, patches) = axe.hist(act, bins=bins)
+            axe.axhline(y=tf.reduce_mean(nonzero),color='r')
+            #axe.set_ylim([0, n[10]])
+            axe.set_title(layer.name)
+
+        plt.show()
+
+
 #
 def plot_act_dist(self,fig=None):
 
     if fig is None:
         fig = glb_plot
 
-    for layer in self.layers_w_kernel:
+    #for layer in self.layers_w_kernel:
+    for layer in self.model.layers_w_kernel:
         axe = fig.axes.flatten()[layer.depth]
-        if self.model.nn_mode=='ANN':
+        if self.model.nn_mode=='ann':
             act = layer.record_output.numpy().flatten()
             bins = np.arange(0,1,0.03)
         else:
@@ -360,9 +415,10 @@ def plot_spike_time_diff_hist_dnn_ann(self, fig=None):
     if fig is None:
         fig = glb_plot
 
-    for layer in self.layers_w_kernel:
+    #for layer in self.layers_w_kernel:
+    for layer in self.model.layers_w_kernel:
         #if self.conf.snn_output_type == 'VMEM' and layer.name=='predictions':
-        if self.conf.snn_output_type == 'VMEM' and layer == self.layers_w_kernel[-1]:
+        if self.conf.snn_output_type == 'VMEM' and layer == self.model.layers_w_kernel[-1]:
             continue
 
         axe = fig.axes.flatten()[layer.depth]
@@ -395,11 +451,13 @@ def plot_spike_time_diff_hist_dnn_ann(self, fig=None):
     if self.conf.bias_control:
         print('bias en time')
 
-        for layer in self.layers_w_kernel:
+        #for layer in self.layers_w_kernel:
+        for layer in self.model.layers_w_kernel:
             print('{:<8} - {:3d}'.format(layer.name,tf.reduce_mean(layer.bias_en_time)))
 
     print('time diff')
-    for layer in self.layers_w_kernel:
+    #for layer in self.layers_w_kernel:
+    for layer in self.model.layers_w_kernel:
         if self.conf.snn_output_type == 'VMEM' and layer == self.layers_w_kernel[-1]:
             continue
         diff_mean=tf.experimental.numpy.nanmean(tf.abs(diffs[layer.name]))
@@ -407,8 +465,9 @@ def plot_spike_time_diff_hist_dnn_ann(self, fig=None):
 
 
     print('\n first spike time of previous layer - bias en time of layer')
-    for (idx_layer, layer) in enumerate(self.layers_w_kernel):
-        if self.conf.snn_output_type == 'VMEM' and layer == self.layers_w_kernel[-1]:
+    #for (idx_layer, layer) in enumerate(self.layers_w_kernel):
+    for (idx_layer, layer) in enumerate(self.model.layers_w_kernel):
+        if self.conf.snn_output_type == 'VMEM' and layer == self.model.layers_w_kernel[-1]:
             continue
         if idx_layer!=0:
             first_spike_time_in_mean = tf.experimental.numpy.nanmean(prev_layer.act.first_spike_time)
@@ -420,8 +479,9 @@ def plot_spike_time_diff_hist_dnn_ann(self, fig=None):
     #print('non zero ratio')
     print('\n act diff - dnn_act - snn_act')
     errs = []
-    for layer in self.layers_w_kernel:
-        if self.conf.snn_output_type == 'VMEM' and layer == self.layers_w_kernel[-1]:
+    #for layer in self.layers_w_kernel:
+    for layer in self.model.layers_w_kernel:
+        if self.conf.snn_output_type == 'VMEM' and layer == self.model.layers_w_kernel[-1]:
             continue
 
         if self.conf.bias_control:
@@ -474,7 +534,8 @@ def plot_dnn_act(self, layers=None, idx=None):
     if False:
         # layers in model
         idx=glb_plot.idx
-        for layer in self.layers_w_kernel:
+        #for layer in self.layers_w_kernel:
+        for layer in self.model.layers_w_kernel:
             #print(layer.name)
             #print(layer.depth)
 
@@ -629,7 +690,7 @@ def bn_fusion(self):
 
     print('---- BN Fusion Done ----')
 
-
+# TODO: move?
 def w_norm_data(self):
     # weight normalization - data based
 
@@ -674,7 +735,7 @@ def w_norm_data(self):
 
     #for idx_l, l in enumerate(self.list_layer_name):
     #for idx_l, l in enumerate(self.list_layer):
-    for idx_l, l in enumerate(self.layers_w_kernel):
+    for idx_l, l in enumerate(self.model.layers_w_kernel):
         key=l.name+'_'+stat
 
         #f_name_stat = f_name_stat_pre+'_'+key
@@ -711,7 +772,8 @@ def w_norm_data_layer_wise(self, f_norm):
     # for idx_l, l in enumerate(self.list_layer_name):
     #for idx_l, l in enumerate(self.list_layer):
     if 'VGG' in self.conf.model:
-        for idx_l, l in enumerate(self.layers_w_kernel):
+        #for idx_l, l in enumerate(self.layers_w_kernel):
+        for idx_l, l in enumerate(self.model.layers_w_kernel):
             stat = self.dict_stat_r[l.name]
             norm = f_norm(stat)
             norm = np.where(norm==0, 1, norm)
@@ -739,7 +801,8 @@ def w_norm_data_layer_wise(self, f_norm):
 
     #
     # for name_l in self.list_layer_name:
-    for layer in self.layers_w_kernel:
+    #for layer in self.layers_w_kernel:
+    for layer in self.model.layers_w_kernel:
         # layer = self.model.get_layer(name=name_l)
         layer.kernel = layer.kernel / self.norm[layer.name]
         layer.bias = layer.bias / self.norm_b[layer.name]
@@ -757,7 +820,8 @@ def w_norm_data_channel_wise(self, f_norm):
     # for idx_l, l in enumerate(self.list_layer_name):
     #for idx_l, l in enumerate(self.list_layer):
     if 'VGG' in self.conf.model:
-        for idx_l, l in enumerate(self.layers_w_kernel):
+        #for idx_l, l in enumerate(self.layers_w_kernel):
+        for idx_l, l in enumerate(self.model.layers_w_kernel):
             stat = self.dict_stat_r[l.name]
             stat = stat.reshape(-1,stat.shape[-1])
             norm = f_norm(stat)
@@ -808,7 +872,8 @@ def w_norm_data_channel_wise(self, f_norm):
 
     #
     # for name_l in self.list_layer_name:
-    for layer in self.layers_w_kernel:
+    #for layer in self.layers_w_kernel:
+    for layer in self.model.layers_w_kernel:
         # layer = self.model.get_layer(name=name_l)
         layer.kernel = layer.kernel / self.norm[layer.name]
         layer.bias = layer.bias / self.norm_b[layer.name]

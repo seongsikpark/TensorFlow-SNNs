@@ -105,6 +105,12 @@ class Model(tf.keras.Model):
         self.dnn_act_list=collections.OrderedDict()
 
 
+        #
+        self.layers_w_kernel = []
+        self.layers_w_neuron = []
+
+        self.en_record_output = None
+
         # input
         #self._input_shape = [-1]+input_shape.as_list()
         self._input_shape = [-1]+list(input_shape)
@@ -184,7 +190,6 @@ class Model(tf.keras.Model):
 
         # comparison activation - ANN vs. SNN
         self.en_comp_act = (self.nn_mode=='SNN' and self.conf.f_comp_act)
-
 
 
         # data-based weight normalization
@@ -559,8 +564,8 @@ class Model(tf.keras.Model):
                         #
                         # spike ratio
                         # spike = tf.reduce_sum(self.layers_w_neuron[idx_layer-1].act.spike_count_int,axis=axis)
-                        spike = tf.reduce_sum(prev_layer.act.spike_count_int, axis=axis)
-                        #spike = tf.math.count_nonzero(prev_layer.act.spike_count_int, dtype=tf.float32, axis=axis)
+                        #spike = tf.reduce_sum(prev_layer.act.spike_count_int, axis=axis)
+                        spike = tf.math.count_nonzero(prev_layer.act.spike_count_int, dtype=tf.float32, axis=axis)
 
                         # num spike neurons
                         #spike = tf.math.count_nonzero(prev_layer.act.spike_count_int, axis=axis)
@@ -601,30 +606,43 @@ class Model(tf.keras.Model):
                         prev_layer = self.layers_w_neuron[idx_layer - 1]
 
                         if isinstance(prev_layer, lib_snn.layers.Conv2D):
-                            axis_reduce_batch = [1, 2, 3]
+                            axis_reduce_batch = [1, 2]
                             axis = [1, 2]
+
+                            spike = tf.math.count_nonzero(prev_layer.act.spike_count_int, dtype=tf.float32, axis=axis_reduce_batch)
+
+                            n_neurons = tf.gather(prev_layer.act.dim, axis)
+                            n_neurons = tf.reduce_prod(n_neurons)
+                            n_neurons = tf.cast(n_neurons, dtype=tf.float32)
+
                         elif isinstance(prev_layer, lib_snn.layers.Dense):
                             axis_reduce_batch = [1]
                             axis = [1]
+
+                            spike = prev_layer.act.spike_count_int
+
+                            n_neurons = prev_layer.act.dim[1]
                         else:
                             assert False
 
                         # spike = tf.reduce_sum(self.layers_w_neuron[idx_layer-1].act.spike_count_int,axis=axis)
-                        spike = tf.reduce_sum(prev_layer.act.spike_count_int, axis=axis_reduce_batch)
+                        #spike = tf.reduce_sum(prev_layer.act.spike_count_int, axis=axis_reduce_batch)
+                        #spike = tf.math.count_nonzero(prev_layer.act.spike_count_int, dtype=tf.float32, axis=axis_reduce_batch)
 
-                        n_neurons = tf.gather(prev_layer.act.dim,axis)
-                        n_neurons = tf.reduce_prod(n_neurons)
-                        n_neurons = tf.cast(n_neurons,dtype=tf.float32)
+                        #assert False
+
 
                         #f_spike = tf.greater(spike / n_neurons, self.bias_control_th[layer.name])
 
-                        r_spike = tf.expand_dims(spike/n_neurons,axis=1)
-                        f_spike = tf.greater(r_spike, self.bias_control_th_ch[layer.name])
+                        #r_spike = tf.expand_dims(spike/n_neurons,axis=0)
+                        r_spike = spike/n_neurons
+                        f_spike = tf.greater(r_spike, self.bias_control_th_ch[prev_layer.name])
 
                         # layer.f_bias_ctrl = tf.greater(spike/n_neurons,rate_bias_on)
 
                         #print(f_spike)
-                        # print(f_spike.shape)
+                        print(layer.name)
+                        print(f_spike.shape)
                         # print(layer.f_bias_ctrl)
                         # assert False
 
@@ -880,13 +898,54 @@ class Model(tf.keras.Model):
 
 
     ###########################################################
-    # init snn
+    # init
     ###########################################################
+
+    def init(self,model_ann=None):
+
+        # common init
+
+        #for layer in self.model.layers:
+        for layer in self.layers:
+            if hasattr(layer, 'kernel'):
+                self.layers_w_kernel.append(layer)
+
+        #self.en_record_output = self.model._run_eagerly and (
+        #(self.model.nn_mode == 'ANN' and self.conf.f_write_stat) or self.conf.debug_mode)
+        self.en_record_output = self._run_eagerly and (
+            (self.nn_mode == 'ANN' and self.conf.f_write_stat) or self.conf.debug_mode)
+        # self.en_record_output = True
+
+        if self.en_record_output:
+            self.layers_record = self.layers_w_kernel
+
+            # self.layers_record = []
+            # for layer in self.layers_w_kernel[:2]:
+            # self.layers_record.append(layer)
+
+            self.set_en_record_output()
+
+        if self.nn_mode=='ANN':
+            self.init_ann()
+        elif self.nn_mode == 'SNN':
+            self.init_snn(model_ann)
+        else:
+            assert False
+
     #
-    def init_snn(self):
+    def init_ann(self):
+        pass
+
+
+    #
+    def init_snn(self, model_ann):
+
+        #
+        #self.set_layers_w_neuron()
 
         #
         self.set_layers_w_neuron()
+
         #
         self.spike_max_pool_setup()
 
@@ -926,10 +985,23 @@ class Model(tf.keras.Model):
 
         #
         if self.conf.bias_control:
-            self.set_bias_control_th()
+            self.set_bias_control_th(model_ann)
 
         #
         self.init_done=True
+
+    #
+    def set_en_record_output(self):
+        # for layer in self.model.layers:
+        for layer in self.layers_record:
+            layer.en_record_output = True
+
+        #for layer in self.model.layers:
+        for layer in self.layers:
+            if isinstance(layer, lib_snn.layers.InputGenLayer):
+                layer.en_record_output = True
+
+        self.dict_stat_w = collections.OrderedDict()
 
     ###########################################################
     # reset snn
@@ -965,7 +1037,7 @@ class Model(tf.keras.Model):
 
     # set layers with neuron
     def set_layers_w_neuron(self):
-        self.layers_w_neuron = []
+        #self.layers_w_neuron = []
         for layer in self.layers:
             if hasattr(layer, 'act_snn'):
                 #if layer.act_snn is not None:
@@ -977,6 +1049,7 @@ class Model(tf.keras.Model):
     ###########################################################
     #
     def bn_fusion(self):
+        assert False
         print('---- BN Fusion ----')
 
         for name_l in self.list_layer_name:
@@ -987,6 +1060,7 @@ class Model(tf.keras.Model):
 
     #
     def bn_defusion(self):
+        assert False
         #print('---- BN DeFusion ----')
 
         for name_l in self.list_layer_name:
@@ -1293,17 +1367,55 @@ class Model(tf.keras.Model):
     ###########################################
     # bias control - new
     ###########################################
-    def set_bias_control_th(self):
+    def set_bias_control_th(self, model_ann):
         self.bias_control_th = collections.OrderedDict()
         self.bias_control_th_ch = collections.OrderedDict()
 
-        for idx_layer, layer in enumerate(self.layers_w_neuron):
-            #self.bias_control_th[layer.name] = 0.005
-            self.bias_control_th[layer.name] = 0.01
-            #self.bias_control_th_ch[layer.name] = tf.constant(0.002,shape=layer.f_bias_ctrl.shape)
-            self.bias_control_th_ch[layer.name] = tf.constant(0.01,shape=layer.f_bias_ctrl.shape)
-            #self.bias_control_th[layer.name] = 0.0
+        if False:   # manual set
+        #if True:  # manual set
+            for idx_layer, layer in enumerate(self.layers_w_neuron):
+                #self.bias_control_th[layer.name] = 0.005
+                self.bias_control_th[layer.name] = 0.01
+                #self.bias_control_th_ch[layer.name] = tf.constant(0.002,shape=layer.f_bias_ctrl.shape)
+                self.bias_control_th_ch[layer.name] = tf.constant(0.01,shape=layer.f_bias_ctrl.shape)
+                #self.bias_control_th[layer.name] = 0.0
+        elif True:  # non zero ratio-based (DNN)
+            for idx_layer, layer in enumerate(self.layers_w_kernel):
+            #for idx_layer, layer in enumerate(self.layers_w_neuron):
 
+                layer_ann = model_ann.get_layer(layer.name)
+
+                #print(layer.name)
+                if isinstance(layer, lib_snn.layers.Conv2D):
+                    axis = [1,2,3]
+                    axis_ch = [1,2]
+                elif isinstance(layer, lib_snn.layers.Dense):
+                    axis = [1]
+                    axis_ch = [1]
+                else:
+                    assert False
+
+                non_zero = tf.math.count_nonzero(layer_ann.record_output, dtype=tf.float32, axis=axis)
+                non_zero_r = non_zero / tf.cast(tf.reduce_prod(layer_ann.record_output.shape[1:]), tf.float32)
+
+                self.bias_control_th[layer.name] = tf.reduce_mean(non_zero_r)*0.5
+                #self.bias_control_th[layer.name] = non_zero_r
+
+                print(layer.name)
+                print(self.bias_control_th[layer.name])
+
+                channel = False
+                if channel:
+                    assert False
+                    # channel-wise
+                    non_zero_ch = tf.math.count_nonzero(layer_ann.record_output, dtype=tf.float32, axis=axis_ch)
+                    non_zero_ch_r = non_zero_ch / tf.cast(tf.reduce_prod(layer_ann.record_output.shape[1:]), tf.float32)
+
+                    non_zero_ch_r = tf.expand_dims(non_zero_ch_r,axis=0)
+                    self.bias_control_th_ch[layer.name] = tf.broadcast_to(non_zero_ch_r, shape=layer.f_bias_ctrl.shape)
+
+
+            #self.bias_control_th_ch[layer.name] = tf.constant(0.01, shape=layer.f_bias_ctrl.shape)
 
         #self.bias_control_th['fc1'] = 0.05
 

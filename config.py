@@ -359,8 +359,8 @@ tf.compat.v1.app.flags.DEFINE_enum('snn_output_type',"VMEM", ["SPIKE", "VMEM", "
 #
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 2048, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 1024, 'time steps per sample in SNN')
-tf.compat.v1.app.flags.DEFINE_integer('time_step', 256, 'time steps per sample in SNN')
-#tf.compat.v1.app.flags.DEFINE_integer('time_step', 128, 'time steps per sample in SNN')
+#tf.compat.v1.app.flags.DEFINE_integer('time_step', 256, 'time steps per sample in SNN')
+tf.compat.v1.app.flags.DEFINE_integer('time_step', 128, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 64, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 32, 'time steps per sample in SNN')
 tf.compat.v1.app.flags.DEFINE_integer('time_step_save_interval',10,'snn test save interval')

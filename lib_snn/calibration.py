@@ -19,7 +19,7 @@ def vth_calibration_stat(self):
     #stat = 'max'
     stat = 'max_999'
     #stat = 'max_99'
-    for idx_l, l in enumerate(self.layers_w_kernel):
+    for idx_l, l in enumerate(self.model.layers_w_kernel):
         #print(l.name)
         key=l.name+'_'+stat
 
@@ -129,12 +129,12 @@ def vth_calibration_manual(self):
         vth_cal['fc2'] = const
         vth_cal['predictions'] = const
 
-    for idx_l, l in enumerate(self.layers_w_kernel):
+    for idx_l, l in enumerate(self.model.layers_w_kernel):
         l.act.set_vth_init(vth_cal[l.name])
 
 
     # scale - vth
-    for idx_l, l in enumerate(self.layers_w_kernel):
+    for idx_l, l in enumerate(self.model.layers_w_kernel):
         if idx_l != 0:
             scale = prev_vth_cal
             l.kernel = l.kernel*scale
@@ -166,7 +166,7 @@ def read_stat(self,layer,stat):
 def vth_toggle(self):
 
     stat = 'max_999'
-    for idx_l, l in enumerate(self.layers_w_kernel):
+    for idx_l, l in enumerate(self.model.layers_w_kernel):
         #
 
         #
@@ -248,7 +248,7 @@ def vth_calibration_old(self,f_norm, stat):
     stat = 'max'
     stat = 'max_999'
     #stat = 'max_99'
-    for idx_l, l in enumerate(self.layers_w_kernel):
+    for idx_l, l in enumerate(self.model.layers_w_kernel):
         #print(l.name)
         key=l.name+'_'+stat
 
@@ -305,7 +305,7 @@ def bias_calibration(self):
     bias_cal['predictions'] = const
 
     #
-    for layer in self.layers_w_kernel:
+    for layer in self.model.layers_w_kernel:
         layer.bias = layer.bias*bias_cal[layer.name]
 
 
@@ -429,16 +429,16 @@ def weight_calibration(self):
     # current best - 1208
     #elif False:
     elif True:
-        #for idx_l, l in enumerate(self.layers_w_kernel):
+        #for idx_l, l in enumerate(self.model.layers_w_kernel):
             #norm[l.name]=0.8
 
 
-        depth_l = len(self.layers_w_kernel)
+        depth_l = len(self.model.layers_w_kernel)
         a = 0.5
         #a = 0.8
         b = 1.0
         #b = 0.8
-        for idx_l, l in enumerate(self.layers_w_kernel):
+        for idx_l, l in enumerate(self.model.layers_w_kernel):
             norm[l.name] = a + (1 - a) * (depth_l - idx_l) / (depth_l)
             norm[l.name] *= b
             # norm[l.name]=a*(depth_l-idx_l)/(depth_l)
@@ -472,7 +472,7 @@ def weight_calibration(self):
         #stat = 'max'
         #stat = 'max_75'
         stat = 'median'
-        for idx_l, l in enumerate(self.layers_w_kernel):
+        for idx_l, l in enumerate(self.model.layers_w_kernel):
             #print(l.name)
             key=l.name+'_'+stat
 
@@ -499,7 +499,7 @@ def weight_calibration(self):
     #
 
     if 'VGG' in self.conf.model:
-        for idx_l, l in enumerate(self.layers_w_kernel):
+        for idx_l, l in enumerate(self.model.layers_w_kernel):
             if idx_l == 0:
                 norm_wc[l.name] = norm[l.name]
             else:
@@ -509,14 +509,14 @@ def weight_calibration(self):
             prev_layer_name = l.name
             norm_b_wc[l.name] = norm[l.name]
 
-    for layer in self.layers_w_kernel:
+    for layer in self.model.layers_w_kernel:
         # layer = self.model.get_layer(name=name_l)
         if layer.name in norm_wc.keys():
             layer.kernel = layer.kernel / norm_wc[layer.name]
         if layer.name in norm_b_wc.keys():
             layer.bias = layer.bias / norm_b_wc[layer.name]
 
-    for layer in self.layers_w_kernel:
+    for layer in self.model.layers_w_kernel:
         print(layer.name)
         print(norm_wc[layer.name])
 
@@ -543,7 +543,7 @@ def weight_calibration_post(self):
 
     #if True:
     if False:
-        for idx_l, l in enumerate(self.layers_w_kernel):
+        for idx_l, l in enumerate(self.model.layers_w_kernel):
             norm[l.name]=1.0
 
         #norm['conv1']=0.9
@@ -556,9 +556,9 @@ def weight_calibration_post(self):
         error_level = 'layer'
         # error_level = 'channel'
 
-        for idx_l, l in enumerate(self.layers_w_kernel):
+        for idx_l, l in enumerate(self.model.layers_w_kernel):
 
-            if idx_l == len(self.layers_w_kernel)-1:
+            if idx_l == len(self.model.layers_w_kernel)-1:
                 norm[l.name]=1.0
                 continue
 
@@ -601,9 +601,9 @@ def weight_calibration_post(self):
         error_level = 'layer'
         #error_level = 'channel'
 
-        for idx_l, l in enumerate(self.layers_w_kernel):
+        for idx_l, l in enumerate(self.model.layers_w_kernel):
 
-            if idx_l == len(self.layers_w_kernel)-1:
+            if idx_l == len(self.model.layers_w_kernel)-1:
                 norm[l.name]=1.0
                 continue
 
@@ -662,9 +662,9 @@ def weight_calibration_post(self):
         #error_level = 'layer'
         error_level = 'channel'
 
-        for idx_l, l in enumerate(self.layers_w_kernel):
+        for idx_l, l in enumerate(self.model.layers_w_kernel):
 
-            if idx_l == len(self.layers_w_kernel)-1:
+            if idx_l == len(self.model.layers_w_kernel)-1:
                 norm[l.name]=1.0
                 continue
 
@@ -734,7 +734,7 @@ def weight_calibration_post(self):
         #stat = 'max'
         #stat = 'max_75'
         stat = 'median'
-        for idx_l, l in enumerate(self.layers_w_kernel):
+        for idx_l, l in enumerate(self.model.layers_w_kernel):
             #print(l.name)
             key=l.name+'_'+stat
 
@@ -761,7 +761,7 @@ def weight_calibration_post(self):
     #
 
     if 'VGG' in self.conf.model:
-        for idx_l, l in enumerate(self.layers_w_kernel):
+        for idx_l, l in enumerate(self.model.layers_w_kernel):
             if idx_l == 0:
                 norm_wc[l.name] = norm[l.name]
             else:
@@ -771,14 +771,14 @@ def weight_calibration_post(self):
             prev_layer_name = l.name
             norm_b_wc[l.name] = norm[l.name]
 
-    for layer in self.layers_w_kernel:
+    for layer in self.model.layers_w_kernel:
         # layer = self.model.get_layer(name=name_l)
         if layer.name in norm_wc.keys():
             layer.kernel = layer.kernel / norm_wc[layer.name]
         if layer.name in norm_b_wc.keys():
             layer.bias = layer.bias / norm_b_wc[layer.name]
 
-    for layer in self.layers_w_kernel:
+    for layer in self.model.layers_w_kernel:
         print(layer.name)
         print(norm_wc[layer.name])
 
@@ -787,7 +787,7 @@ def weight_calibration_post(self):
 def weight_calibration_inv_vth(self):
     #
     # scale - inv. vth
-    for idx_l, l in enumerate(self.layers_w_kernel):
+    for idx_l, l in enumerate(self.model.layers_w_kernel):
         if idx_l != 0:
             scale = self.conf.n_init_vth
             l.kernel = l.kernel*scale
@@ -802,7 +802,7 @@ def vmem_calibration(self):
     stat = 'max'
     #stat = 'max_90'
     #stat = 'max_50'
-    for idx_l, l in enumerate(self.layers_w_kernel):
+    for idx_l, l in enumerate(self.model.layers_w_kernel):
         #print(l.name)
         key=l.name+'_'+stat
 
@@ -852,7 +852,7 @@ def vmem_calibration(self):
 def bias_calibration_ICLR_21(self):
     print('bias_calibration_ICLR_21')
 
-    for idx_l, l in enumerate(self.layers_w_kernel):
+    for idx_l, l in enumerate(self.model.layers_w_kernel):
         if isinstance(l, lib_snn.layers.Conv2D):
             axis = [0,1,2]
         elif isinstance(l, lib_snn.layers.Dense):
@@ -875,7 +875,7 @@ def bias_calibration_ICML_21(self):
     #print('')
     print('bias_calibration_ICML_21')
 
-    for idx_l, l in enumerate(self.layers_w_kernel):
+    for idx_l, l in enumerate(self.model.layers_w_kernel):
         if isinstance(l, lib_snn.layers.Conv2D):
             axis = [0,1,2]
         elif isinstance(l, lib_snn.layers.Dense):
@@ -911,8 +911,8 @@ def bias_calibration_ICML_21(self):
 
         # test
         #bias_comp *= 2
-        #bias_comp *= 4  # T=128
-        bias_comp *= 2  #
+        bias_comp *= 4  # T=128, WP+B-ML
+        #bias_comp *= 5  #
 
         #bias_comp = (dnn_act_mean - snn_act_mean)/self.conf.time_step
         #bias_comp = dnn_act_mean - self.conf.n_init_vth*snn_act_mean/self.conf.time_step
@@ -929,7 +929,7 @@ def bias_calibration_ICML_21(self):
 def vmem_calibration_ICML_21(self):
     print('vmem_calibration_ICML_21')
 
-    for idx_l, l in enumerate(self.layers_w_kernel):
+    for idx_l, l in enumerate(self.model.layers_w_kernel):
         l_ann = self.model.get_layer(l.name)
 
         if l.name == 'predictions':

@@ -125,7 +125,7 @@ class SNNLIB(tf.keras.callbacks.Callback):
 
 
         self.f_skip_bn=False
-        self.layers_w_kernel=[]
+        #self.layers_w_kernel=[]
 
         #
         self.init_done = False
