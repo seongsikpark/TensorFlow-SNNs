@@ -116,8 +116,8 @@ hp_tune = False
 #train=False
 train=conf.train
 
-load_model=True
-#load_model=False
+#load_model=True
+load_model=False
 
 #
 #save_model = False
@@ -132,8 +132,8 @@ overwrite_tensorboard = True
 
 #epoch = 20000
 #epoch = 20472
-#train_epoch = 300
-train_epoch = 1000
+train_epoch = 300
+#train_epoch = 1000
 #train_epoch = 1
 
 
@@ -669,6 +669,9 @@ elif load_model:
     #model.load_weights(load_weight, by_name=True)
     # model.load_weights(load_weight,by_name=
 
+if conf.nn_mode=='ANN':
+    model_ann = None
+
 
 #ann_kernel={}
 #snn_kernel={}
@@ -750,6 +753,7 @@ if not load_model:
         if os.path.isdir(filepath):
             shutil.rmtree(filepath)
 
+#assert False
 # path_tensorboard = root_tensorboard+exp_set_name
 # path_tensorboard = root_tensorboard+filepath
 

@@ -1,7 +1,8 @@
 #!/bin/bash
 
 
-models=('ResNet18' 'ResNet20' 'ResNet32' 'ResNet34' 'ResNet50' 'ResNet18V2' 'ResNet20V2' 'ResNet32V2' 'ResNet34V2' 'ResNet50V2')
+#models=('ResNet18' 'ResNet20' 'ResNet32' 'ResNet34' 'ResNet50' 'ResNet18V2' 'ResNet20V2' 'ResNet32V2' 'ResNet34V2' 'ResNet50V2')
+models=('ResNet44' 'ResNet56' 'ResNet44V2' 'ResNet56V2')
 datasets=('CIFAR10')
 
 

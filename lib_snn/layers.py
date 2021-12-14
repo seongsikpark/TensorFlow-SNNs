@@ -231,8 +231,6 @@ class Layer():
 
         if (self.use_bn) and (not self.f_skip_bn):
             b = self.bn(s, training=training)
-            if glb.model_compiled:
-                assert False
         else:
             b = s
             #print('here')
