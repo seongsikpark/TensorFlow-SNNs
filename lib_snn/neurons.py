@@ -1106,8 +1106,8 @@ class Neuron(tf.keras.layers.Layer):
                 #self.indices = indices
 
                 # adaptive vth_schedule
-                #if False:
-                if True:
+                if False:
+                #if True:
                     n_decay_vth_schedule = tf.reshape(tf.math.floordiv(self.spike_count_int, len(self.vth_schedule)),shape=-1)
                     #n_decay_vth_schedule = tf.stack([n_decay_vth_schedule,n_decay_vth_schedule],axis=-1)
                     decay_vth_schedule = tf.math.pow(tf.constant(0.5,shape=n_decay_vth_schedule.shape),n_decay_vth_schedule)

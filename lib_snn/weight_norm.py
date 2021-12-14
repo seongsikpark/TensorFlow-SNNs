@@ -28,7 +28,7 @@ def save_act_stat(self):
     f_name_stat_pre=self.conf.prefix_stat
     stat_conf=['max_999']
     #stat_conf=['max']
-    stat_conf=['max_75', 'max_25']
+    #stat_conf=['max_75', 'max_25']
     #stat_conf=['max_99','max_95','max_90','max_80','max_70','max_60','max_50','max_40','max_30','max_20','max_10']
     #stat_conf=['max_99','max_95','max_90','max_80','max_70']
     #stat_conf=['max_20','max_10']

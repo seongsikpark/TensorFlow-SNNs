@@ -125,7 +125,7 @@ class SNNLIB(tf.keras.callbacks.Callback):
 
 
         self.f_skip_bn=False
-        self.layers_w_kernel=[]
+        #self.layers_w_kernel=[]
 
         #
         self.init_done = False
@@ -136,6 +136,9 @@ class SNNLIB(tf.keras.callbacks.Callback):
         self.calibration_static_done = False
         self.run_for_calibration = False
 
+        # compare
+        #self.run_for_compare_post_calib = False
+
 
     #def build(self):
         #lib_snn.proc.set_init(self)
@@ -143,6 +146,9 @@ class SNNLIB(tf.keras.callbacks.Callback):
     def on_test_begin(self, logs=None):
         # initialization
         lib_snn.proc.preproc(self)
+
+        # reset
+        lib_snn.proc.reset(self)
 
 
     def on_test_end(self, logs=None):

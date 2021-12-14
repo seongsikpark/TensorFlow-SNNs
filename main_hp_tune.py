@@ -14,6 +14,11 @@ import os
 #os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 import tensorflow as tf
+import tensorflow_probability as tfp
+
+#
+from absl import app
+from absl import flags
 
 # HP tune
 #import kerastuner as kt
@@ -42,6 +47,7 @@ import numpy as np
 #import cv2
 
 # configuration
+import config
 from config import conf
 
 # snn library
@@ -116,8 +122,8 @@ hp_tune = False
 #train=False
 train=conf.train
 
-#load_model=True
-load_model=False
+load_model=True
+#load_model=False
 
 #
 #save_model = False
@@ -132,8 +138,8 @@ overwrite_tensorboard = True
 
 #epoch = 20000
 #epoch = 20472
-train_epoch = 300
-#train_epoch = 1000
+#train_epoch = 300
+train_epoch = 1000
 #train_epoch = 1
 
 
@@ -636,7 +642,7 @@ if f_hp_tune:
     #assert False
 else:
     model = lib_snn.model_builder.model_builder(
-        eager_mode, model_top, batch_size, image_shape, conf, include_top, load_weight, num_class, model_name, lmb, initial_channels,
+        eager_mode, model_top, conf.nn_mode, batch_size, image_shape, conf, include_top, load_weight, num_class, model_name, lmb, initial_channels,
         train_epoch, train_steps_per_epoch,
         opt, learning_rate,
         lr_schedule, step_decay_epoch,
@@ -648,14 +654,17 @@ if conf.nn_mode=='SNN' and conf.dnn_to_snn:
     nn_mode_ori = conf.nn_mode
     conf.nn_mode='ANN'
     model_ann = lib_snn.model_builder.model_builder(
-        eager_mode, model_top, batch_size, image_shape, conf, include_top, load_weight, num_class, model_name, lmb, initial_channels,
+        eager_mode, model_top, 'ANN', batch_size, image_shape, conf, include_top, load_weight, num_class, model_name, lmb, initial_channels,
         train_epoch, train_steps_per_epoch,
         opt, learning_rate,
         lr_schedule, step_decay_epoch,
         metric_accuracy, metric_accuracy_top5)
     conf.nn_mode=nn_mode_ori
 
+    #model_ann.set_en_snn('ANN')
+
     model_ann.load_weights(load_weight)
+
     print('-- model_ann - load done')
     model.load_weights_dnn_to_snn(model_ann)
 
@@ -670,7 +679,7 @@ elif load_model:
     # model.load_weights(load_weight,by_name=
 
 if conf.nn_mode=='ANN':
-    model_ann = None
+    model_ann=None
 
 
 #ann_kernel={}
@@ -753,7 +762,6 @@ if not load_model:
         if os.path.isdir(filepath):
             shutil.rmtree(filepath)
 
-#assert False
 # path_tensorboard = root_tensorboard+exp_set_name
 # path_tensorboard = root_tensorboard+filepath
 
@@ -849,29 +857,52 @@ if train:
 else:
     print('Test mode')
 
-    dnn_snn_compare=True
+    #dnn_snn_compare=True
     #dnn_snn_compare=False
+
+    #compare_control_snn = False
+    compare_control_snn = True
 
     act_based_calibration = conf.calibration_bias_ICML_21 or conf.calibration_vmem_ICML_21 or conf.calibration_weight_post
     #if (conf.nn_mode=='SNN') and (dnn_snn_compare or conf.calibration_bias_ICML_21 or conf.calibration_vmem_ICML_21) :
-    if (conf.nn_mode == 'SNN') and (dnn_snn_compare or act_based_calibration):
+    #if (conf.nn_mode == 'SNN') and (dnn_snn_compare or act_based_calibration):
+    if (conf.nn_mode == 'SNN') and (compare_control_snn or act_based_calibration):
+
+        cb_libsnn_ann.run_for_calibration = True
+
+        #
+        #compare_control_snn = True
+        if (not conf.full_test) and compare_control_snn and conf.verbose_visual:
+            #cb_libsnn_ann.run_for_compare_post_calib = True
+            lib_snn.sim.set_for_visual_debug(True)
+            model_ann.evaluate(test_ds, callbacks=callbacks_test_ann)
+            #cb_libsnn_ann.run_for_compare_post_calib=False
+            lib_snn.sim.set_for_visual_debug(False)
+
+
         #if conf.calibration_bias_ICML_21 or conf.calibration_vmem_ICML_21:
         if act_based_calibration:
             # TODO: random sampling
             #test_ds_one_batch = tf.data.experimental.get_single_element(test_ds)
             #test_ds_one_batch = tf.data.Dataset.from_tensors(test_ds_one_batch)
-            images_one_batch, labels_one_batch = next(iter(test_ds))
-            test_ds_one_batch = tf.data.Dataset.from_tensors((images_one_batch,labels_one_batch))
-            test_ds_ann = test_ds_one_batch
-        else:
-            test_ds_ann = test_ds
+            images_one_batch, labels_one_batch = next(iter(train_ds))
+            #images_one_batch, labels_one_batch = next(iter(test_ds))
+            #print(tf.reduce_mean(images_one_batch))
+        #else:
+            #images_one_batch, labels_one_batch = next(iter(test_ds))
 
+        ds_one_batch = tf.data.Dataset.from_tensors((images_one_batch,labels_one_batch))
+        ds_ann = ds_one_batch
+
+
+        #
         nn_mode_ori = conf.nn_mode
-        conf.nn_mode = 'ANN'
-        result_ann = model_ann.evaluate(test_ds_ann, callbacks=callbacks_test_ann)
+        #conf.nn_mode = 'ANN'
+        result_ann = model_ann.evaluate(ds_ann, callbacks=callbacks_test_ann)
         conf.nn_mode = nn_mode_ori
 
     #
+    # calibration with activations
     # calibration ICML-21
     #
     #if (conf.nn_mode == 'SNN') and (conf.calibration_bias_ICML_21 or conf.calibration_vmem_ICML_21):
@@ -882,8 +913,15 @@ else:
         glb_plot_1.mark='ro'
         glb_plot_2.mark='ro'
 
+        #
+        compare_control_snn=True
+        if (not conf.full_test) and compare_control_snn and conf.verbose_visual:
+            lib_snn.sim.set_for_visual_debug(True)
+            model.evaluate(test_ds, callbacks=callbacks_test)
+            lib_snn.sim.set_for_visual_debug(False)
+
         # run
-        model.evaluate(test_ds_one_batch, callbacks=callbacks_test)
+        model.evaluate(ds_one_batch, callbacks=callbacks_test)
 
         # post
         cb_libsnn.run_for_calibration = False
@@ -894,11 +932,30 @@ else:
     #
     # run
     #
+    lib_snn.sim.set_for_visual_debug(True)
     result = model.evaluate(test_ds, callbacks=callbacks_test)
+    lib_snn.sim.set_for_visual_debug(False)
+
     #result = model.evaluate(test_ds)
     # result = model.predict(test_ds)
 
     print(result)
+
+
+    #
+#    ## compare control model
+#    compare_control_snn_model = True
+#    if compare_control_snn_model:
+#
+#        cb_libsnn_ctrl = lib_snn.callbacks.SNNLIB(conf, path_model, test_ds_num)
+#        cb_libsnn_ctrl.run_for_calibration = True
+#
+#
+#
+#        #if dnn_snn_compare:
+#        model_ann.evaluate(test_ds)
+#
+#        lib_snn.proc.dnn_snn_compare_func(cb_libsnn)
 
     #
     #for layer in model.layers_w_neuron:
@@ -938,3 +995,10 @@ if False:
                     print(tf.reduce_mean(snn))
                     print(tf.reduce_mean(ann))
                     assert False
+
+
+
+#if __name__=="__main__":
+#    # logging.set_verbosity(logging.INfO)
+#    config.configurations()
+#    app.run(main)

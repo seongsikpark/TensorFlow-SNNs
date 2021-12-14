@@ -19,7 +19,7 @@ def vth_calibration_stat(self):
     #stat = 'max'
     stat = 'max_999'
     #stat = 'max_99'
-    for idx_l, l in enumerate(self.layers_w_kernel):
+    for idx_l, l in enumerate(self.model.layers_w_kernel):
         #print(l.name)
         key=l.name+'_'+stat
 
@@ -129,12 +129,12 @@ def vth_calibration_manual(self):
         vth_cal['fc2'] = const
         vth_cal['predictions'] = const
 
-    for idx_l, l in enumerate(self.layers_w_kernel):
+    for idx_l, l in enumerate(self.model.layers_w_kernel):
         l.act.set_vth_init(vth_cal[l.name])
 
 
     # scale - vth
-    for idx_l, l in enumerate(self.layers_w_kernel):
+    for idx_l, l in enumerate(self.model.layers_w_kernel):
         if idx_l != 0:
             scale = prev_vth_cal
             l.kernel = l.kernel*scale
@@ -166,7 +166,7 @@ def read_stat(self,layer,stat):
 def vth_toggle(self):
 
     stat = 'max_999'
-    for idx_l, l in enumerate(self.layers_w_kernel):
+    for idx_l, l in enumerate(self.model.layers_w_kernel):
         #
 
         #
@@ -248,7 +248,7 @@ def vth_calibration_old(self,f_norm, stat):
     stat = 'max'
     stat = 'max_999'
     #stat = 'max_99'
-    for idx_l, l in enumerate(self.layers_w_kernel):
+    for idx_l, l in enumerate(self.model.layers_w_kernel):
         #print(l.name)
         key=l.name+'_'+stat
 
@@ -305,7 +305,7 @@ def bias_calibration(self):
     bias_cal['predictions'] = const
 
     #
-    for layer in self.layers_w_kernel:
+    for layer in self.model.layers_w_kernel:
         layer.bias = layer.bias*bias_cal[layer.name]
 
 
@@ -369,8 +369,8 @@ def weight_calibration(self):
         norm['fc2']     = 1.0
         norm['predictions'] = 1.0
 
-    #elif False:
-    elif True:
+    elif False:
+    #elif True:
         #norm['conv1']   = const
         norm['conv1']   = 0.95
         #norm['conv1']   = 0.9
@@ -397,14 +397,53 @@ def weight_calibration(self):
         norm['fc2']     = const
         norm['predictions'] = const
 
+
     elif False:
-        for idx_l, l in enumerate(self.layers_w_kernel):
-            norm[l.name]=1.0
+    #elif True:
+        #norm['conv1']   = const
+        norm['conv1']   = 0.95
+        #norm['conv1']   = 0.7
+        #norm['conv1']   = [0.7]*64
+        #norm['conv1'][5] = 0.5
+        norm['conv1_1'] = const
+        #norm['conv1_1'] = 0.5
+        norm['conv2']   = const
+        #norm['conv2']   = 0.5
+        #norm['conv2_1'] = const
+        norm['conv2_1'] = 0.9
+        #norm['conv3']   = const
+        norm['conv3']   = 0.8
+        #norm['conv3_1'] = const
+        norm['conv3_1'] = 0.8
+        norm['conv3_2'] = const
+        norm['conv4']   = const
+        norm['conv4_1'] = const
+        norm['conv4_2'] = const
+        norm['conv5']   = const
+        norm['conv5_1'] = const
+        norm['conv5_2'] = const
+        norm['fc1']     = const
+        norm['fc2']     = const
+        norm['predictions'] = const
 
-        norm['conv1']=0.7
+    # current best - 1208
+    #elif False:
+    elif True:
+        #for idx_l, l in enumerate(self.model.layers_w_kernel):
+            #norm[l.name]=0.8
 
-        #norm['conv1']=0.9
-        #norm['conv1_1']=0.8
+
+        depth_l = len(self.model.layers_w_kernel)
+        a = 0.5
+        #a = 0.8
+        b = 1.0
+        #b = 0.8
+        for idx_l, l in enumerate(self.model.layers_w_kernel):
+            norm[l.name] = a + (1 - a) * (depth_l - idx_l) / (depth_l)
+            norm[l.name] *= b
+            # norm[l.name]=a*(depth_l-idx_l)/(depth_l)
+    #elif True:
+
 
 
     elif False:
@@ -433,7 +472,7 @@ def weight_calibration(self):
         #stat = 'max'
         #stat = 'max_75'
         stat = 'median'
-        for idx_l, l in enumerate(self.layers_w_kernel):
+        for idx_l, l in enumerate(self.model.layers_w_kernel):
             #print(l.name)
             key=l.name+'_'+stat
 
@@ -460,7 +499,7 @@ def weight_calibration(self):
     #
 
     if 'VGG' in self.conf.model:
-        for idx_l, l in enumerate(self.layers_w_kernel):
+        for idx_l, l in enumerate(self.model.layers_w_kernel):
             if idx_l == 0:
                 norm_wc[l.name] = norm[l.name]
             else:
@@ -470,14 +509,14 @@ def weight_calibration(self):
             prev_layer_name = l.name
             norm_b_wc[l.name] = norm[l.name]
 
-    for layer in self.layers_w_kernel:
+    for layer in self.model.layers_w_kernel:
         # layer = self.model.get_layer(name=name_l)
         if layer.name in norm_wc.keys():
             layer.kernel = layer.kernel / norm_wc[layer.name]
         if layer.name in norm_b_wc.keys():
             layer.bias = layer.bias / norm_b_wc[layer.name]
 
-    for layer in self.layers_w_kernel:
+    for layer in self.model.layers_w_kernel:
         print(layer.name)
         print(norm_wc[layer.name])
 
@@ -504,7 +543,7 @@ def weight_calibration_post(self):
 
     #if True:
     if False:
-        for idx_l, l in enumerate(self.layers_w_kernel):
+        for idx_l, l in enumerate(self.model.layers_w_kernel):
             norm[l.name]=1.0
 
         #norm['conv1']=0.9
@@ -517,9 +556,9 @@ def weight_calibration_post(self):
         error_level = 'layer'
         # error_level = 'channel'
 
-        for idx_l, l in enumerate(self.layers_w_kernel):
+        for idx_l, l in enumerate(self.model.layers_w_kernel):
 
-            if idx_l == len(self.layers_w_kernel)-1:
+            if idx_l == len(self.model.layers_w_kernel)-1:
                 norm[l.name]=1.0
                 continue
 
@@ -557,13 +596,14 @@ def weight_calibration_post(self):
 
     # firing rate -> to 1
     elif True:
+    #elif False:
 
         error_level = 'layer'
         #error_level = 'channel'
 
-        for idx_l, l in enumerate(self.layers_w_kernel):
+        for idx_l, l in enumerate(self.model.layers_w_kernel):
 
-            if idx_l == len(self.layers_w_kernel)-1:
+            if idx_l == len(self.model.layers_w_kernel)-1:
                 norm[l.name]=1.0
                 continue
 
@@ -573,6 +613,14 @@ def weight_calibration_post(self):
                 time = self.conf.time_step
 
             snn_act = l.act.spike_count_int/time
+
+            #ann_act = self.model_ann.get_layer(l.name).record_output
+            #ann_act_s = self.model_ann.get_layer(l.name).bias
+            #ann_act_d =
+
+            #print(norm_s)
+            #assert False
+
 
             if error_level == 'layer':
                 if isinstance(l, lib_snn.layers.Conv2D):
@@ -594,69 +642,90 @@ def weight_calibration_post(self):
 
             #fire_r_m = tf.reduce_mean(snn_act,axis=axis)
             #fire_r_m = tf.reduce_max(snn_act,axis=axis)
-            fire_r_m = tfp.stats.percentile(snn_act,99.5,axis=axis)
+            #fire_r_m = tfp.stats.percentile(snn_act,99.91,axis=axis)
+            fire_r_m = tfp.stats.percentile(snn_act,99.9,axis=axis)
+            fire_r_m = tf.where(fire_r_m==0,tf.ones(fire_r_m.shape),fire_r_m)
+
+            #time_r = time/self.conf.time_step
+            #fire_r_m = fire_r_m/time_r
 
             norm[l.name] = fire_r_m
 
+            #
+            print('{} - t bias en: {}'.format(l.name,tf.reduce_mean(l.bias_en_time)))
 
-
-    #if True:
+    #elif True:
     elif False:
-        for idx_l, l in enumerate(self.layers_w_kernel):
-            ann_act = self.model_ann.get_layer(l.name).record_output
-            if isinstance(l,lib_snn.layers.Conv2D):
-                axis=[0,1,2]
-            elif isinstance(l,lib_snn.layers.Dense):
-                axis=[0]
+        stat='max_999'
+        #stat='max'
+
+        #error_level = 'layer'
+        error_level = 'channel'
+
+        for idx_l, l in enumerate(self.model.layers_w_kernel):
+
+            if idx_l == len(self.model.layers_w_kernel)-1:
+                norm[l.name]=1.0
+                continue
+
+            if self.conf.bias_control:
+                time = tf.cast(self.conf.time_step - tf.reduce_mean(l.bias_en_time), tf.float32)
+            else:
+                time = self.conf.time_step
+
+            self.stat_r = read_stat(self, l, stat)
+            stat_r = self.stat_r
+
+            # represent_stat = f_norm(self.dict_stat_r[l.name])
+            #represent_stat = self.norm_b[l.name]
+
+            norm_sat = stat_r / self.norm_b[l.name]
+            norm_sat_e = norm_sat - 1
+            norm_sat_e = tf.where(norm_sat_e > 0, norm_sat, tf.zeros(norm_sat.shape))
+
+            if error_level == 'layer':
+                if isinstance(l, lib_snn.layers.Conv2D):
+                    axis = [0, 1, 2, 3]
+                elif isinstance(l, lib_snn.layers.Dense):
+                    axis = [0, 1]
+                else:
+                    assert False
+            elif error_level == 'channel':
+                if isinstance(l, lib_snn.layers.Conv2D):
+                    axis = [0, 1, 2]
+                elif isinstance(l, lib_snn.layers.Dense):
+                    axis = [0]
+                else:
+                    assert False
             else:
                 assert False
+
+            #norm_sat_e = tf.reduce_mean(norm_sat_e,axis=axis)
 
             #
-            th = 1.0
-            ann_act_ch = tf.reduce_max(ann_act,axis=axis)
-            ann_act_ch = tf.where(ann_act_ch>th, tf.ones(shape=ann_act_ch.shape),ann_act_ch)
-            norm[l.name] = ann_act_ch
-            #norm[l.name] = ann_act_ch*0.5
+            ann_act = self.model_ann.get_layer(l.name).record_output
+            ann_act_s = self.model_ann.get_layer(l.name).bias
+            ann_act_d = ann_act - ann_act_s
+            ann_act_r = ann_act_d / ann_act_s
 
-            # bias cal test - vth = act_dnn/(act_snn), act_snn = spike/T
-            #snn_act = l.act.spike_count_int/self.conf.time_step
+            print(l.name)
+            print('ann_act_r')
+            print(ann_act_r)
+            print(ann_act_s)
 
-            time = tf.cast(self.conf.time_step - tf.reduce_mean(l.bias_en_time), tf.float32)
-            snn_act = l.act.spike_count_int/time
+            bias_comp_sub = norm_sat_e/ann_act_r
+            bias_comp_sub = tf.where(tf.equal(ann_act,0.0), tf.zeros(bias_comp_sub.shape), bias_comp_sub)
+            bias_comp_sub = tf.reduce_mean(bias_comp_sub,axis=axis)
 
-            snn_act = tf.where(tf.equal(snn_act,0), tf.ones(snn_act.shape), snn_act)
-            ann_act = tf.where(tf.equal(ann_act,0), tf.ones(ann_act.shape), ann_act)
-            #print(snn_act)
-            self.vth_cal = snn_act / ann_act
-            self.cal[l.name]=snn_act / ann_act
-            vth_cal = self.vth_cal
-            vth_cal = tf.where(tf.greater(vth_cal,1), tf.ones(vth_cal.shape), vth_cal)
-            vth_cal = tf.reduce_mean(vth_cal,axis=0)
+            print('bias_comp_sub')
+            print(bias_comp_sub)
 
-            w_cal = ann_act / snn_act
-            #w_cal = tf.where(tf.greater(w_cal,1), tf.ones(w_cal.shape), w_cal)
-            w_cal = tf.where(tf.less(w_cal,1), tf.ones(w_cal.shape), w_cal)
-            w_cal = tf.reduce_mean(w_cal,axis=0)
+            l.bias -= bias_comp_sub*0.001
 
-            if isinstance(l,lib_snn.layers.Conv2D):
-                vth_cal_ch = tf.reduce_mean(vth_cal, axis=[0, 1])
-                w_cal_ch = tf.reduce_mean(w_cal, axis=[0, 1])
-                #vth_cal_ch /= tf.reduce_mean(l.kernel, axis=[0,1,2])
-            elif isinstance(l,lib_snn.layers.Dense):
-                vth_cal_ch = vth_cal
-                w_cal_ch = w_cal
-                #vth_cal_ch /= tf.reduce_mean(l.kernel, axis=[0])
-            else:
-                assert False
 
-            #norm[l.name] /= vth_cal_ch
-            #norm[l.name] = w_cal_ch
+        return
 
-            # batch
-            vth_cal = np.expand_dims(vth_cal, axis=0)
-            vth_cal = tf.broadcast_to(vth_cal, l.act.dim)
-
-            #l.act.set_vth_init(vth_cal)
+    #if True:
 
     else:
         #
@@ -665,7 +734,7 @@ def weight_calibration_post(self):
         #stat = 'max'
         #stat = 'max_75'
         stat = 'median'
-        for idx_l, l in enumerate(self.layers_w_kernel):
+        for idx_l, l in enumerate(self.model.layers_w_kernel):
             #print(l.name)
             key=l.name+'_'+stat
 
@@ -692,7 +761,7 @@ def weight_calibration_post(self):
     #
 
     if 'VGG' in self.conf.model:
-        for idx_l, l in enumerate(self.layers_w_kernel):
+        for idx_l, l in enumerate(self.model.layers_w_kernel):
             if idx_l == 0:
                 norm_wc[l.name] = norm[l.name]
             else:
@@ -702,14 +771,14 @@ def weight_calibration_post(self):
             prev_layer_name = l.name
             norm_b_wc[l.name] = norm[l.name]
 
-    for layer in self.layers_w_kernel:
+    for layer in self.model.layers_w_kernel:
         # layer = self.model.get_layer(name=name_l)
         if layer.name in norm_wc.keys():
             layer.kernel = layer.kernel / norm_wc[layer.name]
         if layer.name in norm_b_wc.keys():
             layer.bias = layer.bias / norm_b_wc[layer.name]
 
-    for layer in self.layers_w_kernel:
+    for layer in self.model.layers_w_kernel:
         print(layer.name)
         print(norm_wc[layer.name])
 
@@ -718,7 +787,7 @@ def weight_calibration_post(self):
 def weight_calibration_inv_vth(self):
     #
     # scale - inv. vth
-    for idx_l, l in enumerate(self.layers_w_kernel):
+    for idx_l, l in enumerate(self.model.layers_w_kernel):
         if idx_l != 0:
             scale = self.conf.n_init_vth
             l.kernel = l.kernel*scale
@@ -733,7 +802,7 @@ def vmem_calibration(self):
     stat = 'max'
     #stat = 'max_90'
     #stat = 'max_50'
-    for idx_l, l in enumerate(self.layers_w_kernel):
+    for idx_l, l in enumerate(self.model.layers_w_kernel):
         #print(l.name)
         key=l.name+'_'+stat
 
@@ -783,7 +852,7 @@ def vmem_calibration(self):
 def bias_calibration_ICLR_21(self):
     print('bias_calibration_ICLR_21')
 
-    for idx_l, l in enumerate(self.layers_w_kernel):
+    for idx_l, l in enumerate(self.model.layers_w_kernel):
         if isinstance(l, lib_snn.layers.Conv2D):
             axis = [0,1,2]
         elif isinstance(l, lib_snn.layers.Dense):
@@ -791,8 +860,10 @@ def bias_calibration_ICLR_21(self):
         else:
             assert False
 
+        time = tf.cast(self.conf.time_step - tf.reduce_mean(l.bias_en_time), tf.float32)
+
         vth_channel = tf.reduce_mean(l.act.vth,axis=axis)
-        bias_comp = vth_channel/(2*self.conf.time_step)
+        bias_comp = vth_channel/(2*time)
 
         l.bias += bias_comp
 
@@ -804,7 +875,7 @@ def bias_calibration_ICML_21(self):
     #print('')
     print('bias_calibration_ICML_21')
 
-    for idx_l, l in enumerate(self.layers_w_kernel):
+    for idx_l, l in enumerate(self.model.layers_w_kernel):
         if isinstance(l, lib_snn.layers.Conv2D):
             axis = [0,1,2]
         elif isinstance(l, lib_snn.layers.Dense):
@@ -817,6 +888,7 @@ def bias_calibration_ICML_21(self):
 
         dnn_act_mean = tf.reduce_mean(ann_out, axis=axis)
         # snn_act_mean = self.conf.n_init_vth*tf.reduce_mean(snn_out,axis=axis)/self.conf.time_step
+
         #time=self.conf.time_step
         time = tf.cast(self.conf.time_step - tf.reduce_mean(l.bias_en_time), tf.float32)
 
@@ -836,6 +908,12 @@ def bias_calibration_ICML_21(self):
         snn_act_mean = self.conf.n_init_vth*tf.reduce_mean(snn_out,axis=axis)
 
         bias_comp = dnn_act_mean - snn_act_mean
+
+        # test
+        #bias_comp *= 2
+        bias_comp *= 4  # T=128, WP+B-ML
+        #bias_comp *= 5  #
+
         #bias_comp = (dnn_act_mean - snn_act_mean)/self.conf.time_step
         #bias_comp = dnn_act_mean - self.conf.n_init_vth*snn_act_mean/self.conf.time_step
 
@@ -851,7 +929,7 @@ def bias_calibration_ICML_21(self):
 def vmem_calibration_ICML_21(self):
     print('vmem_calibration_ICML_21')
 
-    for idx_l, l in enumerate(self.layers_w_kernel):
+    for idx_l, l in enumerate(self.model.layers_w_kernel):
         l_ann = self.model.get_layer(l.name)
 
         if l.name == 'predictions':
@@ -860,12 +938,15 @@ def vmem_calibration_ICML_21(self):
         dnn_act = l_ann.record_output
         snn_act = l.act.spike_count_int
 
-        #time=self.conf.time_step
-        time = tf.cast(self.conf.time_step - tf.reduce_mean(l.bias_en_time), tf.float32)
+        if self.conf.bias_control:
+            time = tf.cast(self.conf.time_step - tf.reduce_mean(l.bias_en_time), tf.float32)
+        else:
+            time=self.conf.time_step
 
         error = dnn_act - self.conf.n_init_vth*snn_act/time
         error = tf.reduce_mean(error,axis=0)
         vmem_comp = error*time
+        #vmem_comp = error
         #vmem_comp = error*self.conf.time_step
         #vmem_comp = error*(self.conf.time_step*0.01)
         #vmem_comp = error

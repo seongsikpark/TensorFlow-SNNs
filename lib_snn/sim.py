@@ -1,4 +1,11 @@
 
+
+import tensorflow as tf
+
+#from absl import flags
+from config import conf
+
+import collections
 import matplotlib.pyplot as plt
 
 # global clock - time step
@@ -43,6 +50,14 @@ class GLB_PLOT():
         for idx, layer_name in enumerate(self.layers):
             axe = self.axes.flatten()[idx]
             axe.set_title(layer_name+' neuron '+str(self.idx_neurons[idx]))
+
+
+#
+tf.compat.v1.app.flags.DEFINE_bool('_run_for_visual_debug',False,'(internal) run for visual debug')
+
+def set_for_visual_debug(set):
+    #flags.FLAGS._run_for_visual_debug = (set) and (flags.FLAGS.verbose_visual)
+    conf._run_for_visual_debug = (set) and (conf.verbose_visual)
 
 
 

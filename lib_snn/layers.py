@@ -50,6 +50,7 @@ class Layer():
         self.use_bn = use_bn
         #self.en_snn = Model.en_snn
         self.en_snn = (self.conf.nn_mode == 'SNN' or self.conf.f_validation_snn)
+        #self.en_snn = None
 
         #self.use_bias = True
         #self.use_bias = conf.use_bias
@@ -231,6 +232,8 @@ class Layer():
 
         if (self.use_bn) and (not self.f_skip_bn):
             b = self.bn(s, training=training)
+            #if glb.model_compiled:
+            #    assert False
         else:
             b = s
             #print('here')
@@ -254,11 +257,13 @@ class Layer():
             #self.plot()
 
         #
-        if (not self.conf.full_test) and (glb.model_compiled) and (self.conf.debug_mode and self.conf.nn_mode=='SNN'):
-            if self.name=='conv1':
-                print('{:4d}: {}'.format(glb_t.t, b.numpy().flatten()[0:10]))
-                print('{:4d}: {}'.format(glb_t.t, self.act.vmem.numpy().flatten()[0:10]))
-                print(': {}'.format(self.act.spike_count_int.numpy().flatten()[0:10]))
+        #if (not self.conf.full_test) and (glb.model_compiled) and (self.conf.debug_mode and self.conf.nn_mode=='SNN'):
+        #    if self.name=='conv1':
+        #        print('{:4d}'.format(glb_t.t))
+        #        print('{:4d}: {}'.format(glb_t.t, b.numpy().flatten()[0:10]))
+        #        print('{:4d}: {}'.format(glb_t.t, self.act.vmem.numpy().flatten()[0:10]))
+                #print('{:4d}: {}'.format(glb_t.t, self.act.spike_count_int.numpy().flatten()[0:10]))
+        #        print(': {}'.format(self.act.spike_count_int.numpy().flatten()[0:10]))
 
         #if (glb.model_compiled) and (self.conf.debug_mode and self.conf.nn_mode == 'SNN'):
         #    self.plot_neuron()
@@ -335,7 +340,7 @@ class Layer():
 
     #
     def bias_control(self, synaptic_output):
-        if hasattr(self, 'bias') and self.conf.nn_mode == 'SNN':
+        if hasattr(self, 'bias') and self.en_snn:
             if self.conf.use_bias and tf.reduce_any(self.f_bias_ctrl):
                 ret = tf.subtract(synaptic_output, self.bias_ctrl_sub)
                 return ret
