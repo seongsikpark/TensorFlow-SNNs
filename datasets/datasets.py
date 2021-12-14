@@ -45,8 +45,8 @@ def load(dataset_name,batch_size,input_size,train_type,train,conf,num_parallel_c
             assert False, 'not supported train type {}'.format(train_type)
 
 
-    train_ds, valid_ds, test_ds = dataset.load(dataset_name,
+    train_ds, valid_ds, test_ds, train_ds_num, valid_ds_num, test_ds_num = dataset.load(dataset_name,
                                                batch_size,input_size, input_size_pre_crop_ratio, num_class, train,
                                                num_parallel_call, conf, input_prec_mode)
 
-    return train_ds, valid_ds, test_ds, num_class
+    return train_ds, valid_ds, test_ds, train_ds_num, valid_ds_num, test_ds_num, num_class

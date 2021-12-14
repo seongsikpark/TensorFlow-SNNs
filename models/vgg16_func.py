@@ -22,6 +22,7 @@ def VGG16(
         pooling=None,
         classes=1000,
         classifier_activation='softmax',
+        nn_mode='ANN',
         name='VGG16',
         **kwargs):
 
@@ -39,7 +40,7 @@ def VGG16(
     act_sm = 'softmax'
 
     #
-    dropout_conv_r = [0, 0, 0]
+    dropout_conv_r = [0.2, 0.2, 0]
 
     #
     initial_channels = kwargs.pop('initial_channels', None)
@@ -107,7 +108,6 @@ def VGG16(
     #model = training.Model(img_input, x, name=name)
     model = lib_snn.model.Model(img_input, x, batch_size, input_shape,  data_format, classes, conf, name=name)
     #model = lib_snModel.init_graph(img_input, x, name=name)
-
 
 
 

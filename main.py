@@ -39,11 +39,11 @@ model_name = 'VGG16'
 model_name = 'ResNet18'
 model_name = 'ResNet20'
 #model_name = 'ResNet34'
-#model_name = 'ResNet50'
+model_name = 'ResNet50'
 
 # dataset
 dataset_name = 'CIFAR10'
-#dataset_name = 'CIFAR100'
+dataset_name = 'CIFAR100'
 #dataset_name='ImageNet'
 
 #

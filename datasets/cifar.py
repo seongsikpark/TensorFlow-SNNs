@@ -25,37 +25,51 @@ def load(dataset_name,batch_size,input_size,input_size_pre_crop_ratio,num_class,
     if train:
         if f_cross_valid:
             #train_ds = tfds.load('cifar10',
-            train_ds = tfds.load(dataset_name,
+            train_ds, train_ds_info = tfds.load(dataset_name,
                                  split=[f'train[:{k}%]+train[{ k +10}%:]' for k in range(0 ,100 ,10)],
                                  shuffle_files=True,
-                                 as_supervised=True)
+                                 as_supervised=True,
+                                 with_info=True)
 
-            valid_ds = tfds.load(dataset_name,
+            valid_ds, valid_ds_info = tfds.load(dataset_name,
                                  split=[f'train[{k}%:{ k +10}%]' for k in range(0 ,100 ,10)],
                                  shuffle_files=True,
-                                 as_supervised=True)
+                                 as_supervised=True,
+                                 with_info=True)
+
+            train_ds_num = train_ds_info.splits['train'].num_examples
+            valid_ds_num = valid_ds_info.splits['test'].num_examples
 
         elif conf.data_aug_mix=='mixup' or conf.data_aug_mix=='cutmix':
-            train_ds_1 = tfds.load(dataset_name,
+            train_ds_1, train_ds_1_info = tfds.load(dataset_name,
                                    split='train',
                                    shuffle_files=True,
-                                   as_supervised=True)
+                                   as_supervised=True,
+                                   with_info=True)
 
-            train_ds_2 = tfds.load(dataset_name,
+            train_ds_2, train_ds_2_info = tfds.load(dataset_name,
                                    split='train',
                                    shuffle_files=True,
-                                   as_supervised=True)
+                                   as_supervised=True,
+                                   with_info=True)
+
+            valid_ds, valid_ds_info = tfds.load(dataset_name,
+                                 split='test',
+                                 as_supervised=True,
+                                 with_info=True)
 
             train_ds = tf.data.Dataset.zip((train_ds_1 ,train_ds_2))
-
-            valid_ds = tfds.load(dataset_name,
-                                 split='test',
-                                 as_supervised=True)
+            train_ds_num = train_ds_1_info.splits['train'].num_examples
+            valid_ds_num = valid_ds_info.splits['test'].num_examples
         else:
-            train_ds, valid_ds = tfds.load(dataset_name,
+            (train_ds, valid_ds), ds_info = tfds.load(dataset_name,
                                            split=['train', 'test'],
                                            shuffle_files=True,
-                                           as_supervised=True)
+                                           as_supervised=True,
+                                           with_info=True)
+
+            train_ds_num = ds_info.splits['train'].num_examples
+            valid_ds_num = ds_info.splits['test'].num_examples
     else:
         if conf.full_test:
             split_test = tfds.core.ReadInstruction('test', from_=0, to=100, unit='%')
@@ -64,10 +78,14 @@ def load(dataset_name,batch_size,input_size,input_size_pre_crop_ratio,num_class,
             idx_test_e = idx_test_s + conf.num_test_data
             split_test = tfds.core.ReadInstruction('test', from_=idx_test_s, to=idx_test_e, unit='abs')
 
-        train_ds = tfds.load(dataset_name, split='train', shuffle_files=True, as_supervised=True)
-        valid_ds = tfds.load(dataset_name, split=split_test, shuffle_files=False, as_supervised=True)
+        train_ds, train_ds_info = tfds.load(dataset_name, split='train', shuffle_files=True, as_supervised=True, with_info=True)
+        valid_ds, valid_ds_info = tfds.load(dataset_name, split=split_test, shuffle_files=False, as_supervised=True, with_info=True)
 
-
+        train_ds_num = train_ds_info.splits['train'].num_examples
+        if conf.full_test:
+            valid_ds_num = valid_ds_info.splits['test'].num_examples
+        else:
+            valid_ds_num = conf.num_test_data
 
     #
     #input_prec_mode = 'torch'
@@ -110,5 +128,5 @@ def load(dataset_name,batch_size,input_size,input_size_pre_crop_ratio,num_class,
     valid_ds = valid_ds.batch(batch_size)
     valid_ds = valid_ds.prefetch(num_parallel)
 
-    return train_ds, valid_ds, valid_ds
+    return train_ds, valid_ds, valid_ds, train_ds_num, valid_ds_num, valid_ds_num
 

@@ -36,7 +36,7 @@ class VGG16(lib_snn.model.Model):
         act_sm = 'softmax'
 
         #
-        self.dropout_conv_r = [0, 0, 0]
+        self.dropout_conv_r = [0.2, 0.2, 0.2]
 
         #
         initial_channels = kwargs.pop('initial_channels', None)
