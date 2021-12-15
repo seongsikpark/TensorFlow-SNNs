@@ -82,7 +82,7 @@ from lib_snn.sim import glb_plot_2
 
 # GPU setting
 #
-GPU_NUMBER=1
+GPU_NUMBER=0
 
 GPU_PARALLEL_RUN = 1
 #GPU_PARALLEL_RUN = 2
@@ -109,7 +109,8 @@ else:
 #exp_set_name = 'HPTune-GRID'
 #exp_set_name = 'HPTune-GRID'
 #exp_set_name = 'CODE_TEST'
-exp_set_name = 'Train_SC'
+#exp_set_name = 'Train_SC'
+exp_set_name = 'Train_SC_resnet'
 #exp_set_name = 'DNN-to-SNN'
 
 # hyperparamter tune mode
@@ -154,7 +155,7 @@ root_hp_tune = './hp_tune'
 
 #
 #root_model = './models_trained'
-root_model = './models_trained_test'
+root_model = './models_trained_resnet_relu_debug'
 
 # model
 #model_name = 'VGG16'

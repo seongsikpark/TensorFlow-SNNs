@@ -73,7 +73,8 @@ tf.compat.v1.app.flags.DEFINE_string('ann_model', 'MLP', 'neural network model')
 
 #
 tf.compat.v1.app.flags.DEFINE_boolean('verbose',True, 'verbose mode')
-tf.compat.v1.app.flags.DEFINE_boolean('verbose_visual',True, 'verbose visual mode')
+#tf.compat.v1.app.flags.DEFINE_boolean('verbose_visual',True, 'verbose visual mode')
+tf.compat.v1.app.flags.DEFINE_boolean('verbose_visual',False, 'verbose visual mode')
 
 #
 
@@ -231,16 +232,16 @@ tf.compat.v1.app.flags.DEFINE_bool('noise_en',False,'noise injection mode enable
 ################################
 
 # train mode
-tf.compat.v1.app.flags.DEFINE_bool('train', False, 'train mode')
-#tf.compat.v1.app.flags.DEFINE_bool('train', True, 'train mode')
+#tf.compat.v1.app.flags.DEFINE_bool('train', False, 'train mode')
+tf.compat.v1.app.flags.DEFINE_bool('train', True, 'train mode')
 
 #
 tf.compat.v1.app.flags.DEFINE_bool('dnn_to_snn', False, 'dnn-to-snn conversion')
 #tf.compat.v1.app.flags.DEFINE_bool('dnn_to_snn', True, 'dnn-to-snn conversion')
 
 # neural network mode
-#tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'ANN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
-tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'SNN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
+tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'ANN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
+#tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'SNN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
 
 # models
 #tf.compat.v1.app.flags.DEFINE_string('model', 'VGG16', 'model')
