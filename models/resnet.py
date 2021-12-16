@@ -56,8 +56,8 @@ def block_basic(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=No
         #shortcut = lib_snn.layers.Conv2D(1,1,strides=1,use_bn=False,activation=None,name=name+'_conv0_i',kernel_initializer='ones',trainable=False)(x)
 
     x = lib_snn.layers.Conv2D(filters, kernel_size, strides=stride, padding='SAME', use_bn=True, activation='relu',name=name + '_conv1')(x)
-    x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation='relu',name=name + '_conv2')(x)
-    #x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation='None',name=name + '_conv2')(x)
+    #x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation='relu',name=name + '_conv2')(x)
+    x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation=None,name=name + '_conv2')(x)
 
     x = lib_snn.layers.Add(use_bn=False, activation='relu', name=name + '_out')([shortcut, x])
 

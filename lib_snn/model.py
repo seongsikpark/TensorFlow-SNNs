@@ -35,7 +35,6 @@ from lib_snn.sim import glb_plot_2
 
 class Model(tf.keras.Model):
     count=0
-    #def __init__(self, inputs, outputs, batch_size, input_shape, data_format, num_class, conf, nn_mode, **kwargs):
     def __init__(self, inputs, outputs, batch_size, input_shape, data_format, num_class, conf, **kwargs):
     #def __init__(self, batch_size, input_shape, data_format, num_class, conf, **kwargs):
 
@@ -179,7 +178,6 @@ class Model(tf.keras.Model):
         # SNN mode
         #Model.en_snn = (self.conf.nn_mode == 'SNN' or self.conf.f_validation_snn)
         #self.en_snn = (self.conf.nn_mode == 'SNN' or self.conf.f_validation_snn)
-        #self.nn_mode = nn_mode
         self.nn_mode = conf.nn_mode
         self.en_snn = (self.nn_mode == 'SNN' or self.conf.f_validation_snn)
 
@@ -198,6 +196,12 @@ class Model(tf.keras.Model):
         if self.conf.f_w_norm_data:
             self.norm=collections.OrderedDict()
             self.norm_b=collections.OrderedDict()
+
+        # bias control - SNN inference
+        if self.en_snn:
+            self.bias_control = self.conf.bias_control
+        else:
+            self.bias_control = False
 
         # debugging
         #if self.f_debug_visual:
@@ -352,14 +356,8 @@ class Model(tf.keras.Model):
         #ret_val = self.run_mode[self.conf.nn_mode](inputs, training, self.conf.time_step, epoch)
         #ret_val = self.run_mode[self.conf.nn_mode](inputs, training)
 
-        ret_val = self.call_snn(inputs,training,mask)
-
-        return ret_val
-
-
-    def call_no(self, inputs, training=False, epoch=-1, f_val_snn=False):
-
-        ret_val = self.call_ann(inputs, training)
+        ret_val = self.run_mode[self.conf.nn_mode](inputs,training,mask)
+        #ret_val = self.call_snn(inputs,training,mask)
 
         return ret_val
 
@@ -457,7 +455,7 @@ class Model(tf.keras.Model):
         f_plot = (flags._run_for_visual_debug) and (not self.conf.full_test) and (glb.model_compiled) and (self.conf.debug_mode and self.nn_mode == 'SNN')
 
         # tf.expand_dims(self.bias_ctrl_sub,axis=(1,2))
-        if self.conf.bias_control:
+        if self.bias_control:
             self.bias_control_test_pre()
 
         #
@@ -494,7 +492,7 @@ class Model(tf.keras.Model):
                 self.plot_layer_neuron_vmem(glb_plot_1)
                 self.plot_layer_neuron_input(glb_plot_2)
 
-            if self.conf.bias_control:
+            if self.bias_control:
                 self.bias_control_test()
 
 
@@ -991,7 +989,7 @@ class Model(tf.keras.Model):
             self.total_residual_vmem[layer.name]=tf.zeros([self.num_accuracy_time_point])
 
         #
-        if self.conf.bias_control:
+        if self.bias_control:
             self.set_bias_control_th(model_ann)
 
         #
@@ -1414,7 +1412,6 @@ class Model(tf.keras.Model):
 
                 #self.bias_control_th[layer.name] = non_zero_r
 
-
                 print(layer.name)
                 print(self.bias_control_th[layer.name])
 
@@ -1428,7 +1425,7 @@ class Model(tf.keras.Model):
                     non_zero_ch_r = tf.expand_dims(non_zero_ch_r,axis=0)
                     self.bias_control_th_ch[layer.name] = tf.broadcast_to(non_zero_ch_r, shape=layer.f_bias_ctrl.shape)
 
-            self.bias_control_th['conv1'] = 0.01
+            #self.bias_control_th['conv1'] = 0.01
 
             #self.bias_control_th_ch[layer.name] = tf.constant(0.01, shape=layer.f_bias_ctrl.shape)
 
@@ -1441,7 +1438,7 @@ class Model(tf.keras.Model):
     # bias control - old
     ###########################################
     # TODO: bias control
-    def bias_control(self,t):
+    def bias_control_old(self,t):
         if self.conf.neural_coding == "RATE":
             if t == 0:
                 self.bias_enable()

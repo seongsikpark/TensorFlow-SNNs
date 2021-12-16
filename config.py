@@ -73,7 +73,8 @@ tf.compat.v1.app.flags.DEFINE_string('ann_model', 'MLP', 'neural network model')
 
 #
 tf.compat.v1.app.flags.DEFINE_boolean('verbose',True, 'verbose mode')
-tf.compat.v1.app.flags.DEFINE_boolean('verbose_visual',True, 'verbose visual mode')
+#tf.compat.v1.app.flags.DEFINE_boolean('verbose_visual',True, 'verbose visual mode')
+tf.compat.v1.app.flags.DEFINE_boolean('verbose_visual',False, 'verbose visual mode')
 
 #
 
@@ -231,8 +232,8 @@ tf.compat.v1.app.flags.DEFINE_bool('noise_en',False,'noise injection mode enable
 ################################
 
 # train mode
-tf.compat.v1.app.flags.DEFINE_bool('train', False, 'train mode')
-#tf.compat.v1.app.flags.DEFINE_bool('train', True, 'train mode')
+#tf.compat.v1.app.flags.DEFINE_bool('train', False, 'train mode')
+tf.compat.v1.app.flags.DEFINE_bool('train', True, 'train mode')
 
 #
 tf.compat.v1.app.flags.DEFINE_bool('dnn_to_snn', False, 'dnn-to-snn conversion')
@@ -262,8 +263,8 @@ tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR10', 'dataset')
 #tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR100', 'dataset')
 
 #
-tf.compat.v1.app.flags.DEFINE_bool('load_best_model', True, 'load best model (model, dataset)')
-#tf.compat.v1.app.flags.DEFINE_bool('load_best_model', False, 'load best model (model, dataset)')
+#tf.compat.v1.app.flags.DEFINE_bool('load_best_model', True, 'load best model (model, dataset)')
+tf.compat.v1.app.flags.DEFINE_bool('load_best_model', False, 'load best model (model, dataset)')
 
 #
 tf.compat.v1.app.flags.DEFINE_integer('batch_size', 100, '')
@@ -273,16 +274,16 @@ tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 500, '')
 
 #
 # VGG
-tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.005, 'learning rate')
+#tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.005, 'learning rate')
 # ResNet
-#tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.2, 'learning rate')
+tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.2, 'learning rate')
 
 # regularizer
 tf.compat.v1.app.flags.DEFINE_string('regularizer', 'L2', 'L2 or L1 regularizer')
 # VGG
-tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-5, 'lambda')
+#tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-5, 'lambda')
 # ResNet
-#tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-4, 'lambda')
+tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-4, 'lambda')
 
 
 # data augmentation
@@ -382,8 +383,8 @@ tf.compat.v1.app.flags.DEFINE_bool('f_record_first_spike_time',True,'flag - reco
 
 # weight normalization
 #
-tf.compat.v1.app.flags.DEFINE_bool('f_fused_bn',True,'f_fused_bn')
-#tf.compat.v1.app.flags.DEFINE_bool('f_fused_bn',False,'f_fused_bn')
+#tf.compat.v1.app.flags.DEFINE_bool('f_fused_bn',True,'f_fused_bn')
+tf.compat.v1.app.flags.DEFINE_bool('f_fused_bn',False,'f_fused_bn')
 
 #
 #tf.compat.v1.app.flags.DEFINE_bool('f_w_norm_data',True,'f_w_norm_data')

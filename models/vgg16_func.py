@@ -106,7 +106,6 @@ def VGG16(
     x = lib_snn.layers.Dense(classes, activation=act_sm, use_bn=False, last_layer=True, name='predictions')(x)
 
     #model = training.Model(img_input, x, name=name)
-    #model = lib_snn.model.Model(img_input, x, batch_size, input_shape,  data_format, classes, conf, nn_mode, name=name)
     model = lib_snn.model.Model(img_input, x, batch_size, input_shape,  data_format, classes, conf, name=name)
     #model = lib_snModel.init_graph(img_input, x, name=name)
 

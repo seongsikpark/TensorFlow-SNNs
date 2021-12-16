@@ -137,6 +137,13 @@ class Layer():
         #self.f_bias_ctrl = False
         self.bias_ctrl_sub = None
 
+        # bias control - SNN inference
+        if self.en_snn:
+            self.bias_control = self.conf.bias_control
+        else:
+            self.bias_control = False
+
+
     #
     def build(self, input_shapes):
         # super(Conv2D,self).build(input_shapes)
@@ -226,8 +233,8 @@ class Layer():
         #self.use_bias = False
 
         # bias control
-        if self.conf.bias_control:
-            s = self.bias_control(s)
+        if self.bias_control:
+            s = self.bias_control_run(s)
 
 
         if (self.use_bn) and (not self.f_skip_bn):
@@ -334,12 +341,10 @@ class Layer():
 
             #print('{}: {} - {}'.format(glb_t.t,self.depth,tf.reduce_mean(self.act_snn.out)))
 
-
-
         return ret
 
     #
-    def bias_control(self, synaptic_output):
+    def bias_control_run(self, synaptic_output):
         if hasattr(self, 'bias') and self.en_snn:
             if self.conf.use_bias and tf.reduce_any(self.f_bias_ctrl):
                 ret = tf.subtract(synaptic_output, self.bias_ctrl_sub)

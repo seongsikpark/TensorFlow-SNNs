@@ -36,7 +36,8 @@ from lib_snn.sim import glb_plot
 def preproc(self):
     # print summary model
     #print('summary model')
-    self.model.summary()
+    if self.conf.verbose:
+        self.model.summary()
 
     # initialization
     if not self.init_done:
@@ -862,10 +863,6 @@ def w_norm_data_channel_wise(self, f_norm):
     #print('norm bias')
     #for k, v in self.norm_b.items():
         #print(k + ': ' + str(v))
-
-
-
-
 
     #
     # for name_l in self.list_layer_name:
