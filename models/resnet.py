@@ -57,6 +57,7 @@ def block_basic(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=No
 
     x = lib_snn.layers.Conv2D(filters, kernel_size, strides=stride, padding='SAME', use_bn=True, activation='relu',name=name + '_conv1')(x)
     x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation='relu',name=name + '_conv2')(x)
+    #x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation='None',name=name + '_conv2')(x)
 
     x = lib_snn.layers.Add(use_bn=False, activation='relu', name=name + '_out')([shortcut, x])
 
@@ -287,13 +288,18 @@ def ResNet(
         x = tf.keras.layers.Activation('relu', name='post_relu')(x)
 
     if include_top:
-        x = tf.keras.layers.GlobalAveragePooling2D(name='avg_pool')(x)
-        x = tf.keras.layers.Dense(classes, activation=classifier_activation, name='predictions')(x)
+        #x = tf.keras.layers.GlobalAveragePooling2D(name='avg_pool')(x)
+        x = lib_snn.layers.GlobalAveragePooling2D(name='avg_pool')(x)
+        #x = tf.keras.layers.Dense(classes, activation=classifier_activation, name='predictions')(x)
+        x = lib_snn.layers.Dense(classes, activation=classifier_activation, use_bn=False, last_layer=True, name='predictions')(x)
     else:
+        assert False
         if pooling == 'avg':
             x = tf.keras.layers.GlobalAveragePooling2D(name='avg_pool')(x)
         elif pooling == 'max':
-            x = tf.keras.layers.GlobalMaxPooling2D(name='max_pool')(x)
+            assert False
+            #x = tf.keras.layers.GlobalMaxPooling2D(name='max_pool')(x)
+            #x = lib_snn.layers.GlobalMaxPooling2D(name='max_pool')(x)
 
 
     # Create model.

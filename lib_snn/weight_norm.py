@@ -13,6 +13,7 @@ import threading
 # distribution of activation - neuron-wise or channel-wise?
 #def save_act_stat(self):
 def save_act_stat(self):
+    print('---- Save stat of activations ---- ')
 
     #path_stat='/home/sspark/Projects/05_SNN/stat/'
     #path_stat='./stat/'
@@ -50,7 +51,7 @@ def save_act_stat(self):
     threads=[]
 
     #for idx_l, l in enumerate(self.list_layer_name_write_stat):
-    for idx_l, l in enumerate(self.layers_record):
+    for idx_l, l in enumerate(self.model.layers_record):
         for idx_c, c in enumerate(stat_conf):
             key=l.name+'_'+c
 
@@ -80,7 +81,7 @@ def save_act_stat(self):
 def write_stat(self, path_stat, f_stat_name, layer_name, stat_conf_name):
     print('---- write_stat ----')
 
-    s_layer=self.dict_stat_w[layer_name].numpy()
+    s_layer=self.model.dict_stat_w[layer_name].numpy()
 
     _write_stat(self,path_stat,f_stat_name,s_layer,stat_conf_name)
 

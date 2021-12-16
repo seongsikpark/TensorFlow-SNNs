@@ -642,7 +642,8 @@ if f_hp_tune:
     #assert False
 else:
     model = lib_snn.model_builder.model_builder(
-        eager_mode, model_top, conf.nn_mode, batch_size, image_shape, conf, include_top, load_weight, num_class, model_name, lmb, initial_channels,
+        #eager_mode, model_top, conf.nn_mode, batch_size, image_shape, conf, include_top, load_weight, num_class, model_name, lmb, initial_channels,
+        eager_mode, model_top, batch_size, image_shape, conf, include_top, load_weight, num_class, model_name, lmb, initial_channels,
         train_epoch, train_steps_per_epoch,
         opt, learning_rate,
         lr_schedule, step_decay_epoch,
