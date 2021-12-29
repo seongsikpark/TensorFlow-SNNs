@@ -123,8 +123,8 @@ hp_tune = False
 #train=False
 train=conf.train
 
-#load_model=True
-load_model=False
+load_model=True
+#load_model=False
 
 #
 #save_model = False
