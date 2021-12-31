@@ -232,8 +232,8 @@ tf.compat.v1.app.flags.DEFINE_bool('noise_en',False,'noise injection mode enable
 ################################
 
 # train mode
-tf.compat.v1.app.flags.DEFINE_bool('train', False, 'train mode')
-#tf.compat.v1.app.flags.DEFINE_bool('train', True, 'train mode')
+#tf.compat.v1.app.flags.DEFINE_bool('train', False, 'train mode')
+tf.compat.v1.app.flags.DEFINE_bool('train', True, 'train mode')
 
 #
 tf.compat.v1.app.flags.DEFINE_bool('dnn_to_snn', False, 'dnn-to-snn conversion')
@@ -251,12 +251,14 @@ tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'ANN', 'ANN: Analog Neural Netwo
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet34', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet44', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet50', 'model')
-tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet56', 'model')
+#tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet56', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet18V2', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet20V2', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet32V2', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet34V2', 'model')
+#tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet44V2', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet50V2', 'model')
+tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet56V2', 'model')
 
 
 # datasets
@@ -264,8 +266,8 @@ tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR10', 'dataset')
 #tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR100', 'dataset')
 
 #
-tf.compat.v1.app.flags.DEFINE_bool('load_best_model', True, 'load best model (model, dataset)')
-#tf.compat.v1.app.flags.DEFINE_bool('load_best_model', False, 'load best model (model, dataset)')
+#tf.compat.v1.app.flags.DEFINE_bool('load_best_model', True, 'load best model (model, dataset)')
+tf.compat.v1.app.flags.DEFINE_bool('load_best_model', False, 'load best model (model, dataset)')
 
 #
 tf.compat.v1.app.flags.DEFINE_integer('batch_size', 100, '')
