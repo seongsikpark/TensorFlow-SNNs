@@ -26,7 +26,9 @@ def save_act_stat(self):
     #f_name_stat='act_n_train_after_w_norm_max_999'
     #f_name_stat='act_n_train'
     f_name_stat_pre=self.conf.prefix_stat
-    stat_conf=['max_999']
+    #stat_conf=['max_999']
+    stat_conf=['max', 'max_999']
+    #stat_conf=['std']
     #stat_conf=['max']
     #stat_conf=['max_75', 'max_25']
     #stat_conf=['max_99','max_95','max_90','max_80','max_70','max_60','max_50','max_40','max_30','max_20','max_10']
@@ -50,7 +52,7 @@ def save_act_stat(self):
     threads=[]
 
     #for idx_l, l in enumerate(self.list_layer_name_write_stat):
-    for idx_l, l in enumerate(self.layers_record):
+    for idx_l, l in enumerate(self.model.layers_record):
         for idx_c, c in enumerate(stat_conf):
             key=l.name+'_'+c
 
@@ -80,7 +82,7 @@ def save_act_stat(self):
 def write_stat(self, path_stat, f_stat_name, layer_name, stat_conf_name):
     print('---- write_stat ----')
 
-    s_layer=self.dict_stat_w[layer_name].numpy()
+    s_layer=self.model.dict_stat_w[layer_name].numpy()
 
     _write_stat(self,path_stat,f_stat_name,s_layer,stat_conf_name)
 
@@ -97,14 +99,17 @@ def _write_stat(self, path_stat, f_stat_name, s_layer, conf_name):
     elif conf_name=='max_999':
         stat=np.nanpercentile(s_layer,99.9,axis=0).flatten()
     elif 'max_' in conf_name:
-        percentile = int(conf_name.split('_')[1])
+        percentile = int(conf_name.split('_')[1])/10
         stat=np.nanpercentile(s_layer,percentile,axis=0).flatten()
     elif conf_name == 'median':
         stat = np.median(s_layer, axis=0).flatten()
     elif conf_name == 'mean':
         stat = np.mean(s_layer, axis=0).flatten()
+    elif conf_name == 'std':
+        stat = np.std(s_layer, axis=0).flatten()
     else:
         print('stat configuration not supported')
+        assert False
 
     print('stat_layer write - {}'.format(f_name))
     wr_stat_layer=csv.writer(f_stat)

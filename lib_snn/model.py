@@ -512,6 +512,7 @@ class Model(tf.keras.Model):
 
     #
     def bias_control_test_pre(self):
+        #print("bias_control_reset")
         if (glb.model_compiled) and (self.conf.debug_mode and self.nn_mode == 'SNN'):
             for idx_layer, layer in enumerate(self.layers_w_neuron):
                 layer.f_bias_ctrl = tf.fill(tf.shape(layer.f_bias_ctrl), True)
@@ -564,8 +565,8 @@ class Model(tf.keras.Model):
                         #
                         # spike ratio
                         # spike = tf.reduce_sum(self.layers_w_neuron[idx_layer-1].act.spike_count_int,axis=axis)
-                        #spike = tf.reduce_sum(prev_layer.act.spike_count_int, axis=axis)
-                        spike = tf.math.count_nonzero(prev_layer.act.spike_count_int, dtype=tf.float32, axis=axis)
+                        spike = tf.reduce_sum(prev_layer.act.spike_count_int, axis=axis)
+                        #spike = tf.math.count_nonzero(prev_layer.act.spike_count_int, dtype=tf.float32, axis=axis)
 
                         # num spike neurons
                         #spike = tf.math.count_nonzero(prev_layer.act.spike_count_int, axis=axis)
@@ -632,8 +633,6 @@ class Model(tf.keras.Model):
                         #assert False
 
 
-                        #f_spike = tf.greater(spike / n_neurons, self.bias_control_th[layer.name])
-
                         #r_spike = tf.expand_dims(spike/n_neurons,axis=0)
                         r_spike = spike/n_neurons
                         f_spike = tf.greater(r_spike, self.bias_control_th_ch[prev_layer.name])
@@ -669,8 +668,6 @@ class Model(tf.keras.Model):
 
                             # layer.bias_ctrl_sub = tf.where(layer.f_bias_ctrl,layer)
                             layer.bias_ctrl_sub = tf.where(ctrl, bias_batch, tf.zeros(layer.bias_ctrl_sub.shape))
-
-
 
             else:
                 assert False
@@ -1385,6 +1382,9 @@ class Model(tf.keras.Model):
 
                 layer_ann = model_ann.get_layer(layer.name)
 
+                if isinstance(layer, lib_snn.layers.InputGenLayer):
+                    continue
+
                 #print(layer.name)
                 if isinstance(layer, lib_snn.layers.Conv2D):
                     axis = [1,2,3]
@@ -1398,8 +1398,18 @@ class Model(tf.keras.Model):
                 non_zero = tf.math.count_nonzero(layer_ann.record_output, dtype=tf.float32, axis=axis)
                 non_zero_r = non_zero / tf.cast(tf.reduce_prod(layer_ann.record_output.shape[1:]), tf.float32)
 
-                self.bias_control_th[layer.name] = tf.reduce_mean(non_zero_r)*0.5
+                #self.bias_control_th[layer.name] = tf.reduce_mean(non_zero_r)*0.0001
+                #self.bias_control_th[layer.name] = tf.reduce_mean(non_zero_r)*0.001
+                #self.bias_control_th[layer.name] = tf.reduce_mean(non_zero_r)*0.01
+                #self.bias_control_th[layer.name] = tf.reduce_mean(non_zero_r)*0.1
+                #self.bias_control_th[layer.name] = tf.reduce_mean(non_zero_r)
+                #self.bias_control_th[layer.name] = 0.01
+                self.bias_control_th[layer.name] = 0.001
+                #self.bias_control_th[layer.name] = 0.0001
+                #self.bias_control_th[layer.name] = 0.00001
+                #self.bias_control_th[layer.name] = 0.00
                 #self.bias_control_th[layer.name] = non_zero_r
+                #self.bias_control_th[layer.name] = non_zero_r*0.001
 
                 print(layer.name)
                 print(self.bias_control_th[layer.name])

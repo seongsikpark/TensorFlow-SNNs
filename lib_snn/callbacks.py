@@ -134,6 +134,7 @@ class SNNLIB(tf.keras.callbacks.Callback):
 
         # calibration
         self.calibration_static_done = False
+        self.calibration_act_based_done = False
         self.run_for_calibration = False
 
         # compare

@@ -740,20 +740,36 @@ class Neuron(tf.keras.layers.Layer):
         # reset
         # vmem -> vrest
 
+        # TODO: functionalize
         # reset by subtraction
-        # self.vmem = tf.where(f_fire,self.vmem-self.vth,self.vmem)
-        #self.vmem.assign(tf.subtract(self.vmem, self.out))             # subtract by output
-        #self.vmem.assign(tf.subtract(self.vmem, self.vth))
-        #self.vmem.assign(tf.where(self.f_fire, tf.subtract(self.vmem,self.fire_vmem_sub),self.vmem))    # subtract by vth or others?
-        self.vmem.assign(tf.where(self.f_fire, tf.subtract(self.vmem,self.vth),self.vmem))    # subtract by vth or others?
+        if self.conf.n_reset_type=='reset_by_sub':
+
+            # self.vmem = tf.where(f_fire,self.vmem-self.vth,self.vmem)
+            #self.vmem.assign(tf.subtract(self.vmem, self.out))             # subtract by output
+            #self.vmem.assign(tf.subtract(self.vmem, self.vth))
+            #self.vmem.assign(tf.where(self.f_fire, tf.subtract(self.vmem,self.fire_vmem_sub),self.vmem))    # subtract by vth or others?
+
+            # vth random
+            #vth_stoch=True
+            vth_stoch=False
+            r = 0.01
+            if vth_stoch:
+                vth = self.vth + tf.random.uniform(self.vth.shape,minval=0,maxval=self.vth*r*2) - self.vth*r
+            else:
+                vth = self.vth
+
+            #self.vmem.assign(tf.where(self.f_fire, tf.subtract(self.vmem,self.vth),self.vmem))    # subtract by vth or others?
+            self.vmem.assign(tf.where(self.f_fire, tf.subtract(self.vmem,vth),self.vmem))    # subtract by vth or others?
 
         # reset to zero
-        # self.vmem = tf.where(f_fire,tf.constant(self.conf.n_init_vreset,tf.float32,self.vmem.shape,self.vmem)
-
-
+        elif self.conf.n_reset_type=='reset_to_zero':
+            self.vmem.assign(tf.where(self.f_fire,tf.constant(self.conf.n_init_vrest,tf.float32,self.vmem.shape),self.vmem))
+        else:
+            assert False
 
         if self.conf.f_isi:
             self.cal_isi(self.f_fire, t)
+
 
     def fire_weighted_spike(self, t):
         # weighted synpase input
@@ -1098,8 +1114,9 @@ class Neuron(tf.keras.layers.Layer):
 
             # layer or model wise toggle value set
             # neuron-wise toggle value
-            #if True and (t<10):
-            if True:
+            toggle_time=16
+            if True and (t<toggle_time):
+            #if True:
 
                 #indices = tf.cast(tf.math.floormod(self.spike_count_int, len(self.vth_schedule)), dtype=tf.int32)
                 indices = tf.cast(tf.math.floormod(self.spike_count_int, len(self.vth_schedule[-1])),dtype=tf.int32)
@@ -1132,8 +1149,8 @@ class Neuron(tf.keras.layers.Layer):
                 #self.vth.assign(tf.gather(self.vth_schedule, indices))
 
 
-            else:
-                self.vth_init = tf.constant(self.conf.n_init_vth,shape=self.dim,dtype=tf.float32, name='vth_init')
+            elif t==toggle_time:
+                #self.vth_init = tf.constant(self.conf.n_init_vth,shape=self.dim,dtype=tf.float32, name='vth_init')
                 self.reset_vth()
 
         #self.out = tf.nn.relu(inputs)

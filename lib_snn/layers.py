@@ -263,6 +263,20 @@ class Layer():
                 n = self.act(b, glb_t.t)
             else:
                 n = self.act(b)
+
+                #
+                #num_bits=np.log2(self.conf.time_step)
+                #n=tf.quantize_and_dequantize_v4(n, 0, 1, signed_input=False, num_bits=num_bits, range_given=True)
+                #n = tf.clip_by_value(n,0,1)
+
+        #self.quant_act=True
+        #if self.quant_act:
+        ##    #n = tf.quantization.fake_quant_with_min_max_vars(n,0,1,num_bits=8)
+        #    #n = tf.quantization.fake_quant_with_min_max_vars(n,0,1,num_bits=8)
+        #    #n=tf.quantize_and_dequantize_v4(n, 0, 1, signed_input=False, num_bits=8, range_given=True)
+        #    n=tf.quantize_and_dequantize_v4(n, 0, 1, signed_input=False, num_bits=16, range_given=True)
+        #    #n = tf.quantization.quantize(n,0,1,T=tf.qint8)
+
         ret = n
 
         if self.en_record_output:
@@ -497,6 +511,8 @@ class InputGenLayer(Layer, tf.keras.layers.Layer):
         Layer.index = 0             # start of models
         self.depth = Layer.index
         self.n_type = 'IN'
+        #self.kernel=1           # dummy
+        #self.bias=0
 
     #def call(self, inputs, training):
         # print('input gen layer - call')

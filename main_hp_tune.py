@@ -15,6 +15,7 @@ import os
 
 import tensorflow as tf
 import tensorflow_probability as tfp
+from tensorflow.python.keras.engine import data_adapter
 
 #
 from absl import app
@@ -88,7 +89,7 @@ from lib_snn.sim import glb_plot_2
 
 # GPU setting
 #
-GPU_NUMBER=0
+GPU_NUMBER=1
 
 GPU_PARALLEL_RUN = 1
 #GPU_PARALLEL_RUN = 2
@@ -869,7 +870,7 @@ else:
     #compare_control_snn = False
     compare_control_snn = True
 
-    act_based_calibration = conf.calibration_bias_ICML_21 or conf.calibration_vmem_ICML_21 or conf.calibration_weight_post
+    act_based_calibration = conf.calibration_bias_ICML_21 or conf.calibration_vmem_ICML_21 or conf.calibration_weight_act_based
     #if (conf.nn_mode=='SNN') and (dnn_snn_compare or conf.calibration_bias_ICML_21 or conf.calibration_vmem_ICML_21) :
     #if (conf.nn_mode == 'SNN') and (dnn_snn_compare or act_based_calibration):
     if (conf.nn_mode == 'SNN') and (compare_control_snn or act_based_calibration):
@@ -887,7 +888,8 @@ else:
 
 
         #if conf.calibration_bias_ICML_21 or conf.calibration_vmem_ICML_21:
-        if act_based_calibration:
+        #if act_based_calibration:
+        if True:
             # TODO: random sampling
             #test_ds_one_batch = tf.data.experimental.get_single_element(test_ds)
             #test_ds_one_batch = tf.data.Dataset.from_tensors(test_ds_one_batch)
@@ -906,6 +908,59 @@ else:
         #conf.nn_mode = 'ANN'
         result_ann = model_ann.evaluate(ds_ann, callbacks=callbacks_test_ann)
         conf.nn_mode = nn_mode_ori
+
+        #
+        gradient_test_tmp = False
+        #gradient_test_tmp = True
+        if gradient_test_tmp:
+            with tf.GradientTape(persistent=True) as tape:
+            #with tf.GradientTape(watch_accessed_variables=False) as tape:
+                for data in ds_ann:
+                    x = data[0]
+                    y = data[1]
+                    y_decoded = tf.argmax(y,axis=1)
+
+                    print(x)
+                    print(y)
+
+                    tape.watch(x)
+                    #tf.compat.v1.disable_eager_execution()
+                    #y_pred = model_ann(x, training=True)
+                    y_pred = model_ann(x, training=False)
+                    #loss = model_ann.compiled_loss(y,y_pred)
+
+                    print(y_pred)
+                    #top_class = y_pred[:, y_decoded]
+
+                    top_class = tf.gather(y_pred,y_decoded)
+                    print(top_class)
+
+
+                    #tape.gradient(loss,x)
+                    grads_pred_act = collections.OrderedDict()
+
+                    for l in model_ann.layers_w_kernel:
+                        act = l.record_output
+                        grads_pred_act[l.name] = tape.gradient(top_class,act)
+
+                    #grads = tape.gradient(top_class,x)
+                    #print(grads)
+
+
+                    print([var.name for var in tape.watched_variables()])
+                    assert False
+
+
+                assert False
+                #if False:
+                #for epoch, iterator in data_handler.enumerate_epochs():
+                    #y_pred = model_ann(ds_ann, callbacks=callba)
+                    #data = data_adapter.expand_1d(ds_ann)
+                    #x, y, sample_weight = data_adapter.unpack_x_y_sample_weight(data)
+                    #print(x)
+                    #print(y)
+
+            assert False
 
     #
     # calibration with activations
@@ -929,6 +984,9 @@ else:
         # run
         model.evaluate(ds_one_batch, callbacks=callbacks_test)
 
+        # run
+        model.evaluate(ds_one_batch, callbacks=callbacks_test)
+
         # post
         cb_libsnn.run_for_calibration = False
         glb_plot.mark = 'bo'
@@ -946,6 +1004,27 @@ else:
     # result = model.predict(test_ds)
 
     print(result)
+
+    #
+    exp_act_dist=True
+
+    if exp_act_dist and conf.nn_mode=='ANN':
+        fig = glb_plot
+
+        for layer in model.layers_w_kernel:
+
+            axe = fig.axes.flatten()[layer.depth]
+            act = layer.record_output
+            act = tf.reshape(act,-1)
+
+
+            #(n, bins, patches) = axe.hist(act,bins=bins)
+            (n, bins, patches) = axe.hist(act)
+            axe.axvline(x=np.max(act), color='b')
+            #axe.set_ylim([0,n[10]])
+            axe.set_title(layer.name)
+
+        plt.show()
 
 
     #

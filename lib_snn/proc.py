@@ -91,7 +91,8 @@ def set_init(self):
 
 #
 def snn_condition_check(self):
-    assert (not self.conf.binary_spike) or (self.conf.binary_spike and (self.conf.n_init_vth==1.0)), 'vth should be 1.0 in binary_spike mode'
+    pass
+    #assert (not self.conf.binary_spike) or (self.conf.binary_spike and (self.conf.n_init_vth==1.0)), 'vth should be 1.0 in binary_spike mode'
 
 #
 #def init_snn_run(self):
@@ -158,8 +159,12 @@ def preproc_ann_to_snn(self):
     if not self.calibration_static_done:
         calibration_static(self)
 
-    if not self.run_for_calibration:
-        calibration_data_based(self)
+    if not self.run_for_calibration and self.calibration_static_done and (not self.calibration_act_based_done):
+        calibration_act_based(self)
+
+    if not self.run_for_calibration and self.calibration_static_done and self.calibration_act_based_done:
+        calibration_act_based_post(self)
+
 
 #
 def calibration_static(self):
@@ -184,16 +189,21 @@ def calibration_static(self):
 
     self.calibration_static_done = True
 
+def calibration_act_based(self):
+    print('calibration_act_based')
 
-def calibration_data_based(self):
-    ########
-    # bias
-    ########
+    if self.conf.calibration_weight_act_based:
+        lib_snn.calibration.weight_calibration_act_based(self)
+
+    self.calibration_act_based_done = True
+
+
+def calibration_act_based_post(self):
+    print('calibration_act_based_post')
+
     #assert tf.math.logical_not(tf.math.reduce_all(self.conf.calibration_bias,self.conf.calibration_bias_ICLR_21,self.conf.calibration_bias_ICML_21))
     assert tf.math.logical_not(tf.math.logical_and(self.conf.calibration_vmem,self.conf.calibration_vmem_ICML_21))
 
-    if self.conf.calibration_weight_post:
-        lib_snn.calibration.weight_calibration_post(self)
 
     if self.conf.calibration_bias_ICLR_21:
         lib_snn.calibration.bias_calibration_ICLR_21(self)
@@ -203,6 +213,10 @@ def calibration_data_based(self):
 
     if self.conf.calibration_vmem_ICML_21:
         lib_snn.calibration.vmem_calibration_ICML_21(self)
+
+
+    if self.conf.vth_toggle:
+        lib_snn.calibration.vth_toggle(self)
 
 
 
@@ -642,8 +656,9 @@ def save_results(self):
         config += '_cal-w'
 
     #
-    if self.conf.calibration_weight_post:
-        config += '_cal-w-p'
+    #if self.conf.calibration_weight_post:
+    if self.conf.calibration_weight_act_based:
+        config += '_cal-w-a'
 
 
     # calibration bias (ICLR-21)
@@ -718,6 +733,7 @@ def w_norm_data(self):
     #stat='max'
     #stat='mean'
     stat='max_999'
+    #stat='max_997'
     #stat='max_99'
     #stat='max_98'
     #stat='max_95'
@@ -752,10 +768,14 @@ def w_norm_data(self):
         f_stat[key].close()
 
     #
-    #f_norm = np.max
+    f_norm = np.max
     #f_norm = np.median
     #f_norm = np.mean
-    f_norm = lambda x: np.percentile(x,99.9)
+    #f_norm = lambda x: np.percentile(x,99.9)
+
+
+    if stat=='max_999':
+        f_norm = lambda x: np.percentile(x,99.9)
 
     #w_norm_data_layer_wise(self,f_norm)
     w_norm_data_channel_wise(self,f_norm)
@@ -824,10 +844,15 @@ def w_norm_data_channel_wise(self, f_norm):
         for idx_l, l in enumerate(self.model.layers_w_kernel):
             stat = self.dict_stat_r[l.name]
             stat = stat.reshape(-1,stat.shape[-1])
-            norm = f_norm(stat)
-            norm = np.where(norm==0, 1, norm)
+
+            if isinstance(l,lib_snn.layers.InputGenLayer):
+                norm = 1
+            else:
+                norm = f_norm(stat)
+                norm = np.where(norm == 0, 1, norm)
 
             if idx_l == 0:
+                #self.norm[l.name] = norm
                 self.norm[l.name] = norm
             else:
                 #stat = self.dict_stat_r[l.name]
@@ -847,6 +872,7 @@ def w_norm_data_channel_wise(self, f_norm):
 
                 #print(self.norm[l.name])
                 #assert False
+
 
             #self.norm_b[l.name] = f_norm(self.dict_stat_r[l.name])
             self.norm_b[l.name] = norm
