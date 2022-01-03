@@ -39,11 +39,12 @@ CIFAR10
 |ResNet20   |  4.34M | 96.16| NIPA |  | 
 |ResNet32   |  7.45M | 96.46 | NIPA |  | 
 |ResNet44   | 10.55M | 96.68 | NIPA | | 
-|ResNet56   | 13.66M | 96.31 | NIPA | | 
+|ResNet56   | 13.66M | 96.31 | NIPA | |
+|ResNet56   | 13.66M | | NIPA | |  ep-1000, lr-step-200
 | | | | | |
 
-|ResNet18   | M |  | NIPA | | re doing
-|ResNet34   | M |  | NIPA | | re doing
+|ResNet18   | 11.19M | 95.96 | NIPA | | new
+|ResNet34   | 21.31M | 96.23 | NIPA | | new
 |ResNet50   | 23.60M | 95.44 | NIPA | | 
 
 |ResNet20V2 |  4.34M | 96.26 | NIPA | | 
@@ -51,8 +52,8 @@ CIFAR10
 |ResNet44V2 | 10.55M | 96.34 | NIPA | | 
 |ResNet56V2 | 13.66M | 96.69 | NIPA | | 
 
-|ResNet18V2 | M |  | NIPA | re doing
-|ResNet34V2 | M |  | NIPA | re doing
+|ResNet18V2 | 11.19M | 95.49 | NIPA | new
+|ResNet34V2 | 21.31M | 96.07 | NIPA | new
 |ResNet50V2 | 23.61M | 95.00 | NIPA |
 
 
@@ -81,18 +82,18 @@ CIFAR-100
 |ResNet44   | 10.58M | 76.02 | NIPA |
 |ResNet56   | 13.68M | 77.27 | NIPA |
 
-|ResNet18   | M |  | NIPA | re
-|ResNet34   | M |  | NIPA | re
-|ResNet50   | 23.78M | 72.37 | NIPA | 
+|ResNet18   | 11.24M | 72.33 | NIPA | new
+|ResNet34   | 21.36M | 73.01 | NIPA | new
+|ResNet50   | 23.78M | 72.37 | NIPA | doing, ep-1000, lr-step-200
 
 |ResNet20V2 |  4.37M | 75.03 | NIPA | ep-1000, lr-step-200
 |ResNet32V2 |  7.47M | 76.07 | NIPA | ep-1000, lr-step-200
 |ResNet44V2 | 10.58M | 76.27 | NIPA | ep-1000, lr-step-200
 |ResNet56V2 | 13.68M | 76.81 | NIPA | ep-1000, lr-step-200
 
-|ResNet18V2 | M |  | NIPA | re
-|ResNet34V2 | M |  | NIPA | re
-|ResNet50V2 | 23.79M | 71.24 | NIPA | 
+|ResNet18V2 | 11.24M | 71.60 | NIPA | new
+|ResNet34V2 | 21.36M | 73.66 | NIPA | new
+|ResNet50V2 | 23.79M | 71.24 | NIPA | doing, ep-1000, lr-step-200
 
 
 
