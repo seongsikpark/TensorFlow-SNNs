@@ -686,6 +686,20 @@ class MaxPool2D(Layer, tf.keras.layers.MaxPool2D):
             return tf.keras.layers.MaxPool2D.call(self, inputs)
 
 
+# GlobalAveragePooling2D
+class GlobalAveragePooling2D(Layer, tf.keras.layers.GlobalAveragePooling2D):
+    def __init__(self,
+                 **kwargs):
+
+        tf.keras.layers.GlobalAveragePooling2D.__init__(self,**kwargs)
+        Layer.__init__(self, use_bn=False, activation=None, last_layer=False, **kwargs)
+
+    #def call(self, inputs):
+
+        #name='avg_pool')(x)
+
+
+
 ############################################################
 ## spike max pool (spike count based gating function)
 ############################################################

@@ -917,11 +917,16 @@ class Model(tf.keras.Model):
         # self.en_record_output = True
 
         if self.en_record_output:
-            self.layers_record = self.layers_w_kernel
+            #self.layers_record = self.layers_w_kernel
 
-            # self.layers_record = []
-            # for layer in self.layers_w_kernel[:2]:
-            # self.layers_record.append(layer)
+            self.layers_record = []
+            #for layer in self.layers_w_kernel[:4]:
+            #for layer in self.layers_w_kernel[4:10]:
+            #for layer in self.layers_w_kernel[10:15]:
+            #for layer in self.layers_w_kernel[15:20]:
+            #for layer in self.layers_w_kernel[25:30]:
+            for layer in self.layers_w_kernel[35:40]:
+                self.layers_record.append(layer)
 
             self.set_en_record_output()
 
@@ -1398,7 +1403,13 @@ class Model(tf.keras.Model):
                 non_zero = tf.math.count_nonzero(layer_ann.record_output, dtype=tf.float32, axis=axis)
                 non_zero_r = non_zero / tf.cast(tf.reduce_prod(layer_ann.record_output.shape[1:]), tf.float32)
 
-                self.bias_control_th[layer.name] = tf.reduce_mean(non_zero_r)*0.5
+                #self.bias_control_th[layer.name] = tf.reduce_mean(non_zero_r)*0.5
+
+                if idx_layer <1 :
+                    self.bias_control_th[layer.name] = tf.reduce_mean(non_zero_r)*0.01
+                else:
+                    self.bias_control_th[layer.name] = 0.01
+
                 #self.bias_control_th[layer.name] = non_zero_r
 
                 print(layer.name)
@@ -1414,6 +1425,7 @@ class Model(tf.keras.Model):
                     non_zero_ch_r = tf.expand_dims(non_zero_ch_r,axis=0)
                     self.bias_control_th_ch[layer.name] = tf.broadcast_to(non_zero_ch_r, shape=layer.f_bias_ctrl.shape)
 
+            #self.bias_control_th['conv1'] = 0.01
 
             #self.bias_control_th_ch[layer.name] = tf.constant(0.01, shape=layer.f_bias_ctrl.shape)
 

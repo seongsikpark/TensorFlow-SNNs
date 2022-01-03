@@ -835,29 +835,22 @@ def w_norm_data_channel_wise(self, f_norm):
                 #stat = stat.reshape(-1, stat.shape[-1])
                 #norm = f_norm(stat)
 
-                #print(stat)
-                #print(stat.shape)
-                #print(l.kernel.shape)
-                #print(self.norm[l.name])
-
-                #assert False
-
                 #self.norm[l.name] = (f_norm(stat).T / self.norm[prev_name]).T
                 #self.test = np.expand_dims(norm,axis=0).T
                 self.norm[l.name] = norm / np.expand_dims(self.norm_b[prev_name],axis=0).T
 
-                #print(self.norm[l.name])
-                #assert False
-
-            #self.norm_b[l.name] = f_norm(self.dict_stat_r[l.name])
             self.norm_b[l.name] = norm
             prev_name=l.name
 
         #
         # for visual debug
         #lib_snn.util.print_act_stat_r(self)
+    elif 'ResNet' in self.conf.model:
+        #for idx_l, l in enumerate(self.model.layers_w_kernel):
+        #    stat = self.dict_stat_r[l.name]
 
-        #assert False
+
+        assert False
     else:
         assert False
 
