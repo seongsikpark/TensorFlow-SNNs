@@ -125,7 +125,6 @@ class Layer():
         self.en_record_output = False
         self.record_output = None
 
-
         # neuron setup
         if self.en_snn:
             if self.last_layer:
@@ -138,6 +137,11 @@ class Layer():
         #self.f_bias_ctrl = False
         self.bias_ctrl_sub = None
 
+        # bias control - SNN inference
+        if self.en_snn:
+            self.bias_control = self.conf.bias_control
+        else:
+            self.bias_control = False
 
 
     #
@@ -171,9 +175,6 @@ class Layer():
         # if not self.en_snn:
         # self.act = self.act_dnn
 
-
-
-
         if self.en_snn:
             #print('---- SNN Mode ----')
             #print('Neuron setup')
@@ -198,20 +199,9 @@ class Layer():
         else:
             self.act = self.act_dnn
 
-
-
         #
         self.built = True
         #print('build layer - done')
-
-    #
-    #def set_en_snn(self,nn_mode):
-        #if nn_mode=='ANN':
-            #self.en_snn=self.conf.f_validation_snn
-        #elif nn_mode=='SNN':
-            #self.en_snn=True
-        #else:
-            #assert False
 
     #
     # def call(self,input,training):
@@ -243,8 +233,8 @@ class Layer():
         #self.use_bias = False
 
         # bias control
-        if self.conf.bias_control:
-            s = self.bias_control(s)
+        if self.bias_control:
+            s = self.bias_control_run(s)
 
 
         if (self.use_bn) and (not self.f_skip_bn):
@@ -365,12 +355,10 @@ class Layer():
 
             #print('{}: {} - {}'.format(glb_t.t,self.depth,tf.reduce_mean(self.act_snn.out)))
 
-
-
         return ret
 
     #
-    def bias_control(self, synaptic_output):
+    def bias_control_run(self, synaptic_output):
         if hasattr(self, 'bias') and self.en_snn:
             if self.conf.use_bias and tf.reduce_any(self.f_bias_ctrl):
                 ret = tf.subtract(synaptic_output, self.bias_ctrl_sub)
@@ -712,6 +700,20 @@ class MaxPool2D(Layer, tf.keras.layers.MaxPool2D):
             return lib_snn.layers.spike_max_pool(inputs, spike_count, output_shape)
         else:
             return tf.keras.layers.MaxPool2D.call(self, inputs)
+
+
+# GlobalAveragePooling2D
+class GlobalAveragePooling2D(Layer, tf.keras.layers.GlobalAveragePooling2D):
+    def __init__(self,
+                 **kwargs):
+
+        tf.keras.layers.GlobalAveragePooling2D.__init__(self,**kwargs)
+        Layer.__init__(self, use_bn=False, activation=None, last_layer=False, **kwargs)
+
+    #def call(self, inputs):
+
+        #name='avg_pool')(x)
+
 
 
 ############################################################

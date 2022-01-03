@@ -25,3 +25,92 @@ refs -
 
 ## SNN inference
 only with fused-bn
+
+
+## Pretrained models (internal share, include trained conditions)
+
+CIFAR10
+
+|Models|Para.|Acc.|Server|Best Model|Note|
+|----|----|----|----|----|----|
+|VGG16      | 15.27M | 94.70 | |  
+| | | | | |
+|ResNet20   |  4.34M | 96.03 | NIPA |  | 
+|ResNet20   |  4.34M | 96.16| NIPA |  | 
+|ResNet32   |  7.45M | 96.46 | NIPA |  | 
+|ResNet44   | 10.55M | 96.68 | NIPA | | 
+|ResNet56   | 13.66M | 96.31 | NIPA | |
+|ResNet56   | 13.66M | | NIPA | |  ep-1000, lr-step-200
+| | | | | |
+
+|ResNet18   | 11.19M | 95.96 | NIPA | | new
+|ResNet34   | 21.31M | 96.23 | NIPA | | new
+|ResNet50   | 23.60M | 95.44 | NIPA | | 
+
+|ResNet20V2 |  4.34M | 96.26 | NIPA | | 
+|ResNet32V2 |  7.45M | 96.40 | NIPA |
+|ResNet44V2 | 10.55M | 96.34 | NIPA | | 
+|ResNet56V2 | 13.66M | 96.69 | NIPA | | 
+
+|ResNet18V2 | 11.19M | 95.49 | NIPA | new
+|ResNet34V2 | 21.31M | 96.07 | NIPA | new
+|ResNet50V2 | 23.61M | 95.00 | NIPA |
+
+
+# not best
+|ResNet18   | 11.19M | 95.67 | NIPA |   | Bottleneck - old - re train
+|ResNet34   | 21.31M | 96.23 | NIPA | | Bottleneck - old - re train
+|ResNet50   | 23.60M | 95.57 | NIPA | | Bottleneck - old - re train
+
+|ResNet18   | 11.19M | 93.73 | SJ2 |
+|ResNet34   | 21.31M | 94.65 | SJ2 |
+|ResNet50   | 23.60M | 94.47 | SJ2 |
+
+|ResNet18V2 | 11.19M | 95.25 | NIPA |
+|ResNet34V2 | 21.30M | 96.10 | NIPA |
+|ResNet50V2 | 23.61M | 95.00 | NIPA |
+
+
+
+CIFAR-100
+
+|Models|Para.|Acc.|Server|Best Model|Note|
+|----|----|----|----|----|----|
+|VGG16      | 15.31M | 72.34 | |
+|ResNet20   |  4.36M | 75.07 | NIPA |
+|ResNet32   |  7.47M | 75.78 | NIPA |
+|ResNet44   | 10.58M | 76.02 | NIPA |
+|ResNet56   | 13.68M | 77.27 | NIPA |
+
+|ResNet18   | 11.24M | 72.33 | NIPA | new
+|ResNet34   | 21.36M | 73.01 | NIPA | new
+|ResNet50   | 23.78M | 72.37 | NIPA | doing, ep-1000, lr-step-200
+
+|ResNet20V2 |  4.37M | 75.03 | NIPA | ep-1000, lr-step-200
+|ResNet32V2 |  7.47M | 76.07 | NIPA | ep-1000, lr-step-200
+|ResNet44V2 | 10.58M | 76.27 | NIPA | ep-1000, lr-step-200
+|ResNet56V2 | 13.68M | 76.81 | NIPA | ep-1000, lr-step-200
+
+|ResNet18V2 | 11.24M | 71.60 | NIPA | new
+|ResNet34V2 | 21.36M | 73.66 | NIPA | new
+|ResNet50V2 | 23.79M | 71.24 | NIPA | doing, ep-1000, lr-step-200
+
+
+
+
+|ResNet18   | 11.24M | 71.16 | NIPA | old
+|ResNet34   | 21.36M | 74.46 | NIPA | old
+|ResNet50   | 23.78M | 72.32 | NIPA | old
+
+|ResNet18V2 | 11.24M | 71.40 | NIPA | old
+|ResNet34V2 | 21.36M | 73.77 | NIPA | old
+|ResNet50V2 | 23.79M | 70.56 | NIPA | old
+
+
+
+ImageNet
+
+## Pretrained models 
+VGG     - ep-1000_bat-100_opt-SGD_lr-STEP-5E-03_lmb-1E-05_sc_cm
+ResNet  - ep-300_bat-100
+

@@ -22,7 +22,7 @@ def VGG16(
         pooling=None,
         classes=1000,
         classifier_activation='softmax',
-        nn_mode='ANN',
+        #nn_mode='ANN',
         name='VGG16',
         **kwargs):
 
@@ -106,7 +106,7 @@ def VGG16(
     x = lib_snn.layers.Dense(classes, activation=act_sm, use_bn=False, last_layer=True, name='predictions')(x)
 
     #model = training.Model(img_input, x, name=name)
-    model = lib_snn.model.Model(img_input, x, batch_size, input_shape,  data_format, classes, conf, nn_mode, name=name)
+    model = lib_snn.model.Model(img_input, x, batch_size, input_shape,  data_format, classes, conf, name=name)
     #model = lib_snModel.init_graph(img_input, x, name=name)
 
 

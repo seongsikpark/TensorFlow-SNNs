@@ -29,7 +29,6 @@ WEIGHTS_HASHES = {
 }
 
 
-
 #
 def block_basic(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
     """A residual block.
@@ -57,7 +56,8 @@ def block_basic(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=No
         #shortcut = lib_snn.layers.Conv2D(1,1,strides=1,use_bn=False,activation=None,name=name+'_conv0_i',kernel_initializer='ones',trainable=False)(x)
 
     x = lib_snn.layers.Conv2D(filters, kernel_size, strides=stride, padding='SAME', use_bn=True, activation='relu',name=name + '_conv1')(x)
-    x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation='relu',name=name + '_conv2')(x)
+    #x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation='relu',name=name + '_conv2')(x)
+    x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation=None,name=name + '_conv2')(x)
 
     x = lib_snn.layers.Add(use_bn=False, activation='relu', name=name + '_out')([shortcut, x])
 
@@ -209,97 +209,105 @@ Returns:
 """
 
 # keras, resnet.py based
-class ResNet(lib_snn.model.Model):
-    def __init__(self,
-        batch_size,
-        input_shape,
-        block,
-        initial_channels,
-        num_blocks,
-        conf,
-        preact=False,
-        #use_bias=True,
-        model_name='ResNet',
-        include_top=True,
-        weights='imagenet',
-        input_tensor=None,
-        pooling=None,
-        classes=1000,
-        classifier_activation='softmax',
-        **kwargs):
+#class ResNet(lib_snn.model.Model):
+#def __init__(self,
+def ResNet(
+    batch_size,
+    input_shape,
+    block,
+    initial_channels,
+    num_blocks,
+    conf,
+    preact=False,
+    #use_bias=True,
+    model_name='ResNet',
+    include_top=True,
+    weights='imagenet',
+    input_tensor=None,
+    pooling=None,
+    classes=1000,
+    classifier_activation='softmax',
+    **kwargs):
 
-        data_format = conf.data_format
+    data_format = conf.data_format
 
-        #
-        cifar_stack = True if len(num_blocks) == 3 else False
+    #
+    cifar_stack = True if len(num_blocks) == 3 else False
 
-        lib_snn.model.Model.__init__(self, input_shape, data_format, classes, conf, **kwargs)
+    #lib_snn.model.Model.__init__(self, input_shape, data_format, classes, conf, **kwargs)
 
-        bn_axis = 3
+    bn_axis = 3
 
-        imagenet_pretrain = False
-        #imagenet_pretrain = True
+    imagenet_pretrain = False
+    #imagenet_pretrain = True
 
-        img_input = tf.keras.layers.Input(shape=input_shape, batch_size=batch_size)
-        x = lib_snn.layers.InputGenLayer()(img_input)
-        #img_input = lib_snn.layers.InputLayer(input_shape=input_shape,batch_size=conf.batch_size,name='in')
+    img_input = tf.keras.layers.Input(shape=input_shape, batch_size=batch_size)
+    x = lib_snn.layers.InputGenLayer()(img_input)
+    #img_input = lib_snn.layers.InputLayer(input_shape=input_shape,batch_size=conf.batch_size,name='in')
 
-        if imagenet_pretrain:
-            # ImageNet pretrained model - tf.keras.applications
-            x = tf.keras.layers.ZeroPadding2D(padding=((3, 3), (3, 3)), name='conv1_pad')(x)
-        else:
-            pass
-            #x = img_input
-            #x = tf.keras.layers.ZeroPadding2D(padding=((1, 1), (1, 1)), name='conv1_pad')(x)
+    if imagenet_pretrain:
+        # ImageNet pretrained model - tf.keras.applications
+        x = tf.keras.layers.ZeroPadding2D(padding=((3, 3), (3, 3)), name='conv1_pad')(x)
+    else:
+        pass
+        #x = img_input
+        #x = tf.keras.layers.ZeroPadding2D(padding=((1, 1), (1, 1)), name='conv1_pad')(x)
 
-        if not preact:
-            preact_bn = True
-            preact_act = 'relu'
-        else:
-            preact_bn = False
-            preact_act = None
+    if not preact:
+        preact_bn = True
+        preact_act = 'relu'
+    else:
+        preact_bn = False
+        preact_act = None
 
-        if imagenet_pretrain:
-            x = lib_snn.layers.Conv2D(initial_channels, 7, strides=2, use_bn=preact_bn, activation=preact_act, name='conv1_conv')(x)
-        else:
-            x = lib_snn.layers.Conv2D(initial_channels, 3, strides=1, padding='same', use_bn=preact_bn, activation=preact_act, name='conv1_conv')(x)
+    if imagenet_pretrain:
+        x = lib_snn.layers.Conv2D(initial_channels, 7, strides=2, use_bn=preact_bn, activation=preact_act, name='conv1_conv')(x)
+    else:
+        x = lib_snn.layers.Conv2D(initial_channels, 3, strides=1, padding='same', use_bn=preact_bn, activation=preact_act, name='conv1_conv')(x)
 
-        if imagenet_pretrain:
-            x = tf.keras.layers.ZeroPadding2D(padding=((1, 1), (1, 1)), name='pool1_pad')(x)
-            x = lib_snn.layers.MaxPool2D(3, strides=2, name='pool1_pool')(x)
-        else:
-            pass
-
-
-        if cifar_stack:
-            x = stack1(x, initial_channels, block, num_blocks[0], stride=1, name='conv2')
-            x = stack1(x, initial_channels*2, block, num_blocks[1], name='conv3')
-            x = stack1(x, initial_channels*4, block, num_blocks[2], name='conv4')
-        else:
-            x = stack1(x, initial_channels, block, num_blocks[0], stride=1, name='conv2')
-            x = stack1(x, initial_channels*2, block, num_blocks[1], name='conv3')
-            x = stack1(x, initial_channels*4, block, num_blocks[2], name='conv4')
-            x = stack1(x, initial_channels*8, block, num_blocks[3], name='conv5')
+    if imagenet_pretrain:
+        x = tf.keras.layers.ZeroPadding2D(padding=((1, 1), (1, 1)), name='pool1_pad')(x)
+        x = lib_snn.layers.MaxPool2D(3, strides=2, name='pool1_pool')(x)
+    else:
+        pass
 
 
-        if preact:
-            x = tf.keras.layers.BatchNormalization(name='post_bn')(x)
-            x = tf.keras.layers.Activation('relu', name='post_relu')(x)
+    if cifar_stack:
+        x = stack1(x, initial_channels, block, num_blocks[0], stride=1, name='conv2')
+        x = stack1(x, initial_channels*2, block, num_blocks[1], name='conv3')
+        x = stack1(x, initial_channels*4, block, num_blocks[2], name='conv4')
+    else:
+        x = stack1(x, initial_channels, block, num_blocks[0], stride=1, name='conv2')
+        x = stack1(x, initial_channels*2, block, num_blocks[1], name='conv3')
+        x = stack1(x, initial_channels*4, block, num_blocks[2], name='conv4')
+        x = stack1(x, initial_channels*8, block, num_blocks[3], name='conv5')
 
-        if include_top:
+
+    if preact:
+        x = tf.keras.layers.BatchNormalization(name='post_bn')(x)
+        x = tf.keras.layers.Activation('relu', name='post_relu')(x)
+
+    if include_top:
+        #x = tf.keras.layers.GlobalAveragePooling2D(name='avg_pool')(x)
+        x = lib_snn.layers.GlobalAveragePooling2D(name='avg_pool')(x)
+        #x = tf.keras.layers.Dense(classes, activation=classifier_activation, name='predictions')(x)
+        x = lib_snn.layers.Dense(classes, activation=classifier_activation, use_bn=False, last_layer=True, name='predictions')(x)
+    else:
+        assert False
+        if pooling == 'avg':
             x = tf.keras.layers.GlobalAveragePooling2D(name='avg_pool')(x)
-            x = tf.keras.layers.Dense(classes, activation=classifier_activation, name='predictions')(x)
-        else:
-            if pooling == 'avg':
-                x = tf.keras.layers.GlobalAveragePooling2D(name='avg_pool')(x)
-            elif pooling == 'max':
-                x = tf.keras.layers.GlobalMaxPooling2D(name='max_pool')(x)
+        elif pooling == 'max':
+            assert False
+            #x = tf.keras.layers.GlobalMaxPooling2D(name='max_pool')(x)
+            #x = lib_snn.layers.GlobalMaxPooling2D(name='max_pool')(x)
 
 
-        # Create model.
-        self.model = training.Model(img_input, x, name=model_name)
+    # Create model.
+    #self.model = training.Model(img_input, x, name=model_name)
+    model = lib_snn.model.Model(img_input, x, batch_size, input_shape, data_format, classes, conf, name=model_name)
 
-        # Load weights.
+    # Load weights.
+    if False:
         if (weights == 'imagenet') and (model_name in WEIGHTS_HASHES):
             if include_top:
                 file_name = model_name + '_weights_tf_dim_ordering_tf_kernels.h5'
@@ -316,8 +324,10 @@ class ResNet(lib_snn.model.Model):
         elif weights is not None:
             self.model.load_weights(weights)
 
-        #
-        self.model.summary()
+    #
+    #self.model.summary()
+
+    return model
 
 #
 def ResNet18(input_shape, conf, include_top, weights, classes, **kwargs):
@@ -326,33 +336,16 @@ def ResNet18(input_shape, conf, include_top, weights, classes, **kwargs):
     initial_channels = kwargs.pop('initial_channels', None)
     num_blocks = [2,2,2,2]
     return ResNet(input_shape=input_shape, block=block_basic, initial_channels=initial_channels,
+    #return ResNet(input_shape=input_shape, block=block_bottleneck, initial_channels=initial_channels,
                   num_blocks=num_blocks, conf=conf, include_top=include_top,
                   weights=weights, classes=classes, **kwargs)
-
-#
-def ResNet20(input_shape, conf, include_top, weights, classes, **kwargs):
-    initial_channels = 64
-    initial_channels = kwargs.pop('initial_channels', None)
-    num_blocks = [3,3,3]
-    return ResNet(input_shape=input_shape, block=block_basic, initial_channels=initial_channels,
-                  num_blocks=num_blocks, conf=conf, include_top=include_top,
-                  weights=weights, classes=classes, **kwargs)
-
-#
-def ResNet32(input_shape, conf, include_top, weights, classes, **kwargs):
-    initial_channels = 64
-    initial_channels = kwargs.pop('initial_channels', None)
-    num_blocks = [5,5,5]
-    return ResNet(input_shape=input_shape, block=block_basic, initial_channels=initial_channels,
-                  num_blocks=num_blocks, conf=conf, include_top=include_top,
-                  weights=weights, classes=classes, **kwargs)
-
 #
 def ResNet34(input_shape, conf, include_top, weights, classes, **kwargs):
     initial_channels = 64
     initial_channels = kwargs.pop('initial_channels', None)
     num_blocks = [3,4,6,3]
     return ResNet(input_shape=input_shape, block=block_basic, initial_channels=initial_channels,
+    #return ResNet(input_shape=input_shape, block=block_bottleneck, initial_channels=initial_channels,
                   num_blocks=num_blocks, conf=conf, include_top=include_top,
                   weights=weights, classes=classes, **kwargs)
 #
@@ -380,20 +373,104 @@ def ResNet152(input_shape, conf, include_top, weights, classes, **kwargs):
                   num_blocks=num_blocks, conf=conf, include_top=include_top,
                   weights=weights, classes=classes, **kwargs)
 
+
+
+
+#
+def ResNet20(input_shape, conf, include_top, weights, classes, **kwargs):
+    initial_channels = 64
+    initial_channels = kwargs.pop('initial_channels', None)
+    num_blocks = [3,3,3]
+    return ResNet(input_shape=input_shape, block=block_basic, initial_channels=initial_channels,
+                  num_blocks=num_blocks, conf=conf, include_top=include_top,
+                  weights=weights, classes=classes, **kwargs)
+
+#
+def ResNet32(input_shape, conf, include_top, weights, classes, **kwargs):
+    initial_channels = 64
+    initial_channels = kwargs.pop('initial_channels', None)
+    num_blocks = [5,5,5]
+    return ResNet(input_shape=input_shape, block=block_basic, initial_channels=initial_channels,
+                  num_blocks=num_blocks, conf=conf, include_top=include_top,
+                  weights=weights, classes=classes, **kwargs)
+
+#
+def ResNet44(input_shape, conf, include_top, weights, classes, **kwargs):
+    initial_channels = 64
+    initial_channels = kwargs.pop('initial_channels', None)
+    num_blocks = [7,7,7]
+    return ResNet(input_shape=input_shape, block=block_basic, initial_channels=initial_channels,
+                  num_blocks=num_blocks, conf=conf, include_top=include_top,
+                  weights=weights, classes=classes, **kwargs)
+
+#
+def ResNet56(input_shape, conf, include_top, weights, classes, **kwargs):
+    initial_channels = 64
+    initial_channels = kwargs.pop('initial_channels', None)
+    num_blocks = [9,9,9]
+    return ResNet(input_shape=input_shape, block=block_basic, initial_channels=initial_channels,
+                  num_blocks=num_blocks, conf=conf, include_top=include_top,
+                  weights=weights, classes=classes, **kwargs)
+
+
+
+
+
 #
 def ResNet18V2(input_shape, conf, include_top, weights, classes, **kwargs):
     initial_channels = 64
     initial_channels = kwargs.pop('initial_channels', None)
     num_blocks = [2,2,2,2]
     return ResNet(preact=True, input_shape=input_shape, block=block_basic, initial_channels=initial_channels,
+    #return ResNet(preact=True, input_shape=input_shape, block=block_bottleneck, initial_channels=initial_channels,
                   num_blocks=num_blocks, conf=conf, include_top=include_top,
                   weights=weights, classes=classes, **kwargs)
-
+#
+def ResNet34V2(input_shape, conf, include_top, weights, classes, **kwargs):
+    initial_channels = 64
+    initial_channels = kwargs.pop('initial_channels', None)
+    num_blocks = [3,4,6,3]
+    return ResNet(preact=True, input_shape=input_shape, block=block_basic, initial_channels=initial_channels,
+    #return ResNet(preact=True, input_shape=input_shape, block=block_bottleneck, initial_channels=initial_channels,
+                  num_blocks=num_blocks, conf=conf, include_top=include_top,
+                  weights=weights, classes=classes, **kwargs)
+#
+def ResNet50V2(input_shape, conf, include_top, weights, classes, **kwargs):
+    initial_channels = 64
+    initial_channels = kwargs.pop('initial_channels', None)
+    num_blocks = [3,4,6,3]
+    return ResNet(preact=True, input_shape=input_shape, block=block_bottleneck, initial_channels=initial_channels,
+                  num_blocks=num_blocks, conf=conf, include_top=include_top,
+                  weights=weights, classes=classes, **kwargs)
 #
 def ResNet20V2(input_shape, conf, include_top, weights, classes, **kwargs):
     initial_channels = 64
     initial_channels = kwargs.pop('initial_channels', None)
     num_blocks = [3,3,3]
+    return ResNet(preact=True, input_shape=input_shape, block=block_basic, initial_channels=initial_channels,
+                  num_blocks=num_blocks, conf=conf, include_top=include_top,
+                  weights=weights, classes=classes, **kwargs)
+#
+def ResNet32V2(input_shape, conf, include_top, weights, classes, **kwargs):
+    initial_channels = 64
+    initial_channels = kwargs.pop('initial_channels', None)
+    num_blocks = [5,5,5]
+    return ResNet(preact=True, input_shape=input_shape, block=block_basic, initial_channels=initial_channels,
+                  num_blocks=num_blocks, conf=conf, include_top=include_top,
+                  weights=weights, classes=classes, **kwargs)
+#
+def ResNet44V2(input_shape, conf, include_top, weights, classes, **kwargs):
+    initial_channels = 64
+    initial_channels = kwargs.pop('initial_channels', None)
+    num_blocks = [7,7,7]
+    return ResNet(preact=True, input_shape=input_shape, block=block_basic, initial_channels=initial_channels,
+                  num_blocks=num_blocks, conf=conf, include_top=include_top,
+                  weights=weights, classes=classes, **kwargs)
+#
+def ResNet56V2(input_shape, conf, include_top, weights, classes, **kwargs):
+    initial_channels = 64
+    initial_channels = kwargs.pop('initial_channels', None)
+    num_blocks = [9,9,9]
     return ResNet(preact=True, input_shape=input_shape, block=block_basic, initial_channels=initial_channels,
                   num_blocks=num_blocks, conf=conf, include_top=include_top,
                   weights=weights, classes=classes, **kwargs)

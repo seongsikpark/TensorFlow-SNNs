@@ -6,7 +6,7 @@ from lib_snn.sim import glb
 
 
 def model_builder(
-    eager_mode, model_top, nn_mode, batch_size, image_shape, conf, include_top, load_weight, num_class, model_name, lmb, initial_channels,
+    eager_mode, model_top, batch_size, image_shape, conf, include_top, load_weight, num_class, model_name, lmb, initial_channels,
     train_epoch, train_steps_per_epoch,
     opt, learning_rate,
     lr_schedule, step_decay_epoch,
@@ -19,7 +19,7 @@ def model_builder(
     # model
     model_top = model_top(batch_size=batch_size, input_shape=image_shape, conf=conf, include_top=include_top,
                           weights=load_weight, classes=num_class, name=model_name, lmb=lmb,
-                          initial_channels=initial_channels, nn_mode=nn_mode)
+                          initial_channels=initial_channels)
 
 
     # TODO: parameterize

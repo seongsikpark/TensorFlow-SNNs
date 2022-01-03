@@ -70,15 +70,9 @@ from lib_snn.sim import glb_plot
 from lib_snn.sim import glb_plot_1
 from lib_snn.sim import glb_plot_2
 
-#def dummy():
-#    pass
-
-#abs.run()
-#app.run(dummy)
 #
 #conf = flags.FLAGS
 
-#def main(_):
 ########################################
 # configuration
 ########################################
@@ -117,7 +111,8 @@ else:
 #exp_set_name = 'HPTune-GRID'
 #exp_set_name = 'CODE_TEST'
 #exp_set_name = 'Train_SC'
-exp_set_name = 'DNN-to-SNN'
+exp_set_name = 'Train_SC_resnet'
+#exp_set_name = 'DNN-to-SNN'
 
 # hyperparamter tune mode
 #hp_tune = True
@@ -129,8 +124,8 @@ hp_tune = False
 #train=False
 train=conf.train
 
-load_model=True
-#load_model=False
+#load_model=True
+load_model=False
 
 #
 #save_model = False
@@ -160,7 +155,8 @@ step_decay_epoch = 200
 root_hp_tune = './hp_tune'
 
 #
-root_model = './models_trained'
+#root_model = './models_trained'
+root_model = './models_trained_resnet_relu_debug'
 
 # model
 #model_name = 'VGG16'
@@ -649,7 +645,7 @@ if f_hp_tune:
     #assert False
 else:
     model = lib_snn.model_builder.model_builder(
-        eager_mode, model_top, conf.nn_mode, batch_size, image_shape, conf, include_top, load_weight, num_class, model_name, lmb, initial_channels,
+        eager_mode, model_top, batch_size, image_shape, conf, include_top, load_weight, num_class, model_name, lmb, initial_channels,
         train_epoch, train_steps_per_epoch,
         opt, learning_rate,
         lr_schedule, step_decay_epoch,
@@ -661,7 +657,7 @@ if conf.nn_mode=='SNN' and conf.dnn_to_snn:
     nn_mode_ori = conf.nn_mode
     conf.nn_mode='ANN'
     model_ann = lib_snn.model_builder.model_builder(
-        eager_mode, model_top, 'ANN', batch_size, image_shape, conf, include_top, load_weight, num_class, model_name, lmb, initial_channels,
+        eager_mode, model_top, batch_size, image_shape, conf, include_top, load_weight, num_class, model_name, lmb, initial_channels,
         train_epoch, train_steps_per_epoch,
         opt, learning_rate,
         lr_schedule, step_decay_epoch,
@@ -858,6 +854,8 @@ if train:
             #cb_manage_saved_model,
             #cb_tensorboard
         #]
+
+        model.summary()
 
         train_histories = model.fit(train_ds, epochs=train_epoch, initial_epoch=init_epoch, validation_data=valid_ds,
                                     callbacks=callbacks_train)

@@ -52,14 +52,21 @@ class GLB_PLOT():
             axe.set_title(layer_name+' neuron '+str(self.idx_neurons[idx]))
 
 
-#
+# TODO: move
+#tf.compat.v1.app.flags.DEFINE_bool('_en_snn',False,'(internal) enable snn')
+#tf.compat.v1.app.flags.DEFINE_bool('_bias_control',False,'(internal) bias control - SNN inference')
 tf.compat.v1.app.flags.DEFINE_bool('_run_for_visual_debug',False,'(internal) run for visual debug')
 
 def set_for_visual_debug(set):
     #flags.FLAGS._run_for_visual_debug = (set) and (flags.FLAGS.verbose_visual)
     conf._run_for_visual_debug = (set) and (conf.verbose_visual)
 
+#def init_internal_config():
+    #set_en_snn()
+    #set_bias_control()
 
+#def set_en_snn():
+    #conf._en_snn = (conf.nn_mode == 'SNN' or conf.f_validation_snn)
 
 
 #

@@ -13,6 +13,7 @@ import threading
 # distribution of activation - neuron-wise or channel-wise?
 #def save_act_stat(self):
 def save_act_stat(self):
+    print('---- Save stat of activations ---- ')
 
     #path_stat='/home/sspark/Projects/05_SNN/stat/'
     #path_stat='./stat/'
