@@ -249,16 +249,15 @@ tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'ANN', 'ANN: Analog Neural Netwo
 tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet20', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet32', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet34', 'model')
-#tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet44', 'model')
+tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet44', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet50', 'model')
-#tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet56', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet18V2', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet20V2', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet32V2', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet34V2', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet44V2', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet50V2', 'model')
-tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet56V2', 'model')
+#tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet56V2', 'model')
 
 
 # datasets
@@ -287,7 +286,6 @@ tf.compat.v1.app.flags.DEFINE_string('regularizer', 'L2', 'L2 or L1 regularizer'
 #tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-5, 'lambda')
 # ResNet
 tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-4, 'lambda')
-#tf.compat.v1.app.flags.DEFINE_float('lmb',5.0E-5, 'lambda')
 
 
 # data augmentation
