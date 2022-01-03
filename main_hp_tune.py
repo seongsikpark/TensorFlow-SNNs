@@ -139,14 +139,14 @@ overwrite_tensorboard = True
 
 #epoch = 20000
 #epoch = 20472
-train_epoch = 300
-#train_epoch = 1000
+#train_epoch = 300
+train_epoch = 1000
 #train_epoch = 1
 
 
 # learning rate schedule - step_decay
-step_decay_epoch = 100
-#step_decay_epoch = 200
+#step_decay_epoch = 100
+step_decay_epoch = 200
 
 
 # TODO: move to config
