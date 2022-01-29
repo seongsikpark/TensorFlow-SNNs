@@ -13,6 +13,13 @@ import matplotlib.pyplot as plt
 import lib_snn
 
 #
+from lib_snn.sim import glb_ig_attributions
+from lib_snn.sim import glb_rand_vth
+from lib_snn.sim import glb_vth_search_err
+from lib_snn.sim import glb_vth_init
+from lib_snn.sim import glb_bias_comp
+
+#
 def vth_calibration_stat(self):
     #
     path_stat = os.path.join(self.path_model,self.conf.path_stat)
@@ -441,9 +448,9 @@ def weight_calibration(self):
         #a = 0.3
         #a = 0.5
         a = 0.7
-        #a = 0.8
+        a = 0.8
         #a = 0.9
-        #a = 1.0
+        a = 1.0
         b = 1.0
         #b = 0.99
         #b = 0.9
@@ -453,6 +460,8 @@ def weight_calibration(self):
             norm[l.name] = a + (1 - a) * (depth_l - idx_l) / (depth_l)
             norm[l.name] *= b
             # norm[l.name]=a*(depth_l-idx_l)/(depth_l)
+
+
 
             #vth_init = norm[l.name]
             #l.kernel = l.kernel * self.conf.n_init_vth * vth_init
@@ -641,9 +650,10 @@ def weight_calibration(self):
         print(norm_wc[layer.name])
 
 
+
 # weight calibration - resolve information bottleneck
 def weight_calibration_act_based(self):
-    print('weight_calibtraion_act_based')
+    print('\nweight_calibration_act_based')
     #
     stat = None
 
@@ -792,23 +802,45 @@ def weight_calibration_act_based(self):
                 norm[l.name] = 1.0
                 #if idx_l == 0:
 
-                #stat_max = read_stat(self, l, 'max')
-                #stat_max = tf.expand_dims(stat_max,axis=0)
-                #stat_max = tf.reduce_max(stat_max,axis=axis)
-
-                #print(axis)
-                #assert False
-
                 dnn_act = self.model_ann.get_layer(l.name).record_output
-                #stat_max = tf.reduce_max(dnn_act, axis=axis)
-                stat_max = tfp.stats.percentile(dnn_act, 99.9, axis=axis)
-                stat_max = tf.ones(stat_max.shape)
+
+                if self.conf.f_w_norm_data:
+                    stat_max = tf.reduce_max(dnn_act, axis=axis)
+                    stat_max = tfp.stats.percentile(dnn_act, 99.9, axis=axis)
+                    stat_max = tf.ones(stat_max.shape)
+                    #stat_max = tf.reduce_max(dnn_act, axis=axis)
+                    #stat_max = read_stat(self, l, 'max')
+                    #stat_max = stat_max / self.norm_b[l.name]
+                    #stat_max = tf.expand_dims(stat_max,axis=0)
+                    #stat_max = tf.reduce_max(stat_max,axis=axis)
+                else:
+                    stat_max = read_stat(self, l, 'max')
+                    stat_max = tf.expand_dims(stat_max,axis=0)
+                    stat_max = tf.reduce_max(stat_max,axis=axis)
+
+
 
                 num_range = 100
+                #num_range = 250
+                #num_range = 125
+                #num_range = 133
                 #num_range = 200
-                #num_range = 2000
+                #num_range = 333
+                #num_range = 1000
                 #num_range = 5000
-                range = tf.range(1/num_range,1+1/num_range,1/num_range,dtype=tf.float32)
+                #
+                #range = tf.random.normal(shape=[num_range],mean=0.0,stddev=0.2,dtype=tf.float32)
+                #range = 1.0-tf.math.abs(range)
+                #range = tf.random.uniform(shape=[num_range],minval=0.5,maxval=1,dtype=tf.float32)
+                #range = tf.random.uniform(shape=[num_range],minval=0.0,maxval=1,dtype=tf.float32)
+                #range = tf.range(1/num_range,1+1/num_range,1/num_range,dtype=tf.float32)
+
+
+                if not l.name in glb_rand_vth.keys():
+                    glb_rand_vth[l.name] = tf.random.uniform(shape=[num_range], minval=0.0, maxval=1, dtype=tf.float32)
+
+                range = glb_rand_vth[l.name]
+
                 #range_vth = range*self.conf.n_init_vth
                 #range_vth = range*stat_max
 
@@ -851,57 +883,977 @@ def weight_calibration_act_based(self):
 
                     #print(vth)
                     err = dnn_act - dnn_act_clip_floor
+                    err = tf.math.square(err)
+                    #err = tf.math.square(err)*1/dnn_act
+
+                    # integrated gradients
+                    if self.conf.vth_search_ig:
+                        #if isinstance(l, lib_snn.layers.Conv2D):
+                            #ig_attributions = tf.reduce_mean(glb_ig_attributions[l.name],axis=[0,1])
+                        #elif isinstance(l, lib_snn.layers.Dense):
+                            #ig_attributions = glb_ig_attributions[l.name]
+                        #else:
+                            #assert False
+                        #print(err.shape)
+                        ig_attributions = glb_ig_attributions[l.name]
+                        eps = 0.01
+                        #print(err.shape)
+                        #print(ig_attributions.shape)
+                        #err = err*(1+ig_attributions)
+                        #err = err*(10+ig_attributions/tf.reduce_max(ig_attributions))
+                        #err = err*(2+ig_attributions/tf.reduce_max(ig_attributions))
+                        #err = err*(1+ig_attributions/tf.reduce_max(ig_attributions))
+                        #err = err*(0.5+ig_attributions/tf.reduce_max(ig_attributions))
+                        #err = err*(0.1+ig_attributions/tf.reduce_max(ig_attributions))
+                        #err = err*(0.01+ig_attributions/tf.reduce_max(ig_attributions))    # old best?
+                        #err = err*(0.001+ig_attributions/tf.reduce_max(ig_attributions))
+                        #err = err*(tf.reduce_min(ig_attributions)+ig_attributions)
+                        #alpha = 0.5
+                        #err = alpha*err/tf.reduce_max(err,axis=axis)+(1-alpha)*1/(ig_attributions/tf.reduce_max(ig_attributions,axis=axis))
+                        #err = err*ig_attributions
+                        #err = err*(ig_attributions/tf.reduce_max(ig_attributions,axis=axis))
+                        #jerr = err*(eps+ig_attributions/tf.reduce_max(ig_attributions,axis=axis))
+                        err = err*(eps+ig_attributions/tf.reduce_max(ig_attributions))
+                        #err = err*(tf.reduce_min(ig_attributions)+ig_attributions/tf.reduce_max(ig_attributions))
+                        #err = err*(tf.reduce_mean(ig_attributions)+ig_attributions/tf.reduce_max(ig_attributions))
+                        #err = err*(eps+ig_attributions/tf.reduce_max(ig_attributions))    # old best?
+                        #err = err*(ig_attributions/tf.reduce_max(ig_attributions))
+                        #print(err.shape)
+
                     #err = err * snn_act
                     #print(err)
 
                     #err = tf.math.abs(err)
-                    err = tf.math.square(err)
 
                     #err = err * snn_act
                     #print(err)
+                    #err = tf.math.square(err)
                     err = tf.reduce_mean(err,axis=axis)
                     #print(err)
 
-                    if error_level == 'layer':
-                        errs = tf.tensor_scatter_nd_update(errs,[[idx]],[err])
-                    elif error_level == 'channel':
-                        errs = tf.tensor_scatter_nd_update(errs,[[idx]],[err])
+                    #if error_level == 'layer':
+                    #    errs = tf.tensor_scatter_nd_update(errs,[[idx]],[err])
+                    #elif error_level == 'channel':
+                    #    errs = tf.tensor_scatter_nd_update(errs,[[idx]],[err])
+
+
+                    # old
+                    #errs = tf.tensor_scatter_nd_update(errs,[[idx]],[err])
+
+                    if not l.name in glb_vth_search_err.keys():
+                        glb_vth_search_err[l.name] = tf.TensorArray(tf.float32, size=0, dynamic_size=True, clear_after_read=False)
+
+
+                    vth_err_arr = glb_vth_search_err[l.name]
+                    #if idx==0:
+
+
+                    if vth_err_arr.size() < num_range:
+                        glb_vth_search_err[l.name] = vth_err_arr.write(idx, err)
+                    else:
+                        glb_vth_search_err[l.name] = vth_err_arr.write(idx, vth_err_arr.read(idx) + err)
+
 
 
                     #print(errs)
                     #assert False
                     #errs.append(err)
 
-                vth_idx_min_err = tf.math.argmin(errs)
-                #print(vth_idx_min_err)
+                #errs_accum = glb_vth_search_err[l.name].stack()
+                #return
+                #break
 
-                #vth_min_err = tf.gather(range_vth,vth_idx_min_err)
-                vth_min_err_scale = tf.gather(range,vth_idx_min_err)
-                vth_min_err = vth_min_err_scale*stat_max
+#
+#
+#                #
+#                # set
+#                #
+#
+#                #vth_idx_min_err = tf.math.argmin(errs)
+#                vth_idx_min_err = tf.math.argmin(errs_accum)
+#                #print(vth_idx_min_err)
+#
+#                #vth_min_err = tf.gather(range_vth,vth_idx_min_err)
+#                vth_min_err_scale = tf.gather(range,vth_idx_min_err)
+#                vth_min_err = vth_min_err_scale*stat_max
+#
+#                #print(stat_max)
+#                ##print(range_vth)
+#                #print(errs)
+#                #print(vth_idx_min_err)
+#                #print(vth_min_err)
+#                #print(vth_min_err_scale)
+#                #print(vth_min_err)
+#                #print(range)
+#
+#
+#                #
+#                # TODO: parameterize
+#                vth_init = vth_min_err
+#                #vth_init = glb_vth_init[l.name]
+#
+#                #vth_init = tf.where(vth_init==0,tf.ones(vth_init.shape),vth_init)
+#
+#                vth_init_fm = vth_init
+#
+#                print('{} - vth_init - {}'.format(l.name,vth_init))
+#
+#                #assert False
+#
+#
+#                ##
+#                if error_level=='channel':
+#                    if isinstance(l, lib_snn.layers.Conv2D) or isinstance(l, lib_snn.layers.InputGenLayer):
+#                        vth_init_fm = tf.expand_dims(vth_init_fm, axis=0)
+#                        vth_init_fm = tf.expand_dims(vth_init_fm, axis=1)
+#                        vth_init_fm = tf.expand_dims(vth_init_fm, axis=2)
+#                    elif isinstance(l, lib_snn.layers.Dense):
+#                        vth_init_fm = tf.expand_dims(vth_init_fm, axis=0)
+#                    else:
+#                        assert False
+#                    #print(l.name)
+#                    #print(stat_max.shape)
+#                    #print(vth_init_fm.shape)
+#                    #print(l.act.vth.shape)
+#                    vth_init_fm = tf.broadcast_to(vth_init_fm,shape=l.act.vth.shape)
+#
+#
+#                # prev vth
+#                if error_level=='channel':
+#                    if isinstance(l, lib_snn.layers.Conv2D) or isinstance(l, lib_snn.layers.InputGenLayer):
+#                        prev_vth = tf.reduce_mean(l.act.vth,axis=[0,1,2])
+#                    elif isinstance(l, lib_snn.layers.Dense):
+#                        prev_vth = tf.reduce_mean(l.act.vth, axis=0)
+#                    else:
+#                        assert False
+#                else:
+#                    prev_vth = tf.reduce_mean(l.act.vth)
+#
+#
+#                #
+#                l.act.set_vth_init(vth_init_fm)
+#
+#                #print(vth_init_fm)
+#
+#                #
+#                #norm[l.name]=vth_init
+#
+#                #if idx_l==0:
+#                #    norm[l.name]=1.0
+#                #stat_max = read_stat(self, l, 'max_999')
+#                #stat_max = tf.expand_dims(stat_max,axis=0)
+#                #stat_max = tf.reduce_max(stat_max,axis=axis)
+#                #norm[l.name]=stat_max
+#                #
+#
+#                if True:
+#                #if False:
+#
+#                    if idx_l!=0:
+#                        #l.kernel = l.kernel*prev_fire_r_m
+#                        #l.kernel = l.kernel*((1-alpha) + alpha*prev_fire_r_m)
+#                        #print(prev_vth_init.shape)
+#                        #print(l.kernel.shape)
+#
+#                        if error_level=='channel':
+#                            if isinstance(l, lib_snn.layers.Conv2D):
+#                                prev_layer_vth_init = tf.expand_dims(prev_layer_vth_init, axis=0)
+#                                prev_layer_vth_init = tf.expand_dims(prev_layer_vth_init, axis=1)
+#                                prev_layer_vth_init = tf.expand_dims(prev_layer_vth_init, axis=3)
+#
+#                                prev_prev_layer_vth_init = tf.expand_dims(prev_prev_layer_vth_init, axis=0)
+#                                prev_prev_layer_vth_init = tf.expand_dims(prev_prev_layer_vth_init, axis=1)
+#                                prev_prev_layer_vth_init = tf.expand_dims(prev_prev_layer_vth_init, axis=3)
+#
+#                            elif isinstance(l, lib_snn.layers.Dense):
+#                                prev_layer_vth_init = tf.expand_dims(prev_layer_vth_init, axis=1)
+#
+#                                prev_prev_layer_vth_init = tf.expand_dims(prev_prev_layer_vth_init, axis=1)
+#
+#                        #l.kernel = l.kernel*prev_layer_vth_init/prev_prev_layer_vth_init
+#                        l.kernel = self.model_ann.get_layer(l.name).kernel*prev_layer_vth_init
+#
+#                        #if idx_l != len(self.model.layers_w_kernel) - 1:
+#                            #l.act.set_vth_init(vth_init_fm)
+#                            ##norm[l.name] = vth_init
+#
+#
+#                prev_layer_vth_init = vth_init
+#                prev_prev_layer_vth_init = prev_vth
+#
+#                #snn_act = l.act.spike_count_int/(self.conf.time_step-l.bias_en_time)
+#
+#
+#
+#
+#
+#            # vth calibration
+#            if False:
+#            #if True:
+#                norm[l.name] = 1.0
+#                fire_r_m_c = fire_r_m
+#                fire_r_m_next_layer_kernel = fire_r_m
+#
+#                if error_level=='channel':
+#                    if isinstance(l, lib_snn.layers.Conv2D):
+#                        fire_r_m = tf.expand_dims(fire_r_m,axis=0)
+#                        fire_r_m = tf.expand_dims(fire_r_m,axis=0)
+#                        fire_r_m = tf.expand_dims(fire_r_m,axis=0)
+#                        fire_r_m = tf.broadcast_to(fire_r_m,shape=l.act.vth.shape)
+#                    elif isinstance(l, lib_snn.layers.Dense):
+#                        fire_r_m = tf.expand_dims(fire_r_m,axis=0)
+#                        fire_r_m = tf.broadcast_to(fire_r_m,shape=l.act.vth.shape)
+#
+#                    #
+#                    if idx_l != len(self.model.layers_w_kernel):
+#                        next_layer = self.model.layers_w_kernel[idx_l+1]
+#
+#                        if isinstance(next_layer, lib_snn.layers.Conv2D):
+#                            fire_r_m_next_layer_kernel = tf.expand_dims(fire_r_m_next_layer_kernel,axis=0)
+#                            fire_r_m_next_layer_kernel = tf.expand_dims(fire_r_m_next_layer_kernel,axis=1)
+#                            fire_r_m_next_layer_kernel = tf.expand_dims(fire_r_m_next_layer_kernel,axis=3)
+#                        elif isinstance(next_layer, lib_snn.layers.Dense):
+#                            fire_r_m_next_layer_kernel = tf.expand_dims(fire_r_m_next_layer_kernel,axis=1)
+#
+#                        fire_r_m_next_layer_kernel = tf.broadcast_to(fire_r_m_next_layer_kernel,next_layer.kernel.shape)
+#
+#                alpha = 0.1
+#                #vth_scale = prev_fire_r_m
+#                #vth_sacle = ((1-alpha)+alpha*prev_fire_r_m)
+#
+#                #vth_init = self.conf.n_init_vth*fire_r_m
+#                #vth_init = l.act.vth*fire_r_m
+#                #vth_init = l.act.vth*vth_scale
+#                vth_init = l.act.vth*((1-alpha)+alpha*fire_r_m)
+#
+#                l.act.set_vth_init(vth_init)
+#
+#                if idx_l!=0:
+#                    #l.kernel = l.kernel*prev_fire_r_m
+#                    l.kernel = l.kernel*((1-alpha) + alpha*prev_fire_r_m)
+#
+#                prev_fire_r_m = fire_r_m_next_layer_kernel
+#
+#                #
+#                print('fire r')
+#                print('{} - fire_r_m: {}'.format(l.name,fire_r_m_c))
+#
+#            #
+#            print('bias enable time')
+#            print('{} - t bias en: {}'.format(l.name, tf.reduce_mean(l.bias_en_time)))
+#
+#    #elif True:
+#    elif False:
+#        stat='max_999'
+#        #stat='max'
+#
+#        #error_level = 'layer'
+#        error_level = 'channel'
+#
+#        for idx_l, l in enumerate(self.model.layers_w_kernel):
+#
+#            if idx_l == len(self.model.layers_w_kernel)-1:
+#                norm[l.name]=1.0
+#                continue
+#
+#            if self.conf.bias_control:
+#                time = tf.cast(self.conf.time_step - tf.reduce_mean(l.bias_en_time), tf.float32)
+#            else:
+#                time = self.conf.time_step
+#
+#            self.stat_r = read_stat(self, l, stat)
+#            stat_r = self.stat_r
+#
+#            # represent_stat = f_norm(self.dict_stat_r[l.name])
+#            #represent_stat = self.norm_b[l.name]
+#
+#            norm_sat = stat_r / self.norm_b[l.name]
+#            norm_sat_e = norm_sat - 1
+#            norm_sat_e = tf.where(norm_sat_e > 0, norm_sat, tf.zeros(norm_sat.shape))
+#
+#            if error_level == 'layer':
+#                if isinstance(l, lib_snn.layers.Conv2D):
+#                    axis = [0, 1, 2, 3]
+#                elif isinstance(l, lib_snn.layers.Dense):
+#                    axis = [0, 1]
+#                else:
+#                    assert False
+#            elif error_level == 'channel':
+#                if isinstance(l, lib_snn.layers.Conv2D):
+#                    axis = [0, 1, 2]
+#                elif isinstance(l, lib_snn.layers.Dense):
+#                    axis = [0]
+#                else:
+#                    assert False
+#            else:
+#                assert False
+#
+#            #norm_sat_e = tf.reduce_mean(norm_sat_e,axis=axis)
+#
+#            #
+#            ann_act = self.model_ann.get_layer(l.name).record_output
+#            ann_act_s = self.model_ann.get_layer(l.name).bias
+#            ann_act_d = ann_act - ann_act_s
+#            ann_act_r = ann_act_d / ann_act_s
+#
+#            print(l.name)
+#            print('ann_act_r')
+#            print(ann_act_r)
+#            print(ann_act_s)
+#
+#            bias_comp_sub = norm_sat_e/ann_act_r
+#            bias_comp_sub = tf.where(tf.equal(ann_act,0.0), tf.zeros(bias_comp_sub.shape), bias_comp_sub)
+#            bias_comp_sub = tf.reduce_mean(bias_comp_sub,axis=axis)
+#
+#            print('bias_comp_sub')
+#            print(bias_comp_sub)
+#
+#            l.bias -= bias_comp_sub*0.001
+#
+#
+#        return
+#
+#    #if True:
+#    if False:
+#        #
+#        path_stat = os.path.join(self.path_model,self.conf.path_stat)
+#        #stat = 'max_999'
+#        #stat = 'max'
+#        #stat = 'max_75'
+#        stat = 'median'
+#        for idx_l, l in enumerate(self.model.layers_w_kernel):
+#            #print(l.name)
+#            key=l.name+'_'+stat
+#
+#            #f_name_stat = f_name_stat_pre+'_'+key
+#            f_name_stat = key
+#            f_name=os.path.join(path_stat,f_name_stat)
+#            f_stat=open(f_name,'r')
+#            r_stat=csv.reader(f_stat)
+#
+#            for row in r_stat:
+#                #self.dict_stat_r[l]=np.asarray(row,dtype=np.float32).reshape(self.list_shape[l][1:])
+#                stat_r=np.asarray(row,dtype=np.float32).reshape(l.output_shape_fixed_batch[1:])
+#
+#            #norm[l.name] = np.median(stat_r)
+#            norm[l.name] = 1/np.max(stat_r)
+#            print(norm[l.name])
+#
+#    #
+#    #norm_wc['conv1'] = norm[0]
+#    #norm_b_wc['conv1'] = norm[0]
+#    #
+#    #    norm_wc['conv1_1'] = norm[1]/norm[0]
+#    #    norm_b_wc['conv1_1'] = norm[1]
+#    #
+#
+#    if 'VGG' in self.conf.model:
+#        for idx_l, l in enumerate(self.model.layers_w_kernel):
+#            if idx_l == 0:
+#                norm_wc[l.name] = norm[l.name]
+#            else:
+#                #norm_wc[l.name] = norm[l.name]/norm[prev_layer_name]
+#                norm_wc[l.name] = norm[l.name] / np.expand_dims(norm_b_wc[prev_layer_name],axis=0).T
+#
+#            prev_layer_name = l.name
+#            norm_b_wc[l.name] = norm[l.name]
+#
+#    for layer in self.model.layers_w_kernel:
+#        # layer = self.model.get_layer(name=name_l)
+#        if layer.name in norm_wc.keys():
+#            layer.kernel = layer.kernel / norm_wc[layer.name]
+#        if layer.name in norm_b_wc.keys():
+#            layer.bias = layer.bias / norm_b_wc[layer.name]
+#
+#    for layer in self.model.layers_w_kernel:
+#        print(layer.name)
+#        print(norm_wc[layer.name])
+#
+#    #print('end')
 
-                #print(stat_max)
-                ##print(range_vth)
-                #print(errs)
-                #print(vth_idx_min_err)
-                #print(vth_min_err)
-                #print(vth_min_err_scale)
-                #print(vth_min_err)
-                #print(range)
 
 
-                vth_init = vth_min_err
+#
+def calibration_bias_set(self):
+    print('calibration_bias_set')
+    for l in self.model.layers_w_kernel:
+        if not l.name is 'predictions':
+            #print(l.name)
+            #print(l.bias)
+            l.bias = l.bias + glb_bias_comp[l.name]/self.conf.calibration_num_batch
 
-                vth_init = tf.where(vth_init==0,tf.ones(vth_init.shape),vth_init)
 
-                vth_init_fm = vth_init
+#
+def vth_search(self):
 
-                print('{} - vth_init - {}'.format(l.name,vth_init))
+    #error_level = 'layer'
+    error_level = 'channel'
 
+    for idx_l, l in enumerate(self.model.layers_w_kernel):
+
+        if error_level == 'layer':
+            if isinstance(l, lib_snn.layers.Conv2D) or isinstance(l, lib_snn.layers.InputGenLayer):
+                axis = [0, 1, 2, 3]
+            elif isinstance(l, lib_snn.layers.Dense):
+                axis = [0, 1]
+            else:
+                assert False
+        elif error_level == 'channel':
+            if isinstance(l, lib_snn.layers.Conv2D) or isinstance(l, lib_snn.layers.InputGenLayer):
+                axis = [0, 1, 2]
+            elif isinstance(l, lib_snn.layers.Dense):
+                axis = [0]
+            else:
+                assert False
+        else:
+            assert False
+
+        dnn_act = l.record_output
+
+        if self.conf.f_w_norm_data:
+            stat_max = tf.reduce_max(dnn_act, axis=axis)
+            stat_max = tfp.stats.percentile(dnn_act, 99.9, axis=axis)
+            stat_max = tf.ones(stat_max.shape)
+            #stat_max = tf.reduce_max(dnn_act, axis=axis)
+            #stat_max = read_stat(self, l, 'max')
+            #stat_max = stat_max / self.norm_b[l.name]
+            #stat_max = tf.expand_dims(stat_max,axis=0)
+            #stat_max = tf.reduce_max(stat_max,axis=axis)
+        else:
+            stat_max = read_stat(self, l, 'max')
+            #stat_max = stat_max/2
+            #stat_max = read_stat(self, l, 'max_999')
+            stat_max = tf.expand_dims(stat_max,axis=0)
+            #stat_max = dnn_act
+            #stat_max = tf.where(stat_max==0.0,tf.ones(stat_max.shape),stat_max)
+            stat_max = tf.reduce_max(stat_max,axis=axis)
+
+            #stat_max = tf.reduce_max(dnn_act, axis=axis)
+
+            #stat_max = tf.where(stat_max==0,tf.ones(stat_max.shape),stat_max)
+
+
+        #num_range = 10
+        num_range = 100
+        #num_range = 250
+        #num_range = 125
+        #num_range = 133
+        #num_range = 200
+        #num_range = 333
+        #num_range = 1000
+        #num_range = 5000
+        #
+        #range = tf.random.normal(shape=[num_range],mean=0.0,stddev=0.2,dtype=tf.float32)
+        #range = 1.0-tf.math.abs(range)
+        #range = tf.random.uniform(shape=[num_range],minval=0.5,maxval=1,dtype=tf.float32)
+        #range = tf.random.uniform(shape=[num_range],minval=0.0,maxval=1,dtype=tf.float32)
+        #range = tf.range(1/num_range,1+1/num_range,1/num_range,dtype=tf.float32)
+
+
+        if not l.name in glb_rand_vth.keys():
+            #glb_rand_vth[l.name] = tf.random.uniform(shape=[num_range], minval=0.0, maxval=1, dtype=tf.float32)
+            #glb_rand_vth[l.name] = tf.random.normal(shape=[num_range],mean=0.0,stddev=0.2,dtype=tf.float32)
+            #glb_rand_vth[l.name] = tf.random.uniform(shape=[num_range], minval=0.5, maxval=1, dtype=tf.float32)
+            glb_rand_vth[l.name] = tf.range(1/num_range,1+1/num_range,1/num_range,dtype=tf.float32)
+
+            glb_rand_vth[l.name] = tf.expand_dims(glb_rand_vth[l.name],axis=1) * tf.expand_dims(stat_max,axis=0)
+
+
+
+        range = glb_rand_vth[l.name]
+
+        #range_vth = range*self.conf.n_init_vth
+        #range_vth = range*stat_max
+
+        #print(stat_max)
+        #print(stat_max.shape)
+        #print(stat_max.shape[0])
+        #print(range.shape[0])
+
+        if self.conf.bias_control:
+            time = tf.cast(self.conf.time_step - tf.reduce_mean(l.bias_en_time), tf.float32)
+        else:
+            time = self.conf.time_step
+        #time = self.conf.time_step
+
+        #
+
+        for idx, vth in enumerate(range):
+
+            #vth = vth_scale*stat_max
+
+            #clip_max = vth*self.conf.time_step
+            #clip_max = vth*time
+            clip_max = time
+
+            #dnn_act_clip_floor = tf.math.floor(dnn_act/vth)
+            dnn_act_clip_floor = tf.math.floor(dnn_act/vth*time)
+            dnn_act_clip_floor = tf.clip_by_value(dnn_act_clip_floor,0,clip_max)
+            dnn_act_clip_floor = dnn_act_clip_floor*vth/time
+
+            #print(vth)
+            err = dnn_act - dnn_act_clip_floor
+            err = tf.math.square(err)
+            #err = tf.math.square(err)*1/dnn_act
+
+            #print('vth')
+            #print(vth)
+            #print('time')
+            #print(time)
+            #print('dnn_act')
+            #print(dnn_act)
+
+
+            # integrated gradients
+            if self.conf.vth_search_ig:
+                #if isinstance(l, lib_snn.layers.Conv2D):
+                #ig_attributions = tf.reduce_mean(glb_ig_attributions[l.name],axis=[0,1])
+                #elif isinstance(l, lib_snn.layers.Dense):
+                #ig_attributions = glb_ig_attributions[l.name]
+                #else:
                 #assert False
+                #print(err.shape)
+                ig_attributions = glb_ig_attributions[l.name]
+                eps = 0.01
+                #print(err.shape)
+                #print(ig_attributions.shape)
+                #err = err*(1+ig_attributions)
+                #err = err*(10+ig_attributions/tf.reduce_max(ig_attributions))
+                #err = err*(2+ig_attributions/tf.reduce_max(ig_attributions))
+                #err = err*(1+ig_attributions/tf.reduce_max(ig_attributions))
+                #err = err*(0.5+ig_attributions/tf.reduce_max(ig_attributions))
+                #err = err*(0.1+ig_attributions/tf.reduce_max(ig_attributions))
+                #err = err*(0.01+ig_attributions/tf.reduce_max(ig_attributions))    # old best?
+                #err = err*(0.001+ig_attributions/tf.reduce_max(ig_attributions))
+                #err = err*(tf.reduce_min(ig_attributions)+ig_attributions)
+                #alpha = 0.5
+                #err = alpha*err/tf.reduce_max(err,axis=axis)+(1-alpha)*1/(ig_attributions/tf.reduce_max(ig_attributions,axis=axis))
+                #err = err*ig_attributions
+                #err = err*(ig_attributions/tf.reduce_max(ig_attributions,axis=axis))
+                #jerr = err*(eps+ig_attributions/tf.reduce_max(ig_attributions,axis=axis))
+                err = err*(eps+ig_attributions/tf.reduce_max(ig_attributions))
+                #err = err*(tf.reduce_min(ig_attributions)+ig_attributions/tf.reduce_max(ig_attributions))
+                #err = err*(tf.reduce_mean(ig_attributions)+ig_attributions/tf.reduce_max(ig_attributions))
+                #err = err*(eps+ig_attributions/tf.reduce_max(ig_attributions))    # old best?
+                #err = err*(ig_attributions/tf.reduce_max(ig_attributions))
+                #print(err.shape)
 
+            #err = err * snn_act
+            #print(err)
+
+            #err = tf.math.abs(err)
+
+            #err = err * snn_act
+            #print(err)
+            #err = tf.math.square(err)
+            err = tf.reduce_mean(err,axis=axis)
+            #print(err)
+
+            #if error_level == 'layer':
+            #    errs = tf.tensor_scatter_nd_update(errs,[[idx]],[err])
+            #elif error_level == 'channel':
+            #    errs = tf.tensor_scatter_nd_update(errs,[[idx]],[err])
+
+
+            # old
+            #errs = tf.tensor_scatter_nd_update(errs,[[idx]],[err])
+            if not l.name in glb_vth_search_err.keys():
+                glb_vth_search_err[l.name] = tf.TensorArray(tf.float32, size=0, dynamic_size=True, clear_after_read=False)
+
+
+            vth_err_arr = glb_vth_search_err[l.name]
+
+
+            #if idx==0:
+            if vth_err_arr.size() < num_range:
+                glb_vth_search_err[l.name] = vth_err_arr.write(idx, err)
+            else:
+                glb_vth_search_err[l.name] = vth_err_arr.write(idx, vth_err_arr.read(idx) + err)
+
+            print('here')
+            print(vth_err_arr.read(idx))
+            print(err)
+
+
+            #print(errs)
+            #assert False
+            #errs.append(err)
+
+        #errs_accum = glb_vth_search_err[l.name].stack()
+        #return
+        #break
+
+def vth_set_and_norm_a(self):
+
+    self.norm = collections.OrderedDict()
+    self.norm_b = collections.OrderedDict()
+    lib_snn.proc.w_norm_data_channel_wise(self,None,'max_999')
+
+
+def vth_set_and_norm(self):
+    print('vth_set_and_norm')
+    #
+    stat = None
+
+    dict_stat = collections.OrderedDict()
+
+    norm_wc = collections.OrderedDict()
+    norm_b_wc = collections.OrderedDict()
+
+    # norm = [0.5, 0.5, 0.5, ]
+    norm = collections.OrderedDict()
+
+    #
+    self.cal = collections.OrderedDict()
+
+    #
+    #error_level = 'layer'
+    error_level = 'channel'
+
+
+
+    for idx_l, l in enumerate(self.model.layers_w_kernel):
+
+        if error_level == 'layer':
+            if isinstance(l, lib_snn.layers.Conv2D) or isinstance(l, lib_snn.layers.InputGenLayer):
+                axis = [0, 1, 2, 3]
+            elif isinstance(l, lib_snn.layers.Dense):
+                axis = [0, 1]
+            else:
+                assert False
+        elif error_level == 'channel':
+            if isinstance(l, lib_snn.layers.Conv2D) or isinstance(l, lib_snn.layers.InputGenLayer):
+                axis = [0, 1, 2]
+            elif isinstance(l, lib_snn.layers.Dense):
+                axis = [0]
+            else:
+                assert False
+        else:
+            assert False
+
+        if False:
+            # if idx_l == len(self.model.layers_w_kernel)-1:
+            #    norm[l.name]=1.0
+            #    continue
+
+            if self.conf.bias_control:
+                time = tf.cast(self.conf.time_step - tf.reduce_mean(l.bias_en_time), tf.float32)
+            else:
+                time = self.conf.time_step
+
+            # vth calibration - manual search
+            # if False:
+            norm[l.name] = 1.0
+            # if idx_l == 0:
+
+            dnn_act = self.model_ann.get_layer(l.name).record_output
+
+            if self.conf.f_w_norm_data:
+                stat_max = tf.reduce_max(dnn_act, axis=axis)
+                stat_max = tfp.stats.percentile(dnn_act, 99.9, axis=axis)
+                stat_max = tf.ones(stat_max.shape)
+                # stat_max = tf.reduce_max(dnn_act, axis=axis)
+                # stat_max = read_stat(self, l, 'max')
+                # stat_max = stat_max / self.norm_b[l.name]
+                # stat_max = tf.expand_dims(stat_max,axis=0)
+                # stat_max = tf.reduce_max(stat_max,axis=axis)
+            else:
+                stat_max = read_stat(self, l, 'max')
+                stat_max = tf.expand_dims(stat_max, axis=0)
+                stat_max = tf.reduce_max(stat_max, axis=axis)
+
+            num_range = 100
+            # num_range = 250
+            # num_range = 125
+            # num_range = 133
+            # num_range = 200
+            # num_range = 333
+            # num_range = 1000
+            # num_range = 5000
+            #
+            # range = tf.random.normal(shape=[num_range],mean=0.0,stddev=0.2,dtype=tf.float32)
+            # range = 1.0-tf.math.abs(range)
+            # range = tf.random.uniform(shape=[num_range],minval=0.5,maxval=1,dtype=tf.float32)
+            # range = tf.random.uniform(shape=[num_range],minval=0.0,maxval=1,dtype=tf.float32)
+            range = tf.range(1 / num_range, 1 + 1 / num_range, 1 / num_range, dtype=tf.float32)
+
+            # range_vth = range*self.conf.n_init_vth
+            # range_vth = range*stat_max
+
+            # print(stat_max)
+            # print(stat_max.shape)
+            # print(stat_max.shape[0])
+            # print(range.shape[0])
+
+            # len_range = range.shape[0]
+            if error_level == 'layer':
+                errs = tf.zeros([num_range])
+            elif error_level == 'channel':
+                errs = tf.zeros([num_range, stat_max.shape[0]])
+            else:
+                assert False
+
+            # assert False
+            # errs = []
+
+            if self.conf.bias_control:
+                time = tf.cast(self.conf.time_step - tf.reduce_mean(l.bias_en_time), tf.float32)
+            else:
+                time = self.conf.time_step
+            # time = self.conf.time_step
+
+            #
+
+            for idx, vth_scale in enumerate(range):
+
+                vth = vth_scale * stat_max
+
+                # clip_max = vth*self.conf.time_step
+                # clip_max = vth*time
+                clip_max = time
+
+                # dnn_act_clip_floor = tf.math.floor(dnn_act/vth)
+                dnn_act_clip_floor = tf.math.floor(dnn_act / vth * time)
+                dnn_act_clip_floor = tf.clip_by_value(dnn_act_clip_floor, 0, clip_max)
+                dnn_act_clip_floor = dnn_act_clip_floor * vth / time
+
+                # print(vth)
+                err = dnn_act - dnn_act_clip_floor
+                err = tf.math.square(err)
+                # err = tf.math.square(err)*1/dnn_act
+
+                # integrated gradients
+                if self.conf.vth_search_ig:
+                    # if isinstance(l, lib_snn.layers.Conv2D):
+                    # ig_attributions = tf.reduce_mean(glb_ig_attributions[l.name],axis=[0,1])
+                    # elif isinstance(l, lib_snn.layers.Dense):
+                    # ig_attributions = glb_ig_attributions[l.name]
+                    # else:
+                    # assert False
+                    # print(err.shape)
+                    ig_attributions = glb_ig_attributions[l.name]
+                    eps = 0.01
+                    # print(err.shape)
+                    # print(ig_attributions.shape)
+                    # err = err*(1+ig_attributions)
+                    # err = err*(10+ig_attributions/tf.reduce_max(ig_attributions))
+                    # err = err*(2+ig_attributions/tf.reduce_max(ig_attributions))
+                    # err = err*(1+ig_attributions/tf.reduce_max(ig_attributions))
+                    # err = err*(0.5+ig_attributions/tf.reduce_max(ig_attributions))
+                    # err = err*(0.1+ig_attributions/tf.reduce_max(ig_attributions))
+                    # err = err*(0.01+ig_attributions/tf.reduce_max(ig_attributions))    # old best?
+                    # err = err*(0.001+ig_attributions/tf.reduce_max(ig_attributions))
+                    # err = err*(tf.reduce_min(ig_attributions)+ig_attributions)
+                    # alpha = 0.5
+                    # err = alpha*err/tf.reduce_max(err,axis=axis)+(1-alpha)*1/(ig_attributions/tf.reduce_max(ig_attributions,axis=axis))
+                    # err = err*ig_attributions
+                    # err = err*(ig_attributions/tf.reduce_max(ig_attributions,axis=axis))
+                    # jerr = err*(eps+ig_attributions/tf.reduce_max(ig_attributions,axis=axis))
+                    err = err * (eps + ig_attributions / tf.reduce_max(ig_attributions))
+                    # err = err*(tf.reduce_min(ig_attributions)+ig_attributions/tf.reduce_max(ig_attributions))
+                    # err = err*(tf.reduce_mean(ig_attributions)+ig_attributions/tf.reduce_max(ig_attributions))
+                    # err = err*(eps+ig_attributions/tf.reduce_max(ig_attributions))    # old best?
+                    # err = err*(ig_attributions/tf.reduce_max(ig_attributions))
+                    # print(err.shape)
+
+                # err = err * snn_act
+                # print(err)
+
+                # err = tf.math.abs(err)
+
+                # err = err * snn_act
+                # print(err)
+                # err = tf.math.square(err)
+                err = tf.reduce_mean(err, axis=axis)
+                # print(err)
+
+                if error_level == 'layer':
+                    errs = tf.tensor_scatter_nd_update(errs, [[idx]], [err])
+                elif error_level == 'channel':
+                    errs = tf.tensor_scatter_nd_update(errs, [[idx]], [err])
+
+                # print(errs)
+                # assert False
+                # errs.append(err)
+
+        if False:
+            if self.conf.f_w_norm_data:
+                if self.model_ann is None:
+                    dnn_act = l.record_output
+                else:
+                    dnn_act = self.model_ann.get_layer(l.name).record_output
+
+                stat_max = tf.reduce_max(dnn_act, axis=axis)
+                stat_max = tfp.stats.percentile(dnn_act, 99.9, axis=axis)
+                stat_max = tf.ones(stat_max.shape)
+                # stat_max = tf.reduce_max(dnn_act, axis=axis)
+                # stat_max = read_stat(self, l, 'max')
+                # stat_max = stat_max / self.norm_b[l.name]
+                # stat_max = tf.expand_dims(stat_max,axis=0)
+                # stat_max = tf.reduce_max(stat_max,axis=axis)
+            else:
+                stat_max = read_stat(self, l, 'max')
+                #stat_max = read_stat(self, l, 'max_999')
+                stat_max = tf.expand_dims(stat_max, axis=0)
+                #stat_max = dnn_act
+                #stat_max = tf.where(stat_max==0.0,tf.ones(stat_max.shape),stat_max)
+                stat_max = tf.reduce_max(stat_max, axis=axis)
+
+        errs_accum = glb_vth_search_err[l.name].stack()
+        vth_idx_min_err = tf.math.argmin(errs_accum, output_type=tf.int32)
+
+        # print(vth_idx_min_err)
+
+        # vth_min_err = tf.gather(range_vth,vth_idx_min_err)
+        #vth_min_err_scale = tf.gather(glb_rand_vth[l.name], vth_idx_min_err)
+        #vth_min_err = vth_min_err_scale * stat_max
+        #vth_min_err = tf.gather(glb_rand_vth[l.name], vth_idx_min_err)
+
+        vth_min_err = tf.gather_nd(glb_rand_vth[l.name], tf.transpose(tf.stack([vth_idx_min_err,tf.range(len(vth_idx_min_err))])))
+
+        # print(stat_max)
+        ##print(range_vth)
+        # print(errs)
+        # print(vth_idx_min_err)
+        # print(vth_min_err)
+        # print(vth_min_err_scale)
+        #print(vth_min_err)
+        # print(range)
+
+        # TODO: parameterize
+        vth_init = vth_min_err
+        #vth_init = glb_vth_init[l.name]
+
+        # vth_init = tf.where(vth_init==0,tf.ones(vth_init.shape),vth_init)
+
+        print('{} - vth_init - {}'.format(l.name, vth_init))
+
+        ##
+        if False:
+            vth_init_fm = vth_init
+            if error_level == 'channel':
+                if isinstance(l, lib_snn.layers.Conv2D) or isinstance(l, lib_snn.layers.InputGenLayer):
+                    vth_init_fm = tf.expand_dims(vth_init_fm, axis=0)
+                    vth_init_fm = tf.expand_dims(vth_init_fm, axis=1)
+                    vth_init_fm = tf.expand_dims(vth_init_fm, axis=2)
+                elif isinstance(l, lib_snn.layers.Dense):
+                    vth_init_fm = tf.expand_dims(vth_init_fm, axis=0)
+                else:
+                    assert False
+                # print(l.name)
+                # print(stat_max.shape)
+                # print(vth_init_fm.shape)
+                # print(l.act.vth.shape)
+                vth_init_fm = tf.broadcast_to(vth_init_fm, shape=l.act.vth.shape)
+
+        #
+        #l.act.set_vth_init(vth_init_fm)
+
+        # print(vth_init_fm)
+
+        #
+        norm[l.name]=vth_init
+
+        if False:
+            stat_max = read_stat(self, l, 'max_999')
+
+            #stat_max = tf.expand_dims(stat_max, axis=0)
+            # stat_max = dnn_act
+            # stat_max = tf.where(stat_max==0.0,tf.ones(stat_max.shape),stat_max)
+            #stat_max = tf.reduce_max(stat_max, axis=axis)
+
+            stat_max = stat_max.reshape(-1, stat_max.shape[-1])
+            #print('a')
+            #print(stat_max)
+
+            if isinstance(l, lib_snn.layers.InputGenLayer):
+                norm_t = 1
+            else:
+                norm_t = np.max(stat_max,axis=0)
+                # norm = np.where(norm == 0, 1, norm)
+
+            if isinstance(l,lib_snn.layers.Dense):
+                norm_t = np.max(norm_t,axis=0)
+
+            #print('stat max')
+            #print(stat_max)
+
+
+            #
+            norm[l.name]=norm_t
+        #norm[l.name]=stat_max
+        #norm[l.name]=tf.reduce_max(stat_max)
+        #norm[l.name]=1.0
+
+        # if idx_l==0:
+        #    norm[l.name]=1.0
+        # stat_max = read_stat(self, l, 'max_999')
+        # stat_max = tf.expand_dims(stat_max,axis=0)
+        # stat_max = tf.reduce_max(stat_max,axis=axis)
+        # norm[l.name]=stat_max
+        #
+
+        #if True:
+        if False:
+
+            if idx_l != 0:
+                # l.kernel = l.kernel*prev_fire_r_m
+                # l.kernel = l.kernel*((1-alpha) + alpha*prev_fire_r_m)
+                # print(prev_vth_init.shape)
+                # print(l.kernel.shape)
+
+                if error_level == 'channel':
+                    if isinstance(l, lib_snn.layers.Conv2D):
+                        prev_vth_init = tf.expand_dims(prev_vth_init, axis=0)
+                        prev_vth_init = tf.expand_dims(prev_vth_init, axis=1)
+                        prev_vth_init = tf.expand_dims(prev_vth_init, axis=3)
+                    elif isinstance(l, lib_snn.layers.Dense):
+                        prev_vth_init = tf.expand_dims(prev_vth_init, axis=1)
+
+                #l.kernel = l.kernel * prev_vth_init
+                l.kernel = self.model_ann.get_layer(l.name).kernel*prev_vth_init
+
+                # if idx_l != len(self.model.layers_w_kernel) - 1:
+                # l.act.set_vth_init(vth_init_fm)
+                ##norm[l.name] = vth_init
+
+        prev_vth_init = vth_init
+
+        # snn_act = l.act.spike_count_int/(self.conf.time_step-l.bias_en_time)
+
+        #
+        #print('bias enable time')
+        #print('{} - t bias en: {}'.format(l.name, tf.reduce_mean(l.bias_en_time)))
+
+    if error_level == 'channel':
+        if 'VGG' in self.conf.model:
+            for idx_l, l in enumerate(self.model.layers_w_kernel):
+                if idx_l == 0:
+                    norm_wc[l.name] = norm[l.name]
+                else:
+                    # norm_wc[l.name] = norm[l.name]/norm[prev_layer_name]
+                    norm_wc[l.name] = norm[l.name] / np.expand_dims(norm_b_wc[prev_layer_name], axis=0).T
+
+                prev_layer_name = l.name
+                norm_b_wc[l.name] = norm[l.name]
+    else:
+        assert False
+
+    for layer in self.model.layers_w_kernel:
+        # layer = self.model.get_layer(name=name_l)
+        #if layer.name in norm_wc.keys():
+        layer.kernel = layer.kernel / norm_wc[layer.name]
+        #if layer.name in norm_b_wc.keys():
+        layer.bias = layer.bias / norm_b_wc[layer.name]
+
+    #
+    if False:
+        for l in self.model.layers_w_kernel:
+            if l.name in norm_b_wc.keys():
+                vth_init_fm = norm_b_wc[l.name]
 
                 ##
-                if error_level=='channel':
+                if error_level == 'channel':
                     if isinstance(l, lib_snn.layers.Conv2D) or isinstance(l, lib_snn.layers.InputGenLayer):
                         vth_init_fm = tf.expand_dims(vth_init_fm, axis=0)
                         vth_init_fm = tf.expand_dims(vth_init_fm, axis=1)
@@ -910,241 +1862,20 @@ def weight_calibration_act_based(self):
                         vth_init_fm = tf.expand_dims(vth_init_fm, axis=0)
                     else:
                         assert False
-                    #print(l.name)
-                    #print(stat_max.shape)
-                    #print(vth_init_fm.shape)
-                    #print(l.act.vth.shape)
-                    vth_init_fm = tf.broadcast_to(vth_init_fm,shape=l.act.vth.shape)
+                    # print(l.name)
+                    # print(stat_max.shape)
+                    # print(vth_init_fm.shape)
+                    # print(l.act.vth.shape)
+                    vth_init_fm = tf.broadcast_to(vth_init_fm, shape=l.act.vth.shape)
 
+                #
                 l.act.set_vth_init(vth_init_fm)
 
-                #print(vth_init_fm)
-
-
-                norm[l.name]=vth_init
-
-                #if idx_l==0:
-                #    norm[l.name]=1.0
-                #stat_max = read_stat(self, l, 'max_999')
-                #stat_max = tf.expand_dims(stat_max,axis=0)
-                #stat_max = tf.reduce_max(stat_max,axis=axis)
-                #norm[l.name]=stat_max
-                #
-
-                if True:
-                #if False:
-
-                    if idx_l!=0:
-                        #l.kernel = l.kernel*prev_fire_r_m
-                        #l.kernel = l.kernel*((1-alpha) + alpha*prev_fire_r_m)
-                        #print(prev_vth_init.shape)
-                        #print(l.kernel.shape)
-
-                        if error_level=='channel':
-                            if isinstance(l, lib_snn.layers.Conv2D):
-                                prev_vth_init = tf.expand_dims(prev_vth_init, axis=0)
-                                prev_vth_init = tf.expand_dims(prev_vth_init, axis=1)
-                                prev_vth_init = tf.expand_dims(prev_vth_init, axis=3)
-                            elif isinstance(l, lib_snn.layers.Dense):
-                                prev_vth_init = tf.expand_dims(prev_vth_init, axis=1)
-
-                        l.kernel = l.kernel*prev_vth_init
-
-                        #if idx_l != len(self.model.layers_w_kernel) - 1:
-                            #l.act.set_vth_init(vth_init_fm)
-                            ##norm[l.name] = vth_init
-
-
-                prev_vth_init = vth_init
-
-                #snn_act = l.act.spike_count_int/(self.conf.time_step-l.bias_en_time)
-
-
-
-
-
-            # vth calibration
-            if False:
-            #if True:
-                norm[l.name] = 1.0
-                fire_r_m_c = fire_r_m
-                fire_r_m_next_layer_kernel = fire_r_m
-
-                if error_level=='channel':
-                    if isinstance(l, lib_snn.layers.Conv2D):
-                        fire_r_m = tf.expand_dims(fire_r_m,axis=0)
-                        fire_r_m = tf.expand_dims(fire_r_m,axis=0)
-                        fire_r_m = tf.expand_dims(fire_r_m,axis=0)
-                        fire_r_m = tf.broadcast_to(fire_r_m,shape=l.act.vth.shape)
-                    elif isinstance(l, lib_snn.layers.Dense):
-                        fire_r_m = tf.expand_dims(fire_r_m,axis=0)
-                        fire_r_m = tf.broadcast_to(fire_r_m,shape=l.act.vth.shape)
-
-                    #
-                    if idx_l != len(self.model.layers_w_kernel):
-                        next_layer = self.model.layers_w_kernel[idx_l+1]
-
-                        if isinstance(next_layer, lib_snn.layers.Conv2D):
-                            fire_r_m_next_layer_kernel = tf.expand_dims(fire_r_m_next_layer_kernel,axis=0)
-                            fire_r_m_next_layer_kernel = tf.expand_dims(fire_r_m_next_layer_kernel,axis=1)
-                            fire_r_m_next_layer_kernel = tf.expand_dims(fire_r_m_next_layer_kernel,axis=3)
-                        elif isinstance(next_layer, lib_snn.layers.Dense):
-                            fire_r_m_next_layer_kernel = tf.expand_dims(fire_r_m_next_layer_kernel,axis=1)
-
-                        fire_r_m_next_layer_kernel = tf.broadcast_to(fire_r_m_next_layer_kernel,next_layer.kernel.shape)
-
-                alpha = 0.1
-                #vth_scale = prev_fire_r_m
-                #vth_sacle = ((1-alpha)+alpha*prev_fire_r_m)
-
-                #vth_init = self.conf.n_init_vth*fire_r_m
-                #vth_init = l.act.vth*fire_r_m
-                #vth_init = l.act.vth*vth_scale
-                vth_init = l.act.vth*((1-alpha)+alpha*fire_r_m)
-
-                l.act.set_vth_init(vth_init)
-
-                if idx_l!=0:
-                    #l.kernel = l.kernel*prev_fire_r_m
-                    l.kernel = l.kernel*((1-alpha) + alpha*prev_fire_r_m)
-
-                prev_fire_r_m = fire_r_m_next_layer_kernel
-
-                #
-                print('fire r')
-                print('{} - fire_r_m: {}'.format(l.name,fire_r_m_c))
-
-            #
-            print('bias enable time')
-            print('{} - t bias en: {}'.format(l.name, tf.reduce_mean(l.bias_en_time)))
-
-    #elif True:
-    elif False:
-        stat='max_999'
-        #stat='max'
-
-        #error_level = 'layer'
-        error_level = 'channel'
-
-        for idx_l, l in enumerate(self.model.layers_w_kernel):
-
-            if idx_l == len(self.model.layers_w_kernel)-1:
-                norm[l.name]=1.0
-                continue
-
-            if self.conf.bias_control:
-                time = tf.cast(self.conf.time_step - tf.reduce_mean(l.bias_en_time), tf.float32)
-            else:
-                time = self.conf.time_step
-
-            self.stat_r = read_stat(self, l, stat)
-            stat_r = self.stat_r
-
-            # represent_stat = f_norm(self.dict_stat_r[l.name])
-            #represent_stat = self.norm_b[l.name]
-
-            norm_sat = stat_r / self.norm_b[l.name]
-            norm_sat_e = norm_sat - 1
-            norm_sat_e = tf.where(norm_sat_e > 0, norm_sat, tf.zeros(norm_sat.shape))
-
-            if error_level == 'layer':
-                if isinstance(l, lib_snn.layers.Conv2D):
-                    axis = [0, 1, 2, 3]
-                elif isinstance(l, lib_snn.layers.Dense):
-                    axis = [0, 1]
-                else:
-                    assert False
-            elif error_level == 'channel':
-                if isinstance(l, lib_snn.layers.Conv2D):
-                    axis = [0, 1, 2]
-                elif isinstance(l, lib_snn.layers.Dense):
-                    axis = [0]
-                else:
-                    assert False
-            else:
-                assert False
-
-            #norm_sat_e = tf.reduce_mean(norm_sat_e,axis=axis)
-
-            #
-            ann_act = self.model_ann.get_layer(l.name).record_output
-            ann_act_s = self.model_ann.get_layer(l.name).bias
-            ann_act_d = ann_act - ann_act_s
-            ann_act_r = ann_act_d / ann_act_s
-
-            print(l.name)
-            print('ann_act_r')
-            print(ann_act_r)
-            print(ann_act_s)
-
-            bias_comp_sub = norm_sat_e/ann_act_r
-            bias_comp_sub = tf.where(tf.equal(ann_act,0.0), tf.zeros(bias_comp_sub.shape), bias_comp_sub)
-            bias_comp_sub = tf.reduce_mean(bias_comp_sub,axis=axis)
-
-            print('bias_comp_sub')
-            print(bias_comp_sub)
-
-            l.bias -= bias_comp_sub*0.001
-
-
-        return
-
-    #if True:
-    if False:
-        #
-        path_stat = os.path.join(self.path_model,self.conf.path_stat)
-        #stat = 'max_999'
-        #stat = 'max'
-        #stat = 'max_75'
-        stat = 'median'
-        for idx_l, l in enumerate(self.model.layers_w_kernel):
-            #print(l.name)
-            key=l.name+'_'+stat
-
-            #f_name_stat = f_name_stat_pre+'_'+key
-            f_name_stat = key
-            f_name=os.path.join(path_stat,f_name_stat)
-            f_stat=open(f_name,'r')
-            r_stat=csv.reader(f_stat)
-
-            for row in r_stat:
-                #self.dict_stat_r[l]=np.asarray(row,dtype=np.float32).reshape(self.list_shape[l][1:])
-                stat_r=np.asarray(row,dtype=np.float32).reshape(l.output_shape_fixed_batch[1:])
-
-            #norm[l.name] = np.median(stat_r)
-            norm[l.name] = 1/np.max(stat_r)
-            print(norm[l.name])
-
-    #
-    #norm_wc['conv1'] = norm[0]
-    #norm_b_wc['conv1'] = norm[0]
-    #
-    #    norm_wc['conv1_1'] = norm[1]/norm[0]
-    #    norm_b_wc['conv1_1'] = norm[1]
-    #
-
-    if 'VGG' in self.conf.model:
-        for idx_l, l in enumerate(self.model.layers_w_kernel):
-            if idx_l == 0:
-                norm_wc[l.name] = norm[l.name]
-            else:
-                #norm_wc[l.name] = norm[l.name]/norm[prev_layer_name]
-                norm_wc[l.name] = norm[l.name] / np.expand_dims(norm_b_wc[prev_layer_name],axis=0).T
-
-            prev_layer_name = l.name
-            norm_b_wc[l.name] = norm[l.name]
-
-    for layer in self.model.layers_w_kernel:
-        # layer = self.model.get_layer(name=name_l)
-        if layer.name in norm_wc.keys():
-            layer.kernel = layer.kernel / norm_wc[layer.name]
-        if layer.name in norm_b_wc.keys():
-            layer.bias = layer.bias / norm_b_wc[layer.name]
-
+    print('layer norm')
     for layer in self.model.layers_w_kernel:
         print(layer.name)
         print(norm_wc[layer.name])
-
+        print(norm_b_wc[layer.name])
 
 
 def weight_calibration_inv_vth(self):
@@ -1230,13 +1961,13 @@ def bias_calibration_ICLR_21(self):
 
         l.bias = l.bias + bias_comp
 
+        print('bias_comp: {:}'.format(bias_comp))
+
     print('- Done')
 
 # light pipeline
 def bias_calibration_ICML_21(self):
-    #print('here to stop')
-    #print('')
-    print('bias_calibration_ICML_21')
+    print('\nbias_calibration_ICML_21')
 
     for idx_l, l in enumerate(self.model.layers_w_kernel):
         if isinstance(l, lib_snn.layers.Conv2D) or isinstance(l, lib_snn.layers.InputGenLayer):
@@ -1247,7 +1978,7 @@ def bias_calibration_ICML_21(self):
         else:
             assert False
 
-        dnn_act = self.model.get_layer(l.name).record_output
+        dnn_act = self.model_ann.get_layer(l.name).record_output
 
         dnn_act_mean = tf.reduce_mean(dnn_act, axis=axis)
         # snn_act_mean = self.conf.n_init_vth*tf.reduce_mean(snn_act,axis=axis)/self.conf.time_step
@@ -1275,7 +2006,23 @@ def bias_calibration_ICML_21(self):
         #if False:  # ICML-20, calibration through bias
         if True:  # ICML-20, calibration through bias
 
+            #print(dnn_act.shape)
+            #print(snn_act.shape)
+
             err_act = dnn_act-snn_act
+
+            #if l.name == 'conv1':
+            #    print(tf.reduce_mean(dnn_act))
+
+            # test
+            #err_act = tf.where(err_act>0, err_act, tf.zeros(err_act.shape))
+            #err_act = tf.where(err_act>0, err_act, err_act/2)
+
+            # integrated gradients
+            #if self.conf.vth_search_ig:
+                #ig_attributions = glb_ig_attributions[l.name]
+                #err_act = err_act * (0.01+ig_attributions / tf.reduce_max(ig_attributions))
+
             err_act_m = tf.reduce_mean(err_act,axis=axis)
 
             #bias_comp = dnn_act_mean - snn_act_mean
@@ -1283,9 +2030,12 @@ def bias_calibration_ICML_21(self):
 
             #bias_comp = tf.reduce_mean(dnn_act_mean - snn_act_mean)
 
+
+            # print
             #print('bias_comp (pre mean): {:}'.format(tf.reduce_mean(bias_comp)))
             #print('bias_comp: {:}'.format(tf.reduce_mean(bias_comp)))
-            print('bias_comp: {:}'.format(bias_comp))
+
+            #print('bias_comp: {:}'.format(bias_comp))
 
             # test
             #r = tf.random.uniform(shape=bias_comp.shape,minval=0,maxval=1)
@@ -1306,7 +2056,13 @@ def bias_calibration_ICML_21(self):
             #print(l.name)
             #print(bias_comp)
 
-            l.bias = l.bias + bias_comp
+            #l.bias = l.bias + bias_comp
+            #l.bias = l.bias + bias_comp/self.conf.calibration_num_batch
+
+            if not l.name in glb_bias_comp.keys():
+                glb_bias_comp[l.name] = tf.zeros(l.bias.shape)
+
+            glb_bias_comp[l.name] = glb_bias_comp[l.name] + bias_comp
 
             # residual vmem comp
             if False:

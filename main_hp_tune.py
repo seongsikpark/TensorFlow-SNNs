@@ -70,6 +70,12 @@ from lib_snn.sim import glb_plot
 from lib_snn.sim import glb_plot_1
 from lib_snn.sim import glb_plot_2
 
+from lib_snn.sim import glb_ig_attributions
+from lib_snn.sim import glb_rand_vth
+from lib_snn.sim import glb_vth_search_err
+from lib_snn.sim import glb_vth_init
+from lib_snn.sim import glb_bias_comp
+
 #
 #conf = flags.FLAGS
 
@@ -124,8 +130,9 @@ hp_tune = False
 #train=False
 train=conf.train
 
-#load_model=True
-load_model=False
+# TODO: parameterize
+load_model=True
+#load_model=False
 
 #
 #save_model = False
@@ -862,11 +869,12 @@ if train:
 else:
     print('Test mode')
 
+    #
     #dnn_snn_compare=True
     #dnn_snn_compare=False
 
-    #compare_control_snn = False
-    compare_control_snn = True
+    compare_control_snn = False
+    #compare_control_snn = True
 
     act_based_calibration = conf.calibration_bias_ICML_21 or conf.calibration_vmem_ICML_21 or conf.calibration_weight_act_based
     #if (conf.nn_mode=='SNN') and (dnn_snn_compare or conf.calibration_bias_ICML_21 or conf.calibration_vmem_ICML_21) :
@@ -888,7 +896,7 @@ else:
         #if conf.calibration_bias_ICML_21 or conf.calibration_vmem_ICML_21:
         #if act_based_calibration:
         if True:
-            # TODO: random sampling
+            # random sampling
             #test_ds_one_batch = tf.data.experimental.get_single_element(test_ds)
             #test_ds_one_batch = tf.data.Dataset.from_tensors(test_ds_one_batch)
             images_one_batch, labels_one_batch = next(iter(train_ds))
@@ -900,12 +908,31 @@ else:
         ds_one_batch = tf.data.Dataset.from_tensors((images_one_batch,labels_one_batch))
         ds_ann = ds_one_batch
 
+        #
+        #result = model.evaluate(ds_one_batch, callbacks=callbacks_test)
 
         #
         nn_mode_ori = conf.nn_mode
-        #conf.nn_mode = 'ANN'
-        result_ann = model_ann.evaluate(ds_ann, callbacks=callbacks_test_ann)
-        conf.nn_mode = nn_mode_ori
+        conf.nn_mode = 'ANN'
+
+        # run for init
+        for data in ds_ann:
+            x = data[0]
+            y = data[1]
+            x = x[0]
+            y = y[0]
+            break
+
+        x = tf.expand_dims(x,axis=0)
+        y = tf.expand_dims(y,axis=0)
+        ds_one_sample = tf.data.Dataset.from_tensors((x,y))
+
+        #result_ann = model_ann.evaluate(ds_one_batch, callbacks=callbacks_test_ann)
+        result_ann = model_ann.evaluate(ds_one_sample, callbacks=callbacks_test_ann)
+
+        #
+        calib_ori = cb_libsnn_ann.calibration
+        cb_libsnn_ann.calibration = False
 
         #
         gradient_test_tmp = False
@@ -960,12 +987,286 @@ else:
 
             assert False
 
+        #
+        # integrated gradients
+        #
+        num_range = 1000
+        for l in model_ann.layers_w_kernel:
+            #glb_rand_vth[l.name] = tf.random.uniform(shape=[num_range], minval=0.0, maxval=1, dtype=tf.float32)
+            #glb_rand_vth[l.name] = tf.range(1 / num_range, 1 + 1 / num_range, 1 / num_range, dtype=tf.float32)
+            glb_rand_vth[l.name] = tf.random.uniform(shape=[num_range], minval=0.0, maxval=1, dtype=tf.float32)
+            #glb_rand_vth[l.name] = tf.random.uniform(shape=[num_range], minval=0.5, maxval=1, dtype=tf.float32)
+            glb_vth_search_err[l.name] = tf.TensorArray(tf.float32, size=0, dynamic_size=True, clear_after_read=False)
+
+
+        #num_batch_for_vth_search = 10
+        num_batch_for_vth_search = 1
+
+        vth_search = True
+        #vth_search = False
+
+        if vth_search:
+            for idx_batch in range(num_batch_for_vth_search):
+                images_one_batch, labels_one_batch = next(iter(train_ds))
+                ds_ann_vth_search = tf.data.Dataset.from_tensors((images_one_batch, labels_one_batch))
+
+                if conf.vth_search_ig:
+                    one_image=True
+                else:
+                    one_image=False
+
+
+                if conf.vth_search_ig:
+                    #glb_ig_attributions = []
+                    ig_attributions = collections.OrderedDict()
+
+                    m_steps = 50
+                    #m_steps = 250
+                    # preprocessing
+                    for l in model_ann.layers_w_kernel:
+                        #glb_ig_attributions[l.name] = tf.TensorArray(tf.float32, size=m_steps+1)
+                        ig_attributions[l.name] = tf.TensorArray(tf.float32, size=0, dynamic_size=True, clear_after_read=False)
+
+                    for data in ds_ann_vth_search:
+                    #for data in ds_one_batch:
+                        #x = data[0]
+                        #y = data[1]
+
+                        #y_decoded = tf.argmax(y, axis=1)
+
+                        #if one_image:
+                        #    x = x[1]
+                        #    y = y[1]
+                        #    y_decoded = tf.argmax(y)
+                        images = data[0]
+                        labels = data[1]
+
+                        for idx, image in enumerate(images):
+                            print(idx)
+                            label = labels[idx]
+
+                            #image = images[0]
+                            #label = labels[0]
+
+                            label_decoded = tf.argmax(label)
+
+                            baseline = tf.zeros(shape=image.shape)
+
+                            ig_attribution = lib_snn.xai.integrated_gradients(model=model_ann,
+                                                                             baseline=baseline,
+                                                                             images=image,
+                                                                             target_class_idxs=label_decoded,
+                                                                             m_steps=m_steps)
+                            #glb_ig_attributions.append(ig_attribution)
+
+                            for l in model_ann.layers_w_kernel:
+                                ig_attributions[l.name] = ig_attributions[l.name].write(idx,ig_attribution[l.name])
+
+                            #assert False
+
+                        for l in model_ann.layers_w_kernel:
+                            ig_attr = ig_attributions[l.name].stack()
+                            #ig_attr = tf.reduce_mean(ig_attr,axis=0)
+                            glb_ig_attributions[l.name] = tf.reduce_sum(tf.math.abs(ig_attr),axis=1) # sum - alphas
+
+
+                    #cmap = plt.cm.inferno
+                    ##cmap = plt.cm.viridis
+                    #lib_snn.xai.plot_image_attributions(baseline,image,ig_attribution,cmap=cmap)
+
+                #
+                result_ann = model_ann.evaluate(ds_ann_vth_search, callbacks=callbacks_test_ann)
+
+                # calculate and accumulate errors
+                #error_level = 'layer'
+                error_level = 'channel'
+
+                for l in model_ann.layers_w_kernel:
+
+                    if error_level == 'layer':
+                        if isinstance(l, lib_snn.layers.Conv2D) or isinstance(l, lib_snn.layers.InputGenLayer):
+                            axis = [0, 1, 2, 3]
+                        elif isinstance(l, lib_snn.layers.Dense):
+                            axis = [0, 1]
+                        else:
+                            assert False
+                    elif error_level == 'channel':
+                        if isinstance(l, lib_snn.layers.Conv2D) or isinstance(l, lib_snn.layers.InputGenLayer):
+                            axis = [0, 1, 2]
+                        elif isinstance(l, lib_snn.layers.Dense):
+                            axis = [0]
+                        else:
+                            assert False
+                    else:
+                        assert False
+
+                    dnn_act = model_ann.get_layer(l.name).record_output
+
+                    if conf.f_w_norm_data:
+                        stat_max = tf.reduce_max(dnn_act, axis=axis)
+                        stat_max = tfp.stats.percentile(dnn_act, 99.9, axis=axis)
+                        stat_max = tf.ones(stat_max.shape)
+                        # stat_max = tf.reduce_max(dnn_act, axis=axis)
+                        # stat_max = read_stat(self, l, 'max')
+                        # stat_max = stat_max / self.norm_b[l.name]
+                        # stat_max = tf.expand_dims(stat_max,axis=0)
+                        # stat_max = tf.reduce_max(stat_max,axis=axis)
+                    else:
+                        stat_max = lib_snn.calibration.read_stat(cb_libsnn, l, 'max')
+                        stat_max = tf.expand_dims(stat_max, axis=0)
+                        stat_max = tf.reduce_max(stat_max, axis=axis)
+
+                    #
+                    #if error_level == 'layer':
+                        #errs = tf.zeros([num_range])
+                    #elif error_level == 'channel':
+                        #errs = tf.zeros([num_range, stat_max.shape[0]])
+                    #else:
+                        #assert False
+
+                    #errs = tf.TensorArray(tf.float32, size=0, dynamic_size=True, clear_after_read=False)
+
+                    # assert False
+                    # errs = []
+
+                    if conf.bias_control:
+                        time = tf.cast(conf.time_step - tf.reduce_mean(l.bias_en_time), tf.float32)
+                    else:
+                        time = conf.time_step
+                    # time = self.conf.time_step
+
+                    #
+                    for idx, vth_scale in enumerate(glb_rand_vth[l.name]):
+
+                        vth = vth_scale * stat_max
+
+                        # clip_max = vth*self.conf.time_step
+                        # clip_max = vth*time
+                        clip_max = time
+
+                        # dnn_act_clip_floor = tf.math.floor(dnn_act/vth)
+                        dnn_act_clip_floor = tf.math.floor(dnn_act / vth * time)
+                        dnn_act_clip_floor = tf.clip_by_value(dnn_act_clip_floor, 0, clip_max)
+                        dnn_act_clip_floor = dnn_act_clip_floor * vth / time
+
+                        # print(vth)
+                        err = dnn_act - dnn_act_clip_floor
+                        err = tf.math.square(err)
+                        # err = tf.math.square(err)*1/dnn_act
+
+                        # integrated gradients
+                        if conf.vth_search_ig:
+                            # if isinstance(l, lib_snn.layers.Conv2D):
+                            # ig_attributions = tf.reduce_mean(glb_ig_attributions[l.name],axis=[0,1])
+                            # elif isinstance(l, lib_snn.layers.Dense):
+                            # ig_attributions = glb_ig_attributions[l.name]
+                            # else:
+                            # assert False
+                            # print(err.shape)
+                            ig_attributions = glb_ig_attributions[l.name]
+                            eps = 0.01
+                            # print(err.shape)
+                            # print(ig_attributions.shape)
+                            # err = err*(1+ig_attributions)
+                            # err = err*(10+ig_attributions/tf.reduce_max(ig_attributions))
+                            # err = err*(2+ig_attributions/tf.reduce_max(ig_attributions))
+                            # err = err*(1+ig_attributions/tf.reduce_max(ig_attributions))
+                            # err = err*(0.5+ig_attributions/tf.reduce_max(ig_attributions))
+                            # err = err*(0.1+ig_attributions/tf.reduce_max(ig_attributions))
+                            # err = err*(0.01+ig_attributions/tf.reduce_max(ig_attributions))    # old best?
+                            # err = err*(0.001+ig_attributions/tf.reduce_max(ig_attributions))
+                            # err = err*(tf.reduce_min(ig_attributions)+ig_attributions)
+                            # alpha = 0.5
+                            # err = alpha*err/tf.reduce_max(err,axis=axis)+(1-alpha)*1/(ig_attributions/tf.reduce_max(ig_attributions,axis=axis))
+                            # err = err*ig_attributions
+                            # err = err*(ig_attributions/tf.reduce_max(ig_attributions,axis=axis))
+                            # err = err*(eps+ig_attributions/tf.reduce_max(ig_attributions,axis=axis))
+                            #err = err * (eps + ig_attributions / tf.reduce_max(ig_attributions))
+                            # err = err*(tf.reduce_min(ig_attributions)+ig_attributions/tf.reduce_max(ig_attributions))
+                            # err = err*(tf.reduce_mean(ig_attributions)+ig_attributions/tf.reduce_max(ig_attributions))
+                            # err = err*(eps+ig_attributions/tf.reduce_max(ig_attributions))    # old best?
+                            err = err*(ig_attributions/tf.reduce_max(ig_attributions))
+                            # print(err.shape)
+
+                        # err = err * snn_act
+                        # print(err)
+
+                        # err = tf.math.abs(err)
+
+                        # err = err * snn_act
+                        # print(err)
+                        # err = tf.math.square(err)
+                        err = tf.reduce_mean(err, axis=axis)
+                        # print(err)
+
+                        #if error_level == 'layer':
+                            #errs = tf.tensor_scatter_nd_update(errs, [[idx]], [err])
+                        #elif error_level == 'channel':
+                            #errs = tf.tensor_scatter_nd_update(errs, [[idx]], [err])
+
+                        #errs[l.name] = errs[l.name].write(idx, err)
+
+                        vth_err_arr = glb_vth_search_err[l.name]
+                        #if vth_err_arr.size() > 1:
+                        if idx_batch==0:
+                            glb_vth_search_err[l.name] = vth_err_arr.write(idx, err)
+                        else:
+                            glb_vth_search_err[l.name] = vth_err_arr.write(idx, vth_err_arr.read(idx) + err)
+
+                    assert False
+
+        if False:
+        #if vth_search:
+            for l in model_ann.layers_w_kernel:
+
+                #ig_attr = ig_attributions[l.name].stack()
+                # ig_attr = tf.reduce_mean(ig_attr,axis=0)
+                #glb_ig_attributions[l.name] = tf.reduce_sum(tf.math.abs(ig_attr), axis=1)  # sum - alphas
+
+                #errs [l.name] = ig_attributions[l.name].write(idx,ig_attribution[l.name])
+                errs_layer = glb_vth_search_err[l.name].stack()
+                #print(errs_layer.shape)
+
+                vth_idx_min_err = tf.math.argmin(errs_layer)
+                print(vth_idx_min_err)
+
+                # vth_min_err = tf.gather(range_vth,vth_idx_min_err)
+                vth_min_err_scale = tf.gather(glb_rand_vth[l.name], vth_idx_min_err)
+                #vth_min_err = vth_min_err_scale * stat_max
+                vth_min_err = vth_min_err_scale
+                vth_init = vth_min_err
+
+                glb_vth_init[l.name]=vth_init
+                print(vth_init)
+
+                #kssert False
+
+        assert False
+
+
+        cb_libsnn_ann.calibration = calib_ori
+        result_ann = model_ann.evaluate(ds_ann, callbacks=callbacks_test_ann)
+
+        #lib_snn.calibration.weight_calibration_act_based(cb_libsnn)
+
+        conf.nn_mode = nn_mode_ori
+
+        model.evaluate(ds_ann, callbacks=callbacks_test)
+
+        print('here')
+
+        if vth_search:
+            lib_snn.calibration.vth_set_and_norm(cb_libsnn)
+
+        #assert False
+
     #
     # calibration with activations
     # calibration ICML-21
     #
     #if (conf.nn_mode == 'SNN') and (conf.calibration_bias_ICML_21 or conf.calibration_vmem_ICML_21):
-    if (conf.nn_mode == 'SNN') and (act_based_calibration):
+    #if (conf.nn_mode == 'SNN') and (act_based_calibration):
+    if False:
         # pre
         cb_libsnn.run_for_calibration = True
         glb_plot.mark='ro'
@@ -980,10 +1281,19 @@ else:
             lib_snn.sim.set_for_visual_debug(False)
 
         # run
-        model.evaluate(ds_one_batch, callbacks=callbacks_test)
+        if conf.calibration_weight:
+            print('run for calibration - static')
+            model.evaluate(ds_one_batch, callbacks=callbacks_test)
 
         # run
-        model.evaluate(ds_one_batch, callbacks=callbacks_test)
+        if conf.calibration_weight_act_based:
+            print('run for calibration - act based')
+            model.evaluate(ds_one_batch, callbacks=callbacks_test)
+
+        # run
+        if conf.calibration_bias_ICML_21:
+            print('run for calibration - post')
+            model.evaluate(ds_one_batch, callbacks=callbacks_test)
 
         # post
         cb_libsnn.run_for_calibration = False
@@ -991,12 +1301,171 @@ else:
         glb_plot_1.mark = 'bo'
         glb_plot_2.mark = 'bo'
 
+
+    # new start
+    #num_batch_for_vth_search = 10
+    #num_batch_for_vth_search = 4
+    #num_batch_for_vth_search = 3
+    #num_batch_for_vth_search = 2
+    #num_batch_for_vth_search = 1
+
+
+    #train_ds = test_ds
+
+    #vth_search = True
+    vth_search = False
+
+
+    if vth_search:
+        for idx_batch, (x, y) in enumerate(train_ds):
+            # ds_one_batch_ann = tf.data.Dataset.from_tensors((images_one_batch, labels_one_batch)).take(1).cache()
+            # ds_one_batch_snn = tf.data.Dataset.from_tensors((images_one_batch, labels_one_batch)).take(1).cache()
+            ds_one_batch = tf.data.Dataset.from_tensors((x, y))
+
+
+            #
+            if not model_ann.layers_w_kernel:
+                result = model_ann.evaluate(ds_one_batch, callbacks=callbacks_test_ann)
+
+            # run - ann
+            # callbacks_test[0].model_ann = model_ann
+            #result = model_ann.evaluate(ds_one_batch, callbacks=callbacks_test_ann)
+
+            # ds_one_batch = tf.data.Dataset.from_tensors((images_one_batch, labels_one_batch))
+            # run - snn
+            #result = model.evaluate(ds_one_batch, callbacks=callbacks_test)
+
+
+            if conf.vth_search_ig:
+                # glb_ig_attributions = []
+                ig_attributions = collections.OrderedDict()
+
+                m_steps = 50
+                # m_steps = 250
+                # preprocessing
+                for l in model_ann.layers_w_kernel:
+                    # glb_ig_attributions[l.name] = tf.TensorArray(tf.float32, size=m_steps+1)
+                    ig_attributions[l.name] = tf.TensorArray(tf.float32, size=0, dynamic_size=True,
+                                                             clear_after_read=False)
+
+                for data in ds_one_batch:
+                    # for data in ds_one_batch:
+                    # x = data[0]
+                    # y = data[1]
+
+                    # y_decoded = tf.argmax(y, axis=1)
+
+                    # if one_image:
+                    #    x = x[1]
+                    #    y = y[1]
+                    #    y_decoded = tf.argmax(y)
+                    images = data[0]
+                    labels = data[1]
+
+                    for idx, image in enumerate(images):
+                        print(idx)
+                        label = labels[idx]
+
+                        # image = images[0]
+                        # label = labels[0]
+
+                        label_decoded = tf.argmax(label)
+
+                        baseline = tf.zeros(shape=image.shape)
+
+                        ig_attribution = lib_snn.xai.integrated_gradients(model=model_ann,
+                                                                          baseline=baseline,
+                                                                          images=image,
+                                                                          target_class_idxs=label_decoded,
+                                                                          m_steps=m_steps)
+                        # glb_ig_attributions.append(ig_attribution)
+
+                        for l in model_ann.layers_w_kernel:
+                            ig_attributions[l.name] = ig_attributions[l.name].write(idx, ig_attribution[l.name])
+
+                        # assert False
+
+                    for l in model_ann.layers_w_kernel:
+                        ig_attr = ig_attributions[l.name].stack()
+                        # ig_attr = tf.reduce_mean(ig_attr,axis=0)
+                        glb_ig_attributions[l.name] = tf.reduce_sum(tf.math.abs(ig_attr), axis=1)  # sum - alphas
+            #assert False
+
+            callbacks_test_ann[0].run_for_vth_search = True
+            result = model_ann.evaluate(ds_one_batch, callbacks=callbacks_test_ann)
+            callbacks_test_ann[0].run_for_vth_search = False
+
+            # idx_batch = idx_batch+1
+            # if idx_batch == num_batch_for_vth_search-1:
+            if idx_batch == conf.calibration_num_batch - 1:
+                break
+
+        result = model.evaluate(ds_one_batch, callbacks=callbacks_test)
+
+        cb_libsnn_ann.f_vth_set_and_norm=True
+        result = model_ann.evaluate(ds_one_batch, callbacks=callbacks_test_ann)
+        cb_libsnn_ann.f_vth_set_and_norm=False
+
+        cb_libsnn.f_vth_set_and_norm=True
+        result = model.evaluate(ds_one_batch, callbacks=callbacks_test)
+        cb_libsnn.f_vth_set_and_norm=False
+        #cb_lib_snn.calibration.vth_set_and_norm(cb_libsnn)
+
+
+    #calibration_ML=True
+    calibration_ML=False
+
+    if calibration_ML:
+
+        last_batch = False
+        #for idx_batch in range(num_batch_for_vth_search):
+        #    images_one_batch, labels_one_batch = next(iter(train_ds))
+        for idx_batch, (x,y) in enumerate(train_ds):
+
+            if idx_batch == conf.calibration_num_batch - 1:
+                last_batch = True
+
+            #ds_one_batch_ann = tf.data.Dataset.from_tensors((images_one_batch, labels_one_batch)).take(1).cache()
+            #ds_one_batch_snn = tf.data.Dataset.from_tensors((images_one_batch, labels_one_batch)).take(1).cache()
+            ds_one_batch = tf.data.Dataset.from_tensors((x, y))
+
+            # run - ann
+            #callbacks_test[0].model_ann = model_ann
+            result = model_ann.evaluate(ds_one_batch, callbacks=callbacks_test_ann)
+
+            #ds_one_batch = tf.data.Dataset.from_tensors((images_one_batch, labels_one_batch))
+
+            # run - snn
+            callbacks_test[0].run_for_calibration_ML = True
+            if last_batch:
+                callbacks_test[0].calibration_bias = True
+
+            result = model.evaluate(ds_one_batch, callbacks=callbacks_test)
+
+            callbacks_test[0].run_for_calibration_ML = False
+            callbacks_test[0].calibration_bias = False
+
+            #idx_batch = idx_batch+1
+            #if idx_batch == num_batch_for_vth_search-1:
+            if last_batch:
+                break
+
+            #assert False
+
+
+        #cb_lib_snn.calibration.vth_set_and_norm(cb_libsnn)
+
+        #
+        #if not vth_search:
+        #lib_snn.calibration.vth_set_and_norm(cb_libsnn)
+        #cb_libsnn.calibration.calibration_bias_set(cb_libsnn)
+
+    ####
+    # run - test dataset
     #
-    # run
-    #
-    lib_snn.sim.set_for_visual_debug(True)
+    #lib_snn.sim.set_for_visual_debug(True)
     result = model.evaluate(test_ds, callbacks=callbacks_test)
-    lib_snn.sim.set_for_visual_debug(False)
+    #lib_snn.sim.set_for_visual_debug(False)
 
     #result = model.evaluate(test_ds)
     # result = model.predict(test_ds)

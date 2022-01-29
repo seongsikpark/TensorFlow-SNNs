@@ -81,3 +81,12 @@ glb_plot = GLB_PLOT(layers,idx_neurons)
 glb_plot_1 = GLB_PLOT(layers,idx_neurons)
 glb_plot_2 = GLB_PLOT(layers,idx_neurons)
 #glb_plot_1 = GLB_PLOT()
+
+# integrated gradients
+glb_ig_attributions = collections.OrderedDict()
+glb_rand_vth = collections.OrderedDict()
+glb_vth_search_err = collections.OrderedDict()
+glb_vth_init = collections.OrderedDict()
+
+glb_bias_comp = collections.OrderedDict()
+

@@ -1400,8 +1400,8 @@ class Model(tf.keras.Model):
                 else:
                     assert False
 
-                non_zero = tf.math.count_nonzero(layer_ann.record_output, dtype=tf.float32, axis=axis)
-                non_zero_r = non_zero / tf.cast(tf.reduce_prod(layer_ann.record_output.shape[1:]), tf.float32)
+                #non_zero = tf.math.count_nonzero(layer_ann.record_output, dtype=tf.float32, axis=axis)
+                #non_zero_r = non_zero / tf.cast(tf.reduce_prod(layer_ann.record_output.shape[1:]), tf.float32)
 
                 #self.bias_control_th[layer.name] = tf.reduce_mean(non_zero_r)*0.0001
                 #self.bias_control_th[layer.name] = tf.reduce_mean(non_zero_r)*0.001

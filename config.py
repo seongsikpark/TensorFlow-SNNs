@@ -227,7 +227,8 @@ tf.compat.v1.app.flags.DEFINE_bool('noise_en',False,'noise injection mode enable
 ################################################################################
 
 #
-tf.compat.v1.app.flags.DEFINE_boolean('verbose',True, 'verbose mode')
+tf.compat.v1.app.flags.DEFINE_boolean('verbose',False, 'verbose mode')
+#tf.compat.v1.app.flags.DEFINE_boolean('verbose',True, 'verbose mode')
 
 #tf.compat.v1.app.flags.DEFINE_boolean('verbose_visual',False, 'verbose visual mode')
 tf.compat.v1.app.flags.DEFINE_boolean('verbose_visual',True, 'verbose visual mode')
@@ -246,8 +247,8 @@ tf.compat.v1.app.flags.DEFINE_bool('train', False, 'train mode')
 tf.compat.v1.app.flags.DEFINE_bool('dnn_to_snn', True, 'dnn-to-snn conversion')
 
 # neural network mode
-#tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'ANN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
-tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'SNN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
+tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'ANN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
+#tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'SNN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
 
 # models
 tf.compat.v1.app.flags.DEFINE_string('model', 'VGG16', 'model')
@@ -263,9 +264,14 @@ tf.compat.v1.app.flags.DEFINE_bool('load_best_model', True, 'load best model (mo
 
 #
 tf.compat.v1.app.flags.DEFINE_integer('batch_size', 100, '')
+#tf.compat.v1.app.flags.DEFINE_integer('batch_size', 500, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 1000, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 500, '')
-tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 100, '')
+tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 400, '')
+#tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 250, '')
+#tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 200, '')
+#tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 100, '')
+#tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 10, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 1, '')
 
 #
@@ -299,7 +305,8 @@ tf.compat.v1.app.flags.DEFINE_boolean('use_bias', True, 'use bias')
 ################
 tf.compat.v1.app.flags.DEFINE_string('root_tensorboard', './tensorboard/', 'root - tensorboard')
 
-tf.compat.v1.app.flags.DEFINE_string('root_model_best', './models_best', 'root model best')
+#tf.compat.v1.app.flags.DEFINE_string('root_model_best', './models_best', 'root model best')
+tf.compat.v1.app.flags.DEFINE_string('root_model_best', '../99_models', 'root model best')
 
 
 #
@@ -369,9 +376,10 @@ tf.compat.v1.app.flags.DEFINE_enum('snn_output_type',"VMEM", ["SPIKE", "VMEM", "
 #
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 2048, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 1024, 'time steps per sample in SNN')
+tf.compat.v1.app.flags.DEFINE_integer('time_step', 512, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 256, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 128, 'time steps per sample in SNN')
-tf.compat.v1.app.flags.DEFINE_integer('time_step', 64, 'time steps per sample in SNN')
+#tf.compat.v1.app.flags.DEFINE_integer('time_step', 64, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 32, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 20, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 16, 'time steps per sample in SNN')
@@ -394,8 +402,8 @@ tf.compat.v1.app.flags.DEFINE_bool('f_fused_bn',True,'f_fused_bn')
 #tf.compat.v1.app.flags.DEFINE_bool('f_fused_bn',False,'f_fused_bn')
 
 #
-tf.compat.v1.app.flags.DEFINE_bool('f_w_norm_data',True,'f_w_norm_data')
-#tf.compat.v1.app.flags.DEFINE_bool('f_w_norm_data',False,'f_w_norm_data')
+#tf.compat.v1.app.flags.DEFINE_bool('f_w_norm_data',True,'f_w_norm_data')
+tf.compat.v1.app.flags.DEFINE_bool('f_w_norm_data',False,'f_w_norm_data')
 
 tf.compat.v1.app.flags.DEFINE_bool('f_write_stat',False,'write stat')
 #tf.compat.v1.app.flags.DEFINE_bool('f_write_stat',True,'write stat')
@@ -412,11 +420,11 @@ tf.compat.v1.app.flags.DEFINE_string('prefix_stat', '', 'prefix of stat file nam
 ################
 # calibration - DNN-to-SNN conversion
 ################
-tf.compat.v1.app.flags.DEFINE_bool('calibration_weight',True,'calibration - weight')
-#tf.compat.v1.app.flags.DEFINE_bool('calibration_weight',False,'calibration - weight')
+#tf.compat.v1.app.flags.DEFINE_bool('calibration_weight',True,'calibration - weight')
+tf.compat.v1.app.flags.DEFINE_bool('calibration_weight',False,'calibration - weight')
 
-tf.compat.v1.app.flags.DEFINE_bool('calibration_weight_act_based',True,'calibration - weight')
-#tf.compat.v1.app.flags.DEFINE_bool('calibration_weight_act_based',False,'calibration - weight')
+#tf.compat.v1.app.flags.DEFINE_bool('calibration_weight_act_based',True,'calibration - weight')
+tf.compat.v1.app.flags.DEFINE_bool('calibration_weight_act_based',False,'calibration - weight')
 
 #tf.compat.v1.app.flags.DEFINE_bool('calibration_bias',True,'calibration - weight')
 tf.compat.v1.app.flags.DEFINE_bool('calibration_bias',False,'calibration - weight')
@@ -441,13 +449,26 @@ tf.compat.v1.app.flags.DEFINE_bool('vth_toggle',False,'vth toggle mode')
 tf.compat.v1.app.flags.DEFINE_float('vth_toggle_init',0.9,'vth toggle init - toggle between {init, 2-init}')
 #tf.compat.v1.app.flags.DEFINE_float('vth_toggle_init',0.95,'vth toggle init - toggle between {init, 2-init}')
 
+#
+tf.compat.v1.app.flags.DEFINE_bool('vth_search_ig',False,'vth search - integrated gradient based')
+#tf.compat.v1.app.flags.DEFINE_bool('vth_search_ig',True,'vth search - integrated gradient based')
+
+#
+#tf.compat.v1.app.flags.DEFINE_integer('calibration_num_batch',100,'calibration num batch')
+#tf.compat.v1.app.flags.DEFINE_integer('calibration_num_batch',64,'calibration num batch')
+#tf.compat.v1.app.flags.DEFINE_integer('calibration_num_batch',32,'calibration num batch')
+#tf.compat.v1.app.flags.DEFINE_integer('calibration_num_batch',10,'calibration num batch')
+#tf.compat.v1.app.flags.DEFINE_integer('calibration_num_batch',8,'calibration num batch')
+#tf.compat.v1.app.flags.DEFINE_integer('calibration_num_batch',4,'calibration num batch')
+#tf.compat.v1.app.flags.DEFINE_integer('calibration_num_batch',2,'calibration num batch')
+tf.compat.v1.app.flags.DEFINE_integer('calibration_num_batch',1,'calibration num batch')
 
 #
 tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_ICLR_21',False,'calibration - bias, ICML-21')
 #tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_ICLR_21',True,'calibration - bias, ICML-21')
 
-#tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_ICML_21',False,'calibration - bias, ICML-21')
-tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_ICML_21',True,'calibration - bias, ICML-21')
+tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_ICML_21',False,'calibration - bias, ICML-21')
+#tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_ICML_21',True,'calibration - bias, ICML-21')
 
 tf.compat.v1.app.flags.DEFINE_bool('calibration_vmem_ICML_21',False,'calibration - bias, ICML-21')
 #tf.compat.v1.app.flags.DEFINE_bool('calibration_vmem_ICML_21',True,'calibration - bias, ICML-21')

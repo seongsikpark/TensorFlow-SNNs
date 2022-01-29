@@ -36,8 +36,12 @@ from lib_snn.sim import glb_plot
 def preproc(self):
     # print summary model
     #print('summary model')
+    if self.total_num_neurons==0:
+        cal_total_num_neurons(self)
+
     if self.conf.verbose:
         self.model.summary()
+        print_total_num_neurons(self)
 
     # initialization
     if not self.init_done:
@@ -135,6 +139,10 @@ def preproc_ann_norm(self):
             w_norm_data(self)
         self.w_norm_done=True
 
+
+    if self.f_vth_set_and_norm:
+        lib_snn.calibration.vth_set_and_norm(self)
+
     #print(self.model.get_layer('conv1').bias)
     ## for debug
     #self.model.bias_disable()
@@ -156,15 +164,36 @@ def preproc_ann_to_snn(self):
             w_norm_data(self)
         self.w_norm_done=True
 
+    #
+    if self.f_vth_set_and_norm:
+        lib_snn.calibration.vth_set_and_norm(self)
+
     # calibration
-    if not self.calibration_static_done:
-        calibration_static(self)
+    #if self.calibration:
+    if False:
 
-    if not self.run_for_calibration and self.calibration_static_done and (not self.calibration_act_based_done):
-        calibration_act_based(self)
+        print(self.run_for_calibration)
+        print(self.calibration_static_done)
+        print(self.calibration_act_based_done)
 
-    if not self.run_for_calibration and self.calibration_static_done and self.calibration_act_based_done:
-        calibration_act_based_post(self)
+
+        if not self.calibration_static_done:
+            calibration_static(self)
+
+        #elif self.run_for_calibration and self.calibration_static_done and (not self.calibration_act_based_done):
+        #if self.run_for_calibration and self.calibration_static_done and (not self.calibration_act_based_done):
+        elif self.calibration_static_done and (not self.calibration_act_based_done):
+        #if self.calibration_static_done and (not self.calibration_act_based_done):
+            calibration_act_based(self)
+
+        #elif self.run_for_calibration and self.calibration_static_done and self.calibration_act_based_done and (not self.calibration_post_done):
+        #elif self.calibration_static_done and self.calibration_act_based_done and (not self.calibration_post_done):
+        if self.calibration_static_done and self.calibration_act_based_done and (not self.calibration_post_done):
+        #if self.run_for_calibration and self.calibration_static_done and self.calibration_act_based_done and (not self.calibration_post_done):
+            calibration_act_based_post(self)
+
+        #else:
+        #    assert False
 
 
 #
@@ -187,6 +216,9 @@ def calibration_static(self):
     #
     if self.conf.calibration_bias:
         lib_snn.calibration.bias_calibration(self)
+
+    #
+    #lib_snn.calibration.vth_calibration(self)
 
     self.calibration_static_done = True
 
@@ -218,6 +250,8 @@ def calibration_act_based_post(self):
 
     if self.conf.vth_toggle:
         lib_snn.calibration.vth_toggle(self)
+
+    self.calibration_post_done=True
 
 
 
@@ -266,8 +300,26 @@ def reset_snn_time_step(self):
 # (on_test_batch_end)
 ########################################
 def postproc_batch(self):
+    #print('postproc_batch')
+
+    # TODO: need?
     if self.model.en_record_output:
         collect_record_output(self)
+
+    if self.run_for_vth_search:
+        #lib_snn.calibration.weight_calibration_act_based(self)
+        lib_snn.calibration.vth_search(self)
+
+    if self.run_for_calibration_ML:
+        #if self.conf.calibration_bias_ICML_21:
+        #if not self.vth_search_done:
+        #    lib_snn.calibration.weight_calibration_act_based(self)
+            #self.vth_search_done=True
+        lib_snn.calibration.bias_calibration_ICML_21(self)
+
+    if self.calibration_bias:
+        lib_snn.calibration.calibration_bias_set(self)
+
 
 
     #
@@ -779,7 +831,7 @@ def w_norm_data(self):
         f_norm = lambda x: np.percentile(x,99.9)
 
     #w_norm_data_layer_wise(self,f_norm)
-    w_norm_data_channel_wise(self,f_norm)
+    w_norm_data_channel_wise(self,f_norm,stat,dict_stat=self.dict_stat_r)
 
 
 
@@ -797,7 +849,7 @@ def w_norm_data_layer_wise(self, f_norm):
         for idx_l, l in enumerate(self.model.layers_w_kernel):
             stat = self.dict_stat_r[l.name]
             norm = f_norm(stat)
-            norm = np.where(norm==0, 1, norm)
+            #norm = np.where(norm==0, 1, norm)
 
             if idx_l == 0:
                 self.norm[l.name] = norm
@@ -831,7 +883,7 @@ def w_norm_data_layer_wise(self, f_norm):
 
 
 #
-def w_norm_data_channel_wise(self, f_norm):
+def w_norm_data_channel_wise(self, f_norm, stat, dict_stat=None):
 
     print('channel-wise normalization')
 
@@ -843,14 +895,20 @@ def w_norm_data_channel_wise(self, f_norm):
     if 'VGG' in self.conf.model:
         #for idx_l, l in enumerate(self.layers_w_kernel):
         for idx_l, l in enumerate(self.model.layers_w_kernel):
-            stat = self.dict_stat_r[l.name]
-            stat = stat.reshape(-1,stat.shape[-1])
+            if dict_stat is None:
+                stat_r = lib_snn.calibration.read_stat(self,l,stat)
+            else:
+                stat_r = self.dict_stat_r[l.name]
+            stat_r = stat_r.reshape(-1,stat_r.shape[-1])
 
             if isinstance(l,lib_snn.layers.InputGenLayer):
                 norm = 1
             else:
-                norm = f_norm(stat)
+                norm = f_norm(stat_r)
                 norm = np.where(norm == 0, 1, norm)
+
+            #if isinstance(l,lib_snn.layers.Dense):
+                #norm = f_norm(norm)
 
             if idx_l == 0:
                 #self.norm[l.name] = norm
@@ -903,4 +961,19 @@ def w_norm_data_channel_wise(self, f_norm):
         layer.bias = layer.bias / self.norm_b[layer.name]
 
 
+    #print(self.model.get_layer('fc2').kernel)
+    #assert False
 
+
+def cal_total_num_neurons(self):
+    total_num_neurons = 0
+    for l in self.model.layers:
+        if hasattr(l, 'act'):
+            if isinstance(l.act, lib_snn.neurons.Neuron):
+                total_num_neurons += l.act.num_neurons
+
+    self.total_num_neurons = total_num_neurons
+
+
+def print_total_num_neurons(self):
+    print('total num neurons: {:}'.format(self.total_num_neurons))

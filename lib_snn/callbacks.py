@@ -123,6 +123,8 @@ class SNNLIB(tf.keras.callbacks.Callback):
         self.test_ds_num = test_ds_num
         self.model_ann = model_ann
 
+        #
+        self.total_num_neurons = 0
 
         self.f_skip_bn=False
         #self.layers_w_kernel=[]
@@ -133,9 +135,31 @@ class SNNLIB(tf.keras.callbacks.Callback):
         self.w_norm_done = False
 
         # calibration
+        self.calibration=True
         self.calibration_static_done = False
         self.calibration_act_based_done = False
+        self.calibration_post_done = False
         self.run_for_calibration = False
+        self.run_for_calibration_ML = False
+        self.run_for_vth_search = False
+
+        #
+        self.calibration_bias = False
+
+        #
+        self.vth_search_done = False
+        self.f_vth_set_and_norm = False
+
+
+        if not self.conf.calibration_weight:
+            self.calibration_static_done=True
+
+        if not self.conf.calibration_weight_act_based:
+            self.calibration_act_based_done=True
+
+        if not self.conf.calibration_bias_ICML_21:
+            self.calibration_post_done=True
+
 
         # compare
         #self.run_for_compare_post_calib = False

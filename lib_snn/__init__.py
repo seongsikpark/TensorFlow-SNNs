@@ -28,3 +28,6 @@ from lib_snn import training
 from lib_snn import sim
 
 from lib_snn import calibration
+
+
+from lib_snn import xai
