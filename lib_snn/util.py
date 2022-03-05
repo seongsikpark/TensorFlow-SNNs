@@ -311,19 +311,32 @@ def plot(x, y, axe=None, mark='bo', f_animation=False):
 
 
 #def scatter(self, x, y, color, axe=None, marker='o'):
-def scatter(x, y, color, axe=None, marker='o'):
+def scatter(x, y, color='r', axe=None, s=1, marker='o',label=None):
     if axe==None:
-        plt.scatter(x, y, c=color, s=1, marker=marker)
-        plt.draw()
-        plt.pause(0.0000000000000001)
+        scatter = plt.scatter(x, y, c=color, s=s, marker=marker, label=label)
+        #plt.draw()
+        #plt.pause(0.0000000000000001)
     else:
-        axe.scatter(x, y, c=color, s=1, marker=marker)
-        plt.draw()
-        plt.pause(0.0000000000000001)
+        scatter = axe.scatter(x, y, c=color, s=s, marker=marker, label=label)
 
-def figure_hold(self):
-    plt.close("dummy")
-    plt.show()
+        #print(scatter.legend_elements(prop="colors"))
+
+        #legend = axe.legend(*scatter.legend_elements())
+        #axe.add_artist(legend)
+
+        #assert False
+
+        #h, l = scatter.legend_elements(prop="sizes")
+        #legend2 = axe.legend(h,l,loc="upper right")
+
+        #plt.draw()
+        #plt.pause(0.0000000000000001)
+
+    return scatter
+
+#def figure_hold(self):
+    #plt.close("dummy")
+    #plt.show()
 
 
 ############################################################

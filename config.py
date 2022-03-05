@@ -88,7 +88,7 @@ tf.compat.v1.app.flags.DEFINE_float('p_ws',8,'period of wieghted synapse')
 #tf.compat.v1.app.flags.DEFINE_integer('num_class',1000,'number_of_class')
 
 
-tf.compat.v1.app.flags.DEFINE_bool('f_positive_vmem',False,'positive vmem')
+
 tf.compat.v1.app.flags.DEFINE_bool('f_tot_psp',False,'accumulate total psp')
 
 tf.compat.v1.app.flags.DEFINE_bool('f_isi',False,'isi stat')
@@ -238,6 +238,11 @@ tf.compat.v1.app.flags.DEFINE_boolean('verbose_visual',True, 'verbose visual mod
 # Common
 ################################
 
+# exp_set_name
+#tf.compat.v1.app.flags.DEFINE_string('exp_set_name', None, 'exp set name')
+tf.compat.v1.app.flags.DEFINE_string('exp_set_name', 'calib_idx_comb2', 'exp set name')
+
+
 # train mode
 tf.compat.v1.app.flags.DEFINE_bool('train', False, 'train mode')
 #tf.compat.v1.app.flags.DEFINE_bool('train', True, 'train mode')
@@ -251,9 +256,8 @@ tf.compat.v1.app.flags.DEFINE_bool('dnn_to_snn', True, 'dnn-to-snn conversion')
 tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'SNN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
 
 # models
-#tf.compat.v1.app.flags.DEFINE_string('model', 'VGG16', 'model')
+tf.compat.v1.app.flags.DEFINE_string('model', 'VGG16', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet18', 'model')
-tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet20', 'model')
 
 # datasets
 tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR10', 'dataset')
@@ -322,14 +326,27 @@ tf.compat.v1.app.flags.DEFINE_bool('debug_mode', True, 'debug mode')
 tf.compat.v1.app.flags.DEFINE_bool('full_test', True, 'full dataset test')
 #tf.compat.v1.app.flags.DEFINE_bool('full_test', False, 'full dataset test')
 
-tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 8, 'start index of test data')
+#tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 0, 'start index of test data')
+#tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 1250, 'start index of test data')
+#tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 1312, 'start index of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 9, 'start index of test data')
+#tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 1600, 'start index of test data')
+#tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 1719, 'start index of test data')
+#tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 800, 'start index of test data')
+#tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 900, 'start index of test data')
+#tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 1110, 'start index of test data')
+tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 1101, 'start index of test data')
+#tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 1100, 'start index of test data')
+
 #tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 500, 'number of test data')
-tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 800, 'number of test data')
+#tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 1600, 'number of test data')
+#tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 800, 'number of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 400, 'number of test data')
-#tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 100, 'number of test data')
+tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 100, 'number of test data')
+#tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 50, 'number of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 10, 'number of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 3, 'number of test data')
+#tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 2, 'number of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 1, 'number of test data')
 
 ################################
@@ -337,16 +354,25 @@ tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 800, 'number of test data
 ################################
 
 # neuron type in SNN
-tf.compat.v1.app.flags.DEFINE_string('n_type', 'IF', 'LIF or IF: neuron type')
-tf.compat.v1.app.flags.DEFINE_enum('n_reset_type','reset_by_sub', ['reset_by_sub', 'reset_to_zero'], 'neuron reset type')
+#tf.compat.v1.app.flags.DEFINE_string('n_type', 'IF', 'LIF or IF: neuron type')
+tf.compat.v1.app.flags.DEFINE_string('n_type', 'LIF', 'LIF or IF: neuron type')
 
+tf.compat.v1.app.flags.DEFINE_enum('n_reset_type','reset_by_sub', ['reset_by_sub', 'reset_to_zero'], 'neuron reset type')
+#tf.compat.v1.app.flags.DEFINE_enum('n_reset_type','reset_to_zero', ['reset_by_sub', 'reset_to_zero'], 'neuron reset type')
+
+
+tf.compat.v1.app.flags.DEFINE_bool('f_positive_vmem',False,'positive vmem')
+#tf.compat.v1.app.flags.DEFINE_bool('f_positive_vmem',True,'positive vmem')
+
+tf.compat.v1.app.flags.DEFINE_bool('f_neg_cap_vmem',False,'negative capped vmem')
+#tf.compat.v1.app.flags.DEFINE_bool('f_neg_cap_vmem',True,'negative capped vmem')
 
 tf.compat.v1.app.flags.DEFINE_string('input_spike_mode','REAL','input spike mode - REAL, POISSON, WEIGHTED_SPIKE, others...')
 tf.compat.v1.app.flags.DEFINE_string('neural_coding','RATE','neural coding - RATE, WEIGHTED_SPIKE, PROPOSED')
 
 #
-tf.compat.v1.app.flags.DEFINE_bool('binary_spike', True, 'binary spike activation, if false - vth activation')
-#tf.compat.v1.app.flags.DEFINE_bool('binary_spike', False, 'binary spike activation, if false - vth activation')
+#tf.compat.v1.app.flags.DEFINE_bool('binary_spike', True, 'binary spike activation, if false - vth activation')
+tf.compat.v1.app.flags.DEFINE_bool('binary_spike', False, 'binary spike activation, if false - vth activation')
 
 #
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 20.0, 'initial value of vth')
@@ -457,13 +483,27 @@ tf.compat.v1.app.flags.DEFINE_bool('vth_search_ig',False,'vth search - integrate
 #tf.compat.v1.app.flags.DEFINE_bool('vth_search_ig',True,'vth search - integrated gradient based')
 
 #
+#tf.compat.v1.app.flags.DEFINE_integer('vth_search_num_batch',150,'calibration num batch')
+#tf.compat.v1.app.flags.DEFINE_integer('vth_search_num_batch',32,'calibration num batch')
+#tf.compat.v1.app.flags.DEFINE_integer('vth_search_num_batch',8,'calibration num batch')
+#tf.compat.v1.app.flags.DEFINE_integer('vth_search_num_batch',6,'calibration num batch')
+#tf.compat.v1.app.flags.DEFINE_integer('vth_search_num_batch',5,'calibration num batch')
+#tf.compat.v1.app.flags.DEFINE_integer('vth_search_num_batch',4,'calibration num batch')
+#tf.compat.v1.app.flags.DEFINE_integer('vth_search_num_batch',3,'calibration num batch')
+#tf.compat.v1.app.flags.DEFINE_integer('vth_search_num_batch',2,'calibration num batch')
+tf.compat.v1.app.flags.DEFINE_integer('vth_search_num_batch',1,'calibration num batch')
+
+#
 #tf.compat.v1.app.flags.DEFINE_integer('calibration_num_batch',100,'calibration num batch')
 #tf.compat.v1.app.flags.DEFINE_integer('calibration_num_batch',64,'calibration num batch')
 #tf.compat.v1.app.flags.DEFINE_integer('calibration_num_batch',32,'calibration num batch')
 #tf.compat.v1.app.flags.DEFINE_integer('calibration_num_batch',10,'calibration num batch')
 #tf.compat.v1.app.flags.DEFINE_integer('calibration_num_batch',8,'calibration num batch')
-#tf.compat.v1.app.flags.DEFINE_integer('calibration_num_batch',4,'calibration num batch')
-tf.compat.v1.app.flags.DEFINE_integer('calibration_num_batch',2,'calibration num batch')
+#tf.compat.v1.app.flags.DEFINE_integer('calibration_num_batch',6,'calibration num batch')
+#tf.compat.v1.app.flags.DEFINE_integer('calibration_num_batch',5,'calibration num batch')
+tf.compat.v1.app.flags.DEFINE_integer('calibration_num_batch',4,'calibration num batch')
+#tf.compat.v1.app.flags.DEFINE_integer('calibration_num_batch',3,'calibration num batch')
+#tf.compat.v1.app.flags.DEFINE_integer('calibration_num_batch',2,'calibration num batch')
 #tf.compat.v1.app.flags.DEFINE_integer('calibration_num_batch',1,'calibration num batch')
 
 #
@@ -476,6 +516,30 @@ tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_ICML_21',False,'calibration
 tf.compat.v1.app.flags.DEFINE_bool('calibration_vmem_ICML_21',False,'calibration - bias, ICML-21')
 #tf.compat.v1.app.flags.DEFINE_bool('calibration_vmem_ICML_21',True,'calibration - bias, ICML-21')
 
+
+#
+tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_up_prog',False,'calibration - bias, update progressive')
+#tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_up_prog',True,'calibration - bias, update progressive')
+
+
+tf.compat.v1.app.flags.DEFINE_bool('weight_comp_proposed',False,'calibration - bias, update progressive')
+#tf.compat.v1.app.flags.DEFINE_bool('weight_comp_proposed',True,'calibration - bias, update progressive')
+
+
+#
+#tf.compat.v1.app.flags.DEFINE_bool('calibration_idx_test',False,'calibration idx test')
+tf.compat.v1.app.flags.DEFINE_bool('calibration_idx_test',True,'calibration idx test')
+tf.compat.v1.app.flags.DEFINE_integer('calibration_idx',0,'calibration idx')
+
+
+# TODO: move to near "verbose visual"
+#tf.compat.v1.app.flags.DEFINE_integer('verbose_visual_idx',99,'verbose visual index')
+tf.compat.v1.app.flags.DEFINE_integer('verbose_visual_idx',99,'verbose visual index')
+
+
+# time dependent leakage
+tf.compat.v1.app.flags.DEFINE_bool('leak_time_dep',False,'time dependent leakage - LIF')
+#tf.compat.v1.app.flags.DEFINE_bool('leak_time_dep',True,'time dependent leakage - LIF')
 
 #
 conf = flags.FLAGS

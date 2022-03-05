@@ -17,6 +17,10 @@ import collections
 from tensorflow.python.keras.engine import data_adapter
 from tensorflow.python.keras.engine import compile_utils
 
+
+#
+import matplotlib
+
 #
 from absl import flags
 flags = flags.FLAGS
@@ -31,6 +35,8 @@ from lib_snn.sim import glb_t
 from lib_snn.sim import glb_plot
 from lib_snn.sim import glb_plot_1
 from lib_snn.sim import glb_plot_2
+from lib_snn.sim import glb_plot_3
+from lib_snn.sim import glb_plot_1x2
 
 
 class Model(tf.keras.Model):
@@ -128,8 +134,9 @@ class Model(tf.keras.Model):
         #self.accuracy_metrics = [None] * len(self.accuracy_time_point)
         self.accuracy_results = list(range(self.num_accuracy_time_point))
         self.accuracy_metrics = list(range(self.num_accuracy_time_point))
+        self.loss_metrics = list(range(self.num_accuracy_time_point))
 
-    #
+        #
         #self.total_spike_count=np.zeros([self.num_accuracy_time_point,len(self.list_layer_name)+1])
         #self.total_spike_count_int=np.zeros([self.num_accuracy_time_point,len(self.list_layer_name)+1])
         #self.total_residual_vmem=np.zeros(len(self.list_layer_name)+1)
@@ -453,6 +460,7 @@ class Model(tf.keras.Model):
         # plot control
         #f_plot = (self.conf.verbose_visual) and (not self.conf.full_test) and (glb.model_compiled) and (self.conf.debug_mode and self.conf.nn_mode == 'SNN')
         f_plot = (flags._run_for_visual_debug) and (not self.conf.full_test) and (glb.model_compiled) and (self.conf.debug_mode and self.nn_mode == 'SNN')
+        #f_plot = f_plot and (self.conf.num_test_data==1)
 
         # tf.expand_dims(self.bias_ctrl_sub,axis=(1,2))
         if self.bias_control:
@@ -471,6 +479,9 @@ class Model(tf.keras.Model):
 
             #self.bias_disable()
 
+            if not self.conf.full_test:
+                print('time: {}'.format(t))
+
             ret = self._run_internal_graph(inputs, training=training, mask=mask)
 
             #
@@ -488,23 +499,40 @@ class Model(tf.keras.Model):
             #
             #if (glb.model_compiled) and (self.conf.debug_mode and self.conf.nn_mode == 'SNN'):
             if f_plot:
-                self.plot_layer_neuron(glb_plot)
+                self.plot_layer_neuron_act(glb_plot)
                 self.plot_layer_neuron_vmem(glb_plot_1)
-                self.plot_layer_neuron_input(glb_plot_2)
+                self.plot_layer_neuron_out(glb_plot_2)
+                self.plot_layer_neuron_input(glb_plot_3)
+
+                self.plot_logit_t_and_accum(glb_plot_1x2)
 
             if self.bias_control:
                 self.bias_control_test()
 
 
+            #
+            if False:
+                if (glb.model_compiled) and (not self.conf.full_test):
+                    l = self.get_layer('predictions')
+                    #print(l.bias_en_time)
+                    #print(self.conf.time_step)
+                    time = tf.cast(self.conf.time_step - tf.reduce_mean(l.bias_en_time), tf.float32)
+                    #print(time)
+                    print('')
+                    print('logit - {} - {}'.format(t,self.get_layer('predictions').record_output/time))
 
             # end of time step - increase global time
             glb_t()
 
             #print(ret.numpy())
-            #print(ret)
+
 
             #
             #self.postproc_snn_time_step()
+
+
+        #if (glb.model_compiled):
+        #    print(ret)
 
         #return self.snn_output
 
@@ -701,7 +729,7 @@ class Model(tf.keras.Model):
                 assert False
 
     #
-    def plot_layer_neuron(self,plot):
+    def plot_layer_neuron_act(self,plot):
         for idx, layer_name in enumerate(plot.layers):
             layer = self.get_layer(layer_name)
             idx_neuron = plot.idx_neurons[idx]
@@ -718,6 +746,15 @@ class Model(tf.keras.Model):
             lib_snn.util.plot(glb_t.t, vmem, axe=axe, mark=plot.mark)
 
     #
+    def plot_layer_neuron_out(self,plot):
+        for idx, layer_name in enumerate(plot.layers):
+            layer = self.get_layer(layer_name)
+            idx_neuron = plot.idx_neurons[idx]
+            axe = plot.axes.flatten()[idx]
+            out = layer.act.out.numpy().flatten()[idx_neuron]
+            lib_snn.util.plot(glb_t.t, out, axe=axe, mark=plot.mark)
+
+    #
     def plot_layer_neuron_input(self, plot):
         for idx, layer_name in enumerate(plot.layers):
             layer = self.get_layer(layer_name)
@@ -731,6 +768,44 @@ class Model(tf.keras.Model):
                 idx_bias = idx_neuron % layer.bias.shape[0]
                 axe.axhline(y=layer.bias[idx_bias], color='m')
 
+
+    def plot_logit_t_and_accum(self, plot):
+
+        axe_logit_t = plot.axes.flatten()[0]
+        axe_logit_accum = plot.axes.flatten()[1]
+
+        logit_idx_start=0
+        logit_idx_end=6
+
+        #logit_idx_start=0
+        #logit_idx_end=9
+
+        logit_t = self.get_layer('predictions').record_logit[self.conf.verbose_visual_idx].numpy().flatten()[logit_idx_start:logit_idx_end+1]
+        logit_accum = self.get_layer('predictions').record_output[self.conf.verbose_visual_idx].numpy().flatten()[logit_idx_start:logit_idx_end+1]
+
+        #colors = matplotlib.cm.rainbow(np.linspace(0,1,len(logit_t)))
+        colors = np.arange(logit_idx_start,logit_idx_end+1)
+        t = np.full(len(logit_t),glb_t.t)
+
+
+        #lib_snn.util.plot(glb_t.t, logit_t, axe=axe_logit_t, mark=plot.mark)
+        #lib_snn.util.plot(glb_t.t, logit_accum, axe=axe_logit_accum, mark=plot.mark)
+        scatter_logit_t = lib_snn.util.scatter(t, logit_t, axe=axe_logit_t, s=10, color=colors, marker='o')
+        scatter_logit_accum = lib_snn.util.scatter(t, logit_accum, axe=axe_logit_accum, s=10, color=colors, marker='o')
+
+        legend_handle_logit_t, legend_label_logit_t = scatter_logit_t.legend_elements(prop="colors")
+        legend_logit_t = axe_logit_t.legend(legend_handle_logit_t,legend_label_logit_t)
+
+        legend_handle_logit_accum, legend_label_logit_accum = scatter_logit_accum.legend_elements(prop="colors")
+        legend_logit_accum = axe_logit_accum.legend(legend_handle_logit_accum,legend_label_logit_accum)
+
+
+        #legend = [str(i) for i in range(0,len(logit_t))]
+        #axe_logit_t.legend(colors,legend)
+        #axe_logit_accum.add_artist()
+        #if glb_t.t==0:
+        #axe_logit_t.legend(legend)
+        #axe_logit_accum.legend(legend)
 
 
     # this function is based on Model.test_step in training.py
@@ -787,17 +862,53 @@ class Model(tf.keras.Model):
         y_pred=outputs
         # accuracy
         # Updates stateful loss metrics.
-        self.compiled_loss(self.y, y_pred, self.sample_weight, regularization_losses=self.losses)
+
         #self.compiled_metrics.update_state(self.y, y_pred, self.sample_weight)
+        #self.compiled_metrics.update_state(self.y, y_pred, self.sample_weight)
+
+        #loss=self.compiled_loss(self.y, y_pred, self.sample_weight, regularization_losses=self.losses)
+        losses = self.loss_metrics[self.count_accuracy_time_point]
+
+        losses.reset_state()
+        loss = losses(self.y, y_pred, self.sample_weight, regularization_losses=self.losses)
+
+        #if False:
         metrics=self.accuracy_metrics[self.count_accuracy_time_point]
         metrics.update_state(self.y, y_pred, self.sample_weight)
 
+        ## update loss
+        #metrics[0](self.y, y_pred, self.sample_weight, regularization_losses=self.losses)
+        #metrics[1:].update_state(self.y, y_pred, self.sample_weight)
         # Collect metrics to return
+
+        #print(metrics)
+
+        #print(self.compiled_loss.metrics)
+        #print(loss)
+        #assert False
+
+        #print(loss)
+
+        if tf.math.is_nan(loss):
+
+            #for metric in self.compiled_loss.metrics:
+            #    metric.reset_state()
+
+            #self.loss_metrics[self.count_accuracy_time_point].reset_state()
+            losses.reset_state()
+
+            loss_metrics = metrics.metrics
+        else:
+            loss_metrics = losses.metrics + metrics.metrics
+
+        #assert False
         #self.reset_metrics()
         return_metrics = {}
         #metrics = self.accuracy_time_point[self.count_accuracy_time_point]
         #for metric in metrics:
-        for metric in metrics.metrics:
+        #for metric in metrics.metrics:
+        #for metric in self.metrics:
+        for metric in loss_metrics:
             result = metric.result()
             if isinstance(result, dict):
                 return_metrics.update(result)
@@ -1016,13 +1127,36 @@ class Model(tf.keras.Model):
         #
         # dummy run
         #self.compiled_metrics.update_state(self.y, self.y, self.sample_weight)
+
+        #if self._is_compiled:
+        #metrics = []
+        #if self.compiled_loss is not None:
+            #metrics += self.compiled_loss.metrics
+        #if self.compiled_metrics is not None:
+            #metrics += self.compiled_metrics.metrics
+
+        #compiled_loss = compile_utils.LossesContainer(
+            #self.loss, None, output_names=self.output_names)
+        #metrics += [compiled_loss._loss_metric]
+        #metrics += self.compiled_metrics._metrics
         metrics = self.compiled_metrics._metrics
+
+        #print(metrics)
+        #for metric in metrics:
+            #print(metric)
+            #print(metric.name)
+        #assert False
+
         for idx in range(self.num_accuracy_time_point):
+
+            self.loss_metrics[idx] = compile_utils.LossesContainer(self.loss, None, output_names=self.output_names)
+            self.loss_metrics[idx].reset_state()
+
             #self.accuracy_metrics[idx] = self.compiled_metrics
             self.accuracy_metrics[idx] = compile_utils.MetricsContainer(
                                     metrics, None, output_names=self.output_names, from_serialized=False)
-
             self.accuracy_metrics[idx].reset_state()
+
 
         #print(self.compiled_metrics.metrics)
         #print(self._is_compiled)
@@ -1543,6 +1677,7 @@ class Model(tf.keras.Model):
                 #self.bias_control_th[layer.name] = tf.reduce_mean(non_zero_r)*0.01
                 #self.bias_control_th[layer.name] = tf.reduce_mean(non_zero_r)*0.1
                 #self.bias_control_th[layer.name] = tf.reduce_mean(non_zero_r)
+                #self.bias_control_th[layer.name] = 0.1
                 #self.bias_control_th[layer.name] = 0.01
                 self.bias_control_th[layer.name] = 0.001
                 #self.bias_control_th[layer.name] = 0.0001
