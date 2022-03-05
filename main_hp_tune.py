@@ -1364,13 +1364,13 @@ else:
 
 
 
-    vth_search = True
+    ##vth_search = True
     #vth_search = False
 
     vth_search_num_batch = len(comp_batch_index)
     count_vth_search_batch = 0
 
-    if vth_search:
+    if conf.vth_search:
         for idx_batch, (x, y) in enumerate(train_ds):
             # ds_one_batch_ann = tf.data.Dataset.from_tensors((images_one_batch, labels_one_batch)).take(1).cache()
             # ds_one_batch_snn = tf.data.Dataset.from_tensors((images_one_batch, labels_one_batch)).take(1).cache()
@@ -1566,7 +1566,8 @@ else:
     ds_err_act = test_ds.take(1)
 
     model.evaluate(ds_err_act,callbacks=callbacks_test)
-    model_ann.evaluate(ds_err_act,callbacks=callbacks_test_ann)
+    if not (model_ann is None):
+        model_ann.evaluate(ds_err_act,callbacks=callbacks_test_ann)
 
     print('dynamic / static ratio - before calibration bias')
 
@@ -1622,7 +1623,7 @@ else:
 
 
     #
-    calibration_ML=True
+    #calibration_ML=True
     #calibration_ML=False
 
     calibration_batch_idx=[]
@@ -1715,7 +1716,7 @@ else:
     calibration_num_batch = len(calibration_batch_idx)
     count_cal_batch=0
 
-    if calibration_ML:
+    if conf.calibration_bias_new:
 
         last_batch = False
         #for idx_batch in range(num_batch_for_vth_search):
@@ -1796,7 +1797,8 @@ else:
     # dynamic, static ratio
 
     model.evaluate(ds_err_act, callbacks=callbacks_test)
-    model_ann.evaluate(ds_err_act, callbacks=callbacks_test_ann)
+    if not (model_ann is None):
+        model_ann.evaluate(ds_err_act, callbacks=callbacks_test_ann)
 
     print('dynamic / static ratio')
     err_tot = 0
