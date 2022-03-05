@@ -90,6 +90,7 @@ def set_init(self):
 
     self.model.init(self.model_ann)
 
+
     self.init_done=True
 
 
@@ -804,7 +805,7 @@ def w_norm_data(self):
 
     #for idx_l, l in enumerate(self.list_layer_name):
     #for idx_l, l in enumerate(self.list_layer):
-    for idx_l, l in enumerate(self.model.layers_w_kernel):
+    for idx_l, l in enumerate(self.model.layers_w_act):
         key=l.name+'_'+stat
 
         #f_name_stat = f_name_stat_pre+'_'+key
@@ -881,7 +882,6 @@ def w_norm_data_layer_wise(self, f_norm):
         layer.bias = layer.bias / self.norm_b[layer.name]
 
 
-
 #
 def w_norm_data_channel_wise(self, f_norm, stat, dict_stat=None):
 
@@ -934,11 +934,241 @@ def w_norm_data_channel_wise(self, f_norm, stat, dict_stat=None):
         # for visual debug
         #lib_snn.util.print_act_stat_r(self)
     elif 'ResNet' in self.conf.model:
-        #for idx_l, l in enumerate(self.model.layers_w_kernel):
+
+#        # block_norm_in set
+#        block_norm_in_name = collections.OrderedDict()
+#        block_norm_out_name = collections.OrderedDict()
+#        for idx_l, l in enumerate(self.model.layers_w_act):
+#            if not ('conv' in l.name):
+#                continue
+#
+#            #print(l.name)
+#            conv_block_name = l.name.split('_')
+#            conv_block_name = conv_block_name[0] + '_' + conv_block_name[1]
+#
+#            #print(conv_block_name)
+#
+#            if (idx_l==0) and (not 'block' in conv_block_name):
+#                block_norm_in_name[conv_block_name] = None
+#                block_norm_out_name[conv_block_name] = conv_block_name
+#                next_block_norm_in_name = conv_block_name
+#            else:
+#                if not (conv_block_name in block_norm_in_name.keys()):
+#                    block_norm_in_name[conv_block_name] = next_block_norm_in_name
+#                    block_norm_out_name[conv_block_name] = conv_block_name+'_out'
+#
+#                    next_block_norm_in_name = block_norm_out_name[conv_block_name]
+#
+
+            #print(l.name)
         #    stat = self.dict_stat_r[l.name]
 
+        #
+        #for l in self.model.layers_w_kernel:
+        #    if not ('conv' in l.name):
+        #        continue
+        #
+        #    conv_block_name = l.name.split('_')
+        #    conv_block_name = conv_block_name[0] + '_' + conv_block_name[1]
+        #   #print('layer: {}, norm in: {}, norm out: {}'.format(l.name,block_norm_in_name[conv_block_name],block_norm_out_name[conv_block_name]))
 
-        assert False
+        #assert False
+
+        for idx_l, l in enumerate(self.model.layers_w_kernel):
+            #print(l.name)
+
+            #
+            #if dict_stat is None:
+                #stat_r = lib_snn.calibration.read_stat(self,l,stat)
+            #else:
+                #stat_r = self.dict_stat_r[l.name]
+            #stat_r = stat_r.reshape(-1,stat_r.shape[-1])
+
+            #if isinstance(l,lib_snn.layers.InputGenLayer):
+                #norm = 1
+            #else:
+                #norm = f_norm(stat_r)
+                ##norm = np.where(norm == 0, 1, norm)
+
+            #
+            if False:
+            #if True:
+                test_list = ['conv1_conv']
+                if not l.name in test_list:
+                    continue
+                else:
+                    stat_r = self.dict_stat_r[l.name]
+                    stat_r = stat_r.reshape(-1, stat_r.shape[-1])
+                    norm = f_norm(stat_r)
+                    norm = tf.where(norm == 0.0, tf.ones(norm.shape), norm)
+
+                    norm_b = norm
+                    norm_next = norm
+
+                    #norm = tf.expand_dims(norm,axis=0)
+                    #norm = tf.expand_dims(norm,axis=0)
+                    #norm = tf.expand_dims(norm,axis=0)
+                    self.norm[l.name] = norm
+                    self.norm_b[l.name] = norm_b
+
+                    if False:
+                        norm_next_e = tf.expand_dims(norm_next,axis=0)
+                        norm_next_e = tf.expand_dims(norm_next_e,axis=0)
+                        norm_next_e = tf.expand_dims(norm_next_e,axis=3)
+                        self.norm['conv2_block1_conv1'] = 1/norm_next_e
+                        #self.norm_b['conv2_block1_conv1'] = 1/norm
+                        self.norm['conv2_block1_conv0'] = 1/norm_next_e
+                        #self.norm_b['conv2_block1_conv0'] = 1/norm
+
+                        #stat_r = stat_r.reshape(-1, stat_r.shape[-1])
+                        #norm = f_norm(stat_r)
+                        #norm = tf.where(norm == 0.0, tf.ones(norm.shape), norm)
+                        #self.norm['conv2_block1_conv1'] = norm / np.expand_dims(norm_next, axis=0).T
+                        #self.norm_b['conv2_block1_conv1'] = norm
+
+                        stat_r = self.dict_stat_r['conv2_block1_conv1']
+                        stat_r = stat_r.reshape(-1, stat_r.shape[-1])
+                        norm = f_norm(stat_r)
+                        norm = tf.where(norm == 0.0, tf.ones(norm.shape), norm)
+                        self.norm['conv2_block1_conv1'] = norm / np.expand_dims(norm_next, axis=0).T
+                        self.norm_b['conv2_block1_conv1'] = norm
+
+                        norm_next = norm
+                        #norm_next_e = tf.expand_dims(norm_next,axis=0)
+                        #norm_next_e = tf.expand_dims(norm_next_e,axis=0)
+                        #norm_next_e = tf.expand_dims(norm_next_e,axis=3)
+                        stat_r = self.dict_stat_r['conv2_block1_out']
+                        stat_r = stat_r.reshape(-1, stat_r.shape[-1])
+                        norm = f_norm(stat_r)
+                        norm = tf.where(norm == 0.0, tf.ones(norm.shape), norm)
+                        self.norm['conv2_block1_conv2'] = norm / np.expand_dims(norm_next, axis=0).T
+                        self.norm_b['conv2_block1_conv2'] = norm
+                        #self.norm['conv2_block1_conv2'] = 1/norm_next_e
+
+
+                    if False:
+                    #if True:
+                        stat_r = self.dict_stat_r['conv2_block1_out']
+                        stat_r = stat_r.reshape(-1, stat_r.shape[-1])
+                        norm = f_norm(stat_r)
+                        norm = tf.where(norm == 0.0, tf.ones(norm.shape), norm)
+                        self.norm['conv2_block1_conv0'] = norm / np.expand_dims(norm_next, axis=0).T
+                        self.norm_b['conv2_block1_conv0'] = norm
+
+                        stat_r = self.dict_stat_r['conv2_block1_conv1']
+                        stat_r = stat_r.reshape(-1, stat_r.shape[-1])
+                        norm = f_norm(stat_r)
+                        norm = tf.where(norm == 0.0, tf.ones(norm.shape), norm)
+                        self.norm['conv2_block1_conv1'] = norm / np.expand_dims(norm_next, axis=0).T
+                        self.norm_b['conv2_block1_conv1'] = norm
+
+                        stat_r = self.dict_stat_r['conv2_block1_out']
+                        stat_r = stat_r.reshape(-1, stat_r.shape[-1])
+                        norm = f_norm(stat_r)
+                        norm = tf.where(norm == 0.0, tf.ones(norm.shape), norm)
+                        norm_next = self.norm_b['conv2_block1_conv1']
+                        self.norm['conv2_block1_conv2'] = norm / np.expand_dims(norm_next, axis=0).T
+                        self.norm_b['conv2_block1_conv2'] = norm
+
+                        norm_next = norm
+                        #self.norm['conv2_block2_conv0_i'] = 1/norm_next
+                        #norm_next = tf.expand_dims(norm_next,axis=0)
+                        #norm_next = tf.expand_dims(norm_next,axis=0)
+                        #norm_next = tf.expand_dims(norm_next,axis=3)
+                        #self.norm['conv2_block2_conv1'] = 1/norm_next
+
+
+                        stat_r = self.dict_stat_r['conv2_block2_out']
+                        stat_r = stat_r.reshape(-1, stat_r.shape[-1])
+                        norm = f_norm(stat_r)
+                        norm = tf.where(norm == 0.0, tf.ones(norm.shape), norm)
+                        self.norm['conv2_block2_conv0_i'] = norm / norm_next
+                        self.norm_b['conv2_block2_conv0_i'] = norm
+
+                        stat_r = self.dict_stat_r['conv2_block2_conv1']
+                        stat_r = stat_r.reshape(-1, stat_r.shape[-1])
+                        norm = f_norm(stat_r)
+                        norm = tf.where(norm == 0.0, tf.ones(norm.shape), norm)
+                        self.norm['conv2_block2_conv1'] = norm / np.expand_dims(norm_next, axis=0).T
+                        self.norm_b['conv2_block2_conv1'] = norm
+
+                        stat_r = self.dict_stat_r['conv2_block2_out']
+                        stat_r = stat_r.reshape(-1, stat_r.shape[-1])
+                        norm = f_norm(stat_r)
+                        norm = tf.where(norm == 0.0, tf.ones(norm.shape), norm)
+                        norm_next = self.norm_b['conv2_block2_conv1']
+                        self.norm['conv2_block2_conv2'] = norm / np.expand_dims(norm_next, axis=0).T
+                        self.norm_b['conv2_block2_conv2'] = norm
+
+                        norm_next = norm
+                        self.norm['conv2_block3_conv0_i'] = 1/norm_next
+                        norm_next = tf.expand_dims(norm_next,axis=0)
+                        norm_next = tf.expand_dims(norm_next,axis=0)
+                        norm_next = tf.expand_dims(norm_next,axis=3)
+                        self.norm['conv2_block3_conv1'] = 1/norm_next
+
+                    continue
+
+            #if not l.name in ['conv1_conv', 'conv2_block1_conv1', 'conv2_block1_conv0', 'conv2_block1_conv2']:
+            #    continue
+
+            if (idx_l==0):
+                stat_r = self.dict_stat_r[l.name]
+                stat_r = stat_r.reshape(-1, stat_r.shape[-1])
+                norm = f_norm(stat_r)
+                norm = tf.where(norm == 0.0, tf.ones(norm.shape), norm)
+                self.norm[l.name] = norm
+
+            elif (not ('conv' in l.name)) :
+                #print('not conv - {}'.format(l.name))
+                #print(prev_name)
+                stat_r = self.dict_stat_r[l.name]
+                stat_r = stat_r.reshape(-1,stat_r.shape[-1])
+                norm = f_norm(stat_r)
+                norm = tf.where(norm == 0.0, tf.ones(norm.shape), norm)
+
+                #print(norm)
+                self.norm[l.name] = norm / np.expand_dims(self.norm_b[prev_name],axis=0).T
+
+            elif ('conv' in l.name):
+                conv_block_name = l.name.split('_')
+                conv_name = conv_block_name[2]
+                conv_block_name = conv_block_name[0] + '_' + conv_block_name[1]
+
+                if 'conv0' in conv_name:
+                    norm_l_name = self.model.block_norm_out_name[conv_block_name]
+                    norm_prev_l_name = self.model.block_norm_in_name[conv_block_name]
+                elif 'conv1' in conv_name:
+                    norm_l_name = l.name
+                    norm_prev_l_name = self.model.block_norm_in_name[conv_block_name]
+                elif 'conv2' in conv_name:
+                    norm_l_name = self.model.block_norm_out_name[conv_block_name]
+                    norm_prev_l_name = conv_block_name+'_conv1'
+                else:
+                    assert False
+
+                stat_r = self.dict_stat_r[norm_l_name]
+                stat_r = stat_r.reshape(-1,stat_r.shape[-1])
+                norm = f_norm(stat_r)
+                norm = tf.where(norm==0.0, tf.ones(norm.shape), norm)
+
+                stat_r_prev = self.dict_stat_r[norm_prev_l_name]
+                stat_r_prev = stat_r_prev.reshape(-1, stat_r_prev.shape[-1])
+                norm_prev = f_norm(stat_r_prev)
+                norm_prev = tf.where(norm_prev==0.0, tf.ones(norm_prev.shape), norm_prev)
+
+                #print('layer: {}, norm: {}, norm_prev: {}'.format(l.name,norm_l_name,norm_prev_l_name))
+
+                if isinstance(l,lib_snn.layers.Identity):
+                    self.norm[l.name] = norm / norm_prev
+                else:
+                    self.norm[l.name] = norm / np.expand_dims(norm_prev, axis=0).T
+            else:
+                assert False
+
+            self.norm_b[l.name] = norm
+            prev_name=l.name
+
     else:
         assert False
 
@@ -952,17 +1182,32 @@ def w_norm_data_channel_wise(self, f_norm, stat, dict_stat=None):
     #for k, v in self.norm_b.items():
         #print(k + ': ' + str(v))
 
-    #
-    # for name_l in self.list_layer_name:
-    #for layer in self.layers_w_kernel:
-    for layer in self.model.layers_w_kernel:
-        # layer = self.model.get_layer(name=name_l)
-        layer.kernel = layer.kernel / self.norm[layer.name]
-        layer.bias = layer.bias / self.norm_b[layer.name]
+
+    if False:
+    #if True:
+        #for layer in test_list:
+        for layer_name in self.norm.keys():
+            layer = self.model.get_layer(name=layer_name)
+            layer.kernel = layer.kernel / self.norm[layer_name]
+
+        for layer_name in self.norm_b.keys():
+            layer = self.model.get_layer(name=layer_name)
+            layer.bias = layer.bias / self.norm_b[layer_name]
+
+    if True:
+    #if False:
+        #
+        # for name_l in self.list_layer_name:
+        #for layer in self.layers_w_kernel:
+        for layer in self.model.layers_w_kernel:
+            layer.kernel = layer.kernel / self.norm[layer.name]
+            layer.bias = layer.bias / self.norm_b[layer.name]
 
 
     #print(self.model.get_layer('fc2').kernel)
     #assert False
+
+    print('normalization - done')
 
 
 def cal_total_num_neurons(self):

@@ -104,6 +104,7 @@ class Layer():
         #self.f_skip_bn = self.conf.f_fused_bn
 
         # activation, neuron
+        self.act = activation
         # DNN mode
         if activation == 'relu':
             self.act_dnn = tf.keras.layers.ReLU(name=name_act)
@@ -185,8 +186,11 @@ class Layer():
             # print('output')
             # print(self.output_shape_fixed_batch)
 
-            self.act_snn = lib_snn.neurons.Neuron(self.output_shape_fixed_batch, self.conf, \
+            if self.act=='relu':
+                self.act_snn = lib_snn.neurons.Neuron(self.output_shape_fixed_batch, self.conf, \
                                                   self.n_type, self.conf.neural_coding, self.depth, 'n_'+self.name)
+            else:
+                self.act_snn = lambda x,y : tf.identity(x)
 
             #
             self.bias_ctrl_sub = tf.zeros(self.output_shape_fixed_batch)
@@ -603,6 +607,13 @@ class Add(Layer, tf.keras.layers.Add):
 
         # self.act = activation
 
+        #self.use_bias = False
+        #self.kernel = tf.constant(1.0, shape=[], name='kernel')
+        #self.bias = tf.zeros(shape=[],name='bias')
+
+        #print(self.output)
+        #assert False
+
         #
         Layer.index += 1
         self.depth = Layer.index
@@ -615,6 +626,16 @@ class Add(Layer, tf.keras.layers.Add):
         })
         return config
 
+
+    def call_tmp(self, input, training):
+
+        x = Layer.call(self,input,training)
+
+        if self.use_bias:
+            x = x + self.bias
+
+        return x
+
 #
 class Identity(Layer, tf.keras.layers.Layer):
     def __init__(self, use_bn=False, epsilon=0.001, activation=None, **kwargs):
@@ -622,6 +643,7 @@ class Identity(Layer, tf.keras.layers.Layer):
         Layer.__init__(self, use_bn=use_bn, epsilon=epsilon, activation=activation, **kwargs)
 
         self.kernel = tf.constant(1.0, shape=[], name='kernel')
+        self.bias = tf.zeros(shape=[],name='bias')
 
     #def build(self,input_shape):
         ##self.kernel = self.add_weight("kernel",shape=[],initializer='ones',trainable=False)
@@ -629,6 +651,7 @@ class Identity(Layer, tf.keras.layers.Layer):
 
     def call(self, inputs, training):
         ret = tf.multiply(inputs,self.kernel)
+        ret = tf.add(ret,self.bias)
 
         if self.en_record_output:
             self.record_output = ret

@@ -89,7 +89,7 @@ from lib_snn.sim import glb_bias_comp
 
 # GPU setting
 #
-GPU_NUMBER=1
+GPU_NUMBER=0
 
 GPU_PARALLEL_RUN = 1
 #GPU_PARALLEL_RUN = 2
@@ -670,6 +670,8 @@ if conf.nn_mode=='SNN' and conf.dnn_to_snn:
         lr_schedule, step_decay_epoch,
         metric_accuracy, metric_accuracy_top5)
     conf.nn_mode=nn_mode_ori
+
+    model_ann.nn_mode = 'ANN'
 
     #model_ann.set_en_snn('ANN')
 
@@ -1312,8 +1314,8 @@ else:
 
     #train_ds = test_ds
 
-    #vth_search = True
-    vth_search = False
+    vth_search = True
+    #vth_search = False
 
 
     if vth_search:
@@ -1412,8 +1414,8 @@ else:
         #cb_lib_snn.calibration.vth_set_and_norm(cb_libsnn)
 
 
-    #calibration_ML=True
-    calibration_ML=False
+    calibration_ML=True
+    #calibration_ML=False
 
     if calibration_ML:
 

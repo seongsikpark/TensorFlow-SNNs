@@ -356,7 +356,7 @@ class Model(tf.keras.Model):
         #ret_val = self.run_mode[self.conf.nn_mode](inputs, training, self.conf.time_step, epoch)
         #ret_val = self.run_mode[self.conf.nn_mode](inputs, training)
 
-        ret_val = self.run_mode[self.conf.nn_mode](inputs,training,mask)
+        ret_val = self.run_mode[self.nn_mode](inputs,training,mask)
         #ret_val = self.call_snn(inputs,training,mask)
 
         return ret_val
@@ -514,7 +514,8 @@ class Model(tf.keras.Model):
     def bias_control_test_pre(self):
         #print("bias_control_reset")
         if (glb.model_compiled) and (self.conf.debug_mode and self.nn_mode == 'SNN'):
-            for idx_layer, layer in enumerate(self.layers_w_neuron):
+            #for idx_layer, layer in enumerate(self.layers_w_neuron):
+            for idx_layer, layer in enumerate(self.layers_w_kernel):
                 layer.f_bias_ctrl = tf.fill(tf.shape(layer.f_bias_ctrl), True)
                 # print(layer.f_bias_ctrl)
                 # assert False
@@ -542,14 +543,29 @@ class Model(tf.keras.Model):
             # print('fired neuron')
 
             if bias_control_level=='layer':
-                for idx_layer, layer in enumerate(self.layers_w_neuron):
+                #for idx_layer, layer in enumerate(self.layers_w_neuron):
+                #for idx_layer, layer in enumerate(self.layers_w_kernel):
+                for idx_layer, layer in enumerate(self.layers_bias_control):
                     # if layer.use_bias != self.conf.use_bias:
                     # print(layer.use_bias)
                     # print(tf.reduce_any(layer.f_bias_ctrl))
                     if layer.use_bias == tf.reduce_any(layer.f_bias_ctrl):
+
+                        if 'VGG' in self.name:
+                            prev_layer = self.layers_bias_control[idx_layer - 1]
+                        elif 'ResNet' in self.name:
+
+                            prev_layer_name = self.prev_layer_name[layer.name]
+                            prev_layer = self.get_layer(prev_layer_name)
+                            #prev_layer = self.layers_bias_control[idx_layer - 1]
+
+                        else:
+                            assert False
+
                         #print('test here')
                         #print(layer.name)
-                        prev_layer = self.layers_w_neuron[idx_layer - 1]
+                        #print('prev - {}'.format(prev_layer.name))
+                        #print('layer - {}'.format(layer.name))
                         #print(prev_layer.name)
                         #print(prev_layer.act.dim)
 
@@ -558,7 +574,14 @@ class Model(tf.keras.Model):
                         elif isinstance(prev_layer, lib_snn.layers.Dense):
                             axis = [1]
                         else:
-                            assert False
+                            #print(prev_layer)
+                            #print(layer)
+                            #print(prev_layer.act)
+                            #print(prev_layer.act.dim)
+                            if len(prev_layer.act.dim)==4:
+                                axis = [1,2,3]
+                            else:
+                                assert False
 
                         n_neurons = prev_layer.act.num_neurons
 
@@ -594,6 +617,10 @@ class Model(tf.keras.Model):
                                 ctrl = tf.expand_dims(ctrl, axis=3)
                             elif isinstance(layer, lib_snn.layers.Dense):
                                 ctrl = tf.expand_dims(layer.f_bias_ctrl, axis=1)
+                            elif len(prev_layer.act.dim) == 4:
+                                ctrl = tf.expand_dims(layer.f_bias_ctrl, axis=1)
+                                ctrl = tf.expand_dims(ctrl, axis=2)
+                                ctrl = tf.expand_dims(ctrl, axis=3)
                             else:
                                 assert False
 
@@ -602,9 +629,10 @@ class Model(tf.keras.Model):
                             # layer.bias_ctrl_sub = tf.where(layer.f_bias_ctrl,layer)
                             layer.bias_ctrl_sub = tf.where(ctrl, bias_batch, tf.zeros(layer.bias_ctrl_sub.shape))
             elif bias_control_level == 'channel':
-                for idx_layer, layer in enumerate(self.layers_w_neuron):
+                assert False, 'only vgg implemented'
+                for idx_layer, layer in enumerate(self.layers_bias_control):
                     if layer.use_bias == tf.reduce_any(layer.f_bias_ctrl):
-                        prev_layer = self.layers_w_neuron[idx_layer - 1]
+                        prev_layer = self.layers_bias_control[idx_layer - 1]
 
                         if isinstance(prev_layer, lib_snn.layers.Conv2D):
                             axis_reduce_batch = [1, 2]
@@ -907,6 +935,28 @@ class Model(tf.keras.Model):
             if hasattr(layer, 'kernel'):
                 self.layers_w_kernel.append(layer)
 
+        self.layers_w_act = []
+        for layer in self.layers:
+            if hasattr(layer, 'act'):
+                #if not isinstance(layer,lib_snn.layers.InputGenLayer):
+                if not layer.act_dnn is None:
+                    self.layers_w_act.append(layer)
+
+        self.layers_w_bias= []
+        #for layer in self.layers_w_kernel:
+        #    if hasattr(layer, 'bias'):
+        #        self.layers_bias_control.append(layer)
+        for layer in self.layers:
+            if hasattr(layer, 'bias'):
+                self.layers_w_bias.append(layer)
+
+        if self.conf.bias_control:
+            #self.layers_bias_control = self.layers_w_bias
+            self.layers_bias_control = []
+            for layer in self.layers_w_bias:
+                if not isinstance(layer, lib_snn.layers.Add):
+                    self.layers_bias_control.append(layer)
+
         #self.en_record_output = self.model._run_eagerly and (
         #(self.model.nn_mode == 'ANN' and self.conf.f_write_stat) or self.conf.debug_mode)
         self.en_record_output = self._run_eagerly and (
@@ -914,7 +964,8 @@ class Model(tf.keras.Model):
         # self.en_record_output = True
 
         if self.en_record_output:
-            self.layers_record = self.layers_w_kernel
+            #self.layers_record = self.layers_w_kernel
+            self.layers_record = self.layers_w_act
 
             #self.layers_record = []
             ##for layer in self.layers_w_kernel[:4]:
@@ -927,12 +978,19 @@ class Model(tf.keras.Model):
 
             self.set_en_record_output()
 
+
+        # TODO: add condition
+        #if self.conf.f_w_norm_data or self.bias_control:
+        if 'ResNet' in self.name:
+            self.block_norm_set_resnet()
+
         if self.nn_mode=='ANN':
             self.init_ann()
         elif self.nn_mode == 'SNN':
             self.init_snn(model_ann)
         else:
             assert False
+
 
     #
     def init_ann(self):
@@ -985,9 +1043,13 @@ class Model(tf.keras.Model):
             self.total_spike_count_int[layer.name]=tf.zeros([self.num_accuracy_time_point])
             self.total_residual_vmem[layer.name]=tf.zeros([self.num_accuracy_time_point])
 
+
+
         #
         if self.bias_control:
             self.set_bias_control_th(model_ann)
+
+
 
         #
         self.init_done=True
@@ -1004,6 +1066,72 @@ class Model(tf.keras.Model):
                 layer.en_record_output = True
 
         self.dict_stat_w = collections.OrderedDict()
+
+    #
+    def block_norm_set_resnet(self):
+
+        # block_norm_in set
+        self.block_norm_in_name = collections.OrderedDict()
+        self.block_norm_out_name = collections.OrderedDict()
+        self.prev_layer_name = collections.OrderedDict()
+
+        for idx_l, l in enumerate(self.layers_w_act):
+            if not ('conv' in l.name):
+                continue
+
+            #print(l.name)
+            conv_block_name = l.name.split('_')
+            conv_block_name = conv_block_name[0] + '_' + conv_block_name[1]
+
+            #print(conv_block_name)
+
+            if (idx_l==0) and (not 'block' in conv_block_name):
+                self.block_norm_in_name[conv_block_name] = None
+                self.block_norm_out_name[conv_block_name] = conv_block_name
+                next_block_norm_in_name = conv_block_name
+            else:
+                if not (conv_block_name in self.block_norm_in_name.keys()):
+                    self.block_norm_in_name[conv_block_name] = next_block_norm_in_name
+                    self.block_norm_out_name[conv_block_name] = conv_block_name+'_out'
+
+                    next_block_norm_in_name = self.block_norm_out_name[conv_block_name]
+
+        for idx_l, l in enumerate(self.layers_w_kernel):
+            conv_block_name = None
+            if idx_l==0:
+                #prev_layer_name = l.name
+                pass
+
+            elif ('conv' in l.name) and ('block') in l.name:
+                conv_block_name = l.name.split('_')
+                conv_name = conv_block_name[2]
+                conv_block_name = conv_block_name[0] + '_' + conv_block_name[1]
+
+                if 'conv0' in conv_name:
+                    self.prev_layer_name[l.name] = self.block_norm_in_name[conv_block_name]
+                elif 'conv1' in conv_name:
+                    self.prev_layer_name[l.name] = self.block_norm_in_name[conv_block_name]
+                elif 'conv2' in conv_name:
+                    self.prev_layer_name[l.name] = conv_block_name+'_conv1'
+                #elif 'out' in conv_name:
+                #    self.prev_layer_name[l.name] = conv_block_name + '_conv1'
+                else:
+                    print(l.name)
+                    assert False
+            else:
+                if prev_conv_block_name in prev_layer_name:
+                    self.prev_layer_name[l.name] = self.block_norm_out_name[prev_conv_block_name]
+                else:
+                    self.prev_layer_name[l.name]=prev_layer_name
+
+            prev_layer_name = l.name
+            prev_conv_block_name = conv_block_name
+
+
+        #for layer_name, prev_layer_name in self.prev_layer_name.items():
+        #    print('layer - {}, prev_layer - {}'.format(layer_name,prev_layer_name))
+
+
 
     ###########################################################
     # reset snn
@@ -1382,8 +1510,13 @@ class Model(tf.keras.Model):
                 self.bias_control_th_ch[layer.name] = tf.constant(0.01,shape=layer.f_bias_ctrl.shape)
                 #self.bias_control_th[layer.name] = 0.0
         elif True:  # non zero ratio-based (DNN)
-            for idx_layer, layer in enumerate(self.layers_w_kernel):
+            #for idx_layer, layer in enumerate(self.layers_w_kernel):
+            for idx_layer, layer in enumerate(self.layers_bias_control):
+            #for idx_layer, layer in enumerate(self.layers_w_act):
             #for idx_layer, layer in enumerate(self.layers_w_neuron):
+
+                print('here')
+                print(layer.name)
 
                 layer_ann = model_ann.get_layer(layer.name)
 
@@ -1391,14 +1524,16 @@ class Model(tf.keras.Model):
                     continue
 
                 #print(layer.name)
-                if isinstance(layer, lib_snn.layers.Conv2D):
-                    axis = [1,2,3]
-                    axis_ch = [1,2]
-                elif isinstance(layer, lib_snn.layers.Dense):
-                    axis = [1]
-                    axis_ch = [1]
-                else:
-                    assert False
+                if False:
+                    if isinstance(layer, lib_snn.layers.Conv2D):
+                        axis = [1,2,3]
+                        axis_ch = [1,2]
+                    elif isinstance(layer, lib_snn.layers.Dense):
+                        axis = [1]
+                        axis_ch = [1]
+                    else:
+                        print(layer)
+                        assert False
 
                 #non_zero = tf.math.count_nonzero(layer_ann.record_output, dtype=tf.float32, axis=axis)
                 #non_zero_r = non_zero / tf.cast(tf.reduce_prod(layer_ann.record_output.shape[1:]), tf.float32)
@@ -1416,7 +1551,7 @@ class Model(tf.keras.Model):
                 #self.bias_control_th[layer.name] = non_zero_r
                 #self.bias_control_th[layer.name] = non_zero_r*0.001
 
-                print(layer.name)
+
                 print(self.bias_control_th[layer.name])
 
                 channel = False

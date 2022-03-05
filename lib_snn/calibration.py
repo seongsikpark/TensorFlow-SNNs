@@ -1276,11 +1276,44 @@ def weight_calibration_act_based(self):
 #
 def calibration_bias_set(self):
     print('calibration_bias_set')
-    for l in self.model.layers_w_kernel:
+    #for l in self.model.layers_w_kernel:
+    for l in self.model.layers_w_neuron:
+        #if not hasattr(l, 'bias'):
+        #    continue
+
         if not l.name is 'predictions':
             #print(l.name)
             #print(l.bias)
-            l.bias = l.bias + glb_bias_comp[l.name]/self.conf.calibration_num_batch
+            if not hasattr(l,'bias'):
+                if ('ResNet' in self.model.name) and ('out' in l.name):
+                    conv_block_name = l.name.split('_')
+                    conv_block_name = conv_block_name[0] + '_' + conv_block_name[1]
+                    l_name = conv_block_name + '_conv2'
+                    l_bias = self.model.get_layer(l_name)
+                    l_bias.bias = l_bias.bias + glb_bias_comp[l_name] / self.conf.calibration_num_batch
+
+                    #if False:
+                    if True:
+                        try:
+                            l_name = conv_block_name + '_conv0'
+                            l_bias = self.model.get_layer(l_name)
+                        except:
+                            l_name = conv_block_name + '_conv0_i'
+                            l_bias = self.model.get_layer(l_name)
+                        if not l_name in glb_bias_comp.keys():
+                            glb_bias_comp[l_name] = tf.zeros(l_bias.bias.shape)
+                        l_bias.bias = l_bias.bias + glb_bias_comp[l_name] / self.conf.calibration_num_batch
+
+                else:
+                    assert False
+            else:
+                l_bias = l
+                l_bias.bias = l_bias.bias + glb_bias_comp[l.name]/self.conf.calibration_num_batch
+
+            #l.bias = l.bias + glb_bias_comp[l.name]/self.conf.calibration_num_batch
+
+
+
 
 
 #
@@ -1289,26 +1322,34 @@ def vth_search(self):
     #error_level = 'layer'
     error_level = 'channel'
 
-    for idx_l, l in enumerate(self.model.layers_w_kernel):
+    #for idx_l, l in enumerate(self.model.layers_w_kernel):
+    for idx_l, l in enumerate(self.model.layers_w_act):
 
-        if error_level == 'layer':
-            if isinstance(l, lib_snn.layers.Conv2D) or isinstance(l, lib_snn.layers.InputGenLayer):
-                axis = [0, 1, 2, 3]
-            elif isinstance(l, lib_snn.layers.Dense):
-                axis = [0, 1]
+        if False:
+            if error_level == 'layer':
+                if isinstance(l, lib_snn.layers.Conv2D) or isinstance(l, lib_snn.layers.InputGenLayer):
+                    axis = [0, 1, 2, 3]
+                elif isinstance(l, lib_snn.layers.Dense):
+                    axis = [0, 1]
+                elif len(l.act.dim) == 4:
+                    axis = [0, 1, 2, 3]
+                else:
+                    assert False
+            elif error_level == 'channel':
+                if isinstance(l, lib_snn.layers.Conv2D) or isinstance(l, lib_snn.layers.InputGenLayer):
+                    axis = [0, 1, 2]
+                elif isinstance(l, lib_snn.layers.Dense):
+                    axis = [0]
+                elif len(l.act.dim) == 4:
+                    axis = [0,1, 2]
+                else:
+                    assert False
             else:
                 assert False
-        elif error_level == 'channel':
-            if isinstance(l, lib_snn.layers.Conv2D) or isinstance(l, lib_snn.layers.InputGenLayer):
-                axis = [0, 1, 2]
-            elif isinstance(l, lib_snn.layers.Dense):
-                axis = [0]
-            else:
-                assert False
-        else:
-            assert False
 
         dnn_act = l.record_output
+
+        axis = tf.range(len(dnn_act.shape)-1)
 
         if self.conf.f_w_norm_data:
             stat_max = tf.reduce_max(dnn_act, axis=axis)
@@ -1329,16 +1370,14 @@ def vth_search(self):
             stat_max = tf.reduce_max(stat_max,axis=axis)
 
             #stat_max = tf.reduce_max(dnn_act, axis=axis)
-
-            #stat_max = tf.where(stat_max==0,tf.ones(stat_max.shape),stat_max)
-
+            stat_max = tf.where(stat_max==0,tf.ones(stat_max.shape),stat_max)
 
         #num_range = 10
-        num_range = 100
+        #num_range = 100
         #num_range = 250
         #num_range = 125
         #num_range = 133
-        #num_range = 200
+        num_range = 200
         #num_range = 333
         #num_range = 1000
         #num_range = 5000
@@ -1349,16 +1388,13 @@ def vth_search(self):
         #range = tf.random.uniform(shape=[num_range],minval=0.0,maxval=1,dtype=tf.float32)
         #range = tf.range(1/num_range,1+1/num_range,1/num_range,dtype=tf.float32)
 
-
         if not l.name in glb_rand_vth.keys():
             #glb_rand_vth[l.name] = tf.random.uniform(shape=[num_range], minval=0.0, maxval=1, dtype=tf.float32)
-            #glb_rand_vth[l.name] = tf.random.normal(shape=[num_range],mean=0.0,stddev=0.2,dtype=tf.float32)
+            glb_rand_vth[l.name] = 1.0-tf.math.abs(tf.random.normal(shape=[num_range],mean=0.0,stddev=0.2,dtype=tf.float32))
             #glb_rand_vth[l.name] = tf.random.uniform(shape=[num_range], minval=0.5, maxval=1, dtype=tf.float32)
-            glb_rand_vth[l.name] = tf.range(1/num_range,1+1/num_range,1/num_range,dtype=tf.float32)
+            #glb_rand_vth[l.name] = tf.range(1/num_range,1+1/num_range,1/num_range,dtype=tf.float32)
 
             glb_rand_vth[l.name] = tf.expand_dims(glb_rand_vth[l.name],axis=1) * tf.expand_dims(stat_max,axis=0)
-
-
 
         range = glb_rand_vth[l.name]
 
@@ -1470,9 +1506,13 @@ def vth_search(self):
             else:
                 glb_vth_search_err[l.name] = vth_err_arr.write(idx, vth_err_arr.read(idx) + err)
 
-            print('here')
-            print(vth_err_arr.read(idx))
-            print(err)
+            #print('here')
+            #print(vth_err_arr.read(idx))
+            #print(err)
+
+            assert not tf.math.reduce_any(tf.math.is_nan(err))
+            assert not tf.math.reduce_any(tf.math.is_inf(err))
+
 
 
             #print(errs)
@@ -1512,24 +1552,26 @@ def vth_set_and_norm(self):
 
 
 
-    for idx_l, l in enumerate(self.model.layers_w_kernel):
+    #for idx_l, l in enumerate(self.model.layers_w_kernel):
+    for idx_l, l in enumerate(self.model.layers_w_act):
 
-        if error_level == 'layer':
-            if isinstance(l, lib_snn.layers.Conv2D) or isinstance(l, lib_snn.layers.InputGenLayer):
-                axis = [0, 1, 2, 3]
-            elif isinstance(l, lib_snn.layers.Dense):
-                axis = [0, 1]
+        if False:
+            if error_level == 'layer':
+                if isinstance(l, lib_snn.layers.Conv2D) or isinstance(l, lib_snn.layers.InputGenLayer):
+                    axis = [0, 1, 2, 3]
+                elif isinstance(l, lib_snn.layers.Dense):
+                    axis = [0, 1]
+                else:
+                    assert False
+            elif error_level == 'channel':
+                if isinstance(l, lib_snn.layers.Conv2D) or isinstance(l, lib_snn.layers.InputGenLayer):
+                    axis = [0, 1, 2]
+                elif isinstance(l, lib_snn.layers.Dense):
+                    axis = [0]
+                else:
+                    assert False
             else:
                 assert False
-        elif error_level == 'channel':
-            if isinstance(l, lib_snn.layers.Conv2D) or isinstance(l, lib_snn.layers.InputGenLayer):
-                axis = [0, 1, 2]
-            elif isinstance(l, lib_snn.layers.Dense):
-                axis = [0]
-            else:
-                assert False
-        else:
-            assert False
 
         if False:
             # if idx_l == len(self.model.layers_w_kernel)-1:
@@ -1836,15 +1878,61 @@ def vth_set_and_norm(self):
 
                 prev_layer_name = l.name
                 norm_b_wc[l.name] = norm[l.name]
+
+        if 'ResNet' in self.conf.model:
+            norm_wc, norm_b_wc = weight_norm(self.model,norm)
     else:
         assert False
 
-    for layer in self.model.layers_w_kernel:
-        # layer = self.model.get_layer(name=name_l)
-        #if layer.name in norm_wc.keys():
-        layer.kernel = layer.kernel / norm_wc[layer.name]
-        #if layer.name in norm_b_wc.keys():
-        layer.bias = layer.bias / norm_b_wc[layer.name]
+    #if False:
+    if True:
+        for layer in self.model.layers_w_kernel:
+            # layer = self.model.get_layer(name=name_l)
+            #if layer.name in norm_wc.keys():
+            layer.kernel = layer.kernel / norm_wc[layer.name]
+            #if layer.name in norm_b_wc.keys():
+            layer.bias = layer.bias / norm_b_wc[layer.name]
+
+        print('layer norm')
+        for layer in self.model.layers_w_kernel:
+            print(layer.name)
+            print(norm_wc[layer.name])
+            print(norm_b_wc[layer.name])
+
+    else:
+    #if True:
+        for layer in self.model.layers_w_kernel:
+            if not hasattr(layer.act, 'vth'):
+                continue
+            vth_init = norm_b_wc[layer.name]
+            if error_level == 'channel':
+                if isinstance(layer, lib_snn.layers.Conv2D):
+                    vth_init = tf.expand_dims(vth_init, axis=0)
+                    #print('a')
+                    #print(vth_init.shape)
+                    vth_init = tf.expand_dims(vth_init, axis=1)
+                    #print(vth_init.shape)
+                    vth_init = tf.expand_dims(vth_init, axis=2)
+                    #print(vth_init.shape)
+                elif isinstance(layer, lib_snn.layers.Dense):
+                    #print('b')
+                    vth_init = tf.expand_dims(vth_init, axis=0)
+
+                #print(layer.name)
+                #print(vth_init.shape)
+                #print(layer.act.vth.shape)
+                vth_init = tf.broadcast_to(vth_init, shape=layer.act.vth.shape)
+                layer.act.set_vth_init(vth_init)
+
+            else:
+                assert False
+
+
+        print('weight spike - vth')
+        for layer in self.model.layers_w_kernel:
+            print(layer.name)
+            print(norm_b_wc[layer.name])
+
 
     #
     if False:
@@ -1876,6 +1964,64 @@ def vth_set_and_norm(self):
         print(layer.name)
         print(norm_wc[layer.name])
         print(norm_b_wc[layer.name])
+
+
+# TODO: merge, move
+def weight_norm(model, norm):
+
+    norm_w = collections.OrderedDict()
+    norm_b = collections.OrderedDict()
+
+    if 'VGG' in model.name:
+        assert False
+    elif 'ResNet' in model.name:
+
+        for idx_l, l in enumerate(model.layers_w_kernel):
+            #
+            if (idx_l==0):
+                norm_current = norm[l.name]
+                norm_w[l.name] = norm_current
+
+            elif (not ('conv' in l.name)) :
+                norm_current = norm[l.name]
+                norm_w[l.name] = norm_current / np.expand_dims(norm_b[prev_name],axis=0).T
+
+            elif ('conv' in l.name):
+                conv_block_name = l.name.split('_')
+                conv_name = conv_block_name[2]
+                conv_block_name = conv_block_name[0] + '_' + conv_block_name[1]
+
+                if 'conv0' in conv_name:
+                    norm_l_name = model.block_norm_out_name[conv_block_name]
+                    norm_prev_l_name = model.block_norm_in_name[conv_block_name]
+                elif 'conv1' in conv_name:
+                    norm_l_name = l.name
+                    norm_prev_l_name = model.block_norm_in_name[conv_block_name]
+                elif 'conv2' in conv_name:
+                    norm_l_name = model.block_norm_out_name[conv_block_name]
+                    norm_prev_l_name = conv_block_name+'_conv1'
+                else:
+                    assert False
+
+                norm_current = norm[norm_l_name]
+                norm_prev = norm[norm_prev_l_name]
+
+                #print('layer: {}, norm: {}, norm_prev: {}'.format(l.name,norm_l_name,norm_prev_l_name))
+
+                if isinstance(l,lib_snn.layers.Identity):
+                    norm_w[l.name] = norm_current / norm_prev
+                else:
+                    norm_w[l.name] = norm_current / np.expand_dims(norm_prev, axis=0).T
+            else:
+                assert False
+
+            norm_b[l.name] = norm_current
+            prev_name=l.name
+
+    else:
+        assert False
+
+    return norm_w, norm_b
 
 
 def weight_calibration_inv_vth(self):
@@ -1969,24 +2115,36 @@ def bias_calibration_ICLR_21(self):
 def bias_calibration_ICML_21(self):
     print('\nbias_calibration_ICML_21')
 
-    for idx_l, l in enumerate(self.model.layers_w_kernel):
+    #for idx_l, l in enumerate(self.model.layers_w_kernel):
+    #for idx_l, l in enumerate(self.model.layers_w_act):
+    for idx_l, l in enumerate(self.model.layers_w_neuron):
+    #for idx_l, l in enumerate(self.model.layers_w_bias):
+        #if not hasattr(l, 'bias'):
+        #    continue
+
         if isinstance(l, lib_snn.layers.Conv2D) or isinstance(l, lib_snn.layers.InputGenLayer):
             axis = [0,1,2]
         elif isinstance(l, lib_snn.layers.Dense):
             #axis = [0,1]
             axis = [0]
         else:
-            assert False
+            if len(l.act.dim) == 4:
+                axis = [0,1, 2]
+            else:
+                assert False
+
 
         dnn_act = self.model_ann.get_layer(l.name).record_output
 
-        dnn_act_mean = tf.reduce_mean(dnn_act, axis=axis)
+        #dnn_act_mean = tf.reduce_mean(dnn_act, axis=axis)
         # snn_act_mean = self.conf.n_init_vth*tf.reduce_mean(snn_act,axis=axis)/self.conf.time_step
 
         #time=self.conf.time_step
         ##assert False
         time = tf.cast(self.conf.time_step - tf.reduce_mean(l.bias_en_time), tf.float32)
         #time = tf.cast(self.conf.time_step - tf.reduce_mean(l.bias_en_time,axis=axis), tf.float32)
+
+        print(l.name)
 
         if l.name == 'predictions':
             continue
@@ -2001,13 +2159,17 @@ def bias_calibration_ICML_21(self):
         else:
             snn_act = l.act.spike_count_int/time
 
-        snn_act_mean = self.conf.n_init_vth*tf.reduce_mean(snn_act,axis=axis)
+            snn_act = snn_act*l.act.vth
+
+        #snn_act_mean = self.conf.n_init_vth*tf.reduce_mean(snn_act,axis=axis)
 
         #if False:  # ICML-20, calibration through bias
         if True:  # ICML-20, calibration through bias
 
             #print(dnn_act.shape)
             #print(snn_act.shape)
+            #print(dnn_act)
+            #print(snn_act)
 
             err_act = dnn_act-snn_act
 
@@ -2059,10 +2221,37 @@ def bias_calibration_ICML_21(self):
             #l.bias = l.bias + bias_comp
             #l.bias = l.bias + bias_comp/self.conf.calibration_num_batch
 
-            if not l.name in glb_bias_comp.keys():
-                glb_bias_comp[l.name] = tf.zeros(l.bias.shape)
+            if not hasattr(l, 'bias'):
+                if ('ResNet' in self.model.name) and ('out' in l.name):
+                    conv_block_name = l.name.split('_')
+                    conv_block_name = conv_block_name[0] + '_' + conv_block_name[1]
+                    l_name = conv_block_name + '_conv2'
+                    l_bias = self.model.get_layer(l_name)
+                    if not l_name in glb_bias_comp.keys():
+                        glb_bias_comp[l_name] = tf.zeros(l_bias.bias.shape)
+                    #glb_bias_comp[l_name] = glb_bias_comp[l_name] + bias_comp
+                    glb_bias_comp[l_name] = glb_bias_comp[l_name] + bias_comp/2
 
-            glb_bias_comp[l.name] = glb_bias_comp[l.name] + bias_comp
+                    #if False:
+                    if True:
+                        try:
+                            l_name = conv_block_name + '_conv0'
+                            l_bias = self.model.get_layer(l_name)
+                        except:
+                            l_name = conv_block_name + '_conv0_i'
+                            l_bias = self.model.get_layer(l_name)
+                        if not l_name in glb_bias_comp.keys():
+                            glb_bias_comp[l_name] = tf.zeros(l_bias.bias.shape)
+                        glb_bias_comp[l_name] = glb_bias_comp[l_name] + bias_comp/2
+                else:
+                    assert False
+            else:
+                l_bias = l
+
+                if not l.name in glb_bias_comp.keys():
+                    glb_bias_comp[l.name] = tf.zeros(l_bias.bias.shape)
+
+                glb_bias_comp[l.name] = glb_bias_comp[l.name] + bias_comp
 
             # residual vmem comp
             if False:

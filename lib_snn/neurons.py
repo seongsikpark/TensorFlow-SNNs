@@ -51,6 +51,15 @@ class Neuron(tf.keras.layers.Layer):
         # self.init_first_spike_time = self.conf.time_fire_duration*self.conf.init_first_spike_time_n
         #self.init_first_spike_time = 100000
 
+        #
+        leak_const = -0.09/16*depth+0.99
+        #leak_const = 1.0
+        #leak_const = 0.99
+        #leak_const = 0.95
+        #leak_const = 0.9
+        #self.leak_const = tf.constant(0.99,dtype=tf.float32,shape=self.dim)
+        self.leak_const = tf.constant(leak_const,dtype=tf.float32,shape=self.dim)
+
         # vth scheduling
         self.vth_schedule = []
 
@@ -490,8 +499,7 @@ class Neuron(tf.keras.layers.Layer):
 
     #
     def leak(self):
-        assert False
-        self.vmem = tf.multiply(self.vmem, 0.7)
+        self.vmem.assign(tf.multiply(self.vmem, self.leak_const))
 
     #
     def cal_isi(self, f_fire, t):
@@ -1090,6 +1098,7 @@ class Neuron(tf.keras.layers.Layer):
 
     #
     def run_type_if(self, inputs, t):
+        #self.leak()
         self.integration(inputs, t)
         self.fire(t)
         self.count_spike(t)
@@ -1176,6 +1185,7 @@ class Neuron(tf.keras.layers.Layer):
             # the declarations of neuron layers in other files should be modified.
             self.run_type_if(inputs, t)
         else:
+            self.leak()
             self.integration(inputs, t)
             self.out = self.vmem
 

@@ -119,6 +119,43 @@ def block_bottleneck(x, filters, kernel_size=3, stride=1, conv_shortcut=True, na
 
     return x
 
+#
+#
+#
+def block_basic(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
+    """A residual block.
+
+    Args:
+      x: input tensor.
+      filters: integer, filters of the bottleneck layer.
+      kernel_size: default 3, kernel size of the bottleneck layer.
+      stride: default 1, stride of the first layer.
+      conv_shortcut: default True, use convolution shortcut if True,
+          otherwise identity shortcut.
+      name: string, block label.
+
+    Returns:
+      Output tensor for the residual block.
+    """
+    # bn_axis = 3 if backend.image_data_format() == 'channels_last' else 1
+    # bn_axis = 3  # 'channels_last' only
+
+    if conv_shortcut:
+        shortcut = lib_snn.layers.Conv2D(filters, 1, strides=stride, use_bn=True, activation=None, name=name + '_conv0')(x)
+    else:
+        #shortcut = x
+        shortcut = lib_snn.layers.Identity(name=name + '_conv0_i') (x)
+        #shortcut = lib_snn.layers.Conv2D(1,1,strides=1,use_bn=False,activation=None,name=name+'_conv0_i',kernel_initializer='ones',trainable=False)(x)
+
+    x = lib_snn.layers.Conv2D(filters, kernel_size, strides=stride, padding='SAME', use_bn=True, activation='relu',name=name + '_conv1')(x)
+    #x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation='relu',name=name + '_conv2')(x)
+    x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation=None,name=name + '_conv2')(x)
+
+    x = lib_snn.layers.Add(use_bn=False, activation='relu', name=name + '_out')([shortcut, x])
+
+    return x
+
+
 
 # keras, resnet.py based
 def stack1(x, filters, block, num_block, stride=2, name=None):
