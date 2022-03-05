@@ -165,8 +165,14 @@ def preproc_ann_to_snn(self):
         self.w_norm_done=True
 
     #
+    #if not self.set_leak_const_done:
+        #set_leak_const(self)
+        #self.set_leak_const_done=True
+
+    #
     if self.f_vth_set_and_norm:
         lib_snn.calibration.vth_set_and_norm(self)
+        #lib_snn.calibration.weight_calibration_act_based(self)
 
     # calibration
     #if self.calibration:
@@ -317,7 +323,7 @@ def postproc_batch(self):
             #self.vth_search_done=True
         lib_snn.calibration.bias_calibration_ICML_21(self)
 
-    if self.calibration_bias:
+    if self.calibration_bias and (not self.conf.calibration_bias_up_prog):
         lib_snn.calibration.calibration_bias_set(self)
 
 
@@ -515,17 +521,10 @@ def plot_spike_time_diff_hist_dnn_ann(self, fig=None):
 
     plt.show()
 
-    if self.conf.bias_control:
-        print('bias en time')
-
-        #for layer in self.layers_w_kernel:
-        for layer in self.model.layers_w_kernel:
-            print('{:<8} - {:3d}'.format(layer.name,tf.reduce_mean(layer.bias_en_time)))
-
     print('time diff')
     #for layer in self.layers_w_kernel:
     for layer in self.model.layers_w_kernel:
-        if self.conf.snn_output_type == 'VMEM' and layer == self.layers_w_kernel[-1]:
+        if self.conf.snn_output_type == 'VMEM' and layer == self.model.layers_w_kernel[-1]:
             continue
         diff_mean=tf.experimental.numpy.nanmean(tf.abs(diffs[layer.name]))
         print(diff_mean)
@@ -624,7 +623,7 @@ def postproc_snn(self):
     print_results(self)
 
     #
-    if self.conf.full_test:
+    if self.conf.full_test and not (self.run_for_calibration_ML or self.run_for_vth_search or self.f_vth_set_and_norm):
         save_results(self)
 
 
@@ -633,9 +632,19 @@ def postproc_snn(self):
     #if dnn_snn_compare:
         dnn_snn_compare_func(self)
 
+
+
+    if self.conf.bias_control:
+        print('bias en time')
+
+        # for layer in self.layers_w_kernel:
+        for layer in self.model.layers_w_kernel:
+            print('{:<8} - {:3d}'.format(layer.name, tf.reduce_mean(layer.bias_en_time)))
+
 #
 def dnn_snn_compare_func(self):
-    dnn_snn_compare = True
+    #dnn_snn_compare = True
+    dnn_snn_compare = False
 
     #
     #plot_dnn_act(self)
@@ -651,21 +660,33 @@ def dnn_snn_compare_func(self):
         fig = lib_snn.sim.GLB_PLOT()
         plot_spike_time_diff_hist_dnn_ann(self,fig)
 
+    #if (not self.conf.full_test) and self.conf.verbose_visual:
+        #plt.show(block=False)
+        #plt.show()
+        #plt.draw()
+        #plt.pause(0.01)
+
 
 
 #
 def cal_results(self):
     self.results_acc = np.zeros(self.model.num_accuracy_time_point)
     self.results_spike = np.zeros(self.model.num_accuracy_time_point)
+    self.results_loss = np.zeros(self.model.num_accuracy_time_point)
 
     for idx in range(self.model.num_accuracy_time_point):
         self.results_acc[idx] = self.model.accuracy_results[idx]['acc'].numpy()
+        if 'loss' in self.model.accuracy_results[idx].keys():
+            self.results_loss[idx] = self.model.accuracy_results[idx]['loss'].numpy()
+        else:
+            self.results_loss[idx] = np.NaN
+
 
     for layer_spike in self.model.total_spike_count_int.values():
         self.results_spike += layer_spike
 
     self.results_df = pd.DataFrame({'time step': self.model.accuracy_time_point, 'accuracy': self.results_acc,
-                                    'spike count': self.results_spike / self.test_ds_num})
+                                    'spike count': self.results_spike / self.test_ds_num, 'loss': self.results_loss})
     self.results_df.set_index('time step', inplace=True)
 
 
@@ -726,13 +747,16 @@ def save_results(self):
     if self.conf.calibration_vmem_ICML_21:
         config += '_cal-v-ML21'
 
-
+    # calibration test
+    if self.conf.calibration_idx_test:
+        config += '_cal-test-idx-'+str(self.conf.calibration_idx)
 
     #
     file = config+'.xlsx'
 
     # set path
     path = self.conf.root_results
+    path = os.path.join(path,conf.exp_set_name)
     path = os.path.join(path,model_dataset)
     f_name_result = os.path.join(path,file)
 
@@ -973,6 +997,20 @@ def cal_total_num_neurons(self):
                 total_num_neurons += l.act.num_neurons
 
     self.total_num_neurons = total_num_neurons
+
+
+def set_leak_const(self):
+    for idx_l, l in enumerate(self.model.layers_w_neuron):
+
+        if isinstance(l, lib_snn.layers.InputGenLayer):
+            continue
+
+        stat_max= lib_snn.calibration.read_stat(self, l, 'max')
+        stat_mean = lib_snn.calibration.read_stat(self, l, 'mean')
+
+        print("{} - max: {}, mean: {}".format(l.name,stat_max,stat_mean))
+
+    assert False
 
 
 def print_total_num_neurons(self):

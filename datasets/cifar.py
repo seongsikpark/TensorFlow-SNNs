@@ -78,7 +78,11 @@ def load(dataset_name,batch_size,input_size,input_size_pre_crop_ratio,num_class,
             idx_test_e = idx_test_s + conf.num_test_data
             split_test = tfds.core.ReadInstruction('test', from_=idx_test_s, to=idx_test_e, unit='abs')
 
-        train_ds, train_ds_info = tfds.load(dataset_name, split='train', shuffle_files=True, as_supervised=True, with_info=True)
+        if conf.calibration_idx_test:
+            train_ds, train_ds_info = tfds.load(dataset_name, split='train', shuffle_files=False, as_supervised=True, with_info=True)
+            #train_ds, train_ds_info = tfds.load(dataset_name, split='train', shuffle_files=False, as_supervised=True, with_info=True)
+        else:
+            train_ds, train_ds_info = tfds.load(dataset_name, split='train', shuffle_files=True, as_supervised=True, with_info=True)
         valid_ds, valid_ds_info = tfds.load(dataset_name, split=split_test, shuffle_files=False, as_supervised=True, with_info=True)
 
         train_ds_num = train_ds_info.splits['train'].num_examples

@@ -18,6 +18,7 @@ from lib_snn.sim import glb_rand_vth
 from lib_snn.sim import glb_vth_search_err
 from lib_snn.sim import glb_vth_init
 from lib_snn.sim import glb_bias_comp
+from lib_snn.sim import glb_weight_comp
 
 #
 def vth_calibration_stat(self):
@@ -772,11 +773,11 @@ def weight_calibration_act_based(self):
 
 
             #fire_r_m = tf.reduce_mean(snn_act,axis=axis)
-            #fire_r_m = tf.reduce_max(snn_act,axis=axis)
+            fire_r_m = tf.reduce_max(snn_act,axis=axis)
             #fire_r_m = tfp.stats.percentile(snn_act,99.91,axis=axis)
-            fire_r_m = tfp.stats.percentile(snn_act,99.9,axis=axis)
+            #fire_r_m = tfp.stats.percentile(snn_act,99.9,axis=axis)
             #fire_r_m = tfp.stats.percentile(snn_act,99,axis=axis)
-            #fire_r_m = tf.where(fire_r_m==0,tf.ones(fire_r_m.shape),fire_r_m)
+            fire_r_m = tf.where(fire_r_m==0,tf.ones(fire_r_m.shape),fire_r_m)
 
             #time_r = time/self.conf.time_step
             #fire_r_m = fire_r_m/time_r
@@ -797,8 +798,8 @@ def weight_calibration_act_based(self):
             #    continue
 
             # vth calibration - manual search
-            #if False:
-            if True:
+            if False:
+            #if True:
                 norm[l.name] = 1.0
                 #if idx_l == 0:
 
@@ -1247,29 +1248,29 @@ def weight_calibration_act_based(self):
 #    #    norm_b_wc['conv1_1'] = norm[1]
 #    #
 #
-#    if 'VGG' in self.conf.model:
-#        for idx_l, l in enumerate(self.model.layers_w_kernel):
-#            if idx_l == 0:
-#                norm_wc[l.name] = norm[l.name]
-#            else:
-#                #norm_wc[l.name] = norm[l.name]/norm[prev_layer_name]
-#                norm_wc[l.name] = norm[l.name] / np.expand_dims(norm_b_wc[prev_layer_name],axis=0).T
-#
-#            prev_layer_name = l.name
-#            norm_b_wc[l.name] = norm[l.name]
-#
-#    for layer in self.model.layers_w_kernel:
-#        # layer = self.model.get_layer(name=name_l)
-#        if layer.name in norm_wc.keys():
-#            layer.kernel = layer.kernel / norm_wc[layer.name]
-#        if layer.name in norm_b_wc.keys():
-#            layer.bias = layer.bias / norm_b_wc[layer.name]
-#
-#    for layer in self.model.layers_w_kernel:
-#        print(layer.name)
-#        print(norm_wc[layer.name])
-#
-#    #print('end')
+    if 'VGG' in self.conf.model:
+        for idx_l, l in enumerate(self.model.layers_w_kernel):
+            if idx_l == 0:
+                norm_wc[l.name] = norm[l.name]
+            else:
+                #norm_wc[l.name] = norm[l.name]/norm[prev_layer_name]
+                norm_wc[l.name] = norm[l.name] / np.expand_dims(norm_b_wc[prev_layer_name],axis=0).T
+
+            prev_layer_name = l.name
+            norm_b_wc[l.name] = norm[l.name]
+
+    for layer in self.model.layers_w_kernel:
+        # layer = self.model.get_layer(name=name_l)
+        if layer.name in norm_wc.keys():
+            layer.kernel = layer.kernel / norm_wc[layer.name]
+        if layer.name in norm_b_wc.keys():
+            layer.bias = layer.bias / norm_b_wc[layer.name]
+
+    for layer in self.model.layers_w_kernel:
+        print(layer.name)
+        print(norm_wc[layer.name])
+
+    print('end')
 
 
 
@@ -1277,10 +1278,18 @@ def weight_calibration_act_based(self):
 def calibration_bias_set(self):
     print('calibration_bias_set')
     for l in self.model.layers_w_kernel:
-        if not l.name is 'predictions':
+        #if not l.name is 'predictions':
+        if True:
             #print(l.name)
             #print(l.bias)
             l.bias = l.bias + glb_bias_comp[l.name]/self.conf.calibration_num_batch
+
+            if l.name == 'predictions':
+                print('biac_comp_tot: {} - {}'.format(l.name,glb_bias_comp[l.name]))
+
+            if self.conf.weight_comp_proposed:
+                l.kernel = l.kernel + glb_weight_comp[l.name]/self.conf.calibration_num_batch
+
 
 
 #
@@ -1312,8 +1321,8 @@ def vth_search(self):
 
         if self.conf.f_w_norm_data:
             stat_max = tf.reduce_max(dnn_act, axis=axis)
-            stat_max = tfp.stats.percentile(dnn_act, 99.9, axis=axis)
-            stat_max = tf.ones(stat_max.shape)
+            #stat_max = tfp.stats.percentile(dnn_act, 99.9, axis=axis)
+            #stat_max = tf.ones(stat_max.shape)
             #stat_max = tf.reduce_max(dnn_act, axis=axis)
             #stat_max = read_stat(self, l, 'max')
             #stat_max = stat_max / self.norm_b[l.name]
@@ -1330,17 +1339,17 @@ def vth_search(self):
 
             #stat_max = tf.reduce_max(dnn_act, axis=axis)
 
-            #stat_max = tf.where(stat_max==0,tf.ones(stat_max.shape),stat_max)
+        stat_max = tf.where(stat_max==0,tf.ones(stat_max.shape),stat_max)
 
 
         #num_range = 10
-        num_range = 100
+        #num_range = 100
         #num_range = 250
         #num_range = 125
         #num_range = 133
         #num_range = 200
         #num_range = 333
-        #num_range = 1000
+        num_range = 1000
         #num_range = 5000
         #
         #range = tf.random.normal(shape=[num_range],mean=0.0,stddev=0.2,dtype=tf.float32)
@@ -1352,7 +1361,8 @@ def vth_search(self):
 
         if not l.name in glb_rand_vth.keys():
             #glb_rand_vth[l.name] = tf.random.uniform(shape=[num_range], minval=0.0, maxval=1, dtype=tf.float32)
-            #glb_rand_vth[l.name] = tf.random.normal(shape=[num_range],mean=0.0,stddev=0.2,dtype=tf.float32)
+            #glb_rand_vth[l.name] = 1.0-tf.math.abs(tf.random.normal(shape=[num_range],mean=0.0,stddev=0.2,dtype=tf.float32))
+            #glb_rand_vth[l.name] = 1.0-tf.math.abs(tf.random.normal(shape=[num_range],mean=0.0,stddev=0.1,dtype=tf.float32))
             #glb_rand_vth[l.name] = tf.random.uniform(shape=[num_range], minval=0.5, maxval=1, dtype=tf.float32)
             glb_rand_vth[l.name] = tf.range(1/num_range,1+1/num_range,1/num_range,dtype=tf.float32)
 
@@ -1470,9 +1480,9 @@ def vth_search(self):
             else:
                 glb_vth_search_err[l.name] = vth_err_arr.write(idx, vth_err_arr.read(idx) + err)
 
-            print('here')
-            print(vth_err_arr.read(idx))
-            print(err)
+            #print('here')
+            #print(vth_err_arr.read(idx))
+            #print(err)
 
 
             #print(errs)
@@ -1509,7 +1519,6 @@ def vth_set_and_norm(self):
     #
     #error_level = 'layer'
     error_level = 'channel'
-
 
 
     for idx_l, l in enumerate(self.model.layers_w_kernel):
@@ -1725,8 +1734,8 @@ def vth_set_and_norm(self):
         #vth_init = glb_vth_init[l.name]
 
         # vth_init = tf.where(vth_init==0,tf.ones(vth_init.shape),vth_init)
-
-        print('{} - vth_init - {}'.format(l.name, vth_init))
+        if False:
+            print('{} - vth_init - {}'.format(l.name, vth_init))
 
         ##
         if False:
@@ -1839,12 +1848,55 @@ def vth_set_and_norm(self):
     else:
         assert False
 
-    for layer in self.model.layers_w_kernel:
-        # layer = self.model.get_layer(name=name_l)
-        #if layer.name in norm_wc.keys():
-        layer.kernel = layer.kernel / norm_wc[layer.name]
-        #if layer.name in norm_b_wc.keys():
-        layer.bias = layer.bias / norm_b_wc[layer.name]
+    #if False:
+    if True:
+        for layer in self.model.layers_w_kernel:
+            # layer = self.model.get_layer(name=name_l)
+            #if layer.name in norm_wc.keys():
+            layer.kernel = layer.kernel / norm_wc[layer.name]
+            #if layer.name in norm_b_wc.keys():
+            layer.bias = layer.bias / norm_b_wc[layer.name]
+
+        #print('layer norm')
+        #for layer in self.model.layers_w_kernel:
+        #    print(layer.name)
+        #    print(norm_wc[layer.name])
+        #    print(norm_b_wc[layer.name])
+
+    else:
+    #if True:
+        for layer in self.model.layers_w_kernel:
+            if not hasattr(layer.act, 'vth'):
+                continue
+            vth_init = norm_b_wc[layer.name]
+            if error_level == 'channel':
+                if isinstance(layer, lib_snn.layers.Conv2D):
+                    vth_init = tf.expand_dims(vth_init, axis=0)
+                    #print('a')
+                    #print(vth_init.shape)
+                    vth_init = tf.expand_dims(vth_init, axis=1)
+                    #print(vth_init.shape)
+                    vth_init = tf.expand_dims(vth_init, axis=2)
+                    #print(vth_init.shape)
+                elif isinstance(layer, lib_snn.layers.Dense):
+                    #print('b')
+                    vth_init = tf.expand_dims(vth_init, axis=0)
+
+                #print(layer.name)
+                #print(vth_init.shape)
+                #print(layer.act.vth.shape)
+                vth_init = tf.broadcast_to(vth_init, shape=layer.act.vth.shape)
+                layer.act.set_vth_init(vth_init)
+
+            else:
+                assert False
+
+
+        if False:
+            print('weight spike - vth')
+            for layer in self.model.layers_w_kernel:
+                print(layer.name)
+                print(norm_b_wc[layer.name])
 
     #
     if False:
@@ -1871,11 +1923,6 @@ def vth_set_and_norm(self):
                 #
                 l.act.set_vth_init(vth_init_fm)
 
-    print('layer norm')
-    for layer in self.model.layers_w_kernel:
-        print(layer.name)
-        print(norm_wc[layer.name])
-        print(norm_b_wc[layer.name])
 
 
 def weight_calibration_inv_vth(self):
@@ -1989,23 +2036,112 @@ def bias_calibration_ICML_21(self):
         #time = tf.cast(self.conf.time_step - tf.reduce_mean(l.bias_en_time,axis=axis), tf.float32)
 
         if l.name == 'predictions':
-            continue
-            if self.conf.snn_actput_type is 'SPIKE':
-                snn_act = l.act.spike_count_int
-            elif self.conf.snn_actput_type is 'VMEM':
-                snn_act = l.act.vmem
+            dnn_act = self.model_ann.get_layer(l.name).record_logit
+            #continue
+            if self.conf.snn_output_type is 'SPIKE':
+                snn_act = l.act.spike_count_int/time
+                #snn_act = l.record_output/time
+            elif self.conf.snn_output_type is 'VMEM':
+                snn_act = l.act.vmem/time
+                #snn_act = l.record_output/time
             else:
                 assert False
-            snn_act = tf.nn.softmax(snn_act/time)
+            #snn_act = tf.nn.softmax(snn_act/time)
             #assert False
         else:
             snn_act = l.act.spike_count_int/time
+            #snn_act = l.record_output / time
+
+            #
+            snn_act = snn_act*l.act.vth
 
         snn_act_mean = self.conf.n_init_vth*tf.reduce_mean(snn_act,axis=axis)
 
-        #if False:  # ICML-20, calibration through bias
-        if True:  # ICML-20, calibration through bias
 
+        #
+        predict_ann = self.model_ann.get_layer('predictions').record_output
+        logit_ann = self.model_ann.get_layer('predictions').record_logit
+        logit_snn = self.model.get_layer('predictions').record_logit
+        #predict_snn = tf.nn.softmax(logit_snn)
+
+        #print(logit_ann)
+        #print(logit_snn)
+
+        if self.conf.weight_comp_proposed:
+
+            # elif False:    # calibration through bias and weight (static and dynamic)
+            dnn_act_s = l.bias
+            dnn_act_d = dnn_act - dnn_act_s
+            dnn_act_s = tf.math.abs(dnn_act_s)
+            dnn_act_d = tf.math.abs(dnn_act_d)
+
+            dnn_act_r_s = dnn_act_s / (dnn_act_s + dnn_act_d)
+            dnn_act_r_d = dnn_act_d / (dnn_act_s + dnn_act_d)
+
+            err_act = dnn_act - snn_act
+            # err_act = tf.where(dnn_act==0,tf.zeros(dnn_act.shape),dnn_act-snn_act)
+            # err_act_m = tf.reduce_mean(err_act)
+
+            if False:
+                print(dnn_act_r_s)
+                print(dnn_act_r_d)
+
+            calib_s = err_act * dnn_act_r_s
+
+            if False:
+                # calib_d = err_act_m*dnn_act_r_d/tf.reduce_mean(snn_act)
+                err_act_batchmean = tf.reduce_mean(err_act, axis=0)
+                dnn_act_r_d_batchmean = tf.reduce_mean(dnn_act_r_d, axis=0)
+                snn_act_batch_mean = tf.reduce_mean(l.act.spike_count_int, axis=0)
+                calib_d_batchmean = err_act_batchmean * dnn_act_r_d_batchmean / snn_act_batch_mean
+                calib_d = tf.reduce_mean(calib_d_batchmean)
+
+            # calib_d = err_act*dnn_act_r_d/l.act.spike_count_int
+
+            if idx_l == 0:
+                spike_avg = time
+            else:
+                spike_avg = tf.reduce_mean(self.model.layers_w_kernel[idx_l - 1].act.spike_count_int)
+
+            # dnn_act_r_d = tf.where(tf.equal(dnn_act_r_d,0.5),tf.zeros(dnn_act_r_d.shape),dnn_act_r_d)
+            calib_d = err_act * dnn_act_r_d / time
+            # calib_d = err_act*dnn_act_r_d/self.conf.time_step
+            # calib_d = err_act*dnn_act_r_d
+            # calib_d = err_act*dnn_act_r_d/spike_avg
+
+            calib_s = tf.reduce_mean(calib_s, axis=axis)
+            calib_d = tf.reduce_mean(calib_d, axis=axis)
+
+            # print(err_act)
+            # print('pp')
+            # print(dnn_act-snn_act)
+            # print(calib_s)
+            # print('calib_d: {:}'.format(calib_d))
+
+            lm = 1
+            weight_comp = calib_d * lm
+            # bias_comp = calib_s
+            bias_comp = calib_s * lm
+
+            # weight_comp = tf.broadcast_to(weight_comp,shape=l.kernel.shape)
+
+            #
+            # l.kernel = l.kernel +weight_comp
+            # l.kernel *= tf.reduce_mean(dnn_act)
+            # l.kernel *= tf.reduce_mean(dnn_act)/time
+            # l.bias = l.bias + bias_comp
+
+            if not l.name in glb_bias_comp.keys():
+                glb_bias_comp[l.name] = tf.zeros(l.bias.shape)
+            glb_bias_comp[l.name] = glb_bias_comp[l.name] + bias_comp
+
+            if not l.name in glb_weight_comp.keys():
+                glb_weight_comp[l.name] = tf.zeros(weight_comp.shape)
+            glb_weight_comp[l.name] = glb_weight_comp[l.name] + weight_comp
+
+
+        # ICML-20, calibration through bias
+        else:
             #print(dnn_act.shape)
             #print(snn_act.shape)
 
@@ -2035,7 +2171,11 @@ def bias_calibration_ICML_21(self):
             #print('bias_comp (pre mean): {:}'.format(tf.reduce_mean(bias_comp)))
             #print('bias_comp: {:}'.format(tf.reduce_mean(bias_comp)))
 
-            #print('bias_comp: {:}'.format(bias_comp))
+
+            if l.name=='predictions':
+                print('bias_comp: {} - {:}'.format(l.name, bias_comp))
+                #print(tf.argmax(bias_comp,axis=1))
+                print(tf.argmax(bias_comp))
 
             # test
             #r = tf.random.uniform(shape=bias_comp.shape,minval=0,maxval=1)
@@ -2056,13 +2196,14 @@ def bias_calibration_ICML_21(self):
             #print(l.name)
             #print(bias_comp)
 
-            #l.bias = l.bias + bias_comp
-            #l.bias = l.bias + bias_comp/self.conf.calibration_num_batch
+            if self.conf.calibration_bias_up_prog:
+                l.bias = l.bias + bias_comp
+                #l.bias = l.bias + bias_comp/self.conf.calibration_num_batch
+            else:
+                if not l.name in glb_bias_comp.keys():
+                    glb_bias_comp[l.name] = tf.zeros(l.bias.shape)
 
-            if not l.name in glb_bias_comp.keys():
-                glb_bias_comp[l.name] = tf.zeros(l.bias.shape)
-
-            glb_bias_comp[l.name] = glb_bias_comp[l.name] + bias_comp
+                glb_bias_comp[l.name] = glb_bias_comp[l.name] + bias_comp
 
             # residual vmem comp
             if False:
@@ -2088,74 +2229,11 @@ def bias_calibration_ICML_21(self):
                 #l.act.vmem_init = l.act.vmem_init - res_vmem
                 #l.act.vmem_init = l.act.vmem_init + res_vmem
 
-        #elif True:    # calibration through bias and weight (static and dynamic)
-        elif False:    # calibration through bias and weight (static and dynamic)
-            dnn_act_s = l.bias
-            dnn_act_d = dnn_act - dnn_act_s
-            dnn_act_s = tf.math.abs(dnn_act_s)
-            dnn_act_d = tf.math.abs(dnn_act_d)
-
-            dnn_act_r_s = dnn_act_s/(dnn_act_s+dnn_act_d)
-            dnn_act_r_d = dnn_act_d/(dnn_act_s+dnn_act_d)
-
-            err_act = dnn_act-snn_act
-            #err_act = tf.where(dnn_act==0,tf.zeros(dnn_act.shape),dnn_act-snn_act)
-            #err_act_m = tf.reduce_mean(err_act)
-
-            print(dnn_act_r_s)
-            print(dnn_act_r_d)
-
-            calib_s = err_act*dnn_act_r_s
-
-            if False:
-                #calib_d = err_act_m*dnn_act_r_d/tf.reduce_mean(snn_act)
-                err_act_batchmean = tf.reduce_mean(err_act,axis=0)
-                dnn_act_r_d_batchmean = tf.reduce_mean(dnn_act_r_d,axis=0)
-                snn_act_batch_mean = tf.reduce_mean(l.act.spike_count_int,axis=0)
-                calib_d_batchmean = err_act_batchmean*dnn_act_r_d_batchmean/snn_act_batch_mean
-                calib_d = tf.reduce_mean(calib_d_batchmean)
 
 
-            #calib_d = err_act*dnn_act_r_d/l.act.spike_count_int
-
-            if idx_l ==0:
-                spike_avg = time
-            else:
-                spike_avg = tf.reduce_mean(self.model.layers_w_kernel[idx_l-1].act.spike_count_int)
-
-            #dnn_act_r_d = tf.where(tf.equal(dnn_act_r_d,0.5),tf.zeros(dnn_act_r_d.shape),dnn_act_r_d)
-            #calib_d = err_act*dnn_act_r_d/time
-            calib_d = err_act*dnn_act_r_d/self.conf.time_step
-            #calib_d = err_act*dnn_act_r_d
-            #calib_d = err_act*dnn_act_r_d/spike_avg
-
-
-            calib_s = tf.reduce_mean(calib_s,axis=axis)
-            calib_d = tf.reduce_mean(calib_d,axis=axis)
-
-            #print(err_act)
-            #print('pp')
-            #print(dnn_act-snn_act)
-            #print(calib_s)
-            print('calib_d: {:}'.format(calib_d))
-
-
-            weight_comp = calib_d
-            #bias_comp = calib_s
-            bias_comp = calib_s
-
-            #weight_comp = tf.broadcast_to(weight_comp,shape=l.kernel.shape)
-
-            #
-            l.kernel = l.kernel +weight_comp
-            #l.kernel *= tf.reduce_mean(dnn_act)
-            #l.kernel *= tf.reduce_mean(dnn_act)/time
-            l.bias = l.bias + bias_comp
 
         # mean calib
-        #elif True:
-        elif False:
-        #if True:
+        if False:
             if idx_l!=0:
                 #print(l.name)
 
@@ -2278,3 +2356,47 @@ def vmem_calibration_ICML_21(self):
     print('- Done')
 
 
+
+# tmp
+def calibration_bias_ML21(model, model_ann, callbacks_test, callbacks_test_ann, dataset, conf):
+
+    #
+    calibration_ML=True
+    #calibration_ML=False
+
+    if calibration_ML:
+
+        last_batch = False
+        #for idx_batch in range(num_batch_for_vth_search):
+        #    images_one_batch, labels_one_batch = next(iter(train_ds))
+        for idx_batch, (x,y) in enumerate(dataset):
+            #for idx_batch, (x, y) in enumerate(test_ds):
+
+            if idx_batch == conf.calibration_num_batch - 1:
+                last_batch = True
+
+            #ds_one_batch_ann = tf.data.Dataset.from_tensors((images_one_batch, labels_one_batch)).take(1).cache()
+            #ds_one_batch_snn = tf.data.Dataset.from_tensors((images_one_batch, labels_one_batch)).take(1).cache()
+            ds_one_batch = tf.data.Dataset.from_tensors((x, y))
+
+            # run - ann
+            #callbacks_test[0].model_ann = model_ann
+            result = model_ann.evaluate(ds_one_batch, callbacks=callbacks_test_ann)
+
+            #ds_one_batch = tf.data.Dataset.from_tensors((images_one_batch, labels_one_batch))
+
+            # run - snn
+            callbacks_test[0].run_for_calibration_ML = True
+            if last_batch:
+                callbacks_test[0].calibration_bias = True
+
+            print('run for calibration - bias')
+            result = model.evaluate(ds_one_batch, callbacks=callbacks_test)
+
+            callbacks_test[0].run_for_calibration_ML = False
+            callbacks_test[0].calibration_bias = False
+
+            #idx_batch = idx_batch+1
+            #if idx_batch == num_batch_for_vth_search-1:
+            if last_batch:
+                break

@@ -124,6 +124,7 @@ class Layer():
         #
         self.en_record_output = False
         self.record_output = None
+        self.record_logit = None
 
         # neuron setup
         if self.en_snn:
@@ -215,7 +216,16 @@ class Layer():
     # def call_set_aside_for_future(self,input,training):
     def call(self, input, training):
         #print('layer call - {}'.format(self.name))
+
+
         s = super().call(input)
+
+
+        if False:
+            if (self.name == 'predictions') and (not self.conf.full_test):
+                print(input)
+                print(s)
+                print(self.bias)
 
         # print('depth: {}, name: {}'.format(self.depth, self.name))
         # if self.depth==1:
@@ -269,8 +279,38 @@ class Layer():
 
         ret = n
 
+        #if self.en_snn:
+        #    if self.last_layer:
+        #        #if conf.snn_output_type ==
+        #        time = conf.time_step - self.bias_en_time
+        #        ret = ret / time
+        #        #ret = ret
+
+        if (self.name == 'predictions') and (glb.model_compiled) and (not conf.full_test):
+            #print('time: {}'.format(t))
+            #print(ret)
+
+            if self.conf.num_test_data == 1:
+                print('curr')
+                print(tf.argmax(b,axis=1))
+                print(b)
+                print('acum')
+                print(tf.argmax(n,axis=1))
+                print(n)
+            else:
+                print('curr')
+                print(tf.argmax(b,axis=1)[conf.verbose_visual_idx])
+                print(b[conf.verbose_visual_idx])
+                print('acum')
+                print(tf.argmax(n,axis=1)[conf.verbose_visual_idx])
+                print(n[conf.verbose_visual_idx])
+
+
         if self.en_record_output:
             self.record_output = ret
+            #if self.name == 'predictions':
+            if self.last_layer:
+                self.record_logit = b
 
         # debug
         # TODO: debug mode set - glb.model_compiled and self.conf.debug_mode and ~~

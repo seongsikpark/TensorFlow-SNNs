@@ -51,6 +51,74 @@ class Neuron(tf.keras.layers.Layer):
         # self.init_first_spike_time = self.conf.time_fire_duration*self.conf.init_first_spike_time_n
         #self.init_first_spike_time = 100000
 
+        #
+        #leak_const = -0.01/16*depth+1.0
+        #leak_const = -0.001/16*depth+1.0
+        #leak_const = -0.009/16*depth+0.999
+
+        #leak_const = -0.009/16*depth+0.99
+
+        #leak_const = -0.009/16*depth+0.98
+        #leak_const = -0.001/16*depth+0.98
+        #leak_const = -0.009/16*depth+1.0
+        #leak_const = 1.0
+        #leak_const = 0.99
+        #leak_const = 0.96
+        #leak_const = 0.95
+        #leak_const = 0.94
+        #leak_const = 0.93
+        #leak_const = 0.92
+        #leak_const = 0.91
+        #leak_const = 0.9
+        #leak_const = 0.89
+        #leak_const = 0.88
+        #leak_const = 0.87
+        #leak_const = 0.86
+        #leak_const = 0.85
+        #leak_const = 0.84
+        #leak_const = 0.83
+        #leak_const = 0.82
+        #leak_const = 0.81
+        leak_const = 1.0
+
+        #if depth > 14 :
+            #leak_const = -0.16 / 15 / 15 * (depth) * (depth) + 1.0
+        #else:
+            #leak_const = 1.0
+
+
+        leak_const = 0.99
+        #leak_const = 0.98
+
+        if depth==4:
+            leak_const = 0.99
+
+        if depth==15:
+            leak_const = 0.98
+            #leak_const = 0.97
+            #leak_const = 0.99
+
+        if depth==16:
+            #leak_const = 0.8
+            #leak_const = 0.90
+            #leak_const = 0.91
+            leak_const = 0.94
+            #leak_const = 0.98
+            #leak_const = 0.99
+            #leak_const = 0.92
+            #leak_const = 0.93
+            #leak_const = 1.0
+
+
+        #leak_const = 0.7
+        #leak_const = 0.8
+        #self.leak_const = tf.constant(0.99,dtype=tf.float32,shape=self.dim)
+        #self.leak_const = tf.constant(leak_const,dtype=tf.float32,shape=self.dim)
+
+        self.leak_const_init = tf.constant(leak_const,dtype=tf.float32,shape=self.dim)
+        self.leak_const = tf.Variable(self.leak_const_init,dtype=tf.float32,shape=self.dim)
+
+
         # vth scheduling
         self.vth_schedule = []
 
@@ -233,7 +301,12 @@ class Neuron(tf.keras.layers.Layer):
         #print('depth: {}'.format(self.depth))
         #print(inputs)
         #assert self.init_done, 'should call init() before start simulation'
+
         self.inputs = inputs
+
+        #
+        if self.conf.leak_time_dep:
+            self.set_leak_time_dep(t)
 
         # run_fwd
         run_type = {
@@ -271,6 +344,9 @@ class Neuron(tf.keras.layers.Layer):
         # self.reset_out()
         self.reset_spike_count()
         self.reset_vth()
+
+        if self.conf.leak_time_dep:
+            self.reset_leak_const()
 
         if self.conf.f_tot_psp:
             assert False
@@ -332,6 +408,10 @@ class Neuron(tf.keras.layers.Layer):
                                             ,dtype=tf.float32)
 
     #
+    def reset_leak_const(self):
+        self.leak_const.assign(self.leak_const_init)
+
+    #
     def set_vmem_init(self, vmem_init):
         self.vmem_init.assign(vmem_init)
 
@@ -357,6 +437,17 @@ class Neuron(tf.keras.layers.Layer):
         # polynomial
         # self.vth = tf.constant(tf.add(-tf.pow(t/self.conf.tc,2),1.0),tf.float32,self.out.shape)
 
+    #
+    def set_leak_const(self,leak_const):
+        self.leak_const.assign(leak_const)
+
+    #
+    def set_leak_time_dep(self, t):
+
+        alpha = 0.95
+        leak_const = self.leak_const_init*(alpha+(1-alpha)/self.conf.time_step*t)
+
+        self.leak_const.assign(leak_const)
 
     ##
     def input_spike_real(self ,inputs ,t):
@@ -490,8 +581,8 @@ class Neuron(tf.keras.layers.Layer):
 
     #
     def leak(self):
-        assert False
-        self.vmem = tf.multiply(self.vmem, 0.7)
+        #assert False
+        self.vmem.assign(tf.multiply(self.vmem, self.leak_const))
 
     #
     def cal_isi(self, f_fire, t):
@@ -530,7 +621,14 @@ class Neuron(tf.keras.layers.Layer):
 
         #
         if self.conf.f_positive_vmem:
-            self.vmem = tf.maximum(self.vmem, tf.constant(0.0, tf.float32, self.vmem.shape))
+            #self.vmem = tf.maximum(self.vmem, tf.constant(0.0, tf.float32, self.vmem.shape))
+            self.vmem.assign(tf.maximum(self.vmem, tf.constant(0.0, tf.float32, self.vmem.shape)))
+
+        #
+        if self.conf.f_neg_cap_vmem and (not self.n_type=='OUT'):
+            #self.vmem.assign(tf.maximum(self.vmem, -self.vth*2))
+            self.vmem.assign(tf.maximum(self.vmem, -self.vth))
+
 
         #
         if self.conf.f_tot_psp:
@@ -759,7 +857,8 @@ class Neuron(tf.keras.layers.Layer):
                 vth = self.vth
 
             #self.vmem.assign(tf.where(self.f_fire, tf.subtract(self.vmem,self.vth),self.vmem))    # subtract by vth or others?
-            self.vmem.assign(tf.where(self.f_fire, tf.subtract(self.vmem,vth),self.vmem))    # subtract by vth or others?
+            #self.vmem.assign(tf.where(self.f_fire, tf.subtract(self.vmem,vth),self.vmem))    # subtract by vth or others?
+            self.vmem.assign(tf.where(self.f_fire, tf.subtract(self.vmem,self.out),self.vmem))    # subtract by vth or others?
 
         # reset to zero
         elif self.conf.n_reset_type=='reset_to_zero':
@@ -1056,6 +1155,10 @@ class Neuron(tf.keras.layers.Layer):
 
         self.spike_count_int.assign(tf.where(self.f_fire, self.spike_count_int + 1.0, self.spike_count_int))
         self.spike_count.assign(tf.add(self.spike_count, self.out))
+
+        #print('out')
+        #print(self.out)
+
         ## here
         #print(self.spike_count)
         #print(self.out)
@@ -1090,6 +1193,7 @@ class Neuron(tf.keras.layers.Layer):
 
     #
     def run_type_if(self, inputs, t):
+        #self.leak()
         self.integration(inputs, t)
         self.fire(t)
         self.count_spike(t)
@@ -1176,6 +1280,8 @@ class Neuron(tf.keras.layers.Layer):
             # the declarations of neuron layers in other files should be modified.
             self.run_type_if(inputs, t)
         else:
+            if self.conf.n_type=='LIF':
+                self.leak()
             self.integration(inputs, t)
             self.out = self.vmem
 

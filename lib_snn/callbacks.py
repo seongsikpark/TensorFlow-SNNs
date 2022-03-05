@@ -134,6 +134,9 @@ class SNNLIB(tf.keras.callbacks.Callback):
         self.bn_fusion_done = False
         self.w_norm_done = False
 
+        #
+        self.set_leak_const_done=False
+
         # calibration
         self.calibration=True
         self.calibration_static_done = False

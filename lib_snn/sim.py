@@ -34,9 +34,9 @@ class GLB():
 
 #
 class GLB_PLOT():
-    def __init__(self,layer_names=[],idx_neurons=[]):
+    def __init__(self,layer_names=[],idx_neurons=[],y=5,x=5):
         # TODO: parameterize
-        self.figs, self.axes = plt.subplots(5, 5, figsize=(12,10))
+        self.figs, self.axes = plt.subplots(y, x, figsize=(12,10))
 
         #self.idx = 35291
         #self.idx = 7
@@ -73,14 +73,23 @@ def set_for_visual_debug(set):
 glb = GLB()
 glb_t = GLB_CLK()
 
+#layers = ['conv1', 'conv1', 'conv1', 'conv1_1', 'conv1_1', 'conv1_1', 'conv2', 'conv2', 'conv2', 'conv3', 'conv3', 'conv3', 'conv4',
+#          'conv4', 'conv4', 'conv5', 'conv5', 'conv5', 'fc1', 'fc1', 'fc1', 'fc2', 'fc2', 'fc2']
+#idx_neurons = [0,20,5,0,20,5,10,13,30,13,14,9,1,7,9,2,5,9,0,2,10,3,4,10]
+
+
 layers = ['conv1', 'conv1', 'conv1', 'conv1_1', 'conv1_1', 'conv1_1', 'conv2', 'conv2', 'conv2', 'conv3', 'conv3', 'conv3', 'conv4',
-          'conv4', 'conv4', 'conv5', 'conv5', 'conv5', 'fc1', 'fc1', 'fc1', 'fc2', 'fc2', 'fc2']
-idx_neurons = [0,20,5,0,20,5,10,13,30,13,14,9,1,7,9,2,5,9,0,2,10,3,4,10]
+          'conv4', 'conv4', 'conv5', 'conv5', 'conv5', 'fc1', 'fc1', 'fc2', 'fc2', 'fc2', 'predictions', 'predictions']
+idx_neurons = [0,20,5,0,20,5,10,13,30,13,14,9,1,7,9,2,5,9,0,2,3,4,10,4,5]
+
 
 glb_plot = GLB_PLOT(layers,idx_neurons)
 glb_plot_1 = GLB_PLOT(layers,idx_neurons)
 glb_plot_2 = GLB_PLOT(layers,idx_neurons)
+glb_plot_3 = GLB_PLOT(layers,idx_neurons)
 #glb_plot_1 = GLB_PLOT()
+
+glb_plot_1x2 = GLB_PLOT([],[],1,2)
 
 # integrated gradients
 glb_ig_attributions = collections.OrderedDict()
@@ -89,4 +98,5 @@ glb_vth_search_err = collections.OrderedDict()
 glb_vth_init = collections.OrderedDict()
 
 glb_bias_comp = collections.OrderedDict()
+glb_weight_comp = collections.OrderedDict()
 
