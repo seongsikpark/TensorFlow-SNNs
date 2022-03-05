@@ -260,8 +260,8 @@ tf.compat.v1.app.flags.DEFINE_string('model', 'VGG16', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet18', 'model')
 
 # datasets
-tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR10', 'dataset')
-#tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR100', 'dataset')
+#tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR10', 'dataset')
+tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR100', 'dataset')
 
 #
 tf.compat.v1.app.flags.DEFINE_bool('load_best_model', True, 'load best model (model, dataset)')
@@ -540,6 +540,16 @@ tf.compat.v1.app.flags.DEFINE_integer('verbose_visual_idx',99,'verbose visual in
 # time dependent leakage
 tf.compat.v1.app.flags.DEFINE_bool('leak_time_dep',False,'time dependent leakage - LIF')
 #tf.compat.v1.app.flags.DEFINE_bool('leak_time_dep',True,'time dependent leakage - LIF')
+
+
+# new
+#tf.compat.v1.app.flags.DEFINE_bool('vth_search',True,'vth search for DNN-to-SNN conversion')
+tf.compat.v1.app.flags.DEFINE_bool('vth_search',False,'vth search for DNN-to-SNN conversion')
+
+
+#tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_new',True,'bias calibration')
+tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_new',False,'bias calibration')
+
 
 #
 conf = flags.FLAGS
