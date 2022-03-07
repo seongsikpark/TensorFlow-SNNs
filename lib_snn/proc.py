@@ -810,8 +810,9 @@ def w_norm_data(self):
     # choose one
     #stat='max'
     #stat='mean'
-    stat='max_999'
-    #stat='max_997'
+    #stat='max_999'
+    #stat='max_998'
+    stat='max_997'
     #stat='max_99'
     #stat='max_98'
     #stat='max_95'
