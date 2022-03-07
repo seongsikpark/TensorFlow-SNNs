@@ -1385,8 +1385,8 @@ else:
 
 
             #
-            if not model_ann.layers_w_kernel:
-                result = model_ann.evaluate(ds_one_batch, callbacks=callbacks_test_ann)
+            #if not (model_ann is None):
+            result = model_ann.evaluate(ds_one_batch, callbacks=callbacks_test_ann)
 
             # run - ann
             # callbacks_test[0].model_ann = model_ann
@@ -1564,63 +1564,64 @@ else:
 
         assert False
 
-    ds_err_act = test_ds.take(1)
+    if conf.ds_err_act_check and conf.nn_mode == 'SNN' and (not conf.f_write_stat):
+        ds_err_act = test_ds.take(1)
 
-    model.evaluate(ds_err_act,callbacks=callbacks_test)
-    if not (model_ann is None):
-        model_ann.evaluate(ds_err_act,callbacks=callbacks_test_ann)
+        model.evaluate(ds_err_act,callbacks=callbacks_test)
+        if not (model_ann is None):
+            model_ann.evaluate(ds_err_act,callbacks=callbacks_test_ann)
 
-    print('dynamic / static ratio - before calibration bias')
+        print('dynamic / static ratio - before calibration bias')
 
-    err_tot=0
-    err_act=collections.OrderedDict()
-    for idx_l, l in enumerate(model.layers_w_neuron):
-        if isinstance(l,lib_snn.layers.InputGenLayer):
-            continue
+        err_tot=0
+        err_act=collections.OrderedDict()
+        for idx_l, l in enumerate(model.layers_w_neuron):
+             if isinstance(l,lib_snn.layers.InputGenLayer):
+                 continue
 
-        if l.name=='predictions':
-            dnn_act = model_ann.get_layer(l.name).record_logit
-        else:
-            dnn_act = model_ann.get_layer(l.name).record_output
+             if l.name=='predictions':
+                 dnn_act = model_ann.get_layer(l.name).record_logit
+             else:
+                 dnn_act = model_ann.get_layer(l.name).record_output
 
-        dnn_act_s = l.bias
-        dnn_act_d = dnn_act - dnn_act_s
-        dnn_act_s = tf.math.abs(dnn_act_s)
-        dnn_act_d = tf.math.abs(dnn_act_d)
+             dnn_act_s = l.bias
+             dnn_act_d = dnn_act - dnn_act_s
+             dnn_act_s = tf.math.abs(dnn_act_s)
+             dnn_act_d = tf.math.abs(dnn_act_d)
 
-        dnn_act_r_s = dnn_act_s / (dnn_act_s + dnn_act_d)
-        dnn_act_r_d = dnn_act_d / (dnn_act_s + dnn_act_d)
+             dnn_act_r_s = dnn_act_s / (dnn_act_s + dnn_act_d)
+             dnn_act_r_d = dnn_act_d / (dnn_act_s + dnn_act_d)
 
-        avg_dnn_act_r_s = tf.reduce_mean(dnn_act_r_s)
-        avg_dnn_act_r_d = tf.reduce_mean(dnn_act_r_d)
+             avg_dnn_act_r_s = tf.reduce_mean(dnn_act_r_s)
+             avg_dnn_act_r_d = tf.reduce_mean(dnn_act_r_d)
 
-        time = conf.time_step - l.bias_en_time
+             time = conf.time_step - l.bias_en_time
 
-        snn_act = l.act.spike_count+l.act.vmem
-        snn_act_s = l.bias*time
-        snn_act_d = snn_act - snn_act_s
-        snn_act_s = tf.math.abs(snn_act_s)
-        snn_act_d = tf.math.abs(snn_act_d)
+             snn_act = l.act.spike_count+l.act.vmem
+             snn_act_s = l.bias*time
+             snn_act_d = snn_act - snn_act_s
+             snn_act_s = tf.math.abs(snn_act_s)
+             snn_act_d = tf.math.abs(snn_act_d)
 
-        snn_act_r_s = snn_act_s / (snn_act_s + snn_act_d)
-        snn_act_r_d = snn_act_d / (snn_act_s + snn_act_d)
-
-
-        avg_snn_act_r_s = tf.reduce_mean(snn_act_r_s)
-        avg_snn_act_r_d = tf.reduce_mean(snn_act_r_d)
-
-        print('{:>8} - dnn (d/s): {:.3f} ({:.3f}, {:.3f}) / snn (d/s): {:.3f} ({:.3f}, {:.3f})'
-              .format(l.name,avg_dnn_act_r_d/avg_dnn_act_r_s,avg_dnn_act_r_d,avg_dnn_act_r_s,
-                      avg_snn_act_r_d/avg_snn_act_r_s,avg_snn_act_r_d,avg_snn_act_r_s))
+             snn_act_r_s = snn_act_s / (snn_act_s + snn_act_d)
+             snn_act_r_d = snn_act_d / (snn_act_s + snn_act_d)
 
 
-        err_l = tf.reduce_sum(tf.math.abs(dnn_act-snn_act))
-        err_tot += err_l
-        #print('{} - err: {:.3f}'.format(l.name,err_l))
-        err_act[l.name] = err_l
+             avg_snn_act_r_s = tf.reduce_mean(snn_act_r_s)
+             avg_snn_act_r_d = tf.reduce_mean(snn_act_r_d)
 
-    #print('error total: {:.3f}'.format(err_tot))
-    err_act['total']=err_tot
+             print('{:>8} - dnn (d/s): {:.3f} ({:.3f}, {:.3f}) / snn (d/s): {:.3f} ({:.3f}, {:.3f})'
+             .format(l.name,avg_dnn_act_r_d/avg_dnn_act_r_s,avg_dnn_act_r_d,avg_dnn_act_r_s,
+             avg_snn_act_r_d/avg_snn_act_r_s,avg_snn_act_r_d,avg_snn_act_r_s))
+
+
+             err_l = tf.reduce_sum(tf.math.abs(dnn_act-snn_act))
+             err_tot += err_l
+             #print('{} - err: {:.3f}'.format(l.name,err_l))
+             err_act[l.name] = err_l
+
+        #print('error total: {:.3f}'.format(err_tot))
+        err_act['total']=err_tot
 
 
     #
@@ -1796,68 +1797,69 @@ else:
 
     #
     # dynamic, static ratio
+    if conf.ds_err_act_check and conf.nn_mode=='SNN' and (not conf.f_write_stat):
 
-    model.evaluate(ds_err_act, callbacks=callbacks_test)
-    if not (model_ann is None):
-        model_ann.evaluate(ds_err_act, callbacks=callbacks_test_ann)
+        model.evaluate(ds_err_act, callbacks=callbacks_test)
+        if not (model_ann is None):
+            model_ann.evaluate(ds_err_act, callbacks=callbacks_test_ann)
 
-    print('dynamic / static ratio')
-    err_tot = 0
-    err_act_cal_b=collections.OrderedDict()
-    for idx_l, l in enumerate(model.layers_w_neuron):
-        if isinstance(l,lib_snn.layers.InputGenLayer):
-            continue
+        print('dynamic / static ratio')
+        err_tot = 0
+        err_act_cal_b=collections.OrderedDict()
+        for idx_l, l in enumerate(model.layers_w_neuron):
+            if isinstance(l,lib_snn.layers.InputGenLayer):
+                continue
 
-        if l.name=='predictions':
-            dnn_act = model_ann.get_layer(l.name).record_logit
-        else:
-            dnn_act = model_ann.get_layer(l.name).record_output
+            if l.name=='predictions':
+                dnn_act = model_ann.get_layer(l.name).record_logit
+            else:
+                dnn_act = model_ann.get_layer(l.name).record_output
 
-        dnn_act_s = l.bias
-        dnn_act_d = dnn_act - dnn_act_s
-        dnn_act_s = tf.math.abs(dnn_act_s)
-        dnn_act_d = tf.math.abs(dnn_act_d)
+            dnn_act_s = l.bias
+            dnn_act_d = dnn_act - dnn_act_s
+            dnn_act_s = tf.math.abs(dnn_act_s)
+            dnn_act_d = tf.math.abs(dnn_act_d)
 
-        dnn_act_r_s = dnn_act_s / (dnn_act_s + dnn_act_d)
-        dnn_act_r_d = dnn_act_d / (dnn_act_s + dnn_act_d)
+            dnn_act_r_s = dnn_act_s / (dnn_act_s + dnn_act_d)
+            dnn_act_r_d = dnn_act_d / (dnn_act_s + dnn_act_d)
 
-        avg_dnn_act_r_s = tf.reduce_mean(dnn_act_r_s)
-        avg_dnn_act_r_d = tf.reduce_mean(dnn_act_r_d)
+            avg_dnn_act_r_s = tf.reduce_mean(dnn_act_r_s)
+            avg_dnn_act_r_d = tf.reduce_mean(dnn_act_r_d)
 
-        time = conf.time_step - l.bias_en_time
+            time = conf.time_step - l.bias_en_time
 
-        snn_act = l.act.spike_count+l.act.vmem
-        snn_act_s = l.bias*time
-        snn_act_d = snn_act - snn_act_s
-        snn_act_s = tf.math.abs(snn_act_s)
-        snn_act_d = tf.math.abs(snn_act_d)
+            snn_act = l.act.spike_count+l.act.vmem
+            snn_act_s = l.bias*time
+            snn_act_d = snn_act - snn_act_s
+            snn_act_s = tf.math.abs(snn_act_s)
+            snn_act_d = tf.math.abs(snn_act_d)
 
-        snn_act_r_s = snn_act_s / (snn_act_s + snn_act_d)
-        snn_act_r_d = snn_act_d / (snn_act_s + snn_act_d)
-
-
-        avg_snn_act_r_s = tf.reduce_mean(snn_act_r_s)
-        avg_snn_act_r_d = tf.reduce_mean(snn_act_r_d)
-
-        print('{:>8} - dnn (d/s): {:.3f} ({:.3f}, {:.3f}) / snn (d/s): {:.3f} ({:.3f}, {:.3f})'
-              .format(l.name,avg_dnn_act_r_d/avg_dnn_act_r_s,avg_dnn_act_r_d,avg_dnn_act_r_s,
-                      avg_snn_act_r_d/avg_snn_act_r_s,avg_snn_act_r_d,avg_snn_act_r_s))
-
-        err_l = tf.reduce_sum(tf.math.abs(dnn_act - snn_act))
-        err_tot += err_l
-
-        err_act_cal_b[l.name]=err_l
-
-    err_act_cal_b['total'] = err_tot
+            snn_act_r_s = snn_act_s / (snn_act_s + snn_act_d)
+            snn_act_r_d = snn_act_d / (snn_act_s + snn_act_d)
 
 
-    #
-    print('error act')
-    for idx_l, l in enumerate(model.layers_w_neuron):
-        if isinstance(l, lib_snn.layers.InputGenLayer):
-            continue
-        print('{:>8} - {:.3e}, after cal-b: {:.3e}'.format(l.name, err_act[l.name],err_act_cal_b[l.name]))
-    print('{:>8} - {:.3e}, after cal-b: {:.3e}'.format('total', err_act['total'], err_act_cal_b['total']))
+            avg_snn_act_r_s = tf.reduce_mean(snn_act_r_s)
+            avg_snn_act_r_d = tf.reduce_mean(snn_act_r_d)
+
+            print('{:>8} - dnn (d/s): {:.3f} ({:.3f}, {:.3f}) / snn (d/s): {:.3f} ({:.3f}, {:.3f})'
+                  .format(l.name,avg_dnn_act_r_d/avg_dnn_act_r_s,avg_dnn_act_r_d,avg_dnn_act_r_s,
+                          avg_snn_act_r_d/avg_snn_act_r_s,avg_snn_act_r_d,avg_snn_act_r_s))
+
+            err_l = tf.reduce_sum(tf.math.abs(dnn_act - snn_act))
+            err_tot += err_l
+
+            err_act_cal_b[l.name]=err_l
+
+        err_act_cal_b['total'] = err_tot
+
+
+        #
+        print('error act')
+        for idx_l, l in enumerate(model.layers_w_neuron):
+            if isinstance(l, lib_snn.layers.InputGenLayer):
+                continue
+            print('{:>8} - {:.3e}, after cal-b: {:.3e}'.format(l.name, err_act[l.name],err_act_cal_b[l.name]))
+        print('{:>8} - {:.3e}, after cal-b: {:.3e}'.format('total', err_act['total'], err_act_cal_b['total']))
 
 
     #
