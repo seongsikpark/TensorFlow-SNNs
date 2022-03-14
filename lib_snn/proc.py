@@ -1144,6 +1144,8 @@ def w_norm_data_channel_wise(self, f_norm, stat, dict_stat=None):
                 norm = tf.where(norm == 0.0, tf.ones(norm.shape), norm)
                 self.norm[l.name] = norm
 
+
+
             elif (not ('conv' in l.name)) :
                 #print('not conv - {}'.format(l.name))
                 #print(prev_name)
@@ -1155,14 +1157,22 @@ def w_norm_data_channel_wise(self, f_norm, stat, dict_stat=None):
                 #print(norm)
                 self.norm[l.name] = norm / np.expand_dims(self.norm_b[prev_name],axis=0).T
 
+
+                print('l_name: - {}'.format(l.name))
+                print('l_name_prev: - {}'.format(prev_name))
+                print('')
+
             elif ('conv' in l.name):
                 conv_block_name = l.name.split('_')
                 conv_name = conv_block_name[2]
                 conv_block_name = conv_block_name[0] + '_' + conv_block_name[1]
 
+                print('conv_name - {}'.format(conv_name))
+
                 if 'conv0' in conv_name:
                     norm_l_name = self.model.block_norm_out_name[conv_block_name]
                     norm_prev_l_name = self.model.block_norm_in_name[conv_block_name]
+                    #norm_prev_l_name = norm_l_name
                 elif 'conv1' in conv_name:
                     norm_l_name = l.name
                     norm_prev_l_name = self.model.block_norm_in_name[conv_block_name]
@@ -1188,14 +1198,26 @@ def w_norm_data_channel_wise(self, f_norm, stat, dict_stat=None):
                     self.norm[l.name] = norm / norm_prev
                 else:
                     self.norm[l.name] = norm / np.expand_dims(norm_prev, axis=0).T
+
+                #
+                print('norm_l_name: - {}'.format(norm_l_name))
+                print('norm_prev_l_name: - {}'.format(norm_prev_l_name))
+                print('')
+
             else:
                 assert False
+
+
 
             self.norm_b[l.name] = norm
             prev_name=l.name
 
+
+
     else:
         assert False
+
+    #assert False
 
 
     # print

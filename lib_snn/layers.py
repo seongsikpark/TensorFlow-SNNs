@@ -104,7 +104,10 @@ class Layer():
         #self.f_skip_bn = self.conf.f_fused_bn
 
         # activation, neuron
-        self.act = activation
+        #self.activation = activation
+        #self.act = activation
+        self.act = None
+
         # DNN mode
         if activation == 'relu':
             self.act_dnn = tf.keras.layers.ReLU(name=name_act)
@@ -187,16 +190,31 @@ class Layer():
             # print('output')
             # print(self.output_shape_fixed_batch)
 
-            if self.act=='relu':
-                self.act_snn = lib_snn.neurons.Neuron(self.output_shape_fixed_batch, self.conf, \
-                                                  self.n_type, self.conf.neural_coding, self.depth, 'n_'+self.name)
-            else:
+            # TODO: InputGenLayer
+            #if isinstance(self,lib_snn.layers.Identity):
+            #if hasattr(self,'activation'):
+            #if hasattr(self, 'activation'):
+            #if self.activation is None:
+            if self.act_dnn is None:
                 self.act_snn = lambda x,y : tf.identity(x)
+                #print(self.name)
+                #assert False
+            else:
+                self.act_snn = lib_snn.neurons.Neuron(self.output_shape_fixed_batch, self.conf, \
+                                                          self.n_type, self.conf.neural_coding, self.depth, 'n_'+self.name)
+
+
+            #self.act_snn = lib_snn.neurons.Neuron(self.output_shape_fixed_batch, self.conf, \
+            #                                      self.n_type, self.conf.neural_coding, self.depth, 'n_'+self.name)
 
             #
             self.bias_ctrl_sub = tf.zeros(self.output_shape_fixed_batch)
             #self.f_bias_ctrl = tf.constant(False,dtype=tf.bool,shape=self.output_shape_fixed_batch[0])
             self.f_bias_ctrl = tf.constant(False,dtype=tf.bool,shape=[self.output_shape_fixed_batch[0],self.output_shape_fixed_batch[-1]])
+
+        #else:
+        #    if isinstance(self,lib_snn.layers.Identity):
+        #        self.act_dnn = lambda x,y : tf.identity(x)
 
         # setup activation
         if self.en_snn:
@@ -543,6 +561,7 @@ class InputGenLayer(Layer, tf.keras.layers.Layer):
         Layer.index = 0             # start of models
         self.depth = Layer.index
         self.n_type = 'IN'
+        #self.use_bias=conf.use_bias
         #self.kernel=1           # dummy
         #self.bias=0
 

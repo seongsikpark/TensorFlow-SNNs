@@ -87,18 +87,21 @@ class Neuron(tf.keras.layers.Layer):
             #leak_const = 1.0
 
 
+        #leak_const = 0.99
         leak_const = 0.99
         #leak_const = 0.98
 
-        if depth==4:
-            leak_const = 0.99
+        #if depth==4:
+            #leak_const = 0.99
 
-        if depth==15:
+        #if depth==15:
+        if False:
             leak_const = 0.98
             #leak_const = 0.97
             #leak_const = 0.99
 
-        if depth==16:
+        #if depth==16:
+        if self.n_type=='OUT':
             #leak_const = 0.8
             #leak_const = 0.90
             #leak_const = 0.91
@@ -379,6 +382,7 @@ class Neuron(tf.keras.layers.Layer):
     def reset_vmem(self, init_vmem=None):
         # assert False
         # self.vmem = tf.constant(self.conf.n_init_vinit,tf.float32,self.vmem.shape)
+        #print(self.name)
         if init_vmem is None:
             #init_vmem = tf.constant(self.conf.n_init_vinit ,tf.float32 ,self.vmem.shape)
             init_vmem = self.vmem_init

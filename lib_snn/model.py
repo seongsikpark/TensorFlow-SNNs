@@ -543,7 +543,8 @@ class Model(tf.keras.Model):
         #print("bias_control_reset")
         if (glb.model_compiled) and (self.conf.debug_mode and self.nn_mode == 'SNN'):
             #for idx_layer, layer in enumerate(self.layers_w_neuron):
-            for idx_layer, layer in enumerate(self.layers_w_kernel):
+            #for idx_layer, layer in enumerate(self.layers_w_kernel):
+            for idx_layer, layer in enumerate(self.layers_bias_control):
                 layer.f_bias_ctrl = tf.fill(tf.shape(layer.f_bias_ctrl), True)
                 # print(layer.f_bias_ctrl)
                 # assert False
@@ -551,7 +552,8 @@ class Model(tf.keras.Model):
                 layer.use_bias = self.conf.use_bias
 
                 # if (idx_layer == 0) or (self.conf.input_spike_mode and idx_layer==1) :
-                if (idx_layer == 0) or (idx_layer == 1):
+                #if (idx_layer == 0) or (idx_layer == 1):
+                if (idx_layer == 0):
                     if self.conf.use_bias:
                         layer.bias_en_time = 0
                         # layer.f_bias_ctrl = False
@@ -560,6 +562,14 @@ class Model(tf.keras.Model):
                     # layer.use_bias = T
                     layer.f_bias_ctrl = tf.fill(tf.shape(layer.f_bias_ctrl), True)
                     layer.bias_ctrl_sub = tf.broadcast_to(layer.bias, layer.output_shape_fixed_batch)
+
+            #
+            #for idx_layer, layer in enumerate(self.layers_bias_control):
+            #    if idx_layer == 0:
+            #        continue
+            #    print('{} - prev: {}'.format(layer.name,self.prev_layer_name[layer.name]))
+            #
+            #assert False
 
     #
     def bias_control_test(self):
@@ -581,6 +591,7 @@ class Model(tf.keras.Model):
 
                         if 'VGG' in self.name:
                             prev_layer = self.layers_bias_control[idx_layer - 1]
+                            #prev_layer = self.layers_w_neuron[idx_layer - 1]
                         elif 'ResNet' in self.name:
 
                             prev_layer_name = self.prev_layer_name[layer.name]
@@ -606,6 +617,8 @@ class Model(tf.keras.Model):
                             #print(layer)
                             #print(prev_layer.act)
                             #print(prev_layer.act.dim)
+                            #print('prev_layer: {}'.format(prev_layer.name))
+                            #print('layer: {}'.format(layer.name))
                             if len(prev_layer.act.dim)==4:
                                 axis = [1,2,3]
                             else:
@@ -1050,8 +1063,13 @@ class Model(tf.keras.Model):
         for layer in self.layers:
             if hasattr(layer, 'act'):
                 #if not isinstance(layer,lib_snn.layers.InputGenLayer):
-                if not layer.act_dnn is None:
+                #if not layer.act_dnn is None:
+                #if not (layer.activation is None):
+                if not (layer.act_dnn is None):
                     self.layers_w_act.append(layer)
+                    #print(layer.name)
+
+        #assert False
 
         self.layers_w_bias= []
         #for layer in self.layers_w_kernel:
@@ -1064,9 +1082,15 @@ class Model(tf.keras.Model):
         if self.conf.bias_control:
             #self.layers_bias_control = self.layers_w_bias
             self.layers_bias_control = []
-            for layer in self.layers_w_bias:
-                if not isinstance(layer, lib_snn.layers.Add):
-                    self.layers_bias_control.append(layer)
+
+            if False:
+                for layer in self.layers_w_bias:
+                    if not isinstance(layer, lib_snn.layers.Add):
+                        self.layers_bias_control.append(layer)
+
+            self.layers_bias_control = self.layers_w_kernel
+            #self.layers_bias_control = self.layers_w_neuron
+
 
         #self.en_record_output = self.model._run_eagerly and (
         #(self.model.nn_mode == 'ANN' and self.conf.f_write_stat) or self.conf.debug_mode)
@@ -1077,21 +1101,41 @@ class Model(tf.keras.Model):
         if self.en_record_output:
             #self.layers_record = self.layers_w_kernel
             self.layers_record = self.layers_w_act
+            #self.layers_record = self.layers
 
-            #self.layers_record = []
-            ##for layer in self.layers_w_kernel[:4]:
-            ##for layer in self.layers_w_kernel[4:10]:
-            ##for layer in self.layers_w_kernel[10:15]:
-            ##for layer in self.layers_w_kernel[15:20]:
-            ##for layer in self.layers_w_kernel[25:30]:
-            #for layer in self.layers_w_kernel[35:40]:
-            #    self.layers_record.append(layer)
+            #self.layers_record=[]
+            #for layer in self.layers:
+            #    #if not isinstance(layer,tf.python.keras.engine.input_layer.InputLayer):
+            #    #if not isinstance(layer,lib_snn.layers.InputLayer):
+            #    if not isinstance(layer,tf.keras.layers.InputLayer):
+            #        self.layers_record.append(layer)
+
+
+            # partially
+            if False:
+            #if True and (self.conf.f_write_stat):
+                self.layers_record = []
+                #for layer in self.layers_w_act[:3]:
+                #for layer in self.layers_w_act[3:6]:
+                #for layer in self.layers_w_act[6:9]:
+                #for layer in self.layers_w_act[9:12]:
+                #for layer in self.layers_w_act[12:16]:
+                #for layer in self.layers_w_act[16:22]:
+                for layer in self.layers_w_act[22:33]:
+                    self.layers_record.append(layer)
+                ##for layer in self.layers_w_kernel[4:10]:
+                ##for layer in self.layers_w_kernel[10:15]:
+                ##for layer in self.layers_w_kernel[15:20]:
+                ##for layer in self.layers_w_kernel[25:30]:
+                #for layer in self.layers_w_kernel[35:40]:
+                #    self.layers_record.append(layer)
 
             self.set_en_record_output()
 
 
         # TODO: add condition
         #if self.conf.f_w_norm_data or self.bias_control:
+        #if (self.en_snn) and ('ResNet' in self.name):
         if 'ResNet' in self.name:
             self.block_norm_set_resnet()
 
@@ -1122,6 +1166,7 @@ class Model(tf.keras.Model):
 
         # init - neuron
         for layer in self.layers_w_neuron:
+            print(layer.name)
             layer.act_snn.init()
 
         #
@@ -1247,11 +1292,12 @@ class Model(tf.keras.Model):
                     self.prev_layer_name[l.name] = self.block_norm_in_name[conv_block_name]
                 elif 'conv2' in conv_name:
                     self.prev_layer_name[l.name] = conv_block_name+'_conv1'
-                #elif 'out' in conv_name:
-                #    self.prev_layer_name[l.name] = conv_block_name + '_conv1'
                 else:
                     print(l.name)
                     assert False
+
+
+
             else:
                 if prev_conv_block_name in prev_layer_name:
                     self.prev_layer_name[l.name] = self.block_norm_out_name[prev_conv_block_name]
@@ -1303,10 +1349,14 @@ class Model(tf.keras.Model):
     def set_layers_w_neuron(self):
         #self.layers_w_neuron = []
         for layer in self.layers:
-            if hasattr(layer, 'act_snn'):
+            #if hasattr(layer, 'act_snn'):
+            if hasattr(layer, 'act'):
                 #if layer.act_snn is not None:
-                if isinstance(layer.act_snn,lib_snn.neurons.Neuron):
+                #if isinstance(layer.act,lib_snn.neurons.Neuron):
+                if not (layer.act_dnn is None):
+                    #print(layer.name)
                     self.layers_w_neuron.append(layer)
+
 
     ###########################################################
     # BN fusion
@@ -1679,7 +1729,7 @@ class Model(tf.keras.Model):
                 #self.bias_control_th[layer.name] = tf.reduce_mean(non_zero_r)
                 #self.bias_control_th[layer.name] = 0.1
                 #self.bias_control_th[layer.name] = 0.01
-                self.bias_control_th[layer.name] = 0.001
+                self.bias_control_th[layer.name] = 0.001   # VGG
                 #self.bias_control_th[layer.name] = 0.0001
                 #self.bias_control_th[layer.name] = 0.00001
                 #self.bias_control_th[layer.name] = 0.00

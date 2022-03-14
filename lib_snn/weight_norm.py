@@ -28,8 +28,9 @@ def save_act_stat(self):
     #f_name_stat='act_n_train'
     f_name_stat_pre=self.conf.prefix_stat
     #stat_conf=['max_999']
-    stat_conf=['max', 'max_999']
+    #stat_conf=['max', 'max_999']
     #stat_conf=['max_997', 'max_998']
+    stat_conf=['max', 'max_999','max_997', 'max_998']
     #stat_conf=['std']
     #stat_conf=['max']
     #stat_conf=['max_75', 'max_25']
@@ -55,6 +56,7 @@ def save_act_stat(self):
 
     #for idx_l, l in enumerate(self.list_layer_name_write_stat):
     for idx_l, l in enumerate(self.model.layers_record):
+    #for idx_l, l in enumerate(self.model.layers_w_act):
         for idx_c, c in enumerate(stat_conf):
             key=l.name+'_'+c
 

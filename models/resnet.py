@@ -279,6 +279,7 @@ def ResNet(
     #imagenet_pretrain = True
 
     img_input = tf.keras.layers.Input(shape=input_shape, batch_size=batch_size)
+    #img_input = tf.keras.layers.InputLayer(shape=input_shape, batch_size=batch_size)
     x = lib_snn.layers.InputGenLayer()(img_input)
     #img_input = lib_snn.layers.InputLayer(input_shape=input_shape,batch_size=conf.batch_size,name='in')
 
