@@ -705,7 +705,8 @@ def save_results(self):
 
     # TODO: modify
     if self.conf.f_w_norm_data:
-        _norm = 'M999'
+        #_norm = 'M999'
+        _norm = self.conf.norm_stat
     else:
         _norm = 'NO'
 
@@ -718,13 +719,13 @@ def save_results(self):
 
     config = 'norm-{}_n-{}_in-{}_nc-{}_ts-{}-{}_vth-{}'.format(_norm,_n,_in,_nc,_ts,_tsi,_vth)
 
-    # bias control
-    if self.conf.bias_control:
-        config += '_bc'
+    # vth search
+    if self.conf.calibration_weight_act_based:
+        config += '_vs'
+
     #
     if self.conf.vth_toggle:
         config += '_vth-tg-'+str(self.conf.vth_toggle_init)
-
 
     #
     if self.conf.calibration_weight:
@@ -735,7 +736,6 @@ def save_results(self):
     if self.conf.calibration_weight_act_based:
         config += '_cal-w-a'
 
-
     # calibration bias (ICLR-21)
     if self.conf.calibration_bias_ICLR_21:
         config += '_cal-b-LR21'
@@ -745,12 +745,16 @@ def save_results(self):
         config += '_cal-b-ML21'
 
     # calibration vmem (ICML-21)
-    if self.conf.calibration_vmem_ICML_21:
+    if self.conf.calibration_vmem_ICML_21 or self.conf.calibration_bias_new:
         config += '_cal-v-ML21'
 
     # calibration test
     if self.conf.calibration_idx_test:
         config += '_cal-test-idx-'+str(self.conf.calibration_idx)
+
+    # bias control
+    if self.conf.bias_control:
+        config += '_bc'
 
     #
     file = config+'.xlsx'
@@ -763,7 +767,6 @@ def save_results(self):
 
     #
     os.makedirs(path,exist_ok=True)
-
 
     #
     print('output file: {}'.format(f_name_result))
@@ -812,7 +815,7 @@ def w_norm_data(self):
     #stat='mean'
     #stat='max_999'
     #stat='max_998'
-    stat='max_997'
+    #stat='max_997'
     #stat='max_99'
     #stat='max_98'
     #stat='max_95'
@@ -824,6 +827,7 @@ def w_norm_data(self):
     #stat='max_40'
     #stat='median'
     #stat='mean'
+    stat=self.conf.norm_stat
 
     #if self.conf.calibration_weight:?
         #stat='max_90'

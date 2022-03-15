@@ -593,11 +593,9 @@ class Model(tf.keras.Model):
                             prev_layer = self.layers_bias_control[idx_layer - 1]
                             #prev_layer = self.layers_w_neuron[idx_layer - 1]
                         elif 'ResNet' in self.name:
-
-                            prev_layer_name = self.prev_layer_name[layer.name]
+                            prev_layer_name = self.prev_layer_name_bias_control[layer.name]
                             prev_layer = self.get_layer(prev_layer_name)
                             #prev_layer = self.layers_bias_control[idx_layer - 1]
-
                         else:
                             assert False
 
@@ -1139,6 +1137,7 @@ class Model(tf.keras.Model):
         if 'ResNet' in self.name:
             self.block_norm_set_resnet()
 
+
         if self.nn_mode=='ANN':
             self.init_ann()
         elif self.nn_mode == 'SNN':
@@ -1254,6 +1253,9 @@ class Model(tf.keras.Model):
         self.block_norm_out_name = collections.OrderedDict()
         self.prev_layer_name = collections.OrderedDict()
 
+        #if self.conf.bias_control:
+        self.prev_layer_name_bias_control = collections.OrderedDict()
+
         for idx_l, l in enumerate(self.layers_w_act):
             if not ('conv' in l.name):
                 continue
@@ -1288,28 +1290,50 @@ class Model(tf.keras.Model):
 
                 if 'conv0' in conv_name:
                     self.prev_layer_name[l.name] = self.block_norm_in_name[conv_block_name]
+                    self.prev_layer_name_bias_control[l.name] = conv_block_name+'_conv1'
+                    #self.prev_layer_name_bias_control[l.name] = self.prev_layer_name[l.name]
                 elif 'conv1' in conv_name:
                     self.prev_layer_name[l.name] = self.block_norm_in_name[conv_block_name]
+
+                    prev_layer = self.get_layer(self.prev_layer_name[l.name])
+                    if hasattr(prev_layer,'bias'):
+                        self.prev_layer_name_bias_control[l.name] = self.prev_layer_name[l.name]
+                    else:
+                        prev_layer_conv_block_name = self.prev_layer_name[l.name].split('_')
+                        prev_layer_conv_block_name = prev_layer_conv_block_name[0]+'_'+prev_layer_conv_block_name[1]
+                        self.prev_layer_name_bias_control[l.name] = prev_layer_conv_block_name+'_conv1'
+
                 elif 'conv2' in conv_name:
                     self.prev_layer_name[l.name] = conv_block_name+'_conv1'
+                    self.prev_layer_name_bias_control[l.name] = self.prev_layer_name[l.name]
                 else:
                     print(l.name)
                     assert False
-
-
-
             else:
                 if prev_conv_block_name in prev_layer_name:
                     self.prev_layer_name[l.name] = self.block_norm_out_name[prev_conv_block_name]
+                    self.prev_layer_name_bias_control[l.name] = self.prev_layer_name[l.name]
                 else:
+                    assert False
                     self.prev_layer_name[l.name]=prev_layer_name
+                    self.prev_layer_name_bias_control[l.name] = self.prev_layer_name[l.name]
+
+                prev_layer = self.get_layer(self.prev_layer_name[l.name])
+                if hasattr(prev_layer,'bias'):
+                    self.prev_layer_name_bias_control[l.name] = self.prev_layer_name[l.name]
+                else:
+                    prev_layer_conv_block_name = self.prev_layer_name[l.name].split('_')
+                    prev_layer_conv_block_name = prev_layer_conv_block_name[0]+'_'+prev_layer_conv_block_name[1]
+                    self.prev_layer_name_bias_control[l.name] = prev_layer_conv_block_name+'_conv1'
+
 
             prev_layer_name = l.name
             prev_conv_block_name = conv_block_name
 
 
-        #for layer_name, prev_layer_name in self.prev_layer_name.items():
+        #for layer_name, prev_layer_name in self.prev_layer_name_bias_control.items():
         #    print('layer - {}, prev_layer - {}'.format(layer_name,prev_layer_name))
+        #assert False
 
 
 

@@ -79,7 +79,7 @@ class Neuron(tf.keras.layers.Layer):
         #leak_const = 0.83
         #leak_const = 0.82
         #leak_const = 0.81
-        leak_const = 1.0
+        #leak_const = 1.0
 
         #if depth > 14 :
             #leak_const = -0.16 / 15 / 15 * (depth) * (depth) + 1.0
@@ -87,7 +87,7 @@ class Neuron(tf.keras.layers.Layer):
             #leak_const = 1.0
 
 
-        #leak_const = 0.99
+        #leak_const = 1.0
         leak_const = 0.99
         #leak_const = 0.98
 
@@ -100,17 +100,20 @@ class Neuron(tf.keras.layers.Layer):
             #leak_const = 0.97
             #leak_const = 0.99
 
+
+
         #if depth==16:
         if self.n_type=='OUT':
             #leak_const = 0.8
             #leak_const = 0.90
             #leak_const = 0.91
-            leak_const = 0.94
+            #leak_const = 0.94
             #leak_const = 0.98
             #leak_const = 0.99
             #leak_const = 0.92
             #leak_const = 0.93
-            #leak_const = 1.0
+            leak_const = 0.99
+            #leak_const = 0.1
 
 
         #leak_const = 0.7
@@ -448,7 +451,7 @@ class Neuron(tf.keras.layers.Layer):
     #
     def set_leak_time_dep(self, t):
 
-        alpha = 0.95
+        alpha = 0.99
         leak_const = self.leak_const_init*(alpha+(1-alpha)/self.conf.time_step*t)
 
         self.leak_const.assign(leak_const)

@@ -347,11 +347,11 @@ tf.compat.v1.app.flags.DEFINE_bool('full_test', True, 'full dataset test')
 tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 1101, 'start index of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 1100, 'start index of test data')
 
-#tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 500, 'number of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 1600, 'number of test data')
+tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 1200, 'number of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 800, 'number of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 400, 'number of test data')
-tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 100, 'number of test data')
+#tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 100, 'number of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 50, 'number of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 10, 'number of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 3, 'number of test data')
@@ -442,6 +442,11 @@ tf.compat.v1.app.flags.DEFINE_bool('f_fused_bn',True,'f_fused_bn')
 #
 tf.compat.v1.app.flags.DEFINE_bool('f_w_norm_data',True,'f_w_norm_data')
 #tf.compat.v1.app.flags.DEFINE_bool('f_w_norm_data',False,'f_w_norm_data')
+
+#
+#tf.compat.v1.app.flags.DEFINE_string('norm_stat','max_999','data-based normalization stat (max, max_999, mean, etc.)')
+tf.compat.v1.app.flags.DEFINE_string('norm_stat','max_997','data-based normalization stat (max, max_999, mean, etc.)')
+
 
 tf.compat.v1.app.flags.DEFINE_bool('f_write_stat',False,'write stat')
 #tf.compat.v1.app.flags.DEFINE_bool('f_write_stat',True,'write stat')
@@ -536,8 +541,8 @@ tf.compat.v1.app.flags.DEFINE_bool('weight_comp_proposed',False,'calibration - b
 
 
 #
-#tf.compat.v1.app.flags.DEFINE_bool('calibration_idx_test',False,'calibration idx test')
-tf.compat.v1.app.flags.DEFINE_bool('calibration_idx_test',True,'calibration idx test')
+tf.compat.v1.app.flags.DEFINE_bool('calibration_idx_test',False,'calibration idx test')
+#tf.compat.v1.app.flags.DEFINE_bool('calibration_idx_test',True,'calibration idx test')
 tf.compat.v1.app.flags.DEFINE_integer('calibration_idx',0,'calibration idx')
 
 
