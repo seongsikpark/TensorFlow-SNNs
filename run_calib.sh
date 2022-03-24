@@ -24,9 +24,9 @@ bias_control=${6}
 { time python -u main_hp_tune.py \
     -model=${model} \
     -dataset=${dataset} \
-    -n_type=${neuron_type}
+    -n_type=${neuron_type}\
     -vth_search=${vth_search} \
-    -calibration_bias_new=${calibration_bias}
+    -calibration_bias_new=${calibration_bias}\
     -bias_control=${bias_control} \
     ; }
 

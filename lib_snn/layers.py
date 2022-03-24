@@ -204,8 +204,8 @@ class Layer():
 
                 if isinstance(self,lib_snn.layers.Add):
                 #if isinstance(self, lib_snn.layers.Conv2D):
-                    n_type = 'IF'
-                    #n_type = 'LIF'
+                    #n_type = 'IF'
+                    n_type = 'LIF'
 
                 self.act_snn = lib_snn.neurons.Neuron(self.output_shape_fixed_batch, self.conf, \
                                                       n_type, self.conf.neural_coding, self.depth, 'n_'+self.name)

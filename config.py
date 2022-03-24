@@ -240,7 +240,14 @@ tf.compat.v1.app.flags.DEFINE_boolean('verbose_visual',False, 'verbose visual mo
 
 # exp_set_name
 #tf.compat.v1.app.flags.DEFINE_string('exp_set_name', None, 'exp set name')
-tf.compat.v1.app.flags.DEFINE_string('exp_set_name', 'calib_idx_comb2', 'exp set name')
+#tf.compat.v1.app.flags.DEFINE_string('exp_set_name', 'calib_idx_comb2', 'exp set name')
+#tf.compat.v1.app.flags.DEFINE_string('exp_set_name', 'batch_run_test', 'exp set name')
+#tf.compat.v1.app.flags.DEFINE_string('exp_set_name', 'batch_run_test_220318', 'exp set name')
+#tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220320_batch_run_calib_prop', 'exp set name')
+#tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220321_batch_run_calib_prop_b-200', 'exp set name')
+#tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220323_batch_run_calib_prop_b-400', 'exp set name')
+tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220324_time_dep_leaky_b-400', 'exp set name')
+#tf.compat.v1.app.flags.DEFINE_string('exp_set_name', 'manual_test', 'exp set name')
 
 
 # train mode
@@ -363,8 +370,8 @@ tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 1200, 'number of test dat
 ################################
 
 # neuron type in SNN
-#tf.compat.v1.app.flags.DEFINE_string('n_type', 'IF', 'LIF or IF: neuron type')
-tf.compat.v1.app.flags.DEFINE_string('n_type', 'LIF', 'LIF or IF: neuron type')
+tf.compat.v1.app.flags.DEFINE_string('n_type', 'IF', 'LIF or IF: neuron type')
+#tf.compat.v1.app.flags.DEFINE_string('n_type', 'LIF', 'LIF or IF: neuron type')
 
 tf.compat.v1.app.flags.DEFINE_enum('n_reset_type','reset_by_sub', ['reset_by_sub', 'reset_to_zero'], 'neuron reset type')
 #tf.compat.v1.app.flags.DEFINE_enum('n_reset_type','reset_to_zero', ['reset_by_sub', 'reset_to_zero'], 'neuron reset type')
@@ -415,8 +422,8 @@ tf.compat.v1.app.flags.DEFINE_enum('snn_output_type',"VMEM", ["SPIKE", "VMEM", "
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 2048, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 1024, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 512, 'time steps per sample in SNN')
-#tf.compat.v1.app.flags.DEFINE_integer('time_step', 256, 'time steps per sample in SNN')
-tf.compat.v1.app.flags.DEFINE_integer('time_step', 128, 'time steps per sample in SNN')
+tf.compat.v1.app.flags.DEFINE_integer('time_step', 256, 'time steps per sample in SNN')
+#tf.compat.v1.app.flags.DEFINE_integer('time_step', 128, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 64, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 32, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 20, 'time steps per sample in SNN')
@@ -536,8 +543,8 @@ tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_up_prog',False,'calibration
 #tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_up_prog',True,'calibration - bias, update progressive')
 
 
-tf.compat.v1.app.flags.DEFINE_bool('weight_comp_proposed',False,'calibration - bias, update progressive')
-#tf.compat.v1.app.flags.DEFINE_bool('weight_comp_proposed',True,'calibration - bias, update progressive')
+#tf.compat.v1.app.flags.DEFINE_bool('weight_comp_proposed',False,'calibration - bias, new')
+tf.compat.v1.app.flags.DEFINE_bool('weight_comp_proposed',True,'calibration - bias, new')
 
 
 #
@@ -554,6 +561,10 @@ tf.compat.v1.app.flags.DEFINE_integer('verbose_visual_idx',99,'verbose visual in
 # time dependent leakage
 tf.compat.v1.app.flags.DEFINE_bool('leak_time_dep',False,'time dependent leakage - LIF')
 #tf.compat.v1.app.flags.DEFINE_bool('leak_time_dep',True,'time dependent leakage - LIF')
+
+#
+#tf.compat.v1.app.flags.DEFINE_bool('leak_off_after_bias_en',False,'leakage off in neuron after bias enable')
+tf.compat.v1.app.flags.DEFINE_bool('leak_off_after_bias_en',True,'leakage off in neuron after bias enable')
 
 
 # new

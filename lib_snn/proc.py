@@ -141,8 +141,8 @@ def preproc_ann_norm(self):
         self.w_norm_done=True
 
 
-    if self.f_vth_set_and_norm:
-        lib_snn.calibration.vth_set_and_norm(self)
+    #if self.f_vth_set_and_norm:
+    #    lib_snn.calibration.vth_set_and_norm(self)
 
     #print(self.model.get_layer('conv1').bias)
     ## for debug
@@ -171,9 +171,9 @@ def preproc_ann_to_snn(self):
         #self.set_leak_const_done=True
 
     #
-    if self.f_vth_set_and_norm:
-        lib_snn.calibration.vth_set_and_norm(self)
-        #lib_snn.calibration.weight_calibration_act_based(self)
+    #if self.f_vth_set_and_norm:
+    #    lib_snn.calibration.vth_set_and_norm(self)
+    #    #lib_snn.calibration.weight_calibration_act_based(self)
 
     # calibration
     #if self.calibration:
@@ -324,8 +324,6 @@ def postproc_batch(self):
             #self.vth_search_done=True
         lib_snn.calibration.bias_calibration_ICML_21(self)
 
-    if self.calibration_bias and (not self.conf.calibration_bias_up_prog):
-        lib_snn.calibration.calibration_bias_set(self)
 
 
 
@@ -409,6 +407,11 @@ def postproc_ann(self):
     if self.conf.f_write_stat:
         lib_snn.weight_norm.save_act_stat(self)
         return
+
+    if self.f_vth_set_and_norm:
+        lib_snn.calibration.vth_set_and_norm(self)
+
+
 
     # TODO
     if (not self.conf.full_test) and conf._run_for_visual_debug:
@@ -620,6 +623,14 @@ def postproc_snn(self):
     # results
     cal_results(self)
 
+    #
+    if self.f_vth_set_and_norm:
+        lib_snn.calibration.vth_set_and_norm(self)
+
+
+    if self.calibration_bias and (not self.conf.calibration_bias_up_prog):
+        lib_snn.calibration.calibration_bias_set(self)
+
     # print results
     print_results(self)
 
@@ -720,7 +731,7 @@ def save_results(self):
     config = 'norm-{}_n-{}_in-{}_nc-{}_ts-{}-{}_vth-{}'.format(_norm,_n,_in,_nc,_ts,_tsi,_vth)
 
     # vth search
-    if self.conf.calibration_weight_act_based:
+    if self.conf.vth_search:
         config += '_vs'
 
     #
@@ -744,8 +755,12 @@ def save_results(self):
     if self.conf.calibration_bias_ICML_21:
         config += '_cal-b-ML21'
 
+    # calibration bias - new
+    if self.conf.calibration_bias_new:
+        config += '_cal-b-new'
+
     # calibration vmem (ICML-21)
-    if self.conf.calibration_vmem_ICML_21 or self.conf.calibration_bias_new:
+    if self.conf.calibration_vmem_ICML_21:
         config += '_cal-v-ML21'
 
     # calibration test
@@ -1211,12 +1226,8 @@ def w_norm_data_channel_wise(self, f_norm, stat, dict_stat=None):
             else:
                 assert False
 
-
-
             self.norm_b[l.name] = norm
             prev_name=l.name
-
-
 
     else:
         assert False

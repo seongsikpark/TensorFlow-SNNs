@@ -1285,7 +1285,7 @@ def calibration_bias_set(self):
 
         #if not l.name is 'predictions':
         if True:
-            #print(l.name)
+            print(l.name)
             #print(l.bias)
             if ('ResNet' in self.model.name) and ('out' in l.name):
                 if not hasattr(l, 'bias'):
@@ -1294,6 +1294,8 @@ def calibration_bias_set(self):
                     l_name = conv_block_name + '_conv2'
                     l_bias = self.model.get_layer(l_name)
                     l_bias.bias = l_bias.bias + glb_bias_comp[l_name] / self.conf.calibration_num_batch
+                    if self.conf.weight_comp_proposed:
+                        l_bias.kernel = l_bias.kernel + glb_weight_comp[l_name] / self.conf.calibration_num_batch
 
                     #if False:
                     if True:
@@ -1307,11 +1309,17 @@ def calibration_bias_set(self):
                             glb_bias_comp[l_name] = tf.zeros(l_bias.bias.shape)
                         l_bias.bias = l_bias.bias + glb_bias_comp[l_name] / self.conf.calibration_num_batch
 
+                        if self.conf.weight_comp_proposed:
+                            l_bias.kernel = l_bias.kernel + glb_weight_comp[l_name]/self.conf.calibration_num_batch
+
                 else:
                     assert False
             else:
                 l_bias = l
                 l_bias.bias = l_bias.bias + glb_bias_comp[l.name]/self.conf.calibration_num_batch
+
+                if self.conf.weight_comp_proposed:
+                    l.kernel = l.kernel + glb_weight_comp[l.name]/self.conf.calibration_num_batch
 
             #l.bias = l.bias + glb_bias_comp[l.name]/self.conf.calibration_num_batch
 
@@ -1321,8 +1329,6 @@ def calibration_bias_set(self):
             if l.name == 'predictions':
                 print('biac_comp_tot: {} - {}'.format(l.name,glb_bias_comp[l.name]))
 
-            if self.conf.weight_comp_proposed:
-                l.kernel = l.kernel + glb_weight_comp[l.name]/self.conf.calibration_num_batch
 
 
 
@@ -2134,7 +2140,7 @@ def bias_calibration_ICML_21(self):
     for idx_l, l in enumerate(self.model.layers_w_neuron):
     #for idx_l, l in enumerate(self.model.layers_w_bias):
         #if not hasattr(l, 'bias'):
-        #    continue
+            #continue
 
         if isinstance(l, lib_snn.layers.Conv2D) or isinstance(l, lib_snn.layers.InputGenLayer):
             axis = [0,1,2]
@@ -2191,77 +2197,182 @@ def bias_calibration_ICML_21(self):
         #print(logit_ann)
         #print(logit_snn)
 
+        # elif False:    # calibration through bias and weight (static and dynamic)
         if self.conf.weight_comp_proposed:
 
-            # elif False:    # calibration through bias and weight (static and dynamic)
-            dnn_act_s = l.bias
-            dnn_act_d = dnn_act - dnn_act_s
-            dnn_act_s = tf.math.abs(dnn_act_s)
-            dnn_act_d = tf.math.abs(dnn_act_d)
+            if ('ResNet' in self.model.name) and ('out' in l.name):
+                if not hasattr(l, 'bias'):
 
-            dnn_act_r_s = dnn_act_s / (dnn_act_s + dnn_act_d)
-            dnn_act_r_d = dnn_act_d / (dnn_act_s + dnn_act_d)
+                    err_act = dnn_act - snn_act
 
-            err_act = dnn_act - snn_act
-            # err_act = tf.where(dnn_act==0,tf.zeros(dnn_act.shape),dnn_act-snn_act)
-            # err_act_m = tf.reduce_mean(err_act)
+                    # conv2
+                    conv_block_name = l.name.split('_')
+                    conv_block_name = conv_block_name[0] + '_' + conv_block_name[1]
+                    l_name = conv_block_name + '_conv2'
+                    l_bias = self.model.get_layer(l_name)
+                    l_bias_act = l_bias.record_output
 
-            if False:
-                print(dnn_act_r_s)
-                print(dnn_act_r_d)
+                    dnn_act_s = l_bias.bias
+                    dnn_act_d = l_bias_act - dnn_act_s
+                    dnn_act_s = tf.math.abs(dnn_act_s)
+                    dnn_act_d = tf.math.abs(dnn_act_d)
 
-            calib_s = err_act * dnn_act_r_s
+                    dnn_act_r_s = dnn_act_s / (dnn_act_s + dnn_act_d)
+                    dnn_act_r_d = dnn_act_d / (dnn_act_s + dnn_act_d)
 
-            if False:
-                # calib_d = err_act_m*dnn_act_r_d/tf.reduce_mean(snn_act)
-                err_act_batchmean = tf.reduce_mean(err_act, axis=0)
-                dnn_act_r_d_batchmean = tf.reduce_mean(dnn_act_r_d, axis=0)
-                snn_act_batch_mean = tf.reduce_mean(l.act.spike_count_int, axis=0)
-                calib_d_batchmean = err_act_batchmean * dnn_act_r_d_batchmean / snn_act_batch_mean
-                calib_d = tf.reduce_mean(calib_d_batchmean)
+                    calib_s = err_act * dnn_act_r_s
 
-            # calib_d = err_act*dnn_act_r_d/l.act.spike_count_int
+                    # dnn_act_r_d = tf.where(tf.equal(dnn_act_r_d,0.5),tf.zeros(dnn_act_r_d.shape),dnn_act_r_d)
+                    calib_d = err_act * dnn_act_r_d / time
+                    # calib_d = err_act*dnn_act_r_d/self.conf.time_step
+                    # calib_d = err_act*dnn_act_r_d
+                    # calib_d = err_act*dnn_act_r_d/spike_avg
 
-            if idx_l == 0:
-                spike_avg = time
+                    calib_s = tf.reduce_mean(calib_s, axis=axis)
+                    calib_d = tf.reduce_mean(calib_d, axis=axis)
+
+                    lm = 1
+                    weight_comp = calib_d * lm
+                    bias_comp = calib_s * lm
+
+                    if not l_name in glb_bias_comp.keys():
+                        glb_bias_comp[l_name] = tf.zeros(l_bias.bias.shape)
+                    # glb_bias_comp[l_name] = glb_bias_comp[l_name] + bias_comp
+                    glb_bias_comp[l_name] = glb_bias_comp[l_name] + bias_comp / 2
+
+                    if not l_name in glb_weight_comp.keys():
+                        glb_weight_comp[l_name] = tf.zeros(weight_comp.shape)
+                    glb_weight_comp[l_name] = glb_weight_comp[l_name] + weight_comp / 2
+
+
+                    # conv0
+                    try:
+                        l_name = conv_block_name + '_conv0'
+                        l_bias = self.model.get_layer(l_name)
+                    except:
+                        l_name = conv_block_name + '_conv0_i'
+                        l_bias = self.model.get_layer(l_name)
+
+                    #l_bias = self.model.get_layer(l_name)
+                    l_bias_act = l_bias.record_output
+
+                    dnn_act_s = l_bias.bias
+                    dnn_act_d = l_bias_act - dnn_act_s
+                    dnn_act_s = tf.math.abs(dnn_act_s)
+                    dnn_act_d = tf.math.abs(dnn_act_d)
+
+                    dnn_act_r_s = dnn_act_s / (dnn_act_s + dnn_act_d)
+                    dnn_act_r_d = dnn_act_d / (dnn_act_s + dnn_act_d)
+
+                    dnn_act_r_s=tf.where(tf.math.is_nan(dnn_act_r_s),tf.zeros(dnn_act_r_s.shape),dnn_act_r_s)
+                    dnn_act_r_d=tf.where(tf.math.is_nan(dnn_act_r_d),tf.zeros(dnn_act_r_d.shape),dnn_act_r_d)
+                    #dnn_act_r_s=tf.where(tf.math.is_nan(dnn_act_r_s),tf.ones(dnn_act_r_s.shape),dnn_act_r_s)
+                    #dnn_act_r_d=tf.where(tf.math.is_nan(dnn_act_r_d),tf.ones(dnn_act_r_d.shape),dnn_act_r_d)
+
+                    calib_s = err_act * dnn_act_r_s
+
+                    # dnn_act_r_d = tf.where(tf.equal(dnn_act_r_d,0.5),tf.zeros(dnn_act_r_d.shape),dnn_act_r_d)
+                    calib_d = err_act * dnn_act_r_d / time
+                    # calib_d = err_act*dnn_act_r_d/self.conf.time_step
+                    # calib_d = err_act*dnn_act_r_d
+                    # calib_d = err_act*dnn_act_r_d/spike_avg
+
+                    calib_s = tf.reduce_mean(calib_s, axis=axis)
+                    calib_d = tf.reduce_mean(calib_d, axis=axis)
+
+                    lm = 1
+                    weight_comp = calib_d * lm
+                    bias_comp = calib_s * lm
+
+                    #print('bias_comp_proposed')
+                    #print(l_name)
+                    #print(weight_comp)
+                    #print(bias_comp)
+                    #print(dnn_act_s)
+                    #print(dnn_act_d)
+                    #print(dnn_act_r_s)
+                    #print(dnn_act_r_d)
+                    #print(dnn_act_d+dnn_act_s)
+
+                    #if tf.math.is_nan(tf.reduce_any((bias_comp))):
+                    assert not tf.math.reduce_any(tf.math.is_nan(bias_comp))
+
+                    if not l_name in glb_bias_comp.keys():
+                        glb_bias_comp[l_name] = tf.zeros(l_bias.bias.shape)
+                    glb_bias_comp[l_name] = glb_bias_comp[l_name] + bias_comp / 2
+
+                    if not l_name in glb_weight_comp.keys():
+                        glb_weight_comp[l_name] = tf.zeros(weight_comp.shape)
+                    glb_weight_comp[l_name] = glb_weight_comp[l_name] + weight_comp / 2
+                else:
+                    assert False
             else:
-                spike_avg = tf.reduce_mean(self.model.layers_w_kernel[idx_l - 1].act.spike_count_int)
 
-            # dnn_act_r_d = tf.where(tf.equal(dnn_act_r_d,0.5),tf.zeros(dnn_act_r_d.shape),dnn_act_r_d)
-            calib_d = err_act * dnn_act_r_d / time
-            # calib_d = err_act*dnn_act_r_d/self.conf.time_step
-            # calib_d = err_act*dnn_act_r_d
-            # calib_d = err_act*dnn_act_r_d/spike_avg
+                # elif False:    # calibration through bias and weight (static and dynamic)
+                dnn_act_s = l.bias
+                dnn_act_d = dnn_act - dnn_act_s
+                dnn_act_s = tf.math.abs(dnn_act_s)
+                dnn_act_d = tf.math.abs(dnn_act_d)
 
-            calib_s = tf.reduce_mean(calib_s, axis=axis)
-            calib_d = tf.reduce_mean(calib_d, axis=axis)
+                dnn_act_r_s = dnn_act_s / (dnn_act_s + dnn_act_d)
+                dnn_act_r_d = dnn_act_d / (dnn_act_s + dnn_act_d)
 
-            # print(err_act)
-            # print('pp')
-            # print(dnn_act-snn_act)
-            # print(calib_s)
-            # print('calib_d: {:}'.format(calib_d))
+                err_act = dnn_act - snn_act
+                # err_act = tf.where(dnn_act==0,tf.zeros(dnn_act.shape),dnn_act-snn_act)
+                # err_act_m = tf.reduce_mean(err_act)
 
-            lm = 1
-            weight_comp = calib_d * lm
-            # bias_comp = calib_s
-            bias_comp = calib_s * lm
+                calib_s = err_act * dnn_act_r_s
 
-            # weight_comp = tf.broadcast_to(weight_comp,shape=l.kernel.shape)
+                if False:
+                    # calib_d = err_act_m*dnn_act_r_d/tf.reduce_mean(snn_act)
+                    err_act_batchmean = tf.reduce_mean(err_act, axis=0)
+                    dnn_act_r_d_batchmean = tf.reduce_mean(dnn_act_r_d, axis=0)
+                    snn_act_batch_mean = tf.reduce_mean(l.act.spike_count_int, axis=0)
+                    calib_d_batchmean = err_act_batchmean * dnn_act_r_d_batchmean / snn_act_batch_mean
+                    calib_d = tf.reduce_mean(calib_d_batchmean)
 
-            #
-            # l.kernel = l.kernel +weight_comp
-            # l.kernel *= tf.reduce_mean(dnn_act)
-            # l.kernel *= tf.reduce_mean(dnn_act)/time
-            # l.bias = l.bias + bias_comp
+                # calib_d = err_act*dnn_act_r_d/l.act.spike_count_int
 
-            if not l.name in glb_bias_comp.keys():
-                glb_bias_comp[l.name] = tf.zeros(l.bias.shape)
-            glb_bias_comp[l.name] = glb_bias_comp[l.name] + bias_comp
+                # if idx_l == 0:
+                # spike_avg = time
+                # else:
+                # spike_avg = tf.reduce_mean(self.model.layers_w_kernel[idx_l - 1].act.spike_count_int)
 
-            if not l.name in glb_weight_comp.keys():
-                glb_weight_comp[l.name] = tf.zeros(weight_comp.shape)
-            glb_weight_comp[l.name] = glb_weight_comp[l.name] + weight_comp
+                # dnn_act_r_d = tf.where(tf.equal(dnn_act_r_d,0.5),tf.zeros(dnn_act_r_d.shape),dnn_act_r_d)
+                calib_d = err_act * dnn_act_r_d / time
+                # calib_d = err_act*dnn_act_r_d/self.conf.time_step
+                # calib_d = err_act*dnn_act_r_d
+                # calib_d = err_act*dnn_act_r_d/spike_avg
+
+                calib_s = tf.reduce_mean(calib_s, axis=axis)
+                calib_d = tf.reduce_mean(calib_d, axis=axis)
+
+                # print(err_act)
+                # print('pp')
+                # print(dnn_act-snn_act)
+                # print(calib_s)
+                # print('calib_d: {:}'.format(calib_d))
+
+                lm = 1
+                weight_comp = calib_d * lm
+                # bias_comp = calib_s
+                bias_comp = calib_s * lm
+
+                # weight_comp = tf.broadcast_to(weight_comp,shape=l.kernel.shape)
+
+                #
+                # l.kernel = l.kernel +weight_comp
+                # l.kernel *= tf.reduce_mean(dnn_act)
+                # l.kernel *= tf.reduce_mean(dnn_act)/time
+                # l.bias = l.bias + bias_com
+
+                if not l.name in glb_bias_comp.keys():
+                    glb_bias_comp[l.name] = tf.zeros(l.bias.shape)
+                glb_bias_comp[l.name] = glb_bias_comp[l.name] + bias_comp
+
+                if not l.name in glb_weight_comp.keys():
+                    glb_weight_comp[l.name] = tf.zeros(weight_comp.shape)
+                glb_weight_comp[l.name] = glb_weight_comp[l.name] + weight_comp
 
 
         # ICML-20, calibration through bias

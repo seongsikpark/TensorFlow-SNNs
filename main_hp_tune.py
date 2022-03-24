@@ -1324,38 +1324,57 @@ else:
 
     # 1,3,23,43
 
-    comp_batch_index = []
-    comp_batch_index.append(3)
+    if False:
+        comp_batch_index = []
+        comp_batch_index.append(3)
 
-    #comp_batch_index.append(0)
-    comp_batch_index.append(1)
-    #comp_batch_index.append(2)
+        #comp_batch_index.append(0)
+        comp_batch_index.append(1)
+        #comp_batch_index.append(2)
 
-    #comp_batch_index.append(3)
-    #comp_batch_index.append(4)
-    #comp_batch_index.append(5)
-    #comp_batch_index.append(6)
-    #comp_batch_index.append(7)
-    #comp_batch_index.append(8)
-    #comp_batch_index.append(10)
-    #comp_batch_index.append(13)
+        #comp_batch_index.append(3)
+        #comp_batch_index.append(4)
+        #comp_batch_index.append(5)
+        #comp_batch_index.append(6)
+        #comp_batch_index.append(7)
+        #comp_batch_index.append(8)
+        #comp_batch_index.append(10)
+        #comp_batch_index.append(13)
 
-    comp_batch_index.append(23)
-    #comp_batch_index.append(33)
+        comp_batch_index.append(23)    #
+        #comp_batch_index.append(33)
 
-    #comp_batch_index.append(43)
+        #comp_batch_index.append(43)
 
-    #comp_batch_index.append(53)
-    #comp_batch_index.append(100)
-    #comp_batch_index.append(111)
-    #comp_batch_index.append(122)
-    #comp_batch_index.append(87)
-    #comp_batch_index.append(84)
-    #comp_batch_index.append(74)
-    #comp_batch_index.append(7)
-    comp_batch_index.append(20)
-    #comp_batch_index.append(40)
+        #comp_batch_index.append(53)
+        #comp_batch_index.append(100)
+        #comp_batch_index.append(111)
+        #comp_batch_index.append(122)
+        #comp_batch_index.append(87)
+        #comp_batch_index.append(84)
+        #comp_batch_index.append(74)
+        #comp_batch_index.append(7)
+        comp_batch_index.append(20)     #
+        #comp_batch_index.append(40)
 
+
+    #comp_batch_index = [1,3,20,23]
+    comp_batch_index = [3,1,23,20]
+
+
+    #if conf.model=='ResNet44':
+    if conf.batch_size_inf!=400:
+        if conf.batch_size_inf==200:
+            comp_batch_index_tmp = []
+            for idx in comp_batch_index:
+                comp_batch_index_tmp.append(2 * idx)
+                comp_batch_index_tmp.append(2 * idx + 1)
+
+            comp_batch_index = comp_batch_index_tmp
+        else:
+            assert False
+
+    #assert (conf.batch_size_inf!=400) and (conf.model=='ResNet44')
 
     #rand_int = tf.random.uniform(shape=(),minval=0,maxval=25,dtype=tf.int32)
     #comp_batch_index.append(rand_int)
@@ -1368,10 +1387,19 @@ else:
     #vth_search = False
 
     vth_search_num_batch = len(comp_batch_index)
-    count_vth_search_batch = 0
+    #count_vth_search_batch = 0
 
     if conf.vth_search:
-        for idx_batch, (x, y) in enumerate(train_ds):
+
+        # for initial setting
+        #ds_one_batch = train_ds.take(1)
+        #result = model_ann.evaluate(ds_one_batch, callbacks=callbacks_test_ann)
+        #result = model.evaluate(ds_one_batch, callbacks=callbacks_test)
+
+        count_cal_batch = 0
+        last_batch=False
+        #for idx_batch, (x, y) in enumerate(train_ds):
+        for idx_batch in comp_batch_index:
             # ds_one_batch_ann = tf.data.Dataset.from_tensors((images_one_batch, labels_one_batch)).take(1).cache()
             # ds_one_batch_snn = tf.data.Dataset.from_tensors((images_one_batch, labels_one_batch)).take(1).cache()
 
@@ -1380,12 +1408,18 @@ else:
             if not (idx_batch in comp_batch_index):
                 continue
 
-            ds_one_batch = tf.data.Dataset.from_tensors((x, y))
+            if count_cal_batch == vth_search_num_batch- 1:
+                last_batch = True
+
+            #ds_one_batch = tf.data.Dataset.from_tensors((x, y))
+            ds_one_batch = train_ds.skip(idx_batch).take(1)
 
 
             #
             #if not (model_ann is None):
-            result = model_ann.evaluate(ds_one_batch, callbacks=callbacks_test_ann)
+            #assert False
+            #model_ann.layers_record = model_ann.layers_w_act
+            #result = model_ann.evaluate(ds_one_batch, callbacks=callbacks_test_ann)
 
             # run - ann
             # callbacks_test[0].model_ann = model_ann
@@ -1451,34 +1485,62 @@ else:
                         glb_ig_attributions[l.name] = tf.reduce_sum(tf.math.abs(ig_attr), axis=1)  # sum - alphas
             #assert False
 
+            if last_batch:
+                cb_libsnn_ann.f_vth_set_and_norm = True
+
             callbacks_test_ann[0].run_for_vth_search = True
             result = model_ann.evaluate(ds_one_batch, callbacks=callbacks_test_ann)
             callbacks_test_ann[0].run_for_vth_search = False
+
+
+            if last_batch:
+                cb_libsnn_ann.f_vth_set_and_norm = False
+
+            #for layer in model_ann.layers:
+                #if hasattr(layer,'record_output'):
+                    ##print(layer)
+                    #del layer.record_output
 
             # idx_batch = idx_batch+1
             # if idx_batch == num_batch_for_vth_search-1:
             #if idx_batch == conf.vth_search_num_batch - 1:
 
-            count_vth_search_batch = count_vth_search_batch + 1
+            #count_vth_search_batch = count_vth_search_batch + 1
 
-            if count_vth_search_batch == vth_search_num_batch - 1:
+            count_cal_batch = count_cal_batch + 1
+
+            if last_batch:
                 break
 
+            #if count_vth_search_batch == vth_search_num_batch - 1:
+            #    break
+
+
+        #
+        #del glb_rand_vth
+        #
+        cb_libsnn.f_vth_set_and_norm=True
         result = model.evaluate(ds_one_batch, callbacks=callbacks_test)
+        cb_libsnn.f_vth_set_and_norm=False
 
-        if True:
-        #if False:
-            cb_libsnn_ann.f_vth_set_and_norm=True
-            result = model_ann.evaluate(ds_one_batch, callbacks=callbacks_test_ann)
-            cb_libsnn_ann.f_vth_set_and_norm=False
 
-        if True:
-        #if False:
-            cb_libsnn.f_vth_set_and_norm=True
-            result = model.evaluate(ds_one_batch, callbacks=callbacks_test)
-            cb_libsnn.f_vth_set_and_norm=False
-            #cb_lib_snn.calibration.vth_set_and_norm(cb_libsnn)
+#        if True:
+#        #if False:
+#            cb_libsnn_ann.f_vth_set_and_norm=True
+#            result = model_ann.evaluate(ds_one_batch, callbacks=callbacks_test_ann)
+#            cb_libsnn_ann.f_vth_set_and_norm=False
+#
+#        if True:
+#        #if False:
+#            cb_libsnn.f_vth_set_and_norm=True
+#            result = model.evaluate(ds_one_batch, callbacks=callbacks_test)
+#            cb_libsnn.f_vth_set_and_norm=False
+#            #cb_lib_snn.calibration.vth_set_and_norm(cb_libsnn)
 
+
+    #print('delete used variables')
+    #del glb_vth_search_err
+    #del glb_vth_init
 
     if False:
         result = model_ann.evaluate(test_ds, callbacks=callbacks_test_ann)
@@ -1676,6 +1738,9 @@ else:
 
     num_batch = tf.cast(tf.math.ceil(num_target_sample / batch_size),tf.int32)
 
+    # TODO: why?
+    num_batch = 2
+
     for idx_batch in range(num_batch):
         calibration_batch_idx.append(idx_batch)
 
@@ -1714,10 +1779,35 @@ else:
     #calibration_batch_idx.append(25)
     #calibration_batch_idx.append(26)
 
+
+
+
+#    #if conf.model=='ResNet44':
+#    if conf.batch_size_inf != 400:
+#        if conf.batch_size_inf == 200:
+#            calibration_batch_idx_tmp = []
+#            for idx in calibration_batch_idx:
+#                calibration_batch_idx_tmp.append(2 * idx)
+#                calibration_batch_idx_tmp.append(2 * idx + 1)
+#
+#            calibration_batch_idx = calibration_batch_idx_tmp
+#        else:
+#            assert False
+
+    #assert (conf.batch_size_inf!=400) and (conf.model=='ResNet44')
+
     calibration_num_batch = len(calibration_batch_idx)
     count_cal_batch=0
 
+
+    #layers_record = []
+    #for layer in model_ann.layers:
+    #    if (layer in model_ann.layers_w_kernel) or (layer in model_ann.layers_w_act):
+    #        layers_record.append(layer)
+    #model_ann.layers_record = layers_record
+
     if conf.calibration_bias_new:
+        print('calibration bias')
 
         last_batch = False
         #for idx_batch in range(num_batch_for_vth_search):
@@ -1755,6 +1845,17 @@ else:
 
             #idx_batch = idx_batch+1
             #if idx_batch == num_batch_for_vth_search-1:
+
+            if False:
+                for layer in model_ann.layers:
+                    if hasattr(layer, 'record_output'):
+                        #print(layer)
+                        del layer.record_output
+
+                for layer in model.layers:
+                    if hasattr(layer, 'record_output'):
+                        # print(layer)
+                        del layer.record_output
 
             count_cal_batch = count_cal_batch + 1
 

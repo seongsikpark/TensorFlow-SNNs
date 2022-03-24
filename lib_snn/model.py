@@ -650,6 +650,11 @@ class Model(tf.keras.Model):
                             layer.bias_en_time = glb_t.t
                             layer.f_bias_ctrl = tf.math.logical_not(f_spike)
 
+                            #
+                            if self.conf.leak_off_after_bias_en:
+                                if isinstance(layer.act,lib_snn.neurons.Neuron):
+                                    layer.act.set_leak_const(tf.ones(layer.act.leak_const.shape))
+
                             if isinstance(layer, lib_snn.layers.Conv2D):
                                 ctrl = tf.expand_dims(layer.f_bias_ctrl, axis=1)
                                 ctrl = tf.expand_dims(ctrl, axis=2)
@@ -1098,8 +1103,16 @@ class Model(tf.keras.Model):
 
         if self.en_record_output:
             #self.layers_record = self.layers_w_kernel
-            self.layers_record = self.layers_w_act
-            #self.layers_record = self.layers
+            #self.layers_record = self.layers_w_act
+            #self.layers_record = self.layers[1:]
+            self.layers_record = []
+            for layer in self.layers:
+                if (layer in self.layers_w_kernel) or (layer in self.layers_w_act):
+                    self.layers_record.append(layer)
+
+            #for layer in self.layers_record:
+            #    print(layer.name)
+            #assert False
 
             #self.layers_record=[]
             #for layer in self.layers:

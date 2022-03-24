@@ -5,16 +5,27 @@
 #models=('ResNet18' 'ResNet34' 'ResNet18V2' 'ResNet34V2')
 #models=('ResNet20V2' 'ResNet32V2' 'ResNet44V2' 'ResNet56V2')
 
-models=('VGG16' 'ResNet20' 'ResNet32' 'ResNet44')
+#models=('VGG16' 'ResNet20' 'ResNet32' 'ResNet44')
+models=('VGG16' 'ResNet20' 'ResNet32')
+#models=('ResNet20' 'ResNet44')
+#models=('ResNet44' 'ResNet20')
 datasets=('CIFAR10')
 
 arr_neuron_type=('IF' 'LIF')
+#arr_neuron_type=('IF')
+#arr_neuron_type=('LIF')
 
 arr_vth_search=(True False)
+#arr_vth_search=(True)
+#arr_vth_search=(False)
 
 arr_calibration_bias=(True False)
+#arr_calibration_bias=(True)
+#arr_calibration_bias=(False)
 
 arr_bias_control=(True False)
+#arr_bias_control=(True)
+#arr_bias_control=(False)
 
 
 
@@ -37,8 +48,9 @@ for ((i_model=0;i_model<${#models[@]};i_model++)) do
 						bias_control=${arr_bias_control[$i_bias_control]}
 
 						#echo 'train - '${model}', '${dataset}
+						echo ${model} ${dataset} ${neuron_type} ${vth_search} ${calibration_bias} ${bias_control}
 
-						./run_train.sh ${model} ${dataset} ${neuron_type} ${vth_search} ${calibration_bias} ${bias_control}
+						./run_calib.sh ${model} ${dataset} ${neuron_type} ${vth_search} ${calibration_bias} ${bias_control}
 
 					done
 				done
