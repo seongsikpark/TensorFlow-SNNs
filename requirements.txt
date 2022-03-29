@@ -9,7 +9,7 @@ certifi==2019.6.16
 chardet==3.0.4
 cloudpickle==1.4.1
 cycler==0.10.0
-dataclasses==0.8
+dataclasses==0.6
 decorator==4.4.1
 dill==0.3.4
 dm-tree==0.1.6
@@ -42,7 +42,7 @@ opt-einsum==3.3.0
 panda==0.3.1
 pandas==0.25.0
 Pillow==6.1.0
-pprofile==2.0.2
+#pprofile==2.0.2
 promise==2.3
 protobuf==3.17.3
 pyasn1==0.4.8

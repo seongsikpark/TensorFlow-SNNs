@@ -1736,8 +1736,8 @@ class Model(tf.keras.Model):
             #for idx_layer, layer in enumerate(self.layers_w_act):
             #for idx_layer, layer in enumerate(self.layers_w_neuron):
 
-                print('here')
-                print(layer.name)
+                #print('here')
+                #print(layer.name)
 
                 layer_ann = model_ann.get_layer(layer.name)
 
@@ -1765,8 +1765,8 @@ class Model(tf.keras.Model):
                 #self.bias_control_th[layer.name] = tf.reduce_mean(non_zero_r)*0.1
                 #self.bias_control_th[layer.name] = tf.reduce_mean(non_zero_r)
                 #self.bias_control_th[layer.name] = 0.1
-                #self.bias_control_th[layer.name] = 0.01
-                self.bias_control_th[layer.name] = 0.001   # VGG
+                self.bias_control_th[layer.name] = 0.01
+                #self.bias_control_th[layer.name] = 0.001   # VGG
                 #self.bias_control_th[layer.name] = 0.0001
                 #self.bias_control_th[layer.name] = 0.00001
                 #self.bias_control_th[layer.name] = 0.00
