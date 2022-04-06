@@ -653,7 +653,20 @@ class Model(tf.keras.Model):
                             #
                             if self.conf.leak_off_after_bias_en:
                                 if isinstance(layer.act,lib_snn.neurons.Neuron):
+                                #if isinstance(layer.act, lib_snn.neurons.Neuron) and (layer.name!='predictions'):
                                     layer.act.set_leak_const(tf.ones(layer.act.leak_const.shape))
+
+                                if 'block' in layer.name:
+                                    conv_block_name = layer.name.split('_')
+                                    conv_name = conv_block_name[2]
+                                    conv_block_name = conv_block_name[0] + '_' + conv_block_name[1]
+
+                                    if 'conv2' in conv_name:
+                                        conv_block_out = conv_block_name + '_out'
+                                        layer_conv_block_out = self.get_layer(conv_block_out)
+                                        layer_conv_block_out.act.set_leak_const(
+                                            tf.ones(layer_conv_block_out.act.leak_const.shape))
+
 
                             if isinstance(layer, lib_snn.layers.Conv2D):
                                 ctrl = tf.expand_dims(layer.f_bias_ctrl, axis=1)
@@ -1736,8 +1749,8 @@ class Model(tf.keras.Model):
             #for idx_layer, layer in enumerate(self.layers_w_act):
             #for idx_layer, layer in enumerate(self.layers_w_neuron):
 
-                print('here')
-                print(layer.name)
+                #print('here')
+                #print(layer.name)
 
                 layer_ann = model_ann.get_layer(layer.name)
 
@@ -1764,9 +1777,9 @@ class Model(tf.keras.Model):
                 #self.bias_control_th[layer.name] = tf.reduce_mean(non_zero_r)*0.01
                 #self.bias_control_th[layer.name] = tf.reduce_mean(non_zero_r)*0.1
                 #self.bias_control_th[layer.name] = tf.reduce_mean(non_zero_r)
-                #self.bias_control_th[layer.name] = 0.1
-                #self.bias_control_th[layer.name] = 0.01
-                self.bias_control_th[layer.name] = 0.001   # VGG
+                #self.bias_control_th[layer.name] = 0.1  # ResNet-32 + leak_off_bias_en
+                self.bias_control_th[layer.name] = 0.01
+                #self.bias_control_th[layer.name] = 0.001   # VGG
                 #self.bias_control_th[layer.name] = 0.0001
                 #self.bias_control_th[layer.name] = 0.00001
                 #self.bias_control_th[layer.name] = 0.00

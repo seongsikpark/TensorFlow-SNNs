@@ -1358,8 +1358,13 @@ else:
         #comp_batch_index.append(40)
 
 
-    #comp_batch_index = [1,3,20,23]
-    comp_batch_index = [3,1,23,20]
+    if conf.dataset=='CIFAR10':
+        # comp_batch_index = [1,3,20,23]
+        comp_batch_index = [3, 1, 23, 20]
+    elif conf.dataset=='CIFAR100':
+        comp_batch_index = [1, 0]
+    else:
+        assert False
 
 
     #if conf.model=='ResNet44':
@@ -1373,6 +1378,11 @@ else:
             comp_batch_index = comp_batch_index_tmp
         else:
             assert False
+
+
+    if conf.vth_search_idx_test:
+        comp_batch_index= []
+        comp_batch_index.append(conf.vth_search_idx_test)
 
     #assert (conf.batch_size_inf!=400) and (conf.model=='ResNet44')
 
@@ -1689,11 +1699,6 @@ else:
     #calibration_ML=True
     #calibration_ML=False
 
-    calibration_batch_idx=[]
-
-    if conf.calibration_idx_test:
-        calibration_batch_idx.append(conf.calibration_idx)
-
     #calibration_batch_idx.append(0)
 
     #calibration_batch_idx.append(1)
@@ -1746,8 +1751,19 @@ else:
 
 
 
+    calibration_batch_idx=[]
 
+    #calibration_batch_idx.append(0)
+    #calibration_batch_idx.append(1)
+    #calibration_batch_idx.append(2)
+    #calibration_batch_idx.append(3)
     #calibration_batch_idx.append(10)
+    #calibration_batch_idx.append(20)
+    #calibration_batch_idx.append(11)
+    calibration_batch_idx.append(40)
+    #calibration_batch_idx.append(10)
+
+
     if False:
         calibration_batch_idx.append(1)
         calibration_batch_idx.append(2)
@@ -1795,6 +1811,13 @@ else:
 #            assert False
 
     #assert (conf.batch_size_inf!=400) and (conf.model=='ResNet44')
+
+
+
+    if conf.calibration_idx_test:
+        calibration_batch_idx = []
+        calibration_batch_idx.append(conf.calibration_idx)
+
 
     calibration_num_batch = len(calibration_batch_idx)
     count_cal_batch=0

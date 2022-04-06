@@ -635,7 +635,12 @@ def postproc_snn(self):
     print_results(self)
 
     #
-    if self.conf.full_test and not (self.run_for_calibration_ML or self.run_for_vth_search or self.f_vth_set_and_norm):
+    save_condition = (self.conf.full_test and \
+                     not (self.run_for_calibration_ML or self.run_for_vth_search or self.f_vth_set_and_norm))\
+                     or self.conf.calibration_idx_test or self.conf.vth_search_idx_test
+
+    #if self.conf.full_test and not (self.run_for_calibration_ML or self.run_for_vth_search or self.f_vth_set_and_norm):
+    if save_condition:
         save_results(self)
 
 
@@ -763,9 +768,13 @@ def save_results(self):
     if self.conf.calibration_vmem_ICML_21:
         config += '_cal-v-ML21'
 
+    # vth_search_test
+    if self.conf.vth_search_idx_test:
+        config += '_vth-test-idx-' + str(self.conf.vth_search_idx)
+
     # calibration test
     if self.conf.calibration_idx_test:
-        config += '_cal-test-idx-'+str(self.conf.calibration_idx)
+        config += '_cal-test-idx-' + str(self.conf.calibration_idx)
 
     # bias control
     if self.conf.bias_control:

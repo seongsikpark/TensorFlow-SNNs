@@ -78,7 +78,7 @@ def load(dataset_name,batch_size,input_size,input_size_pre_crop_ratio,num_class,
             idx_test_e = idx_test_s + conf.num_test_data
             split_test = tfds.core.ReadInstruction('test', from_=idx_test_s, to=idx_test_e, unit='abs')
 
-        if conf.calibration_idx_test or (not conf.train):
+        if conf.calibration_idx_test or conf.vth_search_idx_test or (not conf.train):
             train_ds, train_ds_info = tfds.load(dataset_name, split='train', shuffle_files=False, as_supervised=True, with_info=True)
             #train_ds, train_ds_info = tfds.load(dataset_name, split='train', shuffle_files=False, as_supervised=True, with_info=True)
         else:

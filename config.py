@@ -246,8 +246,10 @@ tf.compat.v1.app.flags.DEFINE_boolean('verbose_visual',False, 'verbose visual mo
 #tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220320_batch_run_calib_prop', 'exp set name')
 #tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220321_batch_run_calib_prop_b-200', 'exp set name')
 #tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220323_batch_run_calib_prop_b-400', 'exp set name')
-tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220324_time_dep_leaky_b-400', 'exp set name')
-#tf.compat.v1.app.flags.DEFINE_string('exp_set_name', 'manual_test', 'exp set name')
+#tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220324_time_dep_leaky_b-400', 'exp set name')
+#tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220401_CIFAR-100_calibration_idx_test', 'exp set name')
+#tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220403_test_CIFAR-100', 'exp set name')
+tf.compat.v1.app.flags.DEFINE_string('exp_set_name', 'manual_test', 'exp set name')
 
 
 # train mode
@@ -276,8 +278,8 @@ tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet32', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet50', 'model')
 
 # datasets
-tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR10', 'dataset')
-#tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR100', 'dataset')
+#tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR10', 'dataset')
+tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR100', 'dataset')
 
 #
 tf.compat.v1.app.flags.DEFINE_bool('load_best_model', True, 'load best model (model, dataset)')
@@ -327,7 +329,9 @@ tf.compat.v1.app.flags.DEFINE_boolean('use_bias', True, 'use bias')
 tf.compat.v1.app.flags.DEFINE_string('root_tensorboard', './tensorboard/', 'root - tensorboard')
 
 #tf.compat.v1.app.flags.DEFINE_string('root_model_best', './models_best', 'root model best')
-tf.compat.v1.app.flags.DEFINE_string('root_model_best', '../99_models', 'root model best')
+#tf.compat.v1.app.flags.DEFINE_string('root_model_best', '../99_models', 'root model best')
+tf.compat.v1.app.flags.DEFINE_string('root_model_best', '/home/sspark/Models/CNN', 'root model best')
+
 
 
 #
@@ -370,8 +374,8 @@ tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 1200, 'number of test dat
 ################################
 
 # neuron type in SNN
-tf.compat.v1.app.flags.DEFINE_string('n_type', 'IF', 'LIF or IF: neuron type')
-#tf.compat.v1.app.flags.DEFINE_string('n_type', 'LIF', 'LIF or IF: neuron type')
+#tf.compat.v1.app.flags.DEFINE_string('n_type', 'IF', 'LIF or IF: neuron type')
+tf.compat.v1.app.flags.DEFINE_string('n_type', 'LIF', 'LIF or IF: neuron type')
 
 tf.compat.v1.app.flags.DEFINE_enum('n_reset_type','reset_by_sub', ['reset_by_sub', 'reset_to_zero'], 'neuron reset type')
 #tf.compat.v1.app.flags.DEFINE_enum('n_reset_type','reset_to_zero', ['reset_by_sub', 'reset_to_zero'], 'neuron reset type')
@@ -451,8 +455,8 @@ tf.compat.v1.app.flags.DEFINE_bool('f_w_norm_data',True,'f_w_norm_data')
 #tf.compat.v1.app.flags.DEFINE_bool('f_w_norm_data',False,'f_w_norm_data')
 
 #
-#tf.compat.v1.app.flags.DEFINE_string('norm_stat','max_999','data-based normalization stat (max, max_999, mean, etc.)')
-tf.compat.v1.app.flags.DEFINE_string('norm_stat','max_997','data-based normalization stat (max, max_999, mean, etc.)')
+tf.compat.v1.app.flags.DEFINE_string('norm_stat','max_999','data-based normalization stat (max, max_999, mean, etc.)')
+#tf.compat.v1.app.flags.DEFINE_string('norm_stat','max_997','data-based normalization stat (max, max_999, mean, etc.)')
 
 
 tf.compat.v1.app.flags.DEFINE_bool('f_write_stat',False,'write stat')
@@ -545,6 +549,11 @@ tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_up_prog',False,'calibration
 
 #tf.compat.v1.app.flags.DEFINE_bool('weight_comp_proposed',False,'calibration - bias, new')
 tf.compat.v1.app.flags.DEFINE_bool('weight_comp_proposed',True,'calibration - bias, new')
+
+#
+tf.compat.v1.app.flags.DEFINE_bool('vth_search_idx_test',False,'vth_search_idx test')
+#tf.compat.v1.app.flags.DEFINE_bool('vth_search_idx_test',True,'vth_search_idx test')
+tf.compat.v1.app.flags.DEFINE_integer('vth_search_idx',0,'vth_search_idx')
 
 
 #

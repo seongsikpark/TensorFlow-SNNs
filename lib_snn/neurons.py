@@ -88,7 +88,8 @@ class Neuron(tf.keras.layers.Layer):
 
 
         #leak_const = 1.0
-        leak_const = 0.99
+        #leak_const = 0.99
+        leak_const = 0.985
         #leak_const = 0.98
 
         #if depth==4:
@@ -104,17 +105,21 @@ class Neuron(tf.keras.layers.Layer):
 
         #if depth==16:
         if self.n_type=='OUT':
+            #leak_const = 0.1
+            #leak_const = 0.5
             #leak_const = 0.8
             #leak_const = 0.90
             #leak_const = 0.91
             #leak_const = 0.94
-            leak_const = 0.95
+            #leak_const = 0.95
+
             #leak_const = 0.96
             #leak_const = 0.97
             #leak_const = 0.98
             #leak_const = 0.99
             #leak_const = 0.92
             #leak_const = 0.93
+            leak_const = 0.985
             #leak_const = 0.99
             #leak_const = 0.1
 
@@ -456,7 +461,7 @@ class Neuron(tf.keras.layers.Layer):
 
         alpha = 0.99
         #alpha = 0.90
-        if t < 35:
+        if t < 20:
             leak_const = self.leak_const_init
         else:
             leak_const = tf.ones(self.leak_const_init.shape)
