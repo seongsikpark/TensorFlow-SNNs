@@ -642,7 +642,8 @@ def postproc_snn(self):
     print_results(self)
 
     #
-    save_condition = (self.conf.full_test and \
+    save_condition = self.f_save_result and \
+                    (self.conf.full_test and \
                      not (self.run_for_calibration_ML or self.run_for_vth_search or self.f_vth_set_and_norm))\
                      or self.conf.calibration_idx_test or self.conf.vth_search_idx_test
 

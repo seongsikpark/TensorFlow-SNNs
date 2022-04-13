@@ -249,7 +249,8 @@ tf.compat.v1.app.flags.DEFINE_boolean('verbose_visual',False, 'verbose visual mo
 #tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220324_time_dep_leaky_b-400', 'exp set name')
 #tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220401_CIFAR-100_calibration_idx_test', 'exp set name')
 #tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220403_test_CIFAR-100', 'exp set name')
-tf.compat.v1.app.flags.DEFINE_string('exp_set_name', 'manual_test', 'exp set name')
+tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220411_manual_test', 'exp set name')
+#tf.compat.v1.app.flags.DEFINE_string('exp_set_name', 'manual_test', 'exp set name')
 
 
 # train mode
@@ -265,8 +266,8 @@ tf.compat.v1.app.flags.DEFINE_bool('dnn_to_snn', True, 'dnn-to-snn conversion')
 tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'SNN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
 
 # models
-tf.compat.v1.app.flags.DEFINE_string('model', 'VGG16', 'model')
-#tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet20', 'model')
+#tf.compat.v1.app.flags.DEFINE_string('model', 'VGG16', 'model')
+tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet20', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet32', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet44', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet56', 'model')

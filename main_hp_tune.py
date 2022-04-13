@@ -89,7 +89,7 @@ from lib_snn.sim import glb_bias_comp
 
 # GPU setting
 #
-GPU_NUMBER=0
+GPU_NUMBER=1
 
 GPU_PARALLEL_RUN = 1
 #GPU_PARALLEL_RUN = 2
@@ -1358,11 +1358,17 @@ else:
         #comp_batch_index.append(40)
 
 
+
     if conf.dataset=='CIFAR10':
-        # comp_batch_index = [1,3,20,23]
-        comp_batch_index = [3, 1, 23, 20]
+        #comp_batch_index = [1,3,20,23]
+        comp_batch_index = [3,1,23,20]
     elif conf.dataset=='CIFAR100':
-        comp_batch_index = [1, 0]
+        #comp_batch_index = [6,7,8,9,10]
+        #comp_batch_index = [1,3,5,0]
+        #comp_batch_index = [1,0]
+        #comp_batch_index = [1]
+        #comp_batch_index = [33]
+        comp_batch_index = [24]
     else:
         assert False
 
@@ -1763,7 +1769,6 @@ else:
     calibration_batch_idx.append(40)
     #calibration_batch_idx.append(10)
 
-
     if False:
         calibration_batch_idx.append(1)
         calibration_batch_idx.append(2)
@@ -1813,6 +1818,8 @@ else:
     #assert (conf.batch_size_inf!=400) and (conf.model=='ResNet44')
 
 
+    calibration_batch_idx=[]
+    calibration_batch_idx.append(40)
 
     if conf.calibration_idx_test:
         calibration_batch_idx = []
@@ -1910,6 +1917,7 @@ else:
     if (not conf.full_test) and conf.verbose_visual:
         lib_snn.sim.set_for_visual_debug(True)
 
+    callbacks_test[0].f_save_result=True
     result = model.evaluate(test_ds, callbacks=callbacks_test)
     lib_snn.sim.set_for_visual_debug(False)
 

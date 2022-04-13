@@ -19,12 +19,12 @@ for ((i=0;i<125;i++))
 do
   echo $i
   python main_hp_tune.py \
-  	-exp_set_name='220410_vth_search_idx_test_ts-128'\
-  	-model='ResNet32'\
+  	-exp_set_name='220414_vth_search_idx_test-ResNet20-CIFAR100_ts-128'\
+  	-model='ResNet20'\
   	-dataset='CIFAR100'\
   	-time_step=128\
   	-early_stop_search=True\
-  	-early_stop_search_acc=90.0\
+  	-early_stop_search_acc=0.7\
     -vth_search_idx_test=True\
     -vth_search_idx=${i}
 done
