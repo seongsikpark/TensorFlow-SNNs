@@ -367,7 +367,9 @@ def postproc_batch(self):
         #print(self.model)
         idx_acc = self.model.metrics_names.index('acc')
         acc=self.model.metrics[idx_acc].result().numpy()
+        #print('debug early stop inference')
         #print(acc)
+        #print(self.conf.early_stop_search_acc)
 
         if acc < self.conf.early_stop_search_acc:
             assert False
@@ -642,10 +644,10 @@ def postproc_snn(self):
     print_results(self)
 
     #
-    save_condition = self.f_save_result and \
-                    (self.conf.full_test and \
+    save_condition = (self.conf.full_test and \
                      not (self.run_for_calibration_ML or self.run_for_vth_search or self.f_vth_set_and_norm))\
                      or self.conf.calibration_idx_test or self.conf.vth_search_idx_test
+    save_condition = save_condition and self.f_save_result
 
     #if self.conf.full_test and not (self.run_for_calibration_ML or self.run_for_vth_search or self.f_vth_set_and_norm):
     if save_condition:

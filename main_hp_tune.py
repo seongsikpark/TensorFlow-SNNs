@@ -89,7 +89,7 @@ from lib_snn.sim import glb_bias_comp
 
 # GPU setting
 #
-GPU_NUMBER=1
+GPU_NUMBER=0
 
 GPU_PARALLEL_RUN = 1
 #GPU_PARALLEL_RUN = 2
@@ -1358,17 +1358,12 @@ else:
         #comp_batch_index.append(40)
 
 
-
     if conf.dataset=='CIFAR10':
-        #comp_batch_index = [1,3,20,23]
-        comp_batch_index = [3,1,23,20]
+        # comp_batch_index = [1,3,20,23]
+        comp_batch_index = [3, 1, 23, 20]
     elif conf.dataset=='CIFAR100':
-        #comp_batch_index = [6,7,8,9,10]
-        #comp_batch_index = [1,3,5,0]
-        #comp_batch_index = [1,0]
-        #comp_batch_index = [1]
-        #comp_batch_index = [33]
-        comp_batch_index = [24]
+        #comp_batch_index = [1, 0]
+        comp_batch_index = [97]
     else:
         assert False
 

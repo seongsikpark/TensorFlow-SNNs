@@ -15,10 +15,8 @@ data_root='../results'
 #exp_name='220323_batch_run_calib_prop_b-400'
 #exp_name='220401_CIFAR-100_calibration_idx_test'
 #exp_name='220406_vth_search_idx_test'
-#exp_name='220406_vth_search_idx_test-ResNet20-CIFAR100'
-#exp_name='220410_vth_search_idx_test-ResNet20-CIFAR100'
-exp_name='220410_vth_search_idx_test-ResNet20-CIFAR100_ts-128'
-
+#exp_name='220406_vth_search_idx_test_VGG16_CIFAR100'
+exp_name='220410_vth_search_idx_test_VGG16_CIFAR100'
 
 #model_dataset='VGG16_CIFAR10'
 #model_dataset='ResNet20_CIFAR100'

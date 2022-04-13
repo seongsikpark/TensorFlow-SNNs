@@ -271,9 +271,6 @@ tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet20', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet32', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet44', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet56', 'model')
-
-
-
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet18', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet34', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet50', 'model')
