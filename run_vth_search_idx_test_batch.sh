@@ -19,6 +19,7 @@ for ((i=0;i<125;i++))
 do
   echo $i
   python main_hp_tune.py \
+    -verbose=False\
   	-exp_set_name='220414_vth_search_idx_test_VGG16_CIFAR100_ts-128'\
   	-model='VGG16'\
   	-dataset='CIFAR100'\

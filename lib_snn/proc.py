@@ -230,7 +230,8 @@ def calibration_static(self):
     self.calibration_static_done = True
 
 def calibration_act_based(self):
-    print('calibration_act_based')
+    if self.conf.verbose:
+        print('calibration_act_based')
 
     if self.conf.calibration_weight_act_based:
         lib_snn.calibration.weight_calibration_act_based(self)
@@ -239,7 +240,8 @@ def calibration_act_based(self):
 
 
 def calibration_act_based_post(self):
-    print('calibration_act_based_post')
+    if self.conf.verbose:
+        print('calibration_act_based_post')
 
     #assert tf.math.logical_not(tf.math.reduce_all(self.conf.calibration_bias,self.conf.calibration_bias_ICLR_21,self.conf.calibration_bias_ICML_21))
     assert tf.math.logical_not(tf.math.logical_and(self.conf.calibration_vmem,self.conf.calibration_vmem_ICML_21))
@@ -661,7 +663,7 @@ def postproc_snn(self):
 
 
 
-    if self.conf.bias_control:
+    if self.conf.verbose and self.conf.bias_control:
         print('bias en time')
 
         # for layer in self.layers_w_kernel:
@@ -1195,17 +1197,17 @@ def w_norm_data_channel_wise(self, f_norm, stat, dict_stat=None):
                 #print(norm)
                 self.norm[l.name] = norm / np.expand_dims(self.norm_b[prev_name],axis=0).T
 
-
-                print('l_name: - {}'.format(l.name))
-                print('l_name_prev: - {}'.format(prev_name))
-                print('')
+                #if self.conf.verbose:
+                    #print('l_name: - {}'.format(l.name))
+                    #print('l_name_prev: - {}'.format(prev_name))
+                    #print('')
 
             elif ('conv' in l.name):
                 conv_block_name = l.name.split('_')
                 conv_name = conv_block_name[2]
                 conv_block_name = conv_block_name[0] + '_' + conv_block_name[1]
 
-                print('conv_name - {}'.format(conv_name))
+                #print('conv_name - {}'.format(conv_name))
 
                 if 'conv0' in conv_name:
                     norm_l_name = self.model.block_norm_out_name[conv_block_name]
@@ -1238,9 +1240,9 @@ def w_norm_data_channel_wise(self, f_norm, stat, dict_stat=None):
                     self.norm[l.name] = norm / np.expand_dims(norm_prev, axis=0).T
 
                 #
-                print('norm_l_name: - {}'.format(norm_l_name))
-                print('norm_prev_l_name: - {}'.format(norm_prev_l_name))
-                print('')
+                #print('norm_l_name: - {}'.format(norm_l_name))
+                #print('norm_prev_l_name: - {}'.format(norm_prev_l_name))
+                #print('')
 
             else:
                 assert False

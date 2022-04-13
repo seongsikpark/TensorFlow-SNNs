@@ -1570,8 +1570,6 @@ def vth_set_and_norm(self):
     #error_level = 'layer'
     error_level = 'channel'
 
-
-
     #for idx_l, l in enumerate(self.model.layers_w_kernel):
     for idx_l, l in enumerate(self.model.layers_w_act):
 
@@ -1913,11 +1911,12 @@ def vth_set_and_norm(self):
             #if layer.name in norm_b_wc.keys():
             layer.bias = layer.bias / norm_b_wc[layer.name]
 
-        print('layer norm')
-        for layer in self.model.layers_w_kernel:
-            print(layer.name)
-            print(norm_wc[layer.name])
-            print(norm_b_wc[layer.name])
+        if self.conf.verbose:
+            print('layer norm')
+            for layer in self.model.layers_w_kernel:
+                print(layer.name)
+                print(norm_wc[layer.name])
+                print(norm_b_wc[layer.name])
 
     else:
     #if True:
@@ -1979,11 +1978,12 @@ def vth_set_and_norm(self):
                 #
                 l.act.set_vth_init(vth_init_fm)
 
-    print('layer norm')
-    for layer in self.model.layers_w_kernel:
-        print(layer.name)
-        print(norm_wc[layer.name])
-        print(norm_b_wc[layer.name])
+    if self.conf.verbose:
+        print('layer norm')
+        for layer in self.model.layers_w_kernel:
+            print(layer.name)
+            print(norm_wc[layer.name])
+            print(norm_b_wc[layer.name])
 
 
 # TODO: merge, move
@@ -2380,7 +2380,7 @@ def bias_calibration_ICML_21(self):
             #print(dnn_act.shape)
             #print(snn_act.shape)
 
-            print(l.name)
+            #print(l.name)
             #print(dnn_act)
             #print(snn_act)
             assert not(dnn_act is None), 'dnn_act is none'
@@ -2412,11 +2412,11 @@ def bias_calibration_ICML_21(self):
             #print('bias_comp (pre mean): {:}'.format(tf.reduce_mean(bias_comp)))
             #print('bias_comp: {:}'.format(tf.reduce_mean(bias_comp)))
 
-
-            if l.name=='predictions':
-                print('bias_comp: {} - {:}'.format(l.name, bias_comp))
-                #print(tf.argmax(bias_comp,axis=1))
-                print(tf.argmax(bias_comp))
+            if self.conf.verbose:
+                if l.name=='predictions':
+                    print('bias_comp: {} - {:}'.format(l.name, bias_comp))
+                    #print(tf.argmax(bias_comp,axis=1))
+                    print(tf.argmax(bias_comp))
 
             # test
             #r = tf.random.uniform(shape=bias_comp.shape,minval=0,maxval=1)
