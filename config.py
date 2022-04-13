@@ -265,9 +265,9 @@ tf.compat.v1.app.flags.DEFINE_bool('dnn_to_snn', True, 'dnn-to-snn conversion')
 tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'SNN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
 
 # models
-#tf.compat.v1.app.flags.DEFINE_string('model', 'VGG16', 'model')
+tf.compat.v1.app.flags.DEFINE_string('model', 'VGG16', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet20', 'model')
-tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet32', 'model')
+#tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet32', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet44', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet56', 'model')
 
@@ -426,8 +426,8 @@ tf.compat.v1.app.flags.DEFINE_enum('snn_output_type',"VMEM", ["SPIKE", "VMEM", "
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 2048, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 1024, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 512, 'time steps per sample in SNN')
-tf.compat.v1.app.flags.DEFINE_integer('time_step', 256, 'time steps per sample in SNN')
-#tf.compat.v1.app.flags.DEFINE_integer('time_step', 128, 'time steps per sample in SNN')
+#tf.compat.v1.app.flags.DEFINE_integer('time_step', 256, 'time steps per sample in SNN')
+tf.compat.v1.app.flags.DEFINE_integer('time_step', 128, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 64, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 32, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 20, 'time steps per sample in SNN')
@@ -549,6 +549,14 @@ tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_up_prog',False,'calibration
 
 #tf.compat.v1.app.flags.DEFINE_bool('weight_comp_proposed',False,'calibration - bias, new')
 tf.compat.v1.app.flags.DEFINE_bool('weight_comp_proposed',True,'calibration - bias, new')
+
+
+#
+tf.compat.v1.app.flags.DEFINE_bool('early_stop_search',False,'early stop - vth_search_idx_test and calibration_idx_test')
+#tf.compat.v1.app.flags.DEFINE_bool('early_stop_search',True,'early stop - vth_search_idx_test and calibration_idx_test')
+tf.compat.v1.app.flags.DEFINE_float('early_stop_search_acc',0.0,'early stop accuracy (0~1)')
+#tf.compat.v1.app.flags.DEFINE_float('early_stop_search_acc',0.9,'early stop accuracy (0~1)')
+
 
 #
 tf.compat.v1.app.flags.DEFINE_bool('vth_search_idx_test',False,'vth_search_idx test')

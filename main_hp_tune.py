@@ -1382,7 +1382,7 @@ else:
 
     if conf.vth_search_idx_test:
         comp_batch_index= []
-        comp_batch_index.append(conf.vth_search_idx_test)
+        comp_batch_index.append(conf.vth_search_idx)
 
     #assert (conf.batch_size_inf!=400) and (conf.model=='ResNet44')
 

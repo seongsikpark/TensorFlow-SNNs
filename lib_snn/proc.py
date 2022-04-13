@@ -325,8 +325,6 @@ def postproc_batch(self):
         lib_snn.calibration.bias_calibration_ICML_21(self)
 
 
-
-
     #
     if False:
         print('non zero ratio in ann act (postproc_batch)')
@@ -364,6 +362,15 @@ def postproc_batch(self):
             print('{:<8}: nonzero - {:.4f}, act - {:.4f}, kernel - {:.4f}, bias - {:.4f}'.format(layer.name,n_m,a_m,k_m,b_m))
 
 
+    # early stop inference
+    if self.conf.early_stop_search:
+        #print(self.model)
+        idx_acc = self.model.metrics_names.index('acc')
+        acc=self.model.metrics[idx_acc].result().numpy()
+        #print(acc)
+
+        if acc < self.conf.early_stop_search_acc:
+            assert False
 
 # TODO: move to model.py
 def collect_record_output(self):
