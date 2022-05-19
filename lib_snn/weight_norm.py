@@ -22,7 +22,7 @@ def save_act_stat(self):
     #path_stat=os.path.join(path_stat,model_dataset)
 
 
-    path_stat = os.path.join(self.path_model,self.conf.path_stat)
+    path_stat = os.path.join(self.path_model_load,self.conf.path_stat)
 
     #f_name_stat='act_n_train_after_w_norm_max_999'
     #f_name_stat='act_n_train'

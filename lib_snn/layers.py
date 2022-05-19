@@ -230,8 +230,31 @@ class Layer():
             self.act = self.act_dnn
 
         #
+        if self.conf.fine_tune_quant:
+            #self.quant_max = tf.Variable(tf.zeros([]),trainable=False,name=name+'/quant_max')
+            #self.quant_max = tf.constant(0.0,shape=[],name='quant_max')
+
+            if hasattr(self, 'act'):
+                #if not isinstance(layer,lib_snn.layers.InputGenLayer):
+                #if not layer.act_dnn is None:
+                #if not (layer.activation is None):
+                if not (self.act_dnn is None):
+                    #print(self)
+                    #print(self.name)
+                    stat = lib_snn.calibration.read_stat(None, self, 'max_999')
+                    stat_max = tf.reduce_max(stat)
+                    self.quant_max = tf.constant(stat_max,shape=[],name=self.name+'/quant_max')
+                    #layer.quant_max = tf.Variable(stat_max, trainable=False, name='quant_max')
+
+        #
         self.built = True
         #print('build layer - done')
+
+    def init_record_output(self):
+        self.record_output = tf.Variable(tf.zeros(self.output_shape_fixed_batch),trainable=False,name='record_output')
+        if self.last_layer:
+            self.record_logit= tf.Variable(tf.zeros(self.output_shape_fixed_batch),trainable=False,name='record_logit')
+
 
     #
     # def call(self,input,training):
@@ -302,10 +325,17 @@ class Layer():
         #if self.quant_act:
         ##    #n = tf.quantization.fake_quant_with_min_max_vars(n,0,1,num_bits=8)
         #    #n = tf.quantization.fake_quant_with_min_max_vars(n,0,1,num_bits=8)
-        #    #n=tf.quantize_and_dequantize_v4(n, 0, 1, signed_input=False, num_bits=8, range_given=True)
+            if self.conf.fine_tune_quant and (not self.last_layer):
+                #n=tf.quantize_and_dequantize_v4(n, 0, 1, signed_input=False, num_bits=8, range_given=True)
+                n = tf.quantize_and_dequantize_v4(n, 0, self.quant_max, signed_input=False, num_bits=8, range_given=True)
+                #n = tf.quantize_and_dequantize_v4(n, 0, self.quant_max, signed_input=False, num_bits=12, range_given=True)
         #    n=tf.quantize_and_dequantize_v4(n, 0, 1, signed_input=False, num_bits=16, range_given=True)
         #    #n = tf.quantization.quantize(n,0,1,T=tf.qint8)
-
+        #if self.name=='conv1' and glb.model_compiled:
+        #    print('layer - {}'.format(self.name))
+        #    self.n =n
+        #    print
+        #    assert False
         ret = n
 
         #if self.en_snn:
@@ -336,10 +366,12 @@ class Layer():
 
 
         if self.en_record_output:
-            self.record_output = ret
+            #self.record_output = ret
+            self.record_output.assign(ret)
             #if self.name == 'predictions':
             if self.last_layer:
-                self.record_logit = b
+                #self.record_logit = b
+                self.record_logit.assign(b)
 
         # debug
         # TODO: debug mode set - glb.model_compiled and self.conf.debug_mode and ~~
@@ -618,6 +650,7 @@ class Conv2D(Layer, tf.keras.layers.Conv2D):
             # dynamic=True,
             **kwargs)
 
+
         #
         Layer.index += 1
         self.depth = Layer.index
@@ -720,7 +753,8 @@ class Identity(Layer, tf.keras.layers.Layer):
         ret = tf.add(ret,self.bias)
 
         if self.en_record_output:
-            self.record_output = ret
+            #self.record_output = ret
+            self.record_output.assign(ret)
 
         return ret
 

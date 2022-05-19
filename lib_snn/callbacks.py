@@ -9,6 +9,8 @@ from tensorflow.python.keras.utils.io_utils import path_to_string
 #
 import lib_snn
 
+from lib_snn import config_glb
+
 class ManageSavedModels(tf.keras.callbacks.Callback):
     def __init__(self,
                  filepath,
@@ -21,7 +23,10 @@ class ManageSavedModels(tf.keras.callbacks.Callback):
 
     #
     def check_and_remove(self):
-        list_dir = os.listdir(self.filepath)
+        try:
+            list_dir = os.listdir(self.filepath)
+        except FileNotFoundError:
+            return
 
         if len(list_dir) <= self.max_to_keep:
             return
@@ -116,12 +121,13 @@ class TensorboardBestValAcc(tf.keras.callbacks.Callback):
 
 #
 class SNNLIB(tf.keras.callbacks.Callback):
-    def __init__(self, conf, path_model, test_ds_num, model_ann=None, **kwargs):
+    def __init__(self, conf, path_model_load, test_ds_num, model_ann=None, **kwargs):
         super(SNNLIB, self).__init__(**kwargs)
         self.conf = conf
-        self.path_model = path_model
+        self.path_model_load = path_model_load
         self.test_ds_num = test_ds_num
         self.model_ann = model_ann
+
 
         #
         self.total_num_neurons = 0
@@ -174,7 +180,19 @@ class SNNLIB(tf.keras.callbacks.Callback):
     #def build(self):
         #lib_snn.proc.set_init(self)
 
+    def on_train_begin(self, logs=None):
+        #init
+        #lib_snn.proc_train.preproc(self)
+        lib_snn.proc.preproc(self)
+
+    def on_epoch_end(self, epoch, logs=None):
+        pass
+        #assert False
+
+
     def on_test_begin(self, logs=None):
+        #print("on_test_begin")
+        #if self.conf.mode=='inference':
         # initialization
         lib_snn.proc.preproc(self)
 
@@ -183,14 +201,22 @@ class SNNLIB(tf.keras.callbacks.Callback):
 
 
     def on_test_end(self, logs=None):
+        #if self.conf.mode=='inference':
         lib_snn.proc.postproc(self)
 
+        #
+        #for v in self.model.variables:
+        #    print(v.name)
+
+
     def on_test_batch_begin(self, batch, logs=None):
-        #print('on_test_batch_begin')
+        # print('on_test_batch_begin')
+        #if self.conf.mode=='inference':
         lib_snn.proc.preproc_batch(self)
 
     def on_test_batch_end(self, batch, logs=None):
         #print('on_test_batch_end')
+        #if self.conf.mode=='inference':
         lib_snn.proc.postproc_batch(self)
 
 

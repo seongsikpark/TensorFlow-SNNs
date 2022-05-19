@@ -25,6 +25,11 @@ import lib_snn
 from lib_snn.sim import glb_t
 from lib_snn.sim import glb_plot
 
+########################################
+# init (on_train_begin)
+########################################
+
+
 
 ########################################
 # preprocessing (on_test_begin)
@@ -90,6 +95,20 @@ def set_init(self):
 
     self.model.init(self.model_ann)
 
+    # quantization fine tuning
+#    if self.conf.fine_tune_quant:
+#        #if False:
+#        for layer in self.model.layers_w_act:
+#            stat=lib_snn.calibration.read_stat(self,layer,'max_999')
+#            stat_max = tf.reduce_max(stat)
+#            #layer.quant_max = tf.Variable(stat_max,trainable=False,name='quant_max')
+#            layer.quant_max.assign(stat_max)
+#            #layer.quant_max = tf.constant(stat_max,shape=[],name='quant_max')
+#            print('proproc_ann')
+#            print(layer.name)
+#            print(layer.quant_max)
+#
+
 
     self.init_done=True
 
@@ -120,6 +139,9 @@ def preproc_ann(self):
     if self.conf.f_surrogate_training_model:
         assert False
         #self.preproc_surrogate_training_model()
+
+
+
 
 #
 def preproc_snn(self):
@@ -386,7 +408,7 @@ def collect_record_output(self):
 
             if not (layer.name in self.model.dict_stat_w.keys()):
                 #self.dict_stat_w[layer.name] = layer.record_output.numpy()
-                self.model.dict_stat_w[layer.name] = tf.Variable(layer.record_output)
+                self.model.dict_stat_w[layer.name] = tf.Variable(layer.record_output,trainable=False)
             else:
                 self.model.dict_stat_w[layer.name] = tf.concat([self.model.dict_stat_w[layer.name],layer.record_output],0)
                 #prev = self.dict_stat_w[layer.name]
@@ -792,6 +814,11 @@ def save_results(self):
     if self.conf.bias_control:
         config += '_bc'
 
+
+    # dynamic_bn test
+    if self.conf.dynamic_bn_test:
+        config += '_dbn-' + str(self.conf.dynamic_bn_dnn_act_scale) + '-' + str(self.conf.dynamic_bn_test_const)
+
     #
     file = config+'.xlsx'
 
@@ -839,7 +866,7 @@ def w_norm_data(self):
     #f_name_stat_pre=model_dataset
     #path_stat = os.path.join(path_stat,model_dataset)
 
-    path_stat = os.path.join(self.path_model,self.conf.path_stat)
+    path_stat = os.path.join(self.path_model_load,self.conf.path_stat)
 
     #stat_conf=['max','mean','max_999','max_99','max_98']
 

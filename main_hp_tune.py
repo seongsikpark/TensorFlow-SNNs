@@ -77,6 +77,9 @@ from lib_snn.sim import glb_vth_init
 from lib_snn.sim import glb_bias_comp
 
 #
+from lib_snn import config_glb
+
+#
 #conf = flags.FLAGS
 
 ########################################
@@ -89,7 +92,7 @@ from lib_snn.sim import glb_bias_comp
 
 # GPU setting
 #
-GPU_NUMBER=0
+GPU_NUMBER=1
 
 GPU_PARALLEL_RUN = 1
 #GPU_PARALLEL_RUN = 2
@@ -126,14 +129,15 @@ exp_set_name = conf.exp_set_name
 #    exp_set_name = _exp_set_name
 
 # hyperparamter tune mode
-#hp_tune = True
-hp_tune = False
+hp_tune = True
+#hp_tune = False
 
 
 #
 #train=True
 #train=False
-train=conf.train
+
+train= (conf.mode=='train') or (conf.mode=='load_and_train')
 
 # TODO: parameterize
 load_model=True
@@ -150,10 +154,16 @@ overwrite_train_model=False
 #
 overwrite_tensorboard = True
 
+#
+#tf.config.experimental.enable_tensor_float_32_execution(conf.tf32_mode)
+tf.config.experimental.enable_tensor_float_32_execution(False)
+
 #epoch = 20000
 #epoch = 20472
 #train_epoch = 300
 train_epoch = 1000
+#train_epoch = 3000
+#train_epoch =560
 #train_epoch = 1
 
 
@@ -169,6 +179,7 @@ root_hp_tune = './hp_tune'
 #
 #root_model = './models_trained'
 root_model = './models_trained_resnet_relu_debug'
+#root_model = conf.root_model
 
 # model
 #model_name = 'VGG16'
@@ -475,7 +486,11 @@ metric_accuracy_top5.name = metric_name_acc_top5
 
 #
 if conf.load_best_model:
-    root_model = conf.root_model_best
+    root_model_load = conf.root_model_best
+else:
+    root_model_load = conf.root_model_load
+
+root_model_save = conf.root_model_save
 
 
 # TODO: configuration & file naming
@@ -484,7 +499,12 @@ model_dataset_name = model_name + '_' + dataset_name
 
 # path_model = './'+exp_set_name
 #path_model = os.path.join(root_model, exp_set_name)
-path_model = os.path.join(root_model, model_dataset_name)
+#path_model = os.path.join(root_model, model_dataset_name)
+path_model_load = os.path.join(root_model_load, model_dataset_name)
+path_model_save = os.path.join(root_model_save, model_dataset_name)
+
+config_glb.path_model_load = path_model_load
+config_glb.path_stat = conf.path_stat
 
 
 # hyperparameter tune name
@@ -528,16 +548,22 @@ elif en_cutmix:
     config_name += '_cm'
 
 #
-if train:
-    filepath = os.path.join(path_model, config_name)
+
+#if train:
+#    filepath = os.path.join(path_model, config_name)
+#else:
+#    if conf.load_best_model:
+#        filepath = path_model
+#    else:
+#        filepath = os.path.join(path_model, config_name)
+
+
+if conf.load_best_model:
+    filepath_load = path_model_load
 else:
-    if conf.load_best_model:
-        filepath = path_model
-    else:
-        filepath = os.path.join(path_model, config_name)
+    filepath_load = os.path.join(path_model_load, config_name)
 
-
-
+filepath_save = os.path.join(path_model_save, config_name)
 
 ########################################
 #
@@ -549,8 +575,8 @@ if load_model:
     # get latest saved model
     #latest_model = lib_snn.util.get_latest_saved_model(filepath)
 
-    latest_model = lib_snn.util.get_latest_saved_model(filepath)
-    load_weight = os.path.join(filepath, latest_model)
+    latest_model = lib_snn.util.get_latest_saved_model(filepath_load)
+    load_weight = os.path.join(filepath_load, latest_model)
     print('load weight: '+load_weight)
     #pre_model = tf.keras.models.load_model(load_weight)
 
@@ -560,7 +586,14 @@ if load_model:
 
     if not latest_model.startswith('ep-'):
         assert False, 'the name of latest model should start with ''ep-'''
-    init_epoch = int(re.split('-|\.',latest_model)[1])
+
+    if conf.mode=='inference':
+        init_epoch = int(re.split('-|\.',latest_model)[1])
+    elif conf.mode=='load_and_train':
+        init_epoch = 0
+    else:
+        assert False
+
 
     include_top = True
     add_top = False
@@ -611,6 +644,10 @@ if conf.debug_mode:
 # for HP tune
 model_top_glb = model_top
 
+# glb config set
+config_glb.path_model_load = path_model_load
+config_glb.path_stat = conf.path_stat
+
 #
 # model builder
 if f_hp_tune:
@@ -639,12 +676,12 @@ if f_hp_tune:
     hp_tune_args['train_steps_per_epoch'] = train_steps_per_epoch
 
     #hp_model_builder = partial(model_builder, hp, hps)
-    hp_model_builder = lib_snn.hp_tune_model.CustomHyperModel(hp_tune_args, hps)
+    hp_model = lib_snn.hp_tune_model.CustomHyperModel(hp_tune_args, hps)
 
 
     #tuner = kt.Hyperband(model_builder,
     #tuner=kt.RandomSearch(model_builder,
-    tuner=lib_snn.hp_tune.GridSearch(hp_model_builder,
+    tuner=lib_snn.hp_tune.GridSearch(hp_model,
                          objective='val_acc',
                          #max_trials=12,
                          #max_epochs = 300,
@@ -684,19 +721,23 @@ if conf.nn_mode=='SNN' and conf.dnn_to_snn:
     #model_ann.set_en_snn('ANN')
 
     model_ann.load_weights(load_weight)
+    #model_ann.load_weights(load_weight,by_name=True)
 
     print('-- model_ann - load done')
     model.load_weights_dnn_to_snn(model_ann)
+    #model.load_weights_dnn_to_snn(model_ann,by_name=True)
 
     #del(model_ann)
 
 
 elif load_model:
-    model.load_weights(load_weight)
-    #model.load_weights(load_weight, by_name=True, skip_mismatch=True)
-    #model.load_weights_custom(load_weight)
-    #model.load_weights(load_weight, by_name=True)
-    # model.load_weights(load_weight,by_name=
+    if not f_hp_tune:
+        #model.load_weights(load_weight)
+        model.load_weights(load_weight,by_name=True,skip_mismatch=True)
+        #model.load_weights(load_weight, by_name=True, skip_mismatch=True)
+        #model.load_weights_custom(load_weight)
+        #model.load_weights(load_weight, by_name=True)
+        # model.load_weights(load_weight,by_name=
 
 if conf.nn_mode=='ANN':
     model_ann=None
@@ -779,8 +820,8 @@ if conf.nn_mode=='ANN':
 # remove dir - train model
 if not load_model:
     if overwrite_train_model:
-        if os.path.isdir(filepath):
-            shutil.rmtree(filepath)
+        if os.path.isdir(filepath_save):
+            shutil.rmtree(filepath_save)
 
 # path_tensorboard = root_tensorboard+exp_set_name
 # path_tensorboard = root_tensorboard+filepath
@@ -809,7 +850,7 @@ if not overwrite_tensorboard:
 ########
 
 #
-if train and load_model:
+if train and load_model and (not f_hp_tune):
     print('Evaluate pretrained model')
     assert monitor_cri == 'val_acc', 'currently only consider monitor criterion - val_acc'
     result = model.evaluate(valid_ds)
@@ -823,7 +864,7 @@ else:
 cb_model_checkpoint = lib_snn.callbacks.ModelCheckpointResume(
     # filepath=filepath + '/ep-{epoch:04d}',
     # filepath=filepath + '/ep-{epoch:04d}.ckpt',
-    filepath=filepath + '/ep-{epoch:04d}.hdf5',
+    filepath=filepath_save + '/ep-{epoch:04d}.hdf5',
     save_weight_only=True,
     save_best_only=True,
     monitor=monitor_cri,
@@ -832,15 +873,16 @@ cb_model_checkpoint = lib_snn.callbacks.ModelCheckpointResume(
     log_dir=path_tensorboard,
     # tensorboard_writer=cb_tensorboard._writers['train']
 )
-cb_manage_saved_model = lib_snn.callbacks.ManageSavedModels(filepath=filepath)
+cb_manage_saved_model = lib_snn.callbacks.ManageSavedModels(filepath=filepath_save)
 cb_tensorboard = tf.keras.callbacks.TensorBoard(log_dir=path_tensorboard, update_freq='epoch')
 
 #cb_dnntosnn = lib_snn.callbacks.DNNtoSNN()
-cb_libsnn = lib_snn.callbacks.SNNLIB(conf,path_model,test_ds_num,model_ann)
-cb_libsnn_ann = lib_snn.callbacks.SNNLIB(conf,path_model,test_ds_num)
+cb_libsnn = lib_snn.callbacks.SNNLIB(conf,path_model_load,test_ds_num,model_ann)
+cb_libsnn_ann = lib_snn.callbacks.SNNLIB(conf,path_model_load,test_ds_num)
 
 #
-callbacks_train = [cb_tensorboard]
+callbacks_train = [cb_tensorboard,cb_libsnn]
+#callbacks_train = [cb_tensorboard]
 if save_model:
     callbacks_train.append(cb_model_checkpoint)
     callbacks_train.append(cb_manage_saved_model)
@@ -854,6 +896,7 @@ callbacks_test = []
 callbacks_test = [cb_libsnn]
 callbacks_test_ann = [cb_libsnn_ann]
 
+#assert False
 #
 if train:
     if hp_tune:
@@ -1359,11 +1402,14 @@ else:
 
 
     if conf.dataset=='CIFAR10':
-        # comp_batch_index = [1,3,20,23]
-        comp_batch_index = [3, 1, 23, 20]
+        #comp_batch_index = [1,3,20,23]  # VGG16, CIFAR10, not optmized
+        #comp_batch_index = [3, 1, 23, 20]
+        comp_batch_index = [4,100]      # ResNet20, ts-64
+        #pass
     elif conf.dataset=='CIFAR100':
         #comp_batch_index = [1, 0]
-        comp_batch_index = [97]
+        #comp_batch_index = [97]
+        comp_batch_index = [24]     # ResNet20, ts-64,128
     else:
         assert False
 
@@ -1383,6 +1429,7 @@ else:
 
     if conf.vth_search_idx_test:
         comp_batch_index= []
+        comp_batch_index = [4,100]      # ResNet20, ts-64
         comp_batch_index.append(conf.vth_search_idx)
 
     #assert (conf.batch_size_inf!=400) and (conf.model=='ResNet44')
@@ -1400,7 +1447,7 @@ else:
     vth_search_num_batch = len(comp_batch_index)
     #count_vth_search_batch = 0
 
-    if conf.vth_search:
+    if conf.nn_mode=='SNN' and conf.dnn_to_snn and conf.vth_search:
 
         # for initial setting
         #ds_one_batch = train_ds.take(1)
@@ -1814,10 +1861,22 @@ else:
 
 
     calibration_batch_idx=[]
-    calibration_batch_idx.append(40)
+    #calibration_batch_idx.append(40)
+    ## ResNet20, CIFAR10
+    #calibration_batch_idx.append(61)
+    #calibration_batch_idx.append(18)
+
+    # VGG16, CIFAR10
+    calibration_batch_idx.append(0)
+    calibration_batch_idx.append(1)
+    calibration_batch_idx.append(10)
+    calibration_batch_idx.append(20)
+
 
     if conf.calibration_idx_test:
         calibration_batch_idx = []
+        calibration_batch_idx.append(61)
+        calibration_batch_idx.append(18)
         calibration_batch_idx.append(conf.calibration_idx)
 
 
@@ -1831,7 +1890,7 @@ else:
     #        layers_record.append(layer)
     #model_ann.layers_record = layers_record
 
-    if conf.calibration_bias_new:
+    if conf.nn_mode=='SNN' and conf.dnn_to_snn and conf.calibration_bias_new:
         print('calibration bias')
 
         last_batch = False
@@ -1921,8 +1980,10 @@ else:
 
     print(result)
 
-    #
+
+    ########################################
     # dynamic, static ratio
+    ########################################
     if conf.ds_err_act_check and conf.nn_mode=='SNN' and (not conf.f_write_stat):
 
         model.evaluate(ds_err_act, callbacks=callbacks_test)

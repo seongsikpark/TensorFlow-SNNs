@@ -22,6 +22,7 @@ from lib_snn import hp_tune_model
 from lib_snn import model_builder
 
 from lib_snn import proc
+from lib_snn import proc_train
 
 from lib_snn import training
 
