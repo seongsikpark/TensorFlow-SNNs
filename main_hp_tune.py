@@ -69,6 +69,7 @@ global model_name
 from lib_snn.sim import glb_plot
 from lib_snn.sim import glb_plot_1
 from lib_snn.sim import glb_plot_2
+from lib_snn.sim import glb_plot_3
 
 from lib_snn.sim import glb_ig_attributions
 from lib_snn.sim import glb_rand_vth
@@ -92,7 +93,7 @@ from lib_snn import config_glb
 
 # GPU setting
 #
-GPU_NUMBER=1
+GPU_NUMBER=0
 
 GPU_PARALLEL_RUN = 1
 #GPU_PARALLEL_RUN = 2
@@ -129,8 +130,9 @@ exp_set_name = conf.exp_set_name
 #    exp_set_name = _exp_set_name
 
 # hyperparamter tune mode
-hp_tune = True
+#hp_tune = True
 #hp_tune = False
+hp_tune = conf.hp_tune
 
 
 #
@@ -164,6 +166,7 @@ tf.config.experimental.enable_tensor_float_32_execution(False)
 train_epoch = 1000
 #train_epoch = 3000
 #train_epoch =560
+#train_epoch = 10
 #train_epoch = 1
 
 
@@ -322,7 +325,8 @@ assert conf.data_format == 'channels_last', 'not support "{}", only support chan
 ########################################
 
 #
-f_hp_tune = train and hp_tune
+f_hp_tune_train = train and hp_tune
+f_hp_tune_load = (not train) and hp_tune
 
 # data augmentation - mix
 
@@ -493,20 +497,6 @@ else:
 root_model_save = conf.root_model_save
 
 
-# TODO: configuration & file naming
-#exp_set_name = model_name + '_' + dataset_name
-model_dataset_name = model_name + '_' + dataset_name
-
-# path_model = './'+exp_set_name
-#path_model = os.path.join(root_model, exp_set_name)
-#path_model = os.path.join(root_model, model_dataset_name)
-path_model_load = os.path.join(root_model_load, model_dataset_name)
-path_model_save = os.path.join(root_model_save, model_dataset_name)
-
-config_glb.path_model_load = path_model_load
-config_glb.path_stat = conf.path_stat
-
-
 # hyperparameter tune name
 #hp_tune_name = exp_set_name+'_'+model_dataset_name+'_ep-'+str(train_epoch)
 hp_tune_name = exp_set_name
@@ -558,12 +548,39 @@ elif en_cutmix:
 #        filepath = os.path.join(path_model, config_name)
 
 
-if conf.load_best_model:
-    filepath_load = path_model_load
-else:
-    filepath_load = os.path.join(path_model_load, config_name)
+# TODO: configuration & file naming
+#exp_set_name = model_name + '_' + dataset_name
+model_dataset_name = model_name + '_' + dataset_name
 
-filepath_save = os.path.join(path_model_save, config_name)
+# path_model = './'+exp_set_name
+#path_model = os.path.join(root_model, exp_set_name)
+#path_model = os.path.join(root_model, model_dataset_name)
+
+if conf.name_model_load=='':
+    path_model_load = os.path.join(root_model_load, model_dataset_name)
+    if conf.load_best_model:
+        filepath_load = path_model_load
+    else:
+        filepath_load = os.path.join(path_model_load, config_name)
+else:
+    path_model_load = conf.name_model_load
+    filepath_load = path_model_load
+
+if conf.name_model_save=='':
+    path_model_save = os.path.join(root_model_save, model_dataset_name)
+    filepath_save = os.path.join(path_model_save, config_name)
+else:
+    path_model_save = conf.name_model_save
+    filepath_save = path_model_save
+
+config_glb.path_model_load = path_model_load
+config_glb.path_stat = conf.path_stat
+
+#if conf.load_best_model:
+#    filepath_load = path_model_load
+#else:
+#    filepath_load = os.path.join(path_model_load, config_name)
+#filepath_save = os.path.join(path_model_save, config_name)
 
 ########################################
 #
@@ -571,13 +588,12 @@ filepath_save = os.path.join(path_model_save, config_name)
 
 model_top = model_sel(model_name,train_type)
 
-if load_model:
+if load_model and (not f_hp_tune_load):
     # get latest saved model
     #latest_model = lib_snn.util.get_latest_saved_model(filepath)
 
     latest_model = lib_snn.util.get_latest_saved_model(filepath_load)
     load_weight = os.path.join(filepath_load, latest_model)
-    print('load weight: '+load_weight)
     #pre_model = tf.keras.models.load_model(load_weight)
 
     #latest_model = lib_snn.util.get_latest_saved_model(filepath)
@@ -585,14 +601,22 @@ if load_model:
 
 
     if not latest_model.startswith('ep-'):
-        assert False, 'the name of latest model should start with ''ep-'''
+        #assert False, 'the name of latest model should start with ''ep-'''
+        print('the name of latest model should start with ep-')
 
-    if conf.mode=='inference':
-        init_epoch = int(re.split('-|\.',latest_model)[1])
-    elif conf.mode=='load_and_train':
+        load_weight = tf.train.latest_checkpoint(filepath_load)
+
+        # TODO:
         init_epoch = 0
     else:
-        assert False
+        print('load weight: '+load_weight)
+
+        if conf.mode=='inference':
+            init_epoch = int(re.split('-|\.',latest_model)[1])
+        elif conf.mode=='load_and_train':
+            init_epoch = 0
+        else:
+            assert False
 
 
     include_top = True
@@ -650,7 +674,7 @@ config_glb.path_stat = conf.path_stat
 
 #
 # model builder
-if f_hp_tune:
+if f_hp_tune_train or f_hp_tune_load:
 
     # TODO: move to config.py
     #hp_model_builder = model_builder
@@ -686,7 +710,7 @@ if f_hp_tune:
                          #max_trials=12,
                          #max_epochs = 300,
                          #factor=3,
-                         overwrite=True,
+                         #overwrite=True,
                          directory=root_hp_tune,
                          project_name=hp_tune_name,
                          #directory='test_hp_dir',
@@ -731,13 +755,35 @@ if conf.nn_mode=='SNN' and conf.dnn_to_snn:
 
 
 elif load_model:
-    if not f_hp_tune:
-        #model.load_weights(load_weight)
-        model.load_weights(load_weight,by_name=True,skip_mismatch=True)
-        #model.load_weights(load_weight, by_name=True, skip_mismatch=True)
+    if f_hp_tune_load:
+        tuner.reload()
+        best_model = tuner.get_best_models()[0]
+        print(tuner)
+        print(tuner.directory)
+        #print(tuner.load_model(0))
+        print(tuner.get_best_models()[0])
+        print(tuner.get_best_hyperparameters(num_trials=1)[0].values)
+        print(tuner.results_summary(num_trials=2))
+
+        print('best trial')
+        best_trial = tuner.oracle.get_best_trials(num_trials=1)[0]
+        print(best_trial.trial_id)
+
+        print('best model evaluate')
+        best_model.evaluate(test_ds)
+
+        print('test model evaluate')
+        #test_model = tuner.load_model(tuner.oracle.get_best_trials(num_trials=2)[1])
+        test_model = tuner.get_best_models(num_models=2)[1]
+        test_model.evaluate(test_ds)
+
+        assert False
+
+    elif not f_hp_tune_train:
+        model.load_weights(load_weight)
+        #model.load_weights(load_weight,by_name=True,skip_mismatch=True)
         #model.load_weights_custom(load_weight)
         #model.load_weights(load_weight, by_name=True)
-        # model.load_weights(load_weight,by_name=
 
 if conf.nn_mode=='ANN':
     model_ann=None
@@ -826,7 +872,7 @@ if not load_model:
 # path_tensorboard = root_tensorboard+exp_set_name
 # path_tensorboard = root_tensorboard+filepath
 
-if f_hp_tune:
+if f_hp_tune_train:
     path_tensorboard = os.path.join(root_tensorboard, hp_tune_name)
 
 else:
@@ -850,7 +896,7 @@ if not overwrite_tensorboard:
 ########
 
 #
-if train and load_model and (not f_hp_tune):
+if train and load_model and (not f_hp_tune_train):
     print('Evaluate pretrained model')
     assert monitor_cri == 'val_acc', 'currently only consider monitor criterion - val_acc'
     result = model.evaluate(valid_ds)
@@ -896,7 +942,6 @@ callbacks_test = []
 callbacks_test = [cb_libsnn]
 callbacks_test_ann = [cb_libsnn_ann]
 
-#assert False
 #
 if train:
     if hp_tune:
@@ -1406,10 +1451,19 @@ else:
         #comp_batch_index = [3, 1, 23, 20]
         comp_batch_index = [4,100]      # ResNet20, ts-64
         #pass
+        # comp_batch_index = [1,3,20,23]
+        #comp_batch_index = [3, 1, 23, 20]
+        comp_batch_index = [92]
     elif conf.dataset=='CIFAR100':
         #comp_batch_index = [1, 0]
         #comp_batch_index = [97]
         comp_batch_index = [24]     # ResNet20, ts-64,128
+        #comp_batch_index = [97]
+        #comp_batch_index = [34]
+        if conf.model=='VGG16':
+            comp_batch_index = [34,79]
+        else:
+            assert False
     else:
         assert False
 
@@ -1430,6 +1484,7 @@ else:
     if conf.vth_search_idx_test:
         comp_batch_index= []
         comp_batch_index = [4,100]      # ResNet20, ts-64
+        comp_batch_index = [34,79]      # VGG16, CIFAR100
         comp_batch_index.append(conf.vth_search_idx)
 
     #assert (conf.batch_size_inf!=400) and (conf.model=='ResNet44')
@@ -1872,11 +1927,27 @@ else:
     calibration_batch_idx.append(10)
     calibration_batch_idx.append(20)
 
+    #calibration_batch_idx.append(40)
+
+    if conf.dataset=='CIFAR10':
+        calibration_batch_idx.append(1) # tmp
+        pass
+        #assert False
+    elif conf.dataset=='CIFAR100':
+        if conf.model == 'VGG16':
+            #calibration_batch_idx.append(1)
+            calibration_batch_idx.append(55)
+            #pass
+        else:
+            assert False
+    else:
+        assert False
 
     if conf.calibration_idx_test:
         calibration_batch_idx = []
-        calibration_batch_idx.append(61)
-        calibration_batch_idx.append(18)
+        calibration_batch_idx.append(55)    # VGG16, CIFAR100
+        calibration_batch_idx.append(61)    # ResNet20?, CIFAR100?
+        calibration_batch_idx.append(18)    # ResNet20?, CIFAR100?
         calibration_batch_idx.append(conf.calibration_idx)
 
 
@@ -2075,6 +2146,40 @@ else:
 #
 if (not conf.full_test) and conf.verbose_visual:
     plt.show()
+
+
+#
+#if (not conf.full_test) and conf.verbose_visual:
+
+verbose_visual_tmp=False
+if (not conf.full_test) and verbose_visual_tmp:
+
+    #
+    model_ann.evaluate(test_ds, callbacks=callbacks_test_ann)
+
+    #
+    for layer in model.layers:
+        if hasattr(layer,'en_record_output'):
+            if layer.en_record_output:
+                if isinstance(layer.act,lib_snn.neurons.Neuron):
+                    axe=glb_plot_3.axes.flatten()[layer.depth]
+
+                    vth = conf.n_init_vth
+                    ann_out = model_ann.get_layer(layer.name).record_output
+                    ann_out = tf.math.floor(ann_out/vth*conf.time_step)
+                    ann_out = tf.clip_by_value(ann_out,0,conf.time_step)
+                    ann_out = ann_out*vth/conf.time_step
+
+                    snn_out = layer.act.spike_count/conf.time_step
+
+                    axe.hist(ann_out.numpy().flatten(),bins=100,density=True)
+                    snn_hist = axe.hist(snn_out.numpy().flatten(),bins=100,density=True)
+                    ylim = np.mean(snn_hist[0][0:10])
+                    axe.set_ylim([0,ylim])
+
+
+
+plt.show()
 
 
 

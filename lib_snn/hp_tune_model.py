@@ -74,11 +74,13 @@ def model_builder_default(hp, args, hps):
 
     # hp_lmb = hp.Choice('lmb', values = [5e-4, 1e-4, 5e-5])
     hp_lmb = hp.Choice('lmb', values=[1e-4, 5e-5, 1e-5])
+    #hp_lmb = hp.Choice('lmb', values=[1e-4, 5e-5])
 
     # hp_learning_rate = hp.Choice('learning_rate', values = [0.1, 0.2])
     # hp_learning_rate = hp.Choice('learning_rate', values = [0.01, 0.015, 0.02])
     #hp_learning_rate = hp.Choice('learning_rate', values=[0.005])
     hp_learning_rate = hp.Choice('learning_rate', values=[0.001, 0.005, 0.01, 0.05, 0.1])
+    #hp_learning_rate = hp.Choice('learning_rate', values=[0.001])
 
     hp_initial_channels = hp.Choice('initial_channel', values=[64])
 
@@ -90,6 +92,7 @@ def model_builder_default(hp, args, hps):
         hp_lr_schedule, hp_step_decay_epoch,
         metric_accuracy, metric_accuracy_top5)
 
-    model.load_weights(load_weight)
+    if not load_weight is None:
+        model.load_weights(load_weight)
 
     return model

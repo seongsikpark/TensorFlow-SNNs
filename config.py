@@ -249,7 +249,10 @@ tf.compat.v1.app.flags.DEFINE_boolean('verbose_visual',False, 'verbose visual mo
 #tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220324_time_dep_leaky_b-400', 'exp set name')
 #tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220401_CIFAR-100_calibration_idx_test', 'exp set name')
 #tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220403_test_CIFAR-100', 'exp set name')
-tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220411_manual_test', 'exp set name')
+#tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220411_manual_test', 'exp set name')     # hp_tune old
+#tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220607_finetune_vgg16_cifar10_q6', 'exp set name')
+#tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220607_finetune_test', 'exp set name')
+tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220522_finetune_vgg16_cifar10_quant-6', 'exp set name')
 #tf.compat.v1.app.flags.DEFINE_string('exp_set_name', 'manual_test', 'exp set name')
 
 
@@ -261,6 +264,9 @@ tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220411_manual_test', 'exp 
 tf.compat.v1.app.flags.DEFINE_enum('mode', 'load_and_train', ['train', 'load_and_train', 'inference'], 'run mode')
 #tf.compat.v1.app.flags.DEFINE_bool('train', True, 'train mode')
 
+#
+#tf.compat.v1.app.flags.DEFINE_bool('hp_tune', False, 'hyperparameter tune mode')
+tf.compat.v1.app.flags.DEFINE_bool('hp_tune', True, 'hyperparameter tune mode')
 
 
 #
@@ -336,10 +342,17 @@ tf.compat.v1.app.flags.DEFINE_string('root_tensorboard', './tensorboard/', 'root
 #tf.compat.v1.app.flags.DEFINE_string('root_model_best', './models_best', 'root model best')
 #tf.compat.v1.app.flags.DEFINE_string('root_model_best', '../99_models', 'root model best')
 tf.compat.v1.app.flags.DEFINE_string('root_model_best', '/home/sspark/Models/CNN', 'root model best')
-tf.compat.v1.app.flags.DEFINE_string('root_model_save', './models', 'root model best')
-tf.compat.v1.app.flags.DEFINE_string('root_model_load', '/home/sspark/Models/CNN', 'root model best')
-#tf.compat.v1.app.flags.DEFINE_string('root_model_load', '/home/sspark/Models/CNN', 'root model best')
+tf.compat.v1.app.flags.DEFINE_string('root_model_save', './models', 'root model save')
+tf.compat.v1.app.flags.DEFINE_string('root_model_load', '/home/sspark/Projects/00_SNN/models', 'root model load')
+#tf.compat.v1.app.flags.DEFINE_string('root_model_load', '/home/sspark/Models/CNN', 'root model load')
 
+#
+tf.compat.v1.app.flags.DEFINE_string('name_model_load','','default - root_model_load/model_dataset/conf')
+#tf.compat.v1.app.flags.DEFINE_string('name_model_load','/home/sspark/Projects/00_SNN/hp_tune/220411_manual_test/trial_0005','default - root_model_load/model_dataset/conf')
+#tf.compat.v1.app.flags.DEFINE_string('name_model_load','/home/sspark/Projects/00_SNN/hp_tune/220607_finetune_test/trial_0000','default - root_model_load/model_dataset/conf')
+
+
+tf.compat.v1.app.flags.DEFINE_string('name_model_save','','default - root_model_save/model_dataset/conf')
 
 
 
@@ -355,7 +368,7 @@ tf.compat.v1.app.flags.DEFINE_bool('debug_mode', False, 'debug mode')
 tf.compat.v1.app.flags.DEFINE_bool('full_test', True, 'full dataset test')
 #tf.compat.v1.app.flags.DEFINE_bool('full_test', False, 'full dataset test')
 
-#tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 0, 'start index of test data')
+tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 0, 'start index of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 1250, 'start index of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 1312, 'start index of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 9, 'start index of test data')
@@ -364,14 +377,14 @@ tf.compat.v1.app.flags.DEFINE_bool('full_test', True, 'full dataset test')
 #tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 800, 'start index of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 900, 'start index of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 1110, 'start index of test data')
-tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 1101, 'start index of test data')
+#tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 1101, 'start index of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 1100, 'start index of test data')
 
 #tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 1600, 'number of test data')
-tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 1200, 'number of test data')
+#tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 1200, 'number of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 800, 'number of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 400, 'number of test data')
-#tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 100, 'number of test data')
+tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 100, 'number of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 50, 'number of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 10, 'number of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 3, 'number of test data')
@@ -436,8 +449,8 @@ tf.compat.v1.app.flags.DEFINE_enum('snn_output_type',"VMEM", ["SPIKE", "VMEM", "
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 1024, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 512, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 256, 'time steps per sample in SNN')
-tf.compat.v1.app.flags.DEFINE_integer('time_step', 128, 'time steps per sample in SNN')
-#tf.compat.v1.app.flags.DEFINE_integer('time_step', 64, 'time steps per sample in SNN')
+#tf.compat.v1.app.flags.DEFINE_integer('time_step', 128, 'time steps per sample in SNN')
+tf.compat.v1.app.flags.DEFINE_integer('time_step', 64, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 32, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 20, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 16, 'time steps per sample in SNN')
@@ -559,10 +572,13 @@ tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_up_prog',False,'calibration
 #tf.compat.v1.app.flags.DEFINE_bool('weight_comp_proposed',False,'calibration - bias, new')
 tf.compat.v1.app.flags.DEFINE_bool('weight_comp_proposed',True,'calibration - bias, new')
 
+tf.compat.v1.app.flags.DEFINE_bool('idx_search_append',False,'idx search append mode')
+#tf.compat.v1.app.flags.DEFINE_bool('idx_search_append',True,'idx search append mode')
 
 #
-tf.compat.v1.app.flags.DEFINE_bool('early_stop_search',False,'early stop - vth_search_idx_test and calibration_idx_test')
-#tf.compat.v1.app.flags.DEFINE_bool('early_stop_search',True,'early stop - vth_search_idx_test and calibration_idx_test')
+#tf.compat.v1.app.flags.DEFINE_bool('early_stop_search',False,'early stop - vth_search_idx_test and calibration_idx_test')
+tf.compat.v1.app.flags.DEFINE_bool('early_stop_search',True,'early stop - vth_search_idx_test and calibration_idx_test')
+
 tf.compat.v1.app.flags.DEFINE_float('early_stop_search_acc',0.0,'early stop accuracy (0~1)')
 #tf.compat.v1.app.flags.DEFINE_float('early_stop_search_acc',0.9,'early stop accuracy (0~1)')
 
@@ -611,8 +627,8 @@ tf.compat.v1.app.flags.DEFINE_bool('ds_err_act_check',False,'dynamic/static acti
 #tf.compat.v1.app.flags.DEFINE_bool('ds_err_act_check',True,'dynamic/static activation check')
 
 # finetune - quantization
-#tf.compat.v1.app.flags.DEFINE_bool('fine_tune_quant',False,'fine tuning - quantization')
-tf.compat.v1.app.flags.DEFINE_bool('fine_tune_quant',True,'fine tuning - quantization')
+tf.compat.v1.app.flags.DEFINE_bool('fine_tune_quant',False,'fine tuning - quantization')
+#tf.compat.v1.app.flags.DEFINE_bool('fine_tune_quant',True,'fine tuning - quantization')
 
 
 
