@@ -1298,7 +1298,7 @@ def calibration_bias_set(self):
 
         #if not l.name is 'predictions':
         if True:
-            print(l.name)
+            #print(l.name)
             #print(l.bias)
             if ('ResNet' in self.model.name) and ('out' in l.name):
                 if not hasattr(l, 'bias'):
@@ -1338,9 +1338,9 @@ def calibration_bias_set(self):
 
 
 
-
-            if l.name == 'predictions':
-                print('biac_comp_tot: {} - {}'.format(l.name,glb_bias_comp[l.name]))
+            if self.conf.verbose:
+                if l.name == 'predictions':
+                    print('bias_comp_tot: {} - {}'.format(l.name,glb_bias_comp[l.name]))
 
 
 
@@ -2140,7 +2140,8 @@ def bias_calibration_ICLR_21(self):
 
         l.bias = l.bias + bias_comp
 
-        print('bias_comp: {:}'.format(bias_comp))
+        if self.conf.verbose:
+            print('bias_comp: {:}'.format(bias_comp))
 
     print('- Done')
 

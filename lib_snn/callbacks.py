@@ -14,7 +14,7 @@ from lib_snn import config_glb
 class ManageSavedModels(tf.keras.callbacks.Callback):
     def __init__(self,
                  filepath,
-                 max_to_keep=5,
+                 max_to_keep=1,
                  **kwargs):
         super(ManageSavedModels, self).__init__()
 

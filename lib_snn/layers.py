@@ -333,7 +333,8 @@ class Layer():
         #    #n = tf.quantization.fake_quant_with_min_max_vars(n,0,1,num_bits=8)
             if self.conf.fine_tune_quant and (not self.last_layer):
                 #n=tf.quantize_and_dequantize_v4(n, 0, 1, signed_input=False, num_bits=8, range_given=True)
-                n = tf.quantize_and_dequantize_v4(n, 0, self.quant_max, signed_input=False, num_bits=8, range_given=True)
+                #n = tf.quantize_and_dequantize_v4(n, 0, self.quant_max, signed_input=False, num_bits=8, range_given=True)
+                n = tf.quantize_and_dequantize_v4(n, 0, self.quant_max, signed_input=False, num_bits=6, range_given=True)
                 #n = tf.quantize_and_dequantize_v4(n, 0, self.quant_max, signed_input=False, num_bits=12, range_given=True)
         #    n=tf.quantize_and_dequantize_v4(n, 0, 1, signed_input=False, num_bits=16, range_given=True)
         #    #n = tf.quantization.quantize(n,0,1,T=tf.qint8)
