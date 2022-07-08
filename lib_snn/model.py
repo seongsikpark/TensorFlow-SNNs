@@ -41,7 +41,7 @@ from lib_snn.sim import glb_plot_1x2
 
 class Model(tf.keras.Model):
     count=0
-    def __init__(self, inputs, outputs, batch_size, input_shape, data_format, num_class, conf, **kwargs):
+    def __init__(self, inputs, outputs, batch_size, input_shape, num_class, conf, **kwargs):
     #def __init__(self, batch_size, input_shape, data_format, num_class, conf, **kwargs):
 
         #print("lib_SNN - Layer - init")
@@ -67,7 +67,7 @@ class Model(tf.keras.Model):
 
         #
         self.conf = conf
-        Model.data_format = data_format
+        Model.data_format = conf.data_format
         self.kernel_size = None                 # for conv layer
         #self.num_class = conf.num_class
         self.num_class = num_class
@@ -1678,7 +1678,10 @@ class Model(tf.keras.Model):
                         self.prev_layer_name_bias_control[l.name] = prev_layer_conv_block_name+'_conv1'
 
                 elif 'conv2' in conv_name:
-                    self.prev_layer_name[l.name] = conv_block_name+'_conv1'
+                    self.prev_layer_name[l.name] = conv_block_name + '_conv1'
+                    self.prev_layer_name_bias_control[l.name] = self.prev_layer_name[l.name]
+                elif 'conv3' in conv_name:
+                    self.prev_layer_name[l.name] = conv_block_name + '_conv2'
                     self.prev_layer_name_bias_control[l.name] = self.prev_layer_name[l.name]
                 else:
                     print(l.name)

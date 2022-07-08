@@ -10,15 +10,18 @@ def model_builder(
     train_epoch, train_steps_per_epoch,
     opt, learning_rate,
     lr_schedule, step_decay_epoch,
-    metric_accuracy, metric_accuracy_top5
+    metric_accuracy, metric_accuracy_top5,
+    dataset_name
 ):
 
     print('Model Builder - {}'.format(conf.nn_mode))
     glb.model_compile_done_reset()
 
     # model
-    model_top = model_top(batch_size=batch_size, input_shape=image_shape, conf=conf, include_top=include_top,
-                          weights=load_weight, classes=num_class, name=model_name, lmb=lmb,
+    model_top = model_top(batch_size=batch_size, input_shape=image_shape, conf=conf,
+                          model_name=model_name, weights=load_weight,
+                          dataset_name=dataset_name, classes=num_class,
+                          include_top=include_top,
                           initial_channels=initial_channels)
 
 

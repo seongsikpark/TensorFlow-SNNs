@@ -18,6 +18,9 @@ import tensorflow_probability as tfp
 from tensorflow.python.keras.engine import data_adapter
 
 #
+from tensorflow.python.keras.utils import data_utils
+
+#
 from absl import app
 from absl import flags
 
@@ -92,7 +95,7 @@ from lib_snn import config_glb
 
 # GPU setting
 #
-GPU_NUMBER=1
+GPU_NUMBER=2
 
 GPU_PARALLEL_RUN = 1
 #GPU_PARALLEL_RUN = 2
@@ -445,22 +448,6 @@ else:
 image_shape = (input_size, input_size, 3)
 
 
-# dataset load
-#dataset = dataset_sel[dataset_name]
-#train_ds, valid_ds, test_ds = dataset.load(dataset_name,input_size,input_size_pre_crop_ratio,num_class,train,NUM_PARALLEL_CALL,conf,input_prec_mode)
-train_ds, valid_ds, test_ds, train_ds_num, valid_ds_num, test_ds_num, num_class =\
-    datasets.datasets.load(dataset_name,batch_size,input_size,train_type,train,conf,NUM_PARALLEL_CALL)
-
-
-# data-based weight normalization (DNN-to-SNN conversion)
-if conf.f_write_stat and conf.f_stat_train_mode:
-    test_ds = train_ds
-
-#assert False
-train_steps_per_epoch = train_ds.cardinality().numpy()
-
-
-
 
 # model compile
 metric_accuracy = tf.keras.metrics.categorical_accuracy
@@ -505,6 +492,8 @@ path_model_save = os.path.join(root_model_save, model_dataset_name)
 
 config_glb.path_model_load = path_model_load
 config_glb.path_stat = conf.path_stat
+config_glb.model_name = model_name
+config_glb.dataset_name = dataset_name
 
 
 # hyperparameter tune name
@@ -565,45 +554,70 @@ else:
 
 filepath_save = os.path.join(path_model_save, config_name)
 
+
+
 ########################################
-#
+# load dataset
+########################################
+# dataset load
+#dataset = dataset_sel[dataset_name]
+#train_ds, valid_ds, test_ds = dataset.load(dataset_name,input_size,input_size_pre_crop_ratio,num_class,train,NUM_PARALLEL_CALL,conf,input_prec_mode)
+train_ds, valid_ds, test_ds, train_ds_num, valid_ds_num, test_ds_num, num_class = \
+    datasets.datasets.load(model_name, dataset_name,batch_size,input_size,train_type,train,conf,NUM_PARALLEL_CALL)
+
+
+# data-based weight normalization (DNN-to-SNN conversion)
+if conf.f_write_stat and conf.f_stat_train_mode:
+    test_ds = train_ds
+
+#assert False
+train_steps_per_epoch = train_ds.cardinality().numpy()
+
+########################################
+# load model
 ########################################
 
 model_top = model_sel(model_name,train_type)
 
+# TODO: integration - ImageNet
 if load_model:
-    # get latest saved model
-    #latest_model = lib_snn.util.get_latest_saved_model(filepath)
-
-    latest_model = lib_snn.util.get_latest_saved_model(filepath_load)
-    load_weight = os.path.join(filepath_load, latest_model)
-    print('load weight: '+load_weight)
-    #pre_model = tf.keras.models.load_model(load_weight)
-
-    #latest_model = lib_snn.util.get_latest_saved_model(filepath)
-    #load_weight = os.path.join(filepath, latest_model)
-
-
-    if not latest_model.startswith('ep-'):
-        assert False, 'the name of latest model should start with ''ep-'''
-
-    if conf.mode=='inference':
-        init_epoch = int(re.split('-|\.',latest_model)[1])
-    elif conf.mode=='load_and_train':
-        init_epoch = 0
+    if conf.dataset == 'ImageNet':
+        load_weight = 'imagenet'
+        include_top = True
+        add_top = False
     else:
-        assert False
+        # get latest saved model
+        #latest_model = lib_snn.util.get_latest_saved_model(filepath)
+
+        latest_model = lib_snn.util.get_latest_saved_model(filepath_load)
+        load_weight = os.path.join(filepath_load, latest_model)
+        print('load weight: '+load_weight)
+        #pre_model = tf.keras.models.load_model(load_weight)
+
+        #latest_model = lib_snn.util.get_latest_saved_model(filepath)
+        #load_weight = os.path.join(filepath, latest_model)
 
 
-    include_top = True
-    add_top = False
+        if not latest_model.startswith('ep-'):
+            assert False, 'the name of latest model should start with ''ep-'''
 
-    #if train_type == 'transfer':
-        #model_top = model_sel_tr[model_name]
-    #elif train_type == 'scratch':
-        #model_top = model_sel_sc[model_name]
-    #else:
-        #assert False
+        if conf.mode=='inference':
+            init_epoch = int(re.split('-|\.',latest_model)[1])
+        elif conf.mode=='load_and_train':
+            init_epoch = 0
+        else:
+            assert False
+
+
+        include_top = True
+        add_top = False
+
+        #if train_type == 'transfer':
+            #model_top = model_sel_tr[model_name]
+        #elif train_type == 'scratch':
+            #model_top = model_sel_sc[model_name]
+        #else:
+            #assert False
 else:
     if train_type == 'transfer':
         load_weight = 'imagenet'
@@ -701,7 +715,8 @@ else:
         train_epoch, train_steps_per_epoch,
         opt, learning_rate,
         lr_schedule, step_decay_epoch,
-        metric_accuracy, metric_accuracy_top5)
+        metric_accuracy, metric_accuracy_top5, dataset_name)
+
 
 #
 if conf.nn_mode=='SNN' and conf.dnn_to_snn:
@@ -713,7 +728,7 @@ if conf.nn_mode=='SNN' and conf.dnn_to_snn:
         train_epoch, train_steps_per_epoch,
         opt, learning_rate,
         lr_schedule, step_decay_epoch,
-        metric_accuracy, metric_accuracy_top5)
+        metric_accuracy, metric_accuracy_top5, dataset_name)
     conf.nn_mode=nn_mode_ori
 
     model_ann.nn_mode = 'ANN'
@@ -732,8 +747,30 @@ if conf.nn_mode=='SNN' and conf.dnn_to_snn:
 
 elif load_model:
     if not f_hp_tune:
-        #model.load_weights(load_weight)
-        model.load_weights(load_weight,by_name=True,skip_mismatch=True)
+        if load_weight == 'imagenet':
+
+            # from keras applications.VGG16
+            WEIGHTS_PATH = ('https://storage.googleapis.com/tensorflow/keras-applications/vgg16/vgg16_weights_tf_dim_ordering_tf_kernels.h5')
+            WEIGHTS_PATH_NO_TOP = ('https://storage.googleapis.com/tensorflow/'
+                                   'keras-applications/vgg16/'
+                                   'vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5')
+
+            if include_top:
+                weights_path = data_utils.get_file(
+                    'vgg16_weights_tf_dim_ordering_tf_kernels.h5',
+                    WEIGHTS_PATH,
+                    cache_subdir='models',
+                    file_hash='64373286793e3c8b2b4e3219cbf3544b')
+            else:
+                weights_path = data_utils.get_file(
+                    'vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5',
+                    WEIGHTS_PATH_NO_TOP,
+                    cache_subdir='models',
+                    file_hash = '6d6bbae143d832006294945121d1f1fc')
+            model.load_weights(weights_path)
+        else:
+            model.load_weights(load_weight)
+        #model.load_weights(load_weight,by_name=True,skip_mismatch=True)
         #model.load_weights(load_weight, by_name=True, skip_mismatch=True)
         #model.load_weights_custom(load_weight)
         #model.load_weights(load_weight, by_name=True)

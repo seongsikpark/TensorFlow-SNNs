@@ -8,3 +8,4 @@ from . import imagenet
 from . import cifar10
 from . import cifar
 
+from . import image_cls

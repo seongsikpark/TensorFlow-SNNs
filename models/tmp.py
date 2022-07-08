@@ -7,6 +7,7 @@
 NUM_PARALLEL_CALL = 15
 
 
+
 #
 train=True
 #train=False
@@ -21,7 +22,8 @@ overwrite_train_model =True
 epoch = 10000
 root_model = './models'
 model_name = 'VGG16'
-dataset_name = 'CIFAR10'
+#dataset_name = 'CIFAR10'
+dataset_name = 'ImageNet'
 
 # dataset
 #dataset_name='CIFAR-10'
@@ -128,7 +130,7 @@ import lib_snn
 #tf.config.functions_run_eagerly()
 
 #
-gpu_number=0
+gpu_number=2
 os.environ["CUDA_VISIBLE_DEVICES"]=str(gpu_number)
 
 global input_size
@@ -496,7 +498,7 @@ batch_size_train_sel = {
 model = models[model_name]
 preprocess_input = preprocessor_input[model_name]
 input_size = input_sizes.get(model_name,224)
-batch_size_inference = batch_size_inference_sel.get(model_name,256)
+batch_size_inference = batch_size_inference_sel.get(model_name,400)
 batch_size_train = batch_size_train_sel.get(model_name,256)
 
 
@@ -612,7 +614,10 @@ else:
 image_shape = (input_size, input_size, 3)
 
 #
-pretrained_model = model(input_shape=image_shape, include_top=include_top, weights='imagenet')
+#pretrained_model = model(input_shape=image_shape, include_top=include_top, weights='imagenet')
+#pretrained_model = model(input_shape=image_shape, include_top=include_top, weights='~/Models/refs/VGG16_ImageNet_Keras')
+pretrained_model = model(input_shape=image_shape, include_top=include_top,
+                         weights='/home/sspark/Models/refs/VGG16_ImageNet_Keras/vgg16_weights_tf_dim_ordering_tf_kernels.h5')
 #pretrained_model = VGG16(include_top=True, weights='imagenet')
 #pretrained_model = VGG19(include_top=True, weights='imagenet')
 #pretrained_model = ResNet50(include_top=True, weights='imagenet')

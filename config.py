@@ -253,12 +253,9 @@ tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220411_manual_test', 'exp 
 #tf.compat.v1.app.flags.DEFINE_string('exp_set_name', 'manual_test', 'exp set name')
 
 
-# train mode
-#tf.compat.v1.app.flags.DEFINE_bool('train', False, 'train mode')
-#tf.compat.v1.app.flags.DEFINE_bool('train', True, 'train mode')
-
-#tf.compat.v1.app.flags.DEFINE_enum('mode', 'inference', ['train', 'load_and_train', 'inference'], 'run mode')
-tf.compat.v1.app.flags.DEFINE_enum('mode', 'load_and_train', ['train', 'load_and_train', 'inference'], 'run mode')
+# mode
+tf.compat.v1.app.flags.DEFINE_enum('mode', 'inference', ['train', 'load_and_train', 'inference'], 'run mode')
+#tf.compat.v1.app.flags.DEFINE_enum('mode', 'load_and_train', ['train', 'load_and_train', 'inference'], 'run mode')
 #tf.compat.v1.app.flags.DEFINE_bool('train', True, 'train mode')
 
 
@@ -271,27 +268,39 @@ tf.compat.v1.app.flags.DEFINE_bool('dnn_to_snn', False, 'dnn-to-snn conversion')
 tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'ANN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
 #tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'SNN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
 
+# datasets
+#tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR10', 'dataset')
+#tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR100', 'dataset')
+tf.compat.v1.app.flags.DEFINE_string('dataset', 'ImageNet', 'dataset')
+
+
+
 # models
-tf.compat.v1.app.flags.DEFINE_string('model', 'VGG16', 'model')
+#tf.compat.v1.app.flags.DEFINE_string('model', 'VGG16', 'model')    # ImageNet
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet20', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet32', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet44', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet56', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet18', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet34', 'model')
-#tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet50', 'model')
+#tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet50', 'model')  # ImageNet
+#tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet50V2', 'model')
+#tf.compat.v1.app.flags.DEFINE_string('model', 'MobileNet', 'model')    # not supported yet
+tf.compat.v1.app.flags.DEFINE_string('model', 'MobileNetV2', 'model')  # ImageNet
+#tf.compat.v1.app.flags.DEFINE_string('model', 'EfficientNetV2S', 'model')  #ImageNet
+#tf.compat.v1.app.flags.DEFINE_string('model', 'EfficientNetV2M', 'model')
 
-# datasets
-tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR10', 'dataset')
-#tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR100', 'dataset')
+
+
 
 #
 tf.compat.v1.app.flags.DEFINE_bool('load_best_model', True, 'load best model (model, dataset)')
 #tf.compat.v1.app.flags.DEFINE_bool('load_best_model', False, 'load best model (model, dataset)')
 
 #
-tf.compat.v1.app.flags.DEFINE_integer('batch_size', 100, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size', 500, '')
+tf.compat.v1.app.flags.DEFINE_integer('batch_size', 100, '')
+#tf.compat.v1.app.flags.DEFINE_integer('batch_size', 2, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 1000, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 500, '')
 tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 400, '')
@@ -299,7 +308,7 @@ tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 400, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 200, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 100, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 10, '')
-#tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 1, '')
+#tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 2, '')
 
 #
 # VGG
@@ -321,9 +330,11 @@ tf.compat.v1.app.flags.DEFINE_string('data_aug_mix', 'cutmix', 'data augmentatio
 
 
 
-
 ## data_format - DO NOT TOUCH
 tf.compat.v1.app.flags.DEFINE_string('data_format', 'channels_last', 'data format')
+
+# batch norm
+tf.compat.v1.app.flags.DEFINE_boolean('use_bn', True, 'use batch norm')
 
 #
 tf.compat.v1.app.flags.DEFINE_boolean('use_bias', True, 'use bias')
@@ -349,11 +360,11 @@ tf.compat.v1.app.flags.DEFINE_string('root_results', './results', 'root results'
 ################
 # Debug
 ################
-tf.compat.v1.app.flags.DEFINE_bool('debug_mode', False, 'debug mode')
-#tf.compat.v1.app.flags.DEFINE_bool('debug_mode', True, 'debug mode')
+#tf.compat.v1.app.flags.DEFINE_bool('debug_mode', False, 'debug mode')
+tf.compat.v1.app.flags.DEFINE_bool('debug_mode', True, 'debug mode')
 
-tf.compat.v1.app.flags.DEFINE_bool('full_test', True, 'full dataset test')
-#tf.compat.v1.app.flags.DEFINE_bool('full_test', False, 'full dataset test')
+#tf.compat.v1.app.flags.DEFINE_bool('full_test', True, 'full dataset test')
+tf.compat.v1.app.flags.DEFINE_bool('full_test', False, 'full dataset test')
 
 #tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 0, 'start index of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 1250, 'start index of test data')
@@ -368,9 +379,9 @@ tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 1101, 'start index of tes
 #tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 1100, 'start index of test data')
 
 #tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 1600, 'number of test data')
-tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 1200, 'number of test data')
+#tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 1200, 'number of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 800, 'number of test data')
-#tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 400, 'number of test data')
+tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 400, 'number of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 100, 'number of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 50, 'number of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 10, 'number of test data')
@@ -598,12 +609,12 @@ tf.compat.v1.app.flags.DEFINE_bool('leak_off_after_bias_en',False,'leakage off i
 
 
 # new
-tf.compat.v1.app.flags.DEFINE_bool('vth_search',True,'vth search for DNN-to-SNN conversion')
-#tf.compat.v1.app.flags.DEFINE_bool('vth_search',False,'vth search for DNN-to-SNN conversion')
+#tf.compat.v1.app.flags.DEFINE_bool('vth_search',True,'vth search for DNN-to-SNN conversion')
+tf.compat.v1.app.flags.DEFINE_bool('vth_search',False,'vth search for DNN-to-SNN conversion')
 
 
-tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_new',True,'bias calibration')
-#tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_new',False,'bias calibration')
+#tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_new',True,'bias calibration')
+tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_new',False,'bias calibration')
 
 
 #
@@ -611,8 +622,8 @@ tf.compat.v1.app.flags.DEFINE_bool('ds_err_act_check',False,'dynamic/static acti
 #tf.compat.v1.app.flags.DEFINE_bool('ds_err_act_check',True,'dynamic/static activation check')
 
 # finetune - quantization
-#tf.compat.v1.app.flags.DEFINE_bool('fine_tune_quant',False,'fine tuning - quantization')
-tf.compat.v1.app.flags.DEFINE_bool('fine_tune_quant',True,'fine tuning - quantization')
+tf.compat.v1.app.flags.DEFINE_bool('fine_tune_quant',False,'fine tuning - quantization')
+#tf.compat.v1.app.flags.DEFINE_bool('fine_tune_quant',True,'fine tuning - quantization')
 
 
 
