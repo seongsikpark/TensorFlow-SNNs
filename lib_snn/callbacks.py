@@ -95,9 +95,11 @@ class ModelCheckpointResume(tf.keras.callbacks.ModelCheckpoint):
 
         super(ModelCheckpointResume, self).on_epoch_end(epoch=epoch,logs=logs)
 
-        #print(self.best)
+        print(self.best)
         tf.summary.scalar('best_acc_val', data=self.best, step=epoch)
+        print(logs)
         logs['best_acc_val'] = self.best
+        print(logs)
 
 
 #
@@ -163,8 +165,8 @@ class SNNLIB(tf.keras.callbacks.Callback):
         self.f_vth_set_and_norm = False
 
 
-        if not self.conf.calibration_weight:
-            self.calibration_static_done=True
+        #if not self.conf.calibration_weight:
+        #    self.calibration_static_done=True
 
         if not self.conf.calibration_weight_act_based:
             self.calibration_act_based_done=True

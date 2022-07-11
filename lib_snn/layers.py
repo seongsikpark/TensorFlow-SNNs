@@ -204,8 +204,8 @@ class Layer():
 
                 if isinstance(self,lib_snn.layers.Add):
                 #if isinstance(self, lib_snn.layers.Conv2D):
-                    #n_type = 'IF'
-                    n_type = 'LIF'
+                    n_type = 'IF'
+                    #n_type = 'LIF'
 
                 self.act_snn = lib_snn.neurons.Neuron(self.output_shape_fixed_batch, self.conf, \
                                                       n_type, self.conf.neural_coding, self.depth, 'n_'+self.name)
@@ -242,9 +242,19 @@ class Layer():
                     #print(self)
                     #print(self.name)
                     stat = lib_snn.calibration.read_stat(None, self, 'max_999')
-                    stat_max = tf.reduce_max(stat)
-                    self.quant_max = tf.constant(stat_max,shape=[],name=self.name+'/quant_max')
+
+                    if self.conf.f_w_norm_data:
+                        stat_max = tf.ones(shape=[])
+                    else:
+                        stat_max = tf.reduce_max(stat)
+                    #self.quant_max = tf.constant(stat_max,shape=[],name=self.name+'/quant_max')
                     #layer.quant_max = tf.Variable(stat_max, trainable=False, name='quant_max')
+
+                    if self.depth==100:
+                        #self.vth_l = tf.Variable(initial_value=stat_max,shape=[],name=self.name+'/vth_l',trainable=True)
+                        self.vth_l = tf.Variable(initial_value=stat_max,shape=[],name=self.name+'/vth_l',trainable=False)
+                    else:
+                        self.vth_l = tf.constant(stat_max,shape=[],name=self.name+'/vth_l')
 
         #
         self.built = True
@@ -325,10 +335,15 @@ class Layer():
         #if self.quant_act:
         ##    #n = tf.quantization.fake_quant_with_min_max_vars(n,0,1,num_bits=8)
         #    #n = tf.quantization.fake_quant_with_min_max_vars(n,0,1,num_bits=8)
-            if self.conf.fine_tune_quant and (not self.last_layer):
+            #if self.conf.fine_tune_quant and (not self.last_layer):
+            if self.conf.fine_tune_quant:
                 #n=tf.quantize_and_dequantize_v4(n, 0, 1, signed_input=False, num_bits=8, range_given=True)
                 #n = tf.quantize_and_dequantize_v4(n, 0, self.quant_max, signed_input=False, num_bits=8, range_given=True)
-                n = tf.quantize_and_dequantize_v4(n, 0, self.quant_max, signed_input=False, num_bits=6, range_given=True)
+                #n = tf.quantize_and_dequantize_v4(n, 0, self.quant_max, signed_input=False, num_bits=6, range_given=True)
+                #n = tf.quantize_and_dequantize_v4(n, 0, self.quant_max, signed_input=False, num_bits=4, range_given=True)
+                #n = tf.clip_by_value(tf.math.floor(b*64/self.quant_max)/64,0,1)*self.quant_max
+                #n=lib_snn.calibration.clip_floor_act(b, self.quant_max, 64.0)
+                n=lib_snn.calibration.clip_floor_act(b, self.vth_l, 64.0)
                 #n = tf.quantize_and_dequantize_v4(n, 0, self.quant_max, signed_input=False, num_bits=12, range_given=True)
         #    n=tf.quantize_and_dequantize_v4(n, 0, 1, signed_input=False, num_bits=16, range_given=True)
         #    #n = tf.quantization.quantize(n,0,1,T=tf.qint8)

@@ -2127,8 +2127,8 @@ class Model(tf.keras.Model):
                 #self.bias_control_th[layer.name] = tf.reduce_mean(non_zero_r)
                 #self.bias_control_th[layer.name] = 0.1  # ResNet-32 + leak_off_bias_en
                 #self.bias_control_th[layer.name] = 0.01
-                self.bias_control_th[layer.name] = 0.01*((16-idx_layer)/16*0.5+0.5)
-                #self.bias_control_th[layer.name] = 0.001   # VGG
+                #self.bias_control_th[layer.name] = 0.01*((16-idx_layer)/16*0.5+0.5)
+                self.bias_control_th[layer.name] = 0.001   # VGG
                 #self.bias_control_th[layer.name] = 0.0001
                 #self.bias_control_th[layer.name] = 0.00001
                 #self.bias_control_th[layer.name] = 0.00

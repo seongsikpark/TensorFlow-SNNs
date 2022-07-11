@@ -2145,6 +2145,18 @@ def bias_calibration_ICLR_21(self):
 
     print('- Done')
 
+#
+
+def vmem_calibration_ICLR(self):
+    print('bias_calibration_ICLR - init_vmem = 1/2*vth')
+
+    for idx_l, l in enumerate(self.model.layers_w_kernel):
+
+        init_vmem = 0.5*l.act.vth_init
+        l.act.set_vmem_init(init_vmem)
+
+    print('- Done')
+
 # light pipeline
 def bias_calibration_ICML_21(self):
     print('\nbias_calibration_ICML_21')
@@ -2985,3 +2997,25 @@ def calibration_bias_ML21(model, model_ann, callbacks_test, callbacks_test_ann, 
             #if idx_batch == num_batch_for_vth_search-1:
             if last_batch:
                 break
+
+@tf.custom_gradient
+def clip_floor_act(x, vth, time_step):
+    y = tf.clip_by_value(tf.math.floor(x * tf.stop_gradient(time_step)/ tf.stop_gradient(vth)) / tf.stop_gradient(time_step), 0, 1) * tf.stop_gradient(vth)
+    #n_spikes = tf.math.floor(x * time_step/ vth)
+    #n_spikes_norm = n_spikes/time_step
+
+    def grad(upstream):
+        #if tf.math.greater_equal(x,tf.zeros(shape=x.shape)):
+        #    return dy, tf.stop_gradient(vth), tf.stop_gradient(time_step)
+        #else:
+        #    return 0, tf.stop_gradient(vth), tf.stop_gradient(time_step)
+        #dy_dx = tf.where(x>=0,upstream,tf.zeros(shape=upstream.shape))
+        cond_grad = tf.math.logical_and(tf.math.greater_equal(x,tf.zeros(shape=x.shape)), tf.math.less_equal(x,vth))
+        #cond_grad = tf.math.greater_equal(x,tf.zeros(shape=x.shape))
+        dy_dx = tf.where(cond_grad,upstream,tf.zeros(shape=upstream.shape))
+        return dy_dx, tf.stop_gradient(vth), tf.stop_gradient(time_step)
+        #return dy_dx, tf.zeros(shape=upstream.shape), tf.zeros(shape=upstream.shape)
+
+
+    return y, grad
+    #return tf.clip_by_value(n_spikes_norm,0,1)*vth, grad

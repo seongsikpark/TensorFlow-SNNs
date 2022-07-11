@@ -18,7 +18,8 @@ import tensorflow_addons as tfa
 
 #from models.input_preprocessor import preprocessor_input
 
-from tensorflow.python.keras.applications.imagenet_utils import preprocess_input
+#from tensorflow.python.keras.applications.imagenet_utils import preprocess_input
+preprocess_input = tf.keras.applications.imagenet_utils.preprocess_input
 
 ########
 # cutmix
