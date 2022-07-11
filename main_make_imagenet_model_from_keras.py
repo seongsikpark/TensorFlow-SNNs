@@ -742,6 +742,9 @@ source_model_file_dict['ResNet50'] = 'ResNet50/resnet50_weights_tf_dim_ordering_
 source_model_file_dict['ResNet50V2'] = 'ResNet50V2/resnet50v2_weights_tf_dim_ordering_tf_kernels.h5'
 source_model_file_dict['MobileNet'] = 'MobileNet/mobilenet_1_0_224_tf.h5'
 source_model_file_dict['MobileNetV2'] = 'MobileNetV2/mobilenet_v2_weights_tf_dim_ordering_tf_kernels_1.0_224.h5'
+source_model_file_dict['EfficientNetV2S'] = 'EfficientNetV2S/efficientnetv2-s.h5'
+
+
 
 source_model_file = source_model_file_dict[model_name]
 source_model_file = os.path.join(source_model_path_root,source_model_file)
@@ -753,8 +756,10 @@ print('Keys: %s'%f.keys())
 
 #assert False
 
-## load local weight + keras source code (modified)
-#model.load_weights(source_model_file)
+# step 2
+# load local weight + keras source code (modified)
+model.load_weights(source_model_file)
+#assert False
 
 # load local weight + lib_snn code
 if True:

@@ -116,6 +116,7 @@ class Layer():
         if activation == 'relu':
             #self.act_dnn = tf.keras.layers.ReLU(max_value=relu_max_value, name=name_act)
             self.act_dnn = tf.keras.layers.ReLU(max_value=relu_max_value)
+            #self.act_dnn = tf.keras.layers.ReLU(max_value=6.0)
         elif activation == 'softmax':
             #self.act_dnn = tf.keras.layers.Softmax(name=name_act)
             self.act_dnn = tf.keras.layers.Softmax()
@@ -177,6 +178,7 @@ class Layer():
             self.output_shape_fixed_batch = input_shapes
         else:
             self.output_shape_fixed_batch = super().compute_output_shape(input_shapes)
+
 
         # self.act_snn = lib_snn.layers.Neuron(self.output_shape_fixed_batch,self.conf,\
         # n_type,self.conf.neural_coding,depth,self.name)
@@ -278,7 +280,6 @@ class Layer():
 
         s = super().call(input)
 
-
         if False:
             if (self.name == 'predictions') and (not self.conf.full_test):
                 print(input)
@@ -301,7 +302,7 @@ class Layer():
         #self.use_bias = False
 
         # bias control
-        if self.bias_control:
+        if self.en_snn and self.bias_control:
             s = self.bias_control_run(s)
 
 
@@ -352,24 +353,42 @@ class Layer():
         #        ret = ret / time
         #        #ret = ret
 
-        if (self.name == 'predictions') and (glb.model_compiled) and (not conf.full_test):
-            #print('time: {}'.format(t))
-            #print(ret)
+        if False:
+            if (self.name == 'predictions') and (glb.model_compiled) and (not conf.full_test):
+                #print('time: {}'.format(t))
+                #print(ret)
 
-            if self.conf.num_test_data == 1:
-                print('curr')
-                print(tf.argmax(b,axis=1))
-                print(b)
-                print('acum')
-                print(tf.argmax(n,axis=1))
-                print(n)
-            else:
-                print('curr')
-                print(tf.argmax(b,axis=1)[conf.verbose_visual_idx])
-                print(b[conf.verbose_visual_idx])
-                print('acum')
-                print(tf.argmax(n,axis=1)[conf.verbose_visual_idx])
-                print(n[conf.verbose_visual_idx])
+                if self.conf.num_test_data == 1:
+                    print('curr')
+                    print(tf.argmax(b,axis=1))
+                    print(b)
+                    print('acum')
+                    print(tf.argmax(n,axis=1))
+                    print(n)
+                else:
+                    print('curr')
+                    print(tf.argmax(b,axis=1)[conf.verbose_visual_idx])
+                    print(b[conf.verbose_visual_idx])
+                    print('acum')
+                    print(tf.argmax(n,axis=1)[conf.verbose_visual_idx])
+                    print(n[conf.verbose_visual_idx])
+
+
+
+        #if self.name=='expanded_conv_depthwise':
+        if False:
+            print('input')
+            #print(input[0])
+            print(tf.reduce_mean(input))
+            print('s')
+            #print(s[0])
+            print(tf.reduce_mean(s))
+            print('b')
+            #print(b[0])
+            print(tf.reduce_mean(b))
+            print('n')
+            #print(n[0])
+            print(tf.reduce_mean(n))
 
 
         if self.en_record_output:
@@ -695,7 +714,7 @@ class DepthwiseConv2D(Layer, tf.keras.layers.DepthwiseConv2D):
             depth_multiplier=depth_multiplier,
             data_format=data_format,
             dilation_rate=dilation_rate,
-            activation=activation,
+            activation=None,
             use_bias=use_bias,
             depthwise_initializer=depthwise_initializer,
             bias_initializer=bias_initializer,

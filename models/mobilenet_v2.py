@@ -311,22 +311,28 @@ def MobileNetV2(batch_size,
                             'Weights for input shape (224, 224) will be '
                             'loaded as the default.')
 
-    #if input_tensor is None:
-        #img_input = layers.Input(shape=input_shape)
-    #else:
-        #if not backend.is_keras_tensor(input_tensor):
-            #img_input = layers.Input(tensor=input_tensor, shape=input_shape)
-        #else:
-            #img_input = input_tensor
+    if input_tensor is None:
+        img_input = layers.Input(shape=input_shape)
+    else:
+        if not backend.is_keras_tensor(input_tensor):
+            img_input = layers.Input(tensor=input_tensor, shape=input_shape)
+        else:
+            img_input = input_tensor
 
     #channel_axis = 1 if backend.image_data_format() == 'channels_first' else -1
     if backend.image_data_format() == 'channels_first':
         assert False
     channel_axis = -1
 
+    #print(input_tensor)
+    #print(input_shape)
+    #print(batch_size)
 
+    #img_input = tf.keras.layers.Input(tensor=input_tensor, shape=input_shape, batch_size=batch_size)
     img_input = tf.keras.layers.Input(shape=input_shape, batch_size=batch_size)
-    img_input = lib_snn.layers.InputGenLayer()(img_input)
+    img_input = lib_snn.layers.InputGenLayer(name='input_gen')(img_input)
+
+    #backend.print_tensor(img_input)
 
 
     first_block_filters = _make_divisible(32 * alpha, 8)
@@ -452,9 +458,13 @@ def _inverted_res_block(inputs, expansion, stride, alpha, filters, block_id):
     else:
         padding_dconv = 'valid'
     #x = layers.DepthwiseConv2D(kernel_size=3, strides=stride, activation=None, use_bias=False, padding='same' if stride == 1 else 'valid', name=prefix + 'depthwise')(x)
+    #x = lib_snn.layers.DepthwiseConv2D(kernel_size=3, strides=stride, padding=padding_dconv, use_bn=False, activation=None, name=prefix + 'depthwise')(x)
+    #x = lib_snn.layers.DepthwiseConv2D(kernel_size=3, strides=stride, padding=padding_dconv, use_bn=True, activation=None, name=prefix + 'depthwise')(x)
     #x = layers.BatchNormalization(axis=channel_axis, epsilon=1e-3, momentum=0.999, name=prefix + 'depthwise_BN')( x)
+    #x = layers.BatchNormalization(axis=channel_axis, name=prefix + 'depthwise_BN')( x)
     #x = layers.ReLU(6., name=prefix + 'depthwise_relu')(x)
-    x = lib_snn.layers.DepthwiseConv2D(kernel_size=3, strides=stride, padding=padding_dconv, use_bn=True, activation='relu', relu_max_value=6, name=prefix + 'depthwise')(x)
+    #x = layers.ReLU(name=prefix + 'depthwise_relu')(x)
+    x = lib_snn.layers.DepthwiseConv2D(kernel_size=3, strides=stride, padding=padding_dconv, use_bn=True, activation='relu', relu_max_value=6., name=prefix + 'depthwise')(x)
 
     # Project with a pointwise 1x1 convolution.
     #x = layers.Conv2D(pointwise_filters, kernel_size=1, padding='same', use_bias=False, activation=None, name=prefix + 'project')( x)

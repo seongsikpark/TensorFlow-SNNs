@@ -80,6 +80,14 @@ CIFAR-100
 
 
 
+ImageNet (from Keras)
+
+| Models          | Para.  | Acc.  | Acc.(top5) |Best Model|Note|
+|-----------------|--------|-------|------------|----|----|
+| VGG16           |        |       |
+| ResNet50        |        |       |
+| MobileNetV2     |        |       |
+| EfficientNetV2S | 21.6M | 83.92 | 96.73
 
 
 ##

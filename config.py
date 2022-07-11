@@ -272,14 +272,14 @@ tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'ANN', 'ANN: Analog Neural Netwo
 #tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'SNN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
 
 # datasets
-#tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR10', 'dataset')
+tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR10', 'dataset')
 #tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR100', 'dataset')
-tf.compat.v1.app.flags.DEFINE_string('dataset', 'ImageNet', 'dataset')
+#tf.compat.v1.app.flags.DEFINE_string('dataset', 'ImageNet', 'dataset')
 
 
 
 # models
-#tf.compat.v1.app.flags.DEFINE_string('model', 'VGG16', 'model')    # ImageNet
+tf.compat.v1.app.flags.DEFINE_string('model', 'VGG16', 'model')    # ImageNet
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet20', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet32', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet44', 'model')
@@ -289,7 +289,7 @@ tf.compat.v1.app.flags.DEFINE_string('dataset', 'ImageNet', 'dataset')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet50', 'model')  # ImageNet
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet50V2', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'MobileNet', 'model')    # not supported yet
-tf.compat.v1.app.flags.DEFINE_string('model', 'MobileNetV2', 'model')  # ImageNet
+#tf.compat.v1.app.flags.DEFINE_string('model', 'MobileNetV2', 'model')  # ImageNet
 #tf.compat.v1.app.flags.DEFINE_string('model', 'EfficientNetV2S', 'model')  #ImageNet
 #tf.compat.v1.app.flags.DEFINE_string('model', 'EfficientNetV2M', 'model')
 
@@ -519,8 +519,8 @@ tf.compat.v1.app.flags.DEFINE_bool('calibration_vth',False,'calibration - vth')
 #tf.compat.v1.app.flags.DEFINE_bool('calibration_vmem',True,'calibration - vmem')
 tf.compat.v1.app.flags.DEFINE_bool('calibration_vmem',False,'calibration - vmem')
 
-tf.compat.v1.app.flags.DEFINE_bool('bias_control',True,'bias control')
-#tf.compat.v1.app.flags.DEFINE_bool('bias_control',False,'bias control')
+#tf.compat.v1.app.flags.DEFINE_bool('bias_control',True,'bias control')
+tf.compat.v1.app.flags.DEFINE_bool('bias_control',False,'bias control')
 
 #tf.compat.v1.app.flags.DEFINE_bool('vth_toggle',True,'vth toggle mode')
 tf.compat.v1.app.flags.DEFINE_bool('vth_toggle',False,'vth toggle mode')

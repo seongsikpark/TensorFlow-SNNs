@@ -4,6 +4,7 @@ import h5py
 from .imagenet_keras.vgg16 import load_vgg16
 from .imagenet_keras.resnet import load_resnet50
 from .imagenet_keras.mobilenet import load_mobilenetv2
+from .imagenet_keras.efficientnet import load_efficientnetv2s
 
 ################
 #
@@ -16,6 +17,7 @@ load_weights_sel = {
     #'ResNet56': load_resnet,
     'ResNet50': load_resnet50,
     'MobileNetV2': load_mobilenetv2,
+    'EfficientNetV2S': load_efficientnetv2s,
 }
 
 #

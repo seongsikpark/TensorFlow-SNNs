@@ -59,8 +59,10 @@ def load_inverted_res_block(model, weights, expansion, stride, alpha, filters, b
     model.get_layer(lname_p_t).bn.moving_variance.assign(weights[lname_bn_p_s][lname_bn_p_s]['moving_variance:0'])
 
 
+def load_efficientnetv2s(model, weights):
+    pass
 
-def load_mobilenetv2(model, weights):
+def load_efficientnetv2s_tmp(model, weights):
 
     model.get_layer('Conv1').kernel.assign(weights['Conv1']['Conv1']['kernel:0'][:])
     model.get_layer('Conv1').bn.beta.assign(weights['bn_Conv1']['bn_Conv1']['beta:0'][:])
@@ -105,4 +107,5 @@ def load_mobilenetv2(model, weights):
     #
     model.get_layer('predictions').kernel.assign(weights['Logits']['Logits']['kernel:0'][:])
     model.get_layer('predictions').bias.assign(weights['Logits']['Logits']['bias:0'][:])
+
 
