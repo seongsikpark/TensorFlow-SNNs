@@ -96,7 +96,7 @@ from lib_snn import config_glb
 
 # GPU setting
 #
-GPU_NUMBER=1
+GPU_NUMBER=0
 
 GPU_PARALLEL_RUN = 1
 #GPU_PARALLEL_RUN = 2

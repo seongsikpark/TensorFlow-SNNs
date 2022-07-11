@@ -276,8 +276,8 @@ tf.compat.v1.app.flags.DEFINE_bool('hp_tune', False, 'hyperparameter tune mode')
 tf.compat.v1.app.flags.DEFINE_bool('dnn_to_snn', True, 'dnn-to-snn conversion')
 
 # neural network mode
-#tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'ANN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
-tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'SNN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
+tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'ANN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
+#tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'SNN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
 
 # datasets
 tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR10', 'dataset')
@@ -488,8 +488,8 @@ tf.compat.v1.app.flags.DEFINE_bool('f_record_first_spike_time',True,'flag - reco
 
 # weight normalization
 #
-tf.compat.v1.app.flags.DEFINE_bool('f_fused_bn',True,'f_fused_bn')
-#tf.compat.v1.app.flags.DEFINE_bool('f_fused_bn',False,'f_fused_bn')
+#tf.compat.v1.app.flags.DEFINE_bool('f_fused_bn',True,'f_fused_bn')
+tf.compat.v1.app.flags.DEFINE_bool('f_fused_bn',False,'f_fused_bn')
 
 #
 #tf.compat.v1.app.flags.DEFINE_bool('f_w_norm_data',True,'f_w_norm_data')
