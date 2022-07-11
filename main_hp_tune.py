@@ -96,7 +96,7 @@ from lib_snn import config_glb
 
 # GPU setting
 #
-GPU_NUMBER=0
+GPU_NUMBER=1
 
 GPU_PARALLEL_RUN = 1
 #GPU_PARALLEL_RUN = 2
@@ -380,7 +380,7 @@ dataset_sel = {
 
 #
 input_size_default = {
-    'ImageNet': 244,
+    'ImageNet': 224,
     'CIFAR10': 32,
     'CIFAR100': 32,
 }
@@ -491,13 +491,11 @@ model_dataset_name = model_name + '_' + dataset_name
 # path_model = './'+exp_set_name
 #path_model = os.path.join(root_model, exp_set_name)
 #path_model = os.path.join(root_model, model_dataset_name)
-path_model_load = os.path.join(root_model_load, model_dataset_name)
-path_model_save = os.path.join(root_model_save, model_dataset_name)
+#path_model_load = os.path.join(root_model_load, model_dataset_name)
+#path_model_save = os.path.join(root_model_save, model_dataset_name)
 
-config_glb.path_model_load = path_model_load
-config_glb.path_stat = conf.path_stat
-config_glb.model_name = model_name
-config_glb.dataset_name = dataset_name
+#config_glb.path_model_load = path_model_load
+#config_glb.path_stat = conf.path_stat
 
 
 # hyperparameter tune name
@@ -576,8 +574,19 @@ else:
     path_model_save = conf.name_model_save
     filepath_save = path_model_save
 
+
+####
+# glb config set
+if conf.path_stat_root=='':
+    path_stat_root = path_model_load
+else:
+    path_stat_root = conf.path_stat_root
+#config_glb.path_stat = conf.path_stat
+config_glb.path_stat = os.path.join(path_stat_root,conf.path_stat_dir)
 config_glb.path_model_load = path_model_load
-config_glb.path_stat = conf.path_stat
+#config_glb.path_stat = conf.path_stat
+config_glb.model_name = model_name
+config_glb.dataset_name = dataset_name
 
 #if conf.load_best_model:
 #    filepath_load = path_model_load
@@ -696,10 +705,6 @@ if conf.debug_mode:
 
 # for HP tune
 model_top_glb = model_top
-
-# glb config set
-config_glb.path_model_load = path_model_load
-config_glb.path_stat = conf.path_stat
 
 #
 # model builder

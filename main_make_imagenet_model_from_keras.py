@@ -105,7 +105,7 @@ from models import imagenet_utils
 
 # GPU setting
 #
-GPU_NUMBER=2
+GPU_NUMBER=1
 
 GPU_PARALLEL_RUN = 1
 #GPU_PARALLEL_RUN = 2
@@ -487,8 +487,16 @@ root_model_save = conf.root_model_save
 path_model_load = os.path.join(root_model_load, model_dataset_name)
 path_model_save = os.path.join(root_model_save, model_dataset_name)
 
+
+####
+# glb config set
+if conf.path_stat_root=='':
+    path_stat_root = path_model_load
+else:
+    path_stat_root = conf.path_stat_root
+#config_glb.path_stat = conf.path_stat
+config_glb.path_stat = os.path.join(path_stat_root,conf.path_stat_dir)
 config_glb.path_model_load = path_model_load
-config_glb.path_stat = conf.path_stat
 config_glb.model_name = model_name
 config_glb.dataset_name = dataset_name
 
@@ -636,10 +644,6 @@ if conf.debug_mode:
 # for HP tune
 model_top_glb = model_top
 
-# glb config set
-config_glb.path_model_load = path_model_load
-config_glb.path_stat = conf.path_stat
-
 #
 # model builder
 model = lib_snn.model_builder.model_builder(
@@ -661,8 +665,8 @@ model = lib_snn.model_builder.model_builder(
 
 
 # test
-#if True:
-if False:
+if True:
+#if False:
     # ResNet50
     if model_name=='ResNet50':
         from tensorflow.keras.applications.resnet import ResNet50
@@ -687,7 +691,8 @@ if False:
 
     # MobileNetV2
     if model_name=='MobileNetV2':
-        from tensorflow.keras.applications.mobilenet_v2 import MobileNetV2
+        #from tensorflow.keras.applications.mobilenet_v2 import MobileNetV2
+        MobileNetV2 = tf.keras.applications.mobilenet_v2.MobileNetV2
         #m = MobileNetV2(weights='/home/sspark/Models/refs/ImageNet/Keras/mobilenet_v2_weights_tf_dim_ordering_tf_kernels_1.0_224.h5')
         m = MobileNetV2(weights='imagenet')
         m.compile(optimizer='SGD',

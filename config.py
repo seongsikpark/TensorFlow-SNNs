@@ -249,7 +249,10 @@ tf.compat.v1.app.flags.DEFINE_boolean('verbose_visual',False, 'verbose visual mo
 #tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220324_time_dep_leaky_b-400', 'exp set name')
 #tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220401_CIFAR-100_calibration_idx_test', 'exp set name')
 #tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220403_test_CIFAR-100', 'exp set name')
-tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220411_manual_test', 'exp set name')
+#tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220411_manual_test', 'exp set name')     # hp_tune old
+#tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220607_finetune_vgg16_cifar10_q6', 'exp set name')
+#tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220607_finetune_test', 'exp set name')
+tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220522_finetune_vgg16_cifar10_quant-6', 'exp set name')
 #tf.compat.v1.app.flags.DEFINE_string('exp_set_name', 'manual_test', 'exp set name')
 
 
@@ -259,8 +262,8 @@ tf.compat.v1.app.flags.DEFINE_enum('mode', 'inference', ['train', 'load_and_trai
 #tf.compat.v1.app.flags.DEFINE_bool('train', True, 'train mode')
 
 #
-#tf.compat.v1.app.flags.DEFINE_bool('hp_tune', False, 'hyperparameter tune mode')
-tf.compat.v1.app.flags.DEFINE_bool('hp_tune', True, 'hyperparameter tune mode')
+tf.compat.v1.app.flags.DEFINE_bool('hp_tune', False, 'hyperparameter tune mode')
+#tf.compat.v1.app.flags.DEFINE_bool('hp_tune', True, 'hyperparameter tune mode')
 
 
 #
@@ -272,14 +275,14 @@ tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'ANN', 'ANN: Analog Neural Netwo
 #tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'SNN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
 
 # datasets
-#tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR10', 'dataset')
+tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR10', 'dataset')
 #tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR100', 'dataset')
-tf.compat.v1.app.flags.DEFINE_string('dataset', 'ImageNet', 'dataset')
+#tf.compat.v1.app.flags.DEFINE_string('dataset', 'ImageNet', 'dataset')
 
 
 
 # models
-#tf.compat.v1.app.flags.DEFINE_string('model', 'VGG16', 'model')    # ImageNet
+tf.compat.v1.app.flags.DEFINE_string('model', 'VGG16', 'model')    # ImageNet
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet20', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet32', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet44', 'model')
@@ -289,7 +292,7 @@ tf.compat.v1.app.flags.DEFINE_string('dataset', 'ImageNet', 'dataset')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet50', 'model')  # ImageNet
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet50V2', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'MobileNet', 'model')    # not supported yet
-tf.compat.v1.app.flags.DEFINE_string('model', 'MobileNetV2', 'model')  # ImageNet
+#tf.compat.v1.app.flags.DEFINE_string('model', 'MobileNetV2', 'model')  # ImageNet
 #tf.compat.v1.app.flags.DEFINE_string('model', 'EfficientNetV2S', 'model')  #ImageNet
 #tf.compat.v1.app.flags.DEFINE_string('model', 'EfficientNetV2M', 'model')
 
@@ -370,8 +373,11 @@ tf.compat.v1.app.flags.DEFINE_string('root_results', './results', 'root results'
 ################
 # Debug
 ################
-tf.compat.v1.app.flags.DEFINE_bool('debug_mode', False, 'debug mode')
-#tf.compat.v1.app.flags.DEFINE_bool('debug_mode', True, 'debug mode')
+tf.compat.v1.app.flags.DEFINE_bool('debug_mode', False, 'debug mode - only for ANN mode, SNN - eager mode only')
+#tf.compat.v1.app.flags.DEFINE_bool('debug_mode', True, 'debug mode - only for ANN mode, SNN - eager mode only')
+
+tf.compat.v1.app.flags.DEFINE_bool('en_record_output', False, 'save intermediate layer output')
+#tf.compat.v1.app.flags.DEFINE_bool('en_record_output', True, 'save intermediate layer output')
 
 tf.compat.v1.app.flags.DEFINE_bool('full_test', True, 'full dataset test')
 #tf.compat.v1.app.flags.DEFINE_bool('full_test', False, 'full dataset test')
@@ -495,7 +501,11 @@ tf.compat.v1.app.flags.DEFINE_bool('f_write_stat',False,'write stat')
 tf.compat.v1.app.flags.DEFINE_bool('f_stat_train_mode',True,'stat with train data')
 #tf.compat.v1.app.flags.DEFINE_bool('f_stat_train_mode',False,'stat with train data')
 
-tf.compat.v1.app.flags.DEFINE_string('path_stat','./stat/', 'path stat')
+
+#tf.compat.v1.app.flags.DEFINE_string('path_stat_root','', 'path stat - root, empty->path_model_load')
+tf.compat.v1.app.flags.DEFINE_string('path_stat_root','/home/sspark/Models/CNN/VGG16_CIFAR10', 'path stat - root, empty->path_model_load')
+
+tf.compat.v1.app.flags.DEFINE_string('path_stat_dir','stat', 'path stat dir under path_stat_root')
 tf.compat.v1.app.flags.DEFINE_string('prefix_stat', '', 'prefix of stat file name')
 
 #tf.compat.v1.app.flags.DEFINE_string('act_save_mode','channel','activation save mode')
@@ -519,8 +529,8 @@ tf.compat.v1.app.flags.DEFINE_bool('calibration_vth',False,'calibration - vth')
 #tf.compat.v1.app.flags.DEFINE_bool('calibration_vmem',True,'calibration - vmem')
 tf.compat.v1.app.flags.DEFINE_bool('calibration_vmem',False,'calibration - vmem')
 
-tf.compat.v1.app.flags.DEFINE_bool('bias_control',True,'bias control')
-#tf.compat.v1.app.flags.DEFINE_bool('bias_control',False,'bias control')
+#tf.compat.v1.app.flags.DEFINE_bool('bias_control',True,'bias control')
+tf.compat.v1.app.flags.DEFINE_bool('bias_control',False,'bias control')
 
 #tf.compat.v1.app.flags.DEFINE_bool('vth_toggle',True,'vth toggle mode')
 tf.compat.v1.app.flags.DEFINE_bool('vth_toggle',False,'vth toggle mode')
