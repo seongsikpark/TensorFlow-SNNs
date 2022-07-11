@@ -195,8 +195,8 @@ def resize_with_crop(image, label, dataset_name, input_size, input_size_pre_crop
         else:
             assert False
 
-    #i=preprocess_input(i,mode=input_prec_mode)
-    i=preprocess_input(i)
+    i=preprocess_input(i,mode=input_prec_mode)
+    #i=preprocess_input(i)
 
 
     #
@@ -289,8 +289,8 @@ def resize_with_crop_aug(image, label, dataset_name, input_size, input_size_pre_
 
     #
     #i=preprocess_input(i)
-    #i=preprocess_input(i,mode=input_prec_mode)
-    i=preprocess_input(i)
+    i=preprocess_input(i,mode=input_prec_mode)
+    #i=preprocess_input(i)
 
     # one-hot vectorization - label
     label = tf.one_hot(label, num_class)

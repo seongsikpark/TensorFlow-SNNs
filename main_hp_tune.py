@@ -165,8 +165,9 @@ tf.config.experimental.enable_tensor_float_32_execution(False)
 
 #epoch = 20000
 #epoch = 20472
+train_epoch = 100
 #train_epoch = 300
-train_epoch = 1000
+#train_epoch = 1000
 #train_epoch = 3000
 #train_epoch =560
 #train_epoch = 10
@@ -174,8 +175,9 @@ train_epoch = 1000
 
 
 # learning rate schedule - step_decay
+step_decay_epoch = 20
 #step_decay_epoch = 100
-step_decay_epoch = 200
+#step_decay_epoch = 200
 
 
 # TODO: move to config
@@ -183,10 +185,6 @@ step_decay_epoch = 200
 root_hp_tune = './hp_tune'
 
 #
-#root_model = './models_trained'
-root_model = './models_trained_resnet_relu_debug'
-#root_model = conf.root_model
-
 # model
 #model_name = 'VGG16'
 #model_name = 'ResNet18'
@@ -380,7 +378,7 @@ dataset_sel = {
 
 #
 input_size_default = {
-    'ImageNet': 244,
+    'ImageNet': 224,
     'CIFAR10': 32,
     'CIFAR100': 32,
 }
@@ -491,13 +489,11 @@ model_dataset_name = model_name + '_' + dataset_name
 # path_model = './'+exp_set_name
 #path_model = os.path.join(root_model, exp_set_name)
 #path_model = os.path.join(root_model, model_dataset_name)
-path_model_load = os.path.join(root_model_load, model_dataset_name)
-path_model_save = os.path.join(root_model_save, model_dataset_name)
+#path_model_load = os.path.join(root_model_load, model_dataset_name)
+#path_model_save = os.path.join(root_model_save, model_dataset_name)
 
-config_glb.path_model_load = path_model_load
-config_glb.path_stat = conf.path_stat
-config_glb.model_name = model_name
-config_glb.dataset_name = dataset_name
+#config_glb.path_model_load = path_model_load
+#config_glb.path_stat = conf.path_stat
 
 
 # hyperparameter tune name
@@ -555,10 +551,6 @@ elif en_cutmix:
 #exp_set_name = model_name + '_' + dataset_name
 model_dataset_name = model_name + '_' + dataset_name
 
-# path_model = './'+exp_set_name
-#path_model = os.path.join(root_model, exp_set_name)
-#path_model = os.path.join(root_model, model_dataset_name)
-
 if conf.name_model_load=='':
     path_model_load = os.path.join(root_model_load, model_dataset_name)
     if conf.load_best_model:
@@ -576,8 +568,19 @@ else:
     path_model_save = conf.name_model_save
     filepath_save = path_model_save
 
+
+####
+# glb config set
+if conf.path_stat_root=='':
+    path_stat_root = path_model_load
+else:
+    path_stat_root = conf.path_stat_root
+#config_glb.path_stat = conf.path_stat
+config_glb.path_stat = os.path.join(path_stat_root,conf.path_stat_dir)
 config_glb.path_model_load = path_model_load
-config_glb.path_stat = conf.path_stat
+#config_glb.path_stat = conf.path_stat
+config_glb.model_name = model_name
+config_glb.dataset_name = dataset_name
 
 #if conf.load_best_model:
 #    filepath_load = path_model_load
@@ -697,10 +700,6 @@ if conf.debug_mode:
 # for HP tune
 model_top_glb = model_top
 
-# glb config set
-config_glb.path_model_load = path_model_load
-config_glb.path_stat = conf.path_stat
-
 #
 # model builder
 if f_hp_tune_train or f_hp_tune_load:
@@ -810,8 +809,8 @@ elif load_model:
         assert False
 
     elif not f_hp_tune_train:
-        model.load_weights(load_weight)
-        #model.load_weights(load_weight,by_name=True,skip_mismatch=True)
+        #model.load_weights(load_weight)
+        model.load_weights(load_weight,by_name=True,skip_mismatch=True)
         #model.load_weights_custom(load_weight)
         #model.load_weights(load_weight, by_name=True)
 
@@ -925,6 +924,11 @@ if not overwrite_tensorboard:
 # Callbacks
 ########
 
+# tensorboard - for tracking custom scalar
+file_writer = tf.summary.create_file_writer(path_tensorboard)
+file_writer.set_as_default()
+
+
 #
 if train and load_model and (not f_hp_tune_train):
     print('Evaluate pretrained model')
@@ -957,11 +961,13 @@ cb_libsnn = lib_snn.callbacks.SNNLIB(conf,path_model_load,test_ds_num,model_ann)
 cb_libsnn_ann = lib_snn.callbacks.SNNLIB(conf,path_model_load,test_ds_num)
 
 #
-callbacks_train = [cb_tensorboard,cb_libsnn]
 #callbacks_train = [cb_tensorboard]
+callbacks_train = []
 if save_model:
     callbacks_train.append(cb_model_checkpoint)
     callbacks_train.append(cb_manage_saved_model)
+callbacks_train.append(cb_libsnn)
+callbacks_train.append(cb_tensorboard)
 
 callbacks_test = []
 # TODO: move to parameters
@@ -1478,12 +1484,14 @@ else:
 
     if conf.dataset=='CIFAR10':
         #comp_batch_index = [1,3,20,23]  # VGG16, CIFAR10, not optmized
-        #comp_batch_index = [3, 1, 23, 20]
         comp_batch_index = [4,100]      # ResNet20, ts-64
         #pass
         # comp_batch_index = [1,3,20,23]
         #comp_batch_index = [3, 1, 23, 20]
         comp_batch_index = [92]
+
+        if model_name=='VGG16':
+            comp_batch_index = [3, 1, 23, 20]
     elif conf.dataset=='CIFAR100':
         #comp_batch_index = [1, 0]
         #comp_batch_index = [97]
@@ -1954,13 +1962,13 @@ else:
     # VGG16, CIFAR10
     calibration_batch_idx.append(0)
     calibration_batch_idx.append(1)
-    calibration_batch_idx.append(10)
-    calibration_batch_idx.append(20)
+    #calibration_batch_idx.append(10)
+    #calibration_batch_idx.append(20)
 
     #calibration_batch_idx.append(40)
 
     if conf.dataset=='CIFAR10':
-        calibration_batch_idx.append(1) # tmp
+        #calibration_batch_idx.append(1) # tmp
         pass
         #assert False
     elif conf.dataset=='CIFAR100':
@@ -2206,11 +2214,6 @@ if (not conf.full_test) and verbose_visual_tmp:
                     snn_hist = axe.hist(snn_out.numpy().flatten(),bins=100,density=True)
                     ylim = np.mean(snn_hist[0][0:10])
                     axe.set_ylim([0,ylim])
-
-
-
-plt.show()
-
 
 
 

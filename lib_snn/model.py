@@ -1454,7 +1454,7 @@ class Model(tf.keras.Model):
         #self.en_record_output = self.model._run_eagerly and (
         #(self.model.nn_mode == 'ANN' and self.conf.f_write_stat) or self.conf.debug_mode)
         self.en_record_output = self._run_eagerly and (
-            (self.nn_mode == 'ANN' and self.conf.f_write_stat) or self.conf.debug_mode)
+            (self.nn_mode == 'ANN' and self.conf.f_write_stat) or self.conf.en_record_output)
         # self.en_record_output = True
 
         if self.en_record_output:
@@ -1537,7 +1537,7 @@ class Model(tf.keras.Model):
 
         # init - neuron
         for layer in self.layers_w_neuron:
-            print(layer.name)
+            #print(layer.name)
             layer.act_snn.init()
 
         #
@@ -1592,7 +1592,6 @@ class Model(tf.keras.Model):
             self.total_spike_count[layer.name]=tf.zeros([self.num_accuracy_time_point])
             self.total_spike_count_int[layer.name]=tf.zeros([self.num_accuracy_time_point])
             self.total_residual_vmem[layer.name]=tf.zeros([self.num_accuracy_time_point])
-
 
 
         #
@@ -2130,16 +2129,16 @@ class Model(tf.keras.Model):
                 #self.bias_control_th[layer.name] = tf.reduce_mean(non_zero_r)
                 #self.bias_control_th[layer.name] = 0.1  # ResNet-32 + leak_off_bias_en
                 #self.bias_control_th[layer.name] = 0.01
-                self.bias_control_th[layer.name] = 0.01*((16-idx_layer)/16*0.5+0.5)
-                #self.bias_control_th[layer.name] = 0.001   # VGG
+                #self.bias_control_th[layer.name] = 0.01*((16-idx_layer)/16*0.5+0.5)
+                self.bias_control_th[layer.name] = 0.001   # VGG
                 #self.bias_control_th[layer.name] = 0.0001
                 #self.bias_control_th[layer.name] = 0.00001
                 #self.bias_control_th[layer.name] = 0.00
                 #self.bias_control_th[layer.name] = non_zero_r
                 #self.bias_control_th[layer.name] = non_zero_r*0.001
 
-
-                print(self.bias_control_th[layer.name])
+                print('< bias_control_th >')
+                print('{:} - {:}'.format(layer.name,self.bias_control_th[layer.name]))
 
                 channel = False
                 if channel:

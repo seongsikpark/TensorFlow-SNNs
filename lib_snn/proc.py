@@ -199,6 +199,10 @@ def preproc_ann_to_snn(self):
 
     # calibration
     #if self.calibration:
+    if not self.calibration_static_done:
+        calibration_static(self)
+
+
     if False:
 
         print(self.run_for_calibration)
@@ -227,6 +231,14 @@ def preproc_ann_to_snn(self):
 
 #
 def calibration_static(self):
+    #
+    if self.conf.calibration_vmem_ICLR:
+        lib_snn.calibration.vmem_calibration_ICLR(self)
+
+    self.calibration_static_done = True
+
+#
+def calibration_static_old(self):
 
     if self.model.nn_mode=='SNN':
         if self.conf.calibration_vth:
@@ -245,6 +257,7 @@ def calibration_static(self):
     #
     if self.conf.calibration_bias:
         lib_snn.calibration.bias_calibration(self)
+
 
     #
     #lib_snn.calibration.vth_calibration(self)
