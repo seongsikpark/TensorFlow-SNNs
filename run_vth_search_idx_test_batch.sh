@@ -14,22 +14,22 @@
 source ../00_SNN/venv/bin/activate
 
 
-# based on
-#-exp_set_name='220414_vth_search_idx_test_VGG16_CIFAR100_ts-128'\  -> best idx:34
-#-exp_set_name='220416_search-bias-1st_VGG16_CIFAR100_ts-128'\      -> 55
-#-exp_set_name='220417_search-vth-2nd_VGG16_CIFAR100_ts-128'\       -> 79 - 71.89
+#exp_set_name='220416_search-vth-1st_ResNet20_CIFAR10_ts-64'    ->  idx: 4
+#exp_set_name='220417_search-bias-1st_ResNet20_CIFAR10_ts-64'   -> 61, 95.64
+#exp_set_name='220418_search-vth-2nd_ResNet20_CIFAR10_ts-64'    -> 100, 95.67
+#exp_set_name='220419_search-bias-2nd_ResNet20_CIFAR10_ts-64'   -> 18, 95.73
 
 for ((i=0;i<125;i++))
 do
   echo $i
   python main_hp_tune.py \
     -verbose=False\
-  	-exp_set_name='220420_search-vth-3nd_VGG16_CIFAR100_ts-128'\
-  	-model='VGG16'\
-  	-dataset='CIFAR100'\
-  	-time_step=128\
+  	-exp_set_name='220420_search-vth-3rd_ResNet20_CIFAR10_ts-64'\
+  	-model='ResNet20'\
+  	-dataset='CIFAR10'\
+  	-time_step=64\
   	-early_stop_search=True\
-  	-early_stop_search_acc=0.7\
+  	-early_stop_search_acc=0.95\
     -vth_search_idx_test=True\
     -vth_search_idx=${i}\
     -calibration_idx_test=False\

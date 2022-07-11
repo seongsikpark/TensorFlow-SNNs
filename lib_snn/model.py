@@ -41,7 +41,7 @@ from lib_snn.sim import glb_plot_1x2
 
 class Model(tf.keras.Model):
     count=0
-    def __init__(self, inputs, outputs, batch_size, input_shape, data_format, num_class, conf, **kwargs):
+    def __init__(self, inputs, outputs, batch_size, input_shape, num_class, conf, **kwargs):
     #def __init__(self, batch_size, input_shape, data_format, num_class, conf, **kwargs):
 
         #print("lib_SNN - Layer - init")
@@ -67,7 +67,7 @@ class Model(tf.keras.Model):
 
         #
         self.conf = conf
-        Model.data_format = data_format
+        Model.data_format = conf.data_format
         self.kernel_size = None                 # for conv layer
         #self.num_class = conf.num_class
         self.num_class = num_class
@@ -1454,7 +1454,7 @@ class Model(tf.keras.Model):
         #self.en_record_output = self.model._run_eagerly and (
         #(self.model.nn_mode == 'ANN' and self.conf.f_write_stat) or self.conf.debug_mode)
         self.en_record_output = self._run_eagerly and (
-            (self.nn_mode == 'ANN' and self.conf.f_write_stat) or self.conf.debug_mode)
+            (self.nn_mode == 'ANN' and self.conf.f_write_stat) or self.conf.en_record_output)
         # self.en_record_output = True
 
         if self.en_record_output:
@@ -1537,7 +1537,7 @@ class Model(tf.keras.Model):
 
         # init - neuron
         for layer in self.layers_w_neuron:
-            print(layer.name)
+            #print(layer.name)
             layer.act_snn.init()
 
         #
@@ -1592,7 +1592,6 @@ class Model(tf.keras.Model):
             self.total_spike_count[layer.name]=tf.zeros([self.num_accuracy_time_point])
             self.total_spike_count_int[layer.name]=tf.zeros([self.num_accuracy_time_point])
             self.total_residual_vmem[layer.name]=tf.zeros([self.num_accuracy_time_point])
-
 
 
         #
@@ -1678,7 +1677,10 @@ class Model(tf.keras.Model):
                         self.prev_layer_name_bias_control[l.name] = prev_layer_conv_block_name+'_conv1'
 
                 elif 'conv2' in conv_name:
-                    self.prev_layer_name[l.name] = conv_block_name+'_conv1'
+                    self.prev_layer_name[l.name] = conv_block_name + '_conv1'
+                    self.prev_layer_name_bias_control[l.name] = self.prev_layer_name[l.name]
+                elif 'conv3' in conv_name:
+                    self.prev_layer_name[l.name] = conv_block_name + '_conv2'
                     self.prev_layer_name_bias_control[l.name] = self.prev_layer_name[l.name]
                 else:
                     print(l.name)
@@ -2135,8 +2137,8 @@ class Model(tf.keras.Model):
                 #self.bias_control_th[layer.name] = non_zero_r
                 #self.bias_control_th[layer.name] = non_zero_r*0.001
 
-
-                print(self.bias_control_th[layer.name])
+                print('< bias_control_th >')
+                print('{:} - {:}'.format(layer.name,self.bias_control_th[layer.name]))
 
                 channel = False
                 if channel:

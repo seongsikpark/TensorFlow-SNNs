@@ -261,10 +261,7 @@ tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220705_finetune_vgg16_cifa
 #tf.compat.v1.app.flags.DEFINE_string('exp_set_name', 'manual_test', 'exp set name')
 
 
-# train mode
-#tf.compat.v1.app.flags.DEFINE_bool('train', False, 'train mode')
-#tf.compat.v1.app.flags.DEFINE_bool('train', True, 'train mode')
-
+# mode
 tf.compat.v1.app.flags.DEFINE_enum('mode', 'inference', ['train', 'load_and_train', 'inference'], 'run mode')
 #tf.compat.v1.app.flags.DEFINE_enum('mode', 'load_and_train', ['train', 'load_and_train', 'inference'], 'run mode')
 #tf.compat.v1.app.flags.DEFINE_bool('train', True, 'train mode')
@@ -282,27 +279,39 @@ tf.compat.v1.app.flags.DEFINE_bool('dnn_to_snn', True, 'dnn-to-snn conversion')
 #tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'ANN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
 tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'SNN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
 
+# datasets
+tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR10', 'dataset')
+#tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR100', 'dataset')
+#tf.compat.v1.app.flags.DEFINE_string('dataset', 'ImageNet', 'dataset')
+
+
+
 # models
-tf.compat.v1.app.flags.DEFINE_string('model', 'VGG16', 'model')
+tf.compat.v1.app.flags.DEFINE_string('model', 'VGG16', 'model')    # ImageNet
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet20', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet32', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet44', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet56', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet18', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet34', 'model')
-#tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet50', 'model')
+#tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet50', 'model')  # ImageNet
+#tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet50V2', 'model')
+#tf.compat.v1.app.flags.DEFINE_string('model', 'MobileNet', 'model')    # not supported yet
+#tf.compat.v1.app.flags.DEFINE_string('model', 'MobileNetV2', 'model')  # ImageNet
+#tf.compat.v1.app.flags.DEFINE_string('model', 'EfficientNetV2S', 'model')  #ImageNet
+#tf.compat.v1.app.flags.DEFINE_string('model', 'EfficientNetV2M', 'model')
 
-# datasets
-tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR10', 'dataset')
-#tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR100', 'dataset')
+
+
 
 #
 tf.compat.v1.app.flags.DEFINE_bool('load_best_model', True, 'load best model (model, dataset)')
 #tf.compat.v1.app.flags.DEFINE_bool('load_best_model', False, 'load best model (model, dataset)')
 
 #
-tf.compat.v1.app.flags.DEFINE_integer('batch_size', 100, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size', 500, '')
+tf.compat.v1.app.flags.DEFINE_integer('batch_size', 100, '')
+#tf.compat.v1.app.flags.DEFINE_integer('batch_size', 2, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 1000, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 500, '')
 tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 400, '')
@@ -310,7 +319,7 @@ tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 400, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 200, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 100, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 10, '')
-#tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 1, '')
+#tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 2, '')
 
 #
 # VGG
@@ -332,9 +341,11 @@ tf.compat.v1.app.flags.DEFINE_string('data_aug_mix', 'cutmix', 'data augmentatio
 
 
 
-
 ## data_format - DO NOT TOUCH
 tf.compat.v1.app.flags.DEFINE_string('data_format', 'channels_last', 'data format')
+
+# batch norm
+tf.compat.v1.app.flags.DEFINE_boolean('use_bn', True, 'use batch norm')
 
 #
 tf.compat.v1.app.flags.DEFINE_boolean('use_bias', True, 'use bias')
@@ -367,8 +378,11 @@ tf.compat.v1.app.flags.DEFINE_string('root_results', './results', 'root results'
 ################
 # Debug
 ################
-#tf.compat.v1.app.flags.DEFINE_bool('debug_mode', False, 'debug mode')
-tf.compat.v1.app.flags.DEFINE_bool('debug_mode', True, 'debug mode')
+tf.compat.v1.app.flags.DEFINE_bool('debug_mode', False, 'debug mode - only for ANN mode, SNN - eager mode only')
+#tf.compat.v1.app.flags.DEFINE_bool('debug_mode', True, 'debug mode - only for ANN mode, SNN - eager mode only')
+
+tf.compat.v1.app.flags.DEFINE_bool('en_record_output', False, 'save intermediate layer output')
+#tf.compat.v1.app.flags.DEFINE_bool('en_record_output', True, 'save intermediate layer output')
 
 tf.compat.v1.app.flags.DEFINE_bool('full_test', True, 'full dataset test')
 #tf.compat.v1.app.flags.DEFINE_bool('full_test', False, 'full dataset test')
@@ -388,8 +402,8 @@ tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 0, 'start index of test d
 #tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 1600, 'number of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 1200, 'number of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 800, 'number of test data')
-#tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 400, 'number of test data')
-tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 100, 'number of test data')
+tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 400, 'number of test data')
+#tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 100, 'number of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 50, 'number of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 10, 'number of test data')
 #tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 3, 'number of test data')
@@ -401,8 +415,8 @@ tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 100, 'number of test data
 ################################
 
 # neuron type in SNN
-tf.compat.v1.app.flags.DEFINE_string('n_type', 'IF', 'LIF or IF: neuron type')
-#tf.compat.v1.app.flags.DEFINE_string('n_type', 'LIF', 'LIF or IF: neuron type')
+#tf.compat.v1.app.flags.DEFINE_string('n_type', 'IF', 'LIF or IF: neuron type')
+tf.compat.v1.app.flags.DEFINE_string('n_type', 'LIF', 'LIF or IF: neuron type')
 
 tf.compat.v1.app.flags.DEFINE_enum('n_reset_type','reset_by_sub', ['reset_by_sub', 'reset_to_zero'], 'neuron reset type')
 #tf.compat.v1.app.flags.DEFINE_enum('n_reset_type','reset_to_zero', ['reset_by_sub', 'reset_to_zero'], 'neuron reset type')
@@ -454,8 +468,8 @@ tf.compat.v1.app.flags.DEFINE_enum('snn_output_type',"VMEM", ["SPIKE", "VMEM", "
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 1024, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 512, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 256, 'time steps per sample in SNN')
-tf.compat.v1.app.flags.DEFINE_integer('time_step', 128, 'time steps per sample in SNN')
-#tf.compat.v1.app.flags.DEFINE_integer('time_step', 64, 'time steps per sample in SNN')
+#tf.compat.v1.app.flags.DEFINE_integer('time_step', 128, 'time steps per sample in SNN')
+tf.compat.v1.app.flags.DEFINE_integer('time_step', 64, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 32, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 20, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 16, 'time steps per sample in SNN')
@@ -492,7 +506,11 @@ tf.compat.v1.app.flags.DEFINE_bool('f_write_stat',False,'write stat')
 tf.compat.v1.app.flags.DEFINE_bool('f_stat_train_mode',True,'stat with train data')
 #tf.compat.v1.app.flags.DEFINE_bool('f_stat_train_mode',False,'stat with train data')
 
-tf.compat.v1.app.flags.DEFINE_string('path_stat','./stat/', 'path stat')
+
+#tf.compat.v1.app.flags.DEFINE_string('path_stat_root','', 'path stat - root, empty->path_model_load')
+tf.compat.v1.app.flags.DEFINE_string('path_stat_root','/home/sspark/Models/CNN/VGG16_CIFAR10', 'path stat - root, empty->path_model_load')
+
+tf.compat.v1.app.flags.DEFINE_string('path_stat_dir','stat', 'path stat dir under path_stat_root')
 tf.compat.v1.app.flags.DEFINE_string('prefix_stat', '', 'prefix of stat file name')
 
 #tf.compat.v1.app.flags.DEFINE_string('act_save_mode','channel','activation save mode')

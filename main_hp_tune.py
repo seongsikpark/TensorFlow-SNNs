@@ -18,6 +18,9 @@ import tensorflow_probability as tfp
 from tensorflow.python.keras.engine import data_adapter
 
 #
+from tensorflow.python.keras.utils import data_utils
+
+#
 from absl import app
 from absl import flags
 
@@ -93,7 +96,7 @@ from lib_snn import config_glb
 
 # GPU setting
 #
-GPU_NUMBER=0
+GPU_NUMBER=1
 
 GPU_PARALLEL_RUN = 1
 #GPU_PARALLEL_RUN = 2
@@ -375,7 +378,7 @@ dataset_sel = {
 
 #
 input_size_default = {
-    'ImageNet': 244,
+    'ImageNet': 224,
     'CIFAR10': 32,
     'CIFAR100': 32,
 }
@@ -447,22 +450,6 @@ else:
 image_shape = (input_size, input_size, 3)
 
 
-# dataset load
-#dataset = dataset_sel[dataset_name]
-#train_ds, valid_ds, test_ds = dataset.load(dataset_name,input_size,input_size_pre_crop_ratio,num_class,train,NUM_PARALLEL_CALL,conf,input_prec_mode)
-train_ds, valid_ds, test_ds, train_ds_num, valid_ds_num, test_ds_num, num_class =\
-    datasets.datasets.load(dataset_name,batch_size,input_size,train_type,train,conf,NUM_PARALLEL_CALL)
-
-
-# data-based weight normalization (DNN-to-SNN conversion)
-if conf.f_write_stat and conf.f_stat_train_mode:
-    test_ds = train_ds
-
-#assert False
-train_steps_per_epoch = train_ds.cardinality().numpy()
-
-
-
 
 # model compile
 metric_accuracy = tf.keras.metrics.categorical_accuracy
@@ -493,6 +480,20 @@ else:
     root_model_load = conf.root_model_load
 
 root_model_save = conf.root_model_save
+
+
+# TODO: configuration & file naming
+#exp_set_name = model_name + '_' + dataset_name
+model_dataset_name = model_name + '_' + dataset_name
+
+# path_model = './'+exp_set_name
+#path_model = os.path.join(root_model, exp_set_name)
+#path_model = os.path.join(root_model, model_dataset_name)
+#path_model_load = os.path.join(root_model_load, model_dataset_name)
+#path_model_save = os.path.join(root_model_save, model_dataset_name)
+
+#config_glb.path_model_load = path_model_load
+#config_glb.path_stat = conf.path_stat
 
 
 # hyperparameter tune name
@@ -567,8 +568,19 @@ else:
     path_model_save = conf.name_model_save
     filepath_save = path_model_save
 
+
+####
+# glb config set
+if conf.path_stat_root=='':
+    path_stat_root = path_model_load
+else:
+    path_stat_root = conf.path_stat_root
+#config_glb.path_stat = conf.path_stat
+config_glb.path_stat = os.path.join(path_stat_root,conf.path_stat_dir)
 config_glb.path_model_load = path_model_load
-config_glb.path_stat = conf.path_stat
+#config_glb.path_stat = conf.path_stat
+config_glb.model_name = model_name
+config_glb.dataset_name = dataset_name
 
 #if conf.load_best_model:
 #    filepath_load = path_model_load
@@ -576,52 +588,78 @@ config_glb.path_stat = conf.path_stat
 #    filepath_load = os.path.join(path_model_load, config_name)
 #filepath_save = os.path.join(path_model_save, config_name)
 
+
+
 ########################################
-#
+# load dataset
+########################################
+# dataset load
+#dataset = dataset_sel[dataset_name]
+#train_ds, valid_ds, test_ds = dataset.load(dataset_name,input_size,input_size_pre_crop_ratio,num_class,train,NUM_PARALLEL_CALL,conf,input_prec_mode)
+train_ds, valid_ds, test_ds, train_ds_num, valid_ds_num, test_ds_num, num_class = \
+    datasets.datasets.load(model_name, dataset_name,batch_size,input_size,train_type,train,conf,NUM_PARALLEL_CALL)
+
+
+# data-based weight normalization (DNN-to-SNN conversion)
+if conf.f_write_stat and conf.f_stat_train_mode:
+    test_ds = train_ds
+
+#assert False
+train_steps_per_epoch = train_ds.cardinality().numpy()
+
+########################################
+# load model
 ########################################
 
 model_top = model_sel(model_name,train_type)
 
+# TODO: integration - ImageNet
 if load_model and (not f_hp_tune_load):
-    # get latest saved model
-    #latest_model = lib_snn.util.get_latest_saved_model(filepath)
-
-    latest_model = lib_snn.util.get_latest_saved_model(filepath_load)
-    load_weight = os.path.join(filepath_load, latest_model)
-    #pre_model = tf.keras.models.load_model(load_weight)
-
-    #latest_model = lib_snn.util.get_latest_saved_model(filepath)
-    #load_weight = os.path.join(filepath, latest_model)
-
-
-    if not latest_model.startswith('ep-'):
-        #assert False, 'the name of latest model should start with ''ep-'''
-        print('the name of latest model should start with ep-')
-
-        load_weight = tf.train.latest_checkpoint(filepath_load)
-
-        # TODO:
-        init_epoch = 0
+    if conf.dataset == 'ImageNet':
+        load_weight = 'imagenet'
+        include_top = True
+        add_top = False
     else:
-        print('load weight: '+load_weight)
+        # get latest saved model
+        #latest_model = lib_snn.util.get_latest_saved_model(filepath)
 
-        if conf.mode=='inference':
-            init_epoch = int(re.split('-|\.',latest_model)[1])
-        elif conf.mode=='load_and_train':
+        latest_model = lib_snn.util.get_latest_saved_model(filepath_load)
+        load_weight = os.path.join(filepath_load, latest_model)
+        print('load weight: '+load_weight)
+        #pre_model = tf.keras.models.load_model(load_weight)
+
+        #latest_model = lib_snn.util.get_latest_saved_model(filepath)
+        #load_weight = os.path.join(filepath, latest_model)
+
+
+        if not latest_model.startswith('ep-'):
+            #assert False, 'the name of latest model should start with ''ep-'''
+            print('the name of latest model should start with ep-')
+
+            load_weight = tf.train.latest_checkpoint(filepath_load)
+
+            # TODO:
             init_epoch = 0
         else:
-            assert False
+            print('load weight: '+load_weight)
+
+            if conf.mode=='inference':
+                init_epoch = int(re.split('-|\.',latest_model)[1])
+            elif conf.mode=='load_and_train':
+                init_epoch = 0
+            else:
+                assert False
 
 
-    include_top = True
-    add_top = False
+        include_top = True
+        add_top = False
 
-    #if train_type == 'transfer':
-        #model_top = model_sel_tr[model_name]
-    #elif train_type == 'scratch':
-        #model_top = model_sel_sc[model_name]
-    #else:
-        #assert False
+        #if train_type == 'transfer':
+            #model_top = model_sel_tr[model_name]
+        #elif train_type == 'scratch':
+            #model_top = model_sel_sc[model_name]
+        #else:
+            #assert False
 else:
     if train_type == 'transfer':
         load_weight = 'imagenet'
@@ -661,10 +699,6 @@ if conf.debug_mode:
 
 # for HP tune
 model_top_glb = model_top
-
-# glb config set
-config_glb.path_model_load = path_model_load
-config_glb.path_stat = conf.path_stat
 
 #
 # model builder
@@ -719,7 +753,8 @@ else:
         train_epoch, train_steps_per_epoch,
         opt, learning_rate,
         lr_schedule, step_decay_epoch,
-        metric_accuracy, metric_accuracy_top5)
+        metric_accuracy, metric_accuracy_top5, dataset_name)
+
 
 #
 if conf.nn_mode=='SNN' and conf.dnn_to_snn:
@@ -731,7 +766,7 @@ if conf.nn_mode=='SNN' and conf.dnn_to_snn:
         train_epoch, train_steps_per_epoch,
         opt, learning_rate,
         lr_schedule, step_decay_epoch,
-        metric_accuracy, metric_accuracy_top5)
+        metric_accuracy, metric_accuracy_top5, dataset_name)
     conf.nn_mode=nn_mode_ori
 
     model_ann.nn_mode = 'ANN'

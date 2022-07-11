@@ -84,20 +84,21 @@ def block_bottleneck(x, filters, kernel_size=3, stride=1, conv_shortcut=True, na
     # bn_axis = 3  # 'channels_last' only
 
     if conv_shortcut:
-        shortcut = lib_snn.layers.Conv2D(4 * filters, 1, strides=stride, use_bn=True, activation=None, name=name + '_conv0')(x)
+        #shortcut = lib_snn.layers.Conv2D(4 * filters, 1, strides=stride, use_bn=True, activation=None, name=name + '_conv0')(x)
+        shortcut = lib_snn.layers.Conv2D(4 * filters, 1, strides=stride, use_bn=True, activation=None, name=name + '_conv0',kernel_initializer='zeros')(x)
     else:
         #shortcut = x
         shortcut = lib_snn.layers.Identity(name=name + '_conv0_i') (x)
         #shortcut = lib_snn.layers.Conv2D(1,1,strides=1,use_bn=False,activation=None,name=name+'_conv0_i',kernel_initializer='ones',trainable=False) (x)
 
     #x = lib_snn.layers.Conv2D(filters, 1, strides=stride, use_bn=True, activation='relu', epsilon=1.001e-5, name=name + '_conv_1')(x)
-    x = lib_snn.layers.Conv2D(filters, 1, strides=stride, use_bn=True, activation='relu', name=name + '_conv1')(x)
+    x = lib_snn.layers.Conv2D(filters, 1, strides=stride, use_bn=True, activation='relu', name=name + '_conv1',kernel_initializer='zeros')(x)
     #x = tf.keras.layers.Dropout(0.3,name=name+'_conv1_do')(x)
     # x = layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5, name=name + '_1_bn')(x)
     # x = layers.Activation('relu', name=name + '_1_relu')(x)
 
     #x = lib_snn.layers.Conv2D(filters, kernel_size, strides=stride, padding='SAME', use_bn=True, activation='relu',epsilon=1.001e-5, name=name + '_conv_2')(x)
-    x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation='relu',name=name + '_conv2')(x)
+    x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation='relu',name=name + '_conv2',kernel_initializer='zeros')(x)
     #x = lib_snn.layers.Conv2D(filters, kernel_size, strides=stride, use_bn=True, activation='relu',name=name + '_conv2')(x)
     #x = tf.keras.layers.Dropout(0.4,name=name+'_conv2_do')(x)
     # x = layers.Conv2D(filters, kernel_size, padding='SAME', name=name + '_2_conv')(x)
@@ -105,7 +106,7 @@ def block_bottleneck(x, filters, kernel_size=3, stride=1, conv_shortcut=True, na
     # x = layers.Activation('relu', name=name + '_2_relu')(x)
 
     #x = lib_snn.layers.Conv2D(4*filters, 1, strides=stride, use_bn=True, activation=None,epsilon=1.001e-5, name=name + '_conv_3')(x)
-    x = lib_snn.layers.Conv2D(4*filters, 1, use_bn=True, activation=None, name=name + '_conv3')(x)
+    x = lib_snn.layers.Conv2D(4*filters, 1, use_bn=True, activation=None, name=name + '_conv3',kernel_initializer='zeros')(x)
     #x = tf.keras.layers.Dropout(0.5,name=name+'_conv3_do')(x)
     # x = layers.Conv2D(4 * filters, 1, name=name + '_3_conv')(x)
     # x = layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5, name=name + '_3_bn')(x)
@@ -206,7 +207,7 @@ Args:
     (True for ResNetV2, False for ResNet and ResNeXt).
   use_bias: whether to use biases for convolutional layers or not
     (True for ResNet and ResNetV2, False for ResNeXt).
-  model_name: string, model name.
+  name: string, model name.
   include_top: whether to include the fully-connected
     layer at the top of the network.
   weights: one of `None` (random initialization),
@@ -251,13 +252,14 @@ Returns:
 def ResNet(
     batch_size,
     input_shape,
+    conf,
+    model_name,
     block,
     initial_channels,
     num_blocks,
-    conf,
     preact=False,
     #use_bias=True,
-    model_name='ResNet',
+    #name='ResNet',
     include_top=True,
     weights='imagenet',
     input_tensor=None,
@@ -268,6 +270,12 @@ def ResNet(
 
     data_format = conf.data_format
 
+    dataset_name = kwargs.pop('dataset_name', None)
+    if dataset_name == 'ImageNet':
+        imagenet_pretrain = True
+    else:
+        imagenet_pretrain = False
+
     #
     cifar_stack = True if len(num_blocks) == 3 else False
 
@@ -275,8 +283,6 @@ def ResNet(
 
     bn_axis = 3
 
-    imagenet_pretrain = False
-    #imagenet_pretrain = True
 
     img_input = tf.keras.layers.Input(shape=input_shape, batch_size=batch_size)
     #img_input = tf.keras.layers.InputLayer(shape=input_shape, batch_size=batch_size)
@@ -342,17 +348,17 @@ def ResNet(
 
     # Create model.
     #self.model = training.Model(img_input, x, name=model_name)
-    model = lib_snn.model.Model(img_input, x, batch_size, input_shape, data_format, classes, conf, name=model_name)
+    model = lib_snn.model.Model(img_input, x, batch_size, input_shape, classes, conf, name=model_name)
 
     # Load weights.
     if False:
-        if (weights == 'imagenet') and (model_name in WEIGHTS_HASHES):
+        if (weights == 'imagenet') and (name in WEIGHTS_HASHES):
             if include_top:
-                file_name = model_name + '_weights_tf_dim_ordering_tf_kernels.h5'
-                file_hash = WEIGHTS_HASHES[model_name][0]
+                file_name = name + '_weights_tf_dim_ordering_tf_kernels.h5'
+                file_hash = WEIGHTS_HASHES[name][0]
             else:
-                file_name = model_name + '_weights_tf_dim_ordering_tf_kernels_notop.h5'
-                file_hash = WEIGHTS_HASHES[model_name][1]
+                file_name = name + '_weights_tf_dim_ordering_tf_kernels_notop.h5'
+                file_hash = WEIGHTS_HASHES[name][1]
             weights_path = data_utils.get_file(
                 file_name,
                 BASE_WEIGHTS_PATH + file_name,

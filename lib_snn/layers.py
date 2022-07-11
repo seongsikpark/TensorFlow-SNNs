@@ -40,7 +40,7 @@ class Layer():
     index = None    # layer index count starts from InputGenLayer
 
 
-    def __init__(self, use_bn, activation, last_layer=False, **kwargs):
+    def __init__(self, use_bn, activation, last_layer=False, kwargs=None):
         #
         self.depth = -1
 
@@ -84,17 +84,21 @@ class Layer():
         self.out_n = None  # output - neuron
 
         # name
-        name = kwargs.pop('name', None)
-        if name is not None:
-            name_bn = name + '_bn'
-            name_act = name + '_act'
-        else:
-            name_bn = None
-            name_act = None
+        #name = kwargs.pop('name', None)
+        #if name is not None:
+        #    name_bn = name + '_bn'
+        #    name_act = name + '_act'
+        #else:
+        #    name_bn = None
+        #    name_act = None
+
+        # ReLU-6
+        relu_max_value = kwargs.pop('relu_max_value',None)
 
         # batch norm.
         if self.use_bn:
-            self.bn = tf.keras.layers.BatchNormalization(name=name_bn)
+            #self.bn = tf.keras.layers.BatchNormalization(name=name_bn)
+            self.bn = tf.keras.layers.BatchNormalization()
             # self.bn = tf.keras.layers.BatchNormalization(epsilon=1.001e-5,name=name_bn)
         else:
             self.bn = None
@@ -110,9 +114,11 @@ class Layer():
 
         # DNN mode
         if activation == 'relu':
-            self.act_dnn = tf.keras.layers.ReLU(name=name_act)
+            #self.act_dnn = tf.keras.layers.ReLU(max_value=relu_max_value, name=name_act)
+            self.act_dnn = tf.keras.layers.ReLU(max_value=relu_max_value)
         elif activation == 'softmax':
-            self.act_dnn = tf.keras.layers.Softmax(name=name_act)
+            #self.act_dnn = tf.keras.layers.Softmax(name=name_act)
+            self.act_dnn = tf.keras.layers.Softmax()
         else:
             self.act_dnn = None
 
@@ -585,7 +591,7 @@ class InputLayer(Layer, tf.keras.layers.InputLayer):
             ragged,
             type_spec,
             **kwargs)
-        Layer.__init__(self, False, None, **kwargs)
+        Layer.__init__(self, False, None, kwargs=kwargs)
 
         print('init')
         # assert False
@@ -608,7 +614,7 @@ class InputLayer(Layer, tf.keras.layers.InputLayer):
 class InputGenLayer(Layer, tf.keras.layers.Layer):
     def __init__(self, **kwargs):
         tf.keras.layers.Layer.__init__(self, **kwargs)
-        Layer.__init__(self, False, None, **kwargs)
+        Layer.__init__(self, False, None, kwargs=kwargs)
 
         #self.act_dnn = tf.identity()
 
@@ -639,12 +645,14 @@ class Conv2D(Layer, tf.keras.layers.Conv2D):
                  dilation_rate=(1, 1),
                  activation=None,
                  activity_regularizer=None,
+                 #kernel_initializer='glorot_uniform',
+                 kernel_initializer='zeros',
                  kernel_constraint=None,
                  bias_constraint=None,
                  use_bn=False,  # use batch norm.
                  **kwargs):
 
-        Layer.__init__(self, use_bn, activation, **kwargs)
+        Layer.__init__(self, use_bn, activation, kwargs=kwargs)
 
         tf.keras.layers.Conv2D.__init__(
             self,
@@ -656,7 +664,7 @@ class Conv2D(Layer, tf.keras.layers.Conv2D):
             dilation_rate=dilation_rate,
             activation=None,
             use_bias=conf.use_bias,
-            # kernel_initializer=Model.kernel_initializer,
+            kernel_initializer=kernel_initializer,
             bias_initializer='zeros',
             kernel_regularizer=self.kernel_regularizer,
             bias_regularizer=None,
@@ -666,11 +674,58 @@ class Conv2D(Layer, tf.keras.layers.Conv2D):
             # dynamic=True,
             **kwargs)
 
+        #
+        Layer.index += 1
+        self.depth = Layer.index
+        self.synapse=True
+
+
+# Conv2D
+class DepthwiseConv2D(Layer, tf.keras.layers.DepthwiseConv2D):
+    def __init__(self,
+                 kernel_size,
+                 strides=(1, 1),
+                 padding='valid',
+                 depth_multiplier=1,
+                 data_format=None,
+                 dilation_rate=(1, 1),
+                 activation=None,
+                 use_bias=True,
+                 depthwise_initializer='glorot_uniform',
+                 bias_initializer='zeros',
+                 depthwise_regularizer=None,
+                 bias_regularizer=None,
+                 activity_regularizer=None,
+                 depthwise_constraint=None,
+                 bias_constraint=None,
+                 use_bn=False,  # use batch norm.
+                 **kwargs):
+        Layer.__init__(self, use_bn, activation, kwargs=kwargs)
+
+        tf.keras.layers.DepthwiseConv2D.__init__(
+            self,
+            kernel_size=kernel_size,
+            strides=strides,
+            padding=padding,
+            depth_multiplier=depth_multiplier,
+            data_format=data_format,
+            dilation_rate=dilation_rate,
+            activation=activation,
+            use_bias=use_bias,
+            depthwise_initializer=depthwise_initializer,
+            bias_initializer=bias_initializer,
+            depthwise_regularizer=depthwise_regularizer,
+            bias_regularizer=bias_regularizer,
+            activity_regularizer=activity_regularizer,
+            depthwise_constraint=depthwise_constraint,
+            bias_constraint=bias_constraint,
+            **kwargs)
 
         #
         Layer.index += 1
         self.depth = Layer.index
         self.synapse=True
+
 
 
 # Dense
@@ -679,7 +734,7 @@ class Dense(Layer, tf.keras.layers.Dense):
                  units,
                  activation=None,
                  # use_bias=True
-                 # kernel_initializer='glorot_uniform',
+                 kernel_initializer='glorot_uniform',
                  # bias_initializer='zeros',
                  # kernel_regularizer=None,
                  # bias_regularizer=None,
@@ -690,14 +745,14 @@ class Dense(Layer, tf.keras.layers.Dense):
                  last_layer=False,
                  **kwargs):
 
-        Layer.__init__(self, use_bn, activation, last_layer, **kwargs)
+        Layer.__init__(self, use_bn, activation, last_layer, kwargs=kwargs)
 
         tf.keras.layers.Dense.__init__(
             self,
             units,
             activation=None,
             use_bias=conf.use_bias,
-            # kernel_initializer=Model.kernel_initializer,
+            kernel_initializer=kernel_initializer,
             bias_initializer='zeros',
             kernel_regularizer=self.kernel_regularizer,
             bias_regularizer=None,
@@ -718,7 +773,8 @@ class Add(Layer, tf.keras.layers.Add):
     def __init__(self, use_bn=False, epsilon=0.001, activation=None, **kwargs):
         tf.keras.layers.Add.__init__(self, **kwargs)
 
-        Layer.__init__(self, use_bn=use_bn, epsilon=epsilon, activation=activation, **kwargs)
+        #Layer.__init__(self, use_bn=use_bn, epsilon=epsilon, activation=activation, kwargs=kwargs)
+        Layer.__init__(self, use_bn=use_bn, activation=activation, kwargs=kwargs)
 
         # self.act = activation
 
@@ -755,7 +811,7 @@ class Add(Layer, tf.keras.layers.Add):
 class Identity(Layer, tf.keras.layers.Layer):
     def __init__(self, use_bn=False, epsilon=0.001, activation=None, **kwargs):
         tf.keras.layers.Layer.__init__(self, **kwargs)
-        Layer.__init__(self, use_bn=use_bn, epsilon=epsilon, activation=activation, **kwargs)
+        Layer.__init__(self, use_bn=use_bn, epsilon=epsilon, activation=activation, kwargs=kwargs)
 
         self.kernel = tf.constant(1.0, shape=[], name='kernel')
         self.bias = tf.zeros(shape=[],name='bias')
@@ -802,7 +858,7 @@ class MaxPool2D(Layer, tf.keras.layers.MaxPool2D):
             data_format=conf.data_format,
             **kwargs)
 
-        Layer.__init__(self, False, None, **kwargs)
+        Layer.__init__(self, False, None, kwargs=kwargs)
 
         self.prev_layer_set_done=False
 
@@ -847,11 +903,19 @@ class GlobalAveragePooling2D(Layer, tf.keras.layers.GlobalAveragePooling2D):
                  **kwargs):
 
         tf.keras.layers.GlobalAveragePooling2D.__init__(self,**kwargs)
-        Layer.__init__(self, use_bn=False, activation=None, last_layer=False, **kwargs)
+        Layer.__init__(self, use_bn=False, activation=None, last_layer=False, kwargs=kwargs)
 
     #def call(self, inputs):
 
         #name='avg_pool')(x)
+
+# ZeroPadding2D
+class ZeroPadding2D(Layer, tf.keras.layers.ZeroPadding2D):
+    def __init__(self,
+                 **kwargs):
+
+        tf.keras.layers.ZeroPadding2D.__init__(self,**kwargs)
+        Layer.__init__(self, use_bn=False, activation=None, last_layer=False, kwargs=kwargs)
 
 
 
