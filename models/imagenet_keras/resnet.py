@@ -14,9 +14,8 @@ def load_resnet_block(model, weights, name_layer_model, name_layer_weight):
     model.get_layer(name_layer_model).bn.moving_variance.assign(weights[name_layer_weight_bn][name_layer_weight_bn]['moving_variance:0'][:])
 
 #
-def load_resnet50(model, weights):
-
-    num_blocks = [3,4,6,3]
+def load_resnet(model, weights, num_blocks):
+    num_blocks=num_blocks
 
     model.get_layer('conv1_conv').kernel.assign(weights['conv1_conv']['conv1_conv']['kernel:0'][:])
     model.get_layer('conv1_conv').bias.assign(weights['conv1_conv']['conv1_conv']['bias:0'][:])
@@ -83,6 +82,24 @@ def load_resnet50(model, weights):
         model.get_layer('conv2_block1_conv1').bn.beta.assign(weights['conv2_block1_1_bn']['conv2_block1_1_bn']['beta:0'][:])
         model.get_layer('conv2_block1_conv1').bn.moving_mean.assign(weights['conv2_block1_1_bn']['conv2_block1_1_bn']['moving_mean:0'][:])
         model.get_layer('conv2_block1_conv1').bn.moving_variance.assign(weights['conv2_block1_1_bn']['conv2_block1_1_bn']['moving_variance:0'][:])
+
+
+
+def load_resnet50(model, weights):
+    num_blocks = [3,4,6,3]
+    load_resnet(model, weights, num_blocks)
+
+def load_resnet101(model,weights):
+    num_blocks = [3,4,23,3]
+    load_resnet(model, weights, num_blocks)
+
+def load_resnet152(model,weights):
+    num_blocks = [3,8,36,3]
+    load_resnet(model, weights, num_blocks)
+
+
+
+
 
 #
 def load_resnet50v2(model, weights):

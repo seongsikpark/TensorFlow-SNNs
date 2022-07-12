@@ -569,9 +569,22 @@ class Layer():
         inv = math_ops.rsqrt(var + ep)
         inv *= gamma
 
-        self.kernel = self.kernel * math_ops.cast(inv, self.kernel.dtype)
+        #if self.name == 'expanded_conv_depthwise':
+        #    print(self.depthwise_kernel.shape)
+
+        if isinstance(self,lib_snn.layers.DepthwiseConv2D):
+            inv_e = tf.expand_dims(inv,0)
+            inv_e = tf.expand_dims(inv_e,0)
+            inv_e = tf.expand_dims(inv_e,-1)
+            self.depthwise_kernel = self.depthwise_kernel* math_ops.cast(inv_e, self.depthwise_kernel.dtype)
+            #if self.name=='expanded_conv_depthwise':
+            #    print(self.depthwise_kernel.shape)
+        else:
+            self.kernel = self.kernel * math_ops.cast(inv, self.kernel.dtype)
+
         self.bias = ((self.bias - mean) * inv + beta)
         #self.bias = self.bias*2
+        #assert False
 
 #
 def _bn_defusion(layer, bn):
@@ -830,7 +843,8 @@ class Add(Layer, tf.keras.layers.Add):
 class Identity(Layer, tf.keras.layers.Layer):
     def __init__(self, use_bn=False, epsilon=0.001, activation=None, **kwargs):
         tf.keras.layers.Layer.__init__(self, **kwargs)
-        Layer.__init__(self, use_bn=use_bn, epsilon=epsilon, activation=activation, kwargs=kwargs)
+        #Layer.__init__(self, use_bn=use_bn, epsilon=epsilon, activation=activation, kwargs=kwargs)
+        Layer.__init__(self, use_bn=use_bn, activation=activation, kwargs=kwargs)
 
         self.kernel = tf.constant(1.0, shape=[], name='kernel')
         self.bias = tf.zeros(shape=[],name='bias')

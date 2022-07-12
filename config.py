@@ -280,27 +280,32 @@ tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'ANN', 'ANN: Analog Neural Netwo
 #tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'SNN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
 
 # datasets
-tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR10', 'dataset')
+#tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR10', 'dataset')
 #tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR100', 'dataset')
-#tf.compat.v1.app.flags.DEFINE_string('dataset', 'ImageNet', 'dataset')
+tf.compat.v1.app.flags.DEFINE_string('dataset', 'ImageNet', 'dataset')
 
 
 
-# models
-tf.compat.v1.app.flags.DEFINE_string('model', 'VGG16', 'model')    # ImageNet
+# models - CIFAR
+#tf.compat.v1.app.flags.DEFINE_string('model', 'VGG16', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet20', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet32', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet44', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet56', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet18', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet34', 'model')
-#tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet50', 'model')  # ImageNet
-#tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet50V2', 'model')
+
+
+# models - ImageNet
+#tf.compat.v1.app.flags.DEFINE_string('model', 'VGG16', 'model')    # ImageNet
+tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet50', 'model')  # ImageNet
+#tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet50V2', 'model')   # not supported yet
+#tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet101', 'model')  # ImageNet
+#tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet152', 'model')  # ImageNet
 #tf.compat.v1.app.flags.DEFINE_string('model', 'MobileNet', 'model')    # not supported yet
 #tf.compat.v1.app.flags.DEFINE_string('model', 'MobileNetV2', 'model')  # ImageNet
 #tf.compat.v1.app.flags.DEFINE_string('model', 'EfficientNetV2S', 'model')  #ImageNet
 #tf.compat.v1.app.flags.DEFINE_string('model', 'EfficientNetV2M', 'model')
-
 
 
 
@@ -507,8 +512,8 @@ tf.compat.v1.app.flags.DEFINE_bool('f_stat_train_mode',True,'stat with train dat
 #tf.compat.v1.app.flags.DEFINE_bool('f_stat_train_mode',False,'stat with train data')
 
 
-#tf.compat.v1.app.flags.DEFINE_string('path_stat_root','', 'path stat - root, empty->path_model_load')
-tf.compat.v1.app.flags.DEFINE_string('path_stat_root','/home/sspark/Models/CNN/VGG16_CIFAR10', 'path stat - root, empty->path_model_load')
+tf.compat.v1.app.flags.DEFINE_string('path_stat_root','', 'path stat - root, empty->path_model_load')
+#tf.compat.v1.app.flags.DEFINE_string('path_stat_root','/home/sspark/Models/CNN/VGG16_CIFAR10', 'path stat - root, empty->path_model_load')
 
 tf.compat.v1.app.flags.DEFINE_string('path_stat_dir','stat', 'path stat dir under path_stat_root')
 tf.compat.v1.app.flags.DEFINE_string('prefix_stat', '', 'prefix of stat file name')

@@ -105,7 +105,7 @@ from models import imagenet_utils
 
 # GPU setting
 #
-GPU_NUMBER=1
+GPU_NUMBER=2
 
 GPU_PARALLEL_RUN = 1
 #GPU_PARALLEL_RUN = 2
@@ -663,20 +663,45 @@ model = lib_snn.model_builder.model_builder(
 #    print('Keys: %s'%f.keys())
 
 
-
+# Step1: download and test model
 # test
-if True:
-#if False:
+#if True:
+if False:
     # ResNet50
     if model_name=='ResNet50':
         from tensorflow.keras.applications.resnet import ResNet50
-        m = ResNet50(weights='/home/sspark/Models/refs/ImageNet/Keras/ResNet50/resnet50_weights_tf_dim_ordering_tf_kernels.h5')
+        #m = ResNet50(weights='/home/sspark/Models/refs/ImageNet/Keras/ResNet50/resnet50_weights_tf_dim_ordering_tf_kernels.h5')
+        m = ResNet50()
         m.compile(optimizer='SGD',
                       loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
                       metrics=[metric_accuracy, metric_accuracy_top5])
 
         m.evaluate(test_ds)
         assert False
+
+    # ResNet101
+    if model_name=='ResNet101':
+        from tensorflow.keras.applications.resnet import ResNet101
+        m = ResNet101()
+        m.compile(optimizer='SGD',
+                      loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
+                      metrics=[metric_accuracy, metric_accuracy_top5])
+
+        m.evaluate(test_ds)
+        assert False
+
+
+    # ResNet152
+    if model_name=='ResNet152':
+        from tensorflow.keras.applications.resnet import ResNet152
+        m = ResNet152()
+        m.compile(optimizer='SGD',
+                  loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
+                  metrics=[metric_accuracy, metric_accuracy_top5])
+
+        m.evaluate(test_ds)
+        assert False
+
 
     # MobileNet
     if model_name=='MobileNet':
@@ -745,6 +770,8 @@ source_model_file_dict = collections.OrderedDict()
 source_model_file_dict['VGG16'] = 'VGG16/vgg16_weights_tf_dim_ordering_tf_kernels.h5'
 source_model_file_dict['ResNet50'] = 'ResNet50/resnet50_weights_tf_dim_ordering_tf_kernels.h5'
 source_model_file_dict['ResNet50V2'] = 'ResNet50V2/resnet50v2_weights_tf_dim_ordering_tf_kernels.h5'
+source_model_file_dict['ResNet101'] = 'ResNet101/resnet101_weights_tf_dim_ordering_tf_kernels.h5'
+source_model_file_dict['ResNet152'] = 'ResNet152/resnet152_weights_tf_dim_ordering_tf_kernels.h5'
 source_model_file_dict['MobileNet'] = 'MobileNet/mobilenet_1_0_224_tf.h5'
 source_model_file_dict['MobileNetV2'] = 'MobileNetV2/mobilenet_v2_weights_tf_dim_ordering_tf_kernels_1.0_224.h5'
 source_model_file_dict['EfficientNetV2S'] = 'EfficientNetV2S/efficientnetv2-s.h5'
@@ -763,7 +790,7 @@ print('Keys: %s'%f.keys())
 
 # step 2
 # load local weight + keras source code (modified)
-model.load_weights(source_model_file)
+#model.load_weights(source_model_file)
 #assert False
 
 # load local weight + lib_snn code
@@ -836,6 +863,14 @@ if not overwrite_tensorboard:
         shutil.move(path_tensorboard, path_dest_tensorboard)
 
 
+####################
+# save model
+####################
+
+filepath_save = os.path.join(path_model_save, 'ImageNet_Import')
+os.makedirs(filepath_save,exist_ok=True)
+model.save_weights(filepath_save + '/ep-0000.h5')
+print('ImageNet import model saved - {}'.format(filepath_save))
 
 ########
 # Callbacks
@@ -856,7 +891,8 @@ else:
 cb_model_checkpoint = lib_snn.callbacks.ModelCheckpointResume(
     # filepath=filepath + '/ep-{epoch:04d}',
     # filepath=filepath + '/ep-{epoch:04d}.ckpt',
-    filepath=filepath_save + '/ep-{epoch:04d}.hdf5',
+    #filepath=filepath_save + '/ep-{epoch:04d}.hdf5',
+    filepath=filepath_save + '/ep-{epoch:04d}.h5',
     save_weight_only=True,
     save_best_only=True,
     monitor=monitor_cri,

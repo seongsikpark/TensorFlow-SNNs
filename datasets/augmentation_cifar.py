@@ -195,8 +195,10 @@ def resize_with_crop(image, label, dataset_name, input_size, input_size_pre_crop
         else:
             assert False
 
-    i=preprocess_input(i,mode=input_prec_mode)
-    #i=preprocess_input(i)
+    try:
+        i = preprocess_input(i, mode=input_prec_mode)
+    except:
+        i=preprocess_input(i)
 
 
     #
@@ -288,9 +290,10 @@ def resize_with_crop_aug(image, label, dataset_name, input_size, input_size_pre_
     i=tf.image.random_flip_left_right(i)
 
     #
-    #i=preprocess_input(i)
-    i=preprocess_input(i,mode=input_prec_mode)
-    #i=preprocess_input(i)
+    try:
+        i = preprocess_input(i, mode=input_prec_mode)
+    except:
+        i=preprocess_input(i)
 
     # one-hot vectorization - label
     label = tf.one_hot(label, num_class)
@@ -333,6 +336,7 @@ def _resize_with_crop_imagenet(image,input_size,input_size_pre_crop_ratio):
             i=tf.image.resize(i,(w,s),method='bicubic',preserve_aspect_ratio=True,antialias=True)      # EfficientNet
         else:
             i=tf.image.resize(i,(w,s),method='lanczos3')   # VGG, ResNet
+            #i=tf.image.resize(i,(w,s),method='bicubic')
         #i=tf.image.resize(i,(w,s),method='bilinear')
         #i=tf.image.resize(i,(w,s),method='bilinear',preserve_aspect_ratio=True,antialias=True)
         #i=tf.image.resize(i,(w,s),method='lanczos3',preserve_aspect_ratio=True,antialias=True)   #
