@@ -12,7 +12,7 @@ import os
 
 # TF logging setup
 #os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-
+import keras_tuner
 import tensorflow as tf
 import tensorflow_probability as tfp
 from tensorflow.python.keras.engine import data_adapter
@@ -89,7 +89,6 @@ from models import imagenet_utils
 #
 #conf = flags.FLAGS
 
-
 ########################################
 # configuration
 ########################################
@@ -100,7 +99,7 @@ from models import imagenet_utils
 
 # GPU setting
 #
-GPU_NUMBER=2
+GPU_NUMBER=6
 
 GPU_PARALLEL_RUN = 1
 #GPU_PARALLEL_RUN = 2
@@ -149,8 +148,9 @@ hp_tune = conf.hp_tune
 train= (conf.mode=='train') or (conf.mode=='load_and_train')
 
 # TODO: parameterize
-load_model=True
+#load_model=True
 #load_model=False
+load_model = (conf.mode=='inference') or (conf.mode=='load_and_train')
 
 #
 #save_model = False
@@ -163,25 +163,16 @@ overwrite_train_model=False
 #
 overwrite_tensorboard = True
 
-#
-#tf.config.experimental.enable_tensor_float_32_execution(conf.tf32_mode)
-tf.config.experimental.enable_tensor_float_32_execution(False)
-
 #epoch = 20000
 #epoch = 20472
-train_epoch = 100
 #train_epoch = 300
-#train_epoch = 1000
-#train_epoch = 3000
-#train_epoch =560
-#train_epoch = 10
-#train_epoch = 1
+train_epoch = 1000
+#train_epoch = 3
 
 
 # learning rate schedule - step_decay
-step_decay_epoch = 20
 #step_decay_epoch = 100
-#step_decay_epoch = 200
+step_decay_epoch = 200
 
 
 # TODO: move to config
@@ -747,12 +738,16 @@ if f_hp_tune_train or f_hp_tune_load:
     #hp_model_builder = partial(model_builder, hp, hps)
     hp_model = lib_snn.hp_tune_model.CustomHyperModel(hp_tune_args, hps)
 
+    #search_func = lib_snn.hp_tune.GridSearch
+    search_func = keras_tuner.RandomSearch
+    search_max_trials = 20
 
     #tuner = kt.Hyperband(model_builder,
     #tuner=kt.RandomSearch(model_builder,
-    tuner=lib_snn.hp_tune.GridSearch(hp_model,
+    #tuner=lib_snn.hp_tune.GridSearch(hp_model_builder,
+    tuner=search_func(hp_model_builder,
                          objective='val_acc',
-                         #max_trials=12,
+                         max_trials=search_max_trials,
                          #max_epochs = 300,
                          #factor=3,
                          #overwrite=True,
@@ -951,11 +946,6 @@ if not overwrite_tensorboard:
 ########
 # Callbacks
 ########
-
-# tensorboard - for tracking custom scalar
-file_writer = tf.summary.create_file_writer(path_tensorboard)
-file_writer.set_as_default()
-
 
 #
 if train and load_model and (not f_hp_tune_train):

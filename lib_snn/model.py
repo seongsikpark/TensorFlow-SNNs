@@ -1453,8 +1453,7 @@ class Model(tf.keras.Model):
 
         #self.en_record_output = self.model._run_eagerly and (
         #(self.model.nn_mode == 'ANN' and self.conf.f_write_stat) or self.conf.debug_mode)
-        self.en_record_output = self._run_eagerly and (
-            (self.nn_mode == 'ANN' and self.conf.f_write_stat) or self.conf.en_record_output)
+        self.en_record_output = self._run_eagerly and ((self.nn_mode == 'ANN' and self.conf.f_write_stat) or self.conf.en_record_output)
         # self.en_record_output = True
 
         if self.en_record_output:

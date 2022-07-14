@@ -98,8 +98,9 @@ class Layer():
         # batch norm.
         if self.use_bn:
             #self.bn = tf.keras.layers.BatchNormalization(name=name_bn)
-            self.bn = tf.keras.layers.BatchNormalization()
-            # self.bn = tf.keras.layers.BatchNormalization(epsilon=1.001e-5,name=name_bn)
+            #self.bn = tf.keras.layers.BatchNormalization()
+            #self.bn = tf.keras.layers.BatchNormalization(epsilon=1.001e-5,name=name_bn)
+            self.bn = tf.keras.layers.BatchNormalization(epsilon=1.001e-5)
         else:
             self.bn = None
 
@@ -343,14 +344,21 @@ class Layer():
         ##    #n = tf.quantization.fake_quant_with_min_max_vars(n,0,1,num_bits=8)
         #    #n = tf.quantization.fake_quant_with_min_max_vars(n,0,1,num_bits=8)
             #if self.conf.fine_tune_quant and (not self.last_layer):
-            if self.conf.fine_tune_quant:
+            #if self.conf.fine_tune_quant:
+            if self.conf.fine_tune_quant and not self.last_layer:
                 #n=tf.quantize_and_dequantize_v4(n, 0, 1, signed_input=False, num_bits=8, range_given=True)
                 #n = tf.quantize_and_dequantize_v4(n, 0, self.quant_max, signed_input=False, num_bits=8, range_given=True)
                 #n = tf.quantize_and_dequantize_v4(n, 0, self.quant_max, signed_input=False, num_bits=6, range_given=True)
                 #n = tf.quantize_and_dequantize_v4(n, 0, self.quant_max, signed_input=False, num_bits=4, range_given=True)
                 #n = tf.clip_by_value(tf.math.floor(b*64/self.quant_max)/64,0,1)*self.quant_max
                 #n=lib_snn.calibration.clip_floor_act(b, self.quant_max, 64.0)
+
+                #print('layer name')
+                #print(self.name)
+
                 n=lib_snn.calibration.clip_floor_act(b, self.vth_l, 64.0)
+                #n=lib_snn.calibration.clip_floor_act(b)
+                #n=lib_snn.calibration.clip_floor_shift_act(b, self.vth_l, 64.0)
                 #n = tf.quantize_and_dequantize_v4(n, 0, self.quant_max, signed_input=False, num_bits=12, range_given=True)
         #    n=tf.quantize_and_dequantize_v4(n, 0, 1, signed_input=False, num_bits=16, range_given=True)
         #    #n = tf.quantization.quantize(n,0,1,T=tf.qint8)
@@ -677,8 +685,7 @@ class Conv2D(Layer, tf.keras.layers.Conv2D):
                  dilation_rate=(1, 1),
                  activation=None,
                  activity_regularizer=None,
-                 #kernel_initializer='glorot_uniform',
-                 kernel_initializer='zeros',
+                 kernel_initializer='glorot_uniform',
                  kernel_constraint=None,
                  bias_constraint=None,
                  use_bn=False,  # use batch norm.
