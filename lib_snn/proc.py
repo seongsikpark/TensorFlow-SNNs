@@ -25,6 +25,8 @@ import lib_snn
 from lib_snn.sim import glb_t
 from lib_snn.sim import glb_plot
 
+from lib_snn import config_glb
+
 ########################################
 # init (on_train_begin)
 ########################################
@@ -879,7 +881,8 @@ def w_norm_data(self):
     #f_name_stat_pre=model_dataset
     #path_stat = os.path.join(path_stat,model_dataset)
 
-    path_stat = os.path.join(self.path_model_load,self.conf.path_stat)
+    #path_stat = os.path.join(self.path_model_load,self.conf.path_stat)
+    path_stat = os.path.join(config_glb.path_stat)
 
     #stat_conf=['max','mean','max_999','max_99','max_98']
 

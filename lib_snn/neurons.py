@@ -91,6 +91,9 @@ class Neuron(tf.keras.layers.Layer):
         #leak_const = 0.99
         #leak_const = 0.987
         leak_const = 0.985
+        #leak_const = -0.006*self.depth+0.991
+        #leak_const = -0.003*self.depth+0.991
+        #leak_const = -0.0001*self.depth+0.99
         #leak_const = 0.983
         #leak_const = 0.98
 
@@ -108,18 +111,23 @@ class Neuron(tf.keras.layers.Layer):
         #if depth==16:
         if self.n_type=='OUT':
             #leak_const = 0.8
+            leak_const = 0.85
+            #leak_const = 0.87
             #leak_const = 0.90
             #leak_const = 0.91
             #leak_const = 0.94
             #leak_const = 0.95      # VGG
 
+            #leak_const = 0.90
             #leak_const = 0.96
             #leak_const = 0.97
             #leak_const = 0.98
             #leak_const = 0.99
             #leak_const = 0.92
             #leak_const = 0.93
-            leak_const = 0.985
+            #leak_const = 0.97
+            #leak_const = 0.98
+            #leak_const = 0.985
             #leak_const = 0.99
             #leak_const = 0.1
 

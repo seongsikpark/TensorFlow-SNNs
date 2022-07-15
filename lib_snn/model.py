@@ -1453,9 +1453,9 @@ class Model(tf.keras.Model):
 
         #self.en_record_output = self.model._run_eagerly and (
         #(self.model.nn_mode == 'ANN' and self.conf.f_write_stat) or self.conf.debug_mode)
-        self.en_record_output = self._run_eagerly and (
-            (self.nn_mode == 'ANN' and self.conf.f_write_stat) or self.conf.en_record_output)
-        # self.en_record_output = True
+        self.en_record_output = self._run_eagerly and \
+                                ((self.nn_mode == 'ANN' and self.conf.f_write_stat) or self.conf.en_record_output) or \
+                                (self.nn_mode == 'SNN' and self.conf.vth_search)
 
         if self.en_record_output:
             #self.layers_record = self.layers_w_kernel
@@ -2108,7 +2108,8 @@ class Model(tf.keras.Model):
                     continue
 
                 #print(layer.name)
-                if False:
+                #if False:
+                if True:
                     if isinstance(layer, lib_snn.layers.Conv2D):
                         axis = [1,2,3]
                         axis_ch = [1,2]
@@ -2119,8 +2120,8 @@ class Model(tf.keras.Model):
                         print(layer)
                         assert False
 
-                #non_zero = tf.math.count_nonzero(layer_ann.record_output, dtype=tf.float32, axis=axis)
-                #non_zero_r = non_zero / tf.cast(tf.reduce_prod(layer_ann.record_output.shape[1:]), tf.float32)
+                non_zero = tf.math.count_nonzero(layer_ann.record_output, dtype=tf.float32, axis=axis)
+                non_zero_r = non_zero / tf.cast(tf.reduce_prod(layer_ann.record_output.shape[1:]), tf.float32)
 
                 #self.bias_control_th[layer.name] = tf.reduce_mean(non_zero_r)*0.0001
                 #self.bias_control_th[layer.name] = tf.reduce_mean(non_zero_r)*0.001
@@ -2130,12 +2131,16 @@ class Model(tf.keras.Model):
                 #self.bias_control_th[layer.name] = 0.1  # ResNet-32 + leak_off_bias_en
                 #self.bias_control_th[layer.name] = 0.01
                 #self.bias_control_th[layer.name] = 0.01*((16-idx_layer)/16*0.5+0.5)
-                self.bias_control_th[layer.name] = 0.001   # VGG
+                #self.bias_control_th[layer.name] = 0.001   # VGG
                 #self.bias_control_th[layer.name] = 0.0001
                 #self.bias_control_th[layer.name] = 0.00001
                 #self.bias_control_th[layer.name] = 0.00
                 #self.bias_control_th[layer.name] = non_zero_r
-                #self.bias_control_th[layer.name] = non_zero_r*0.001
+                self.bias_control_th[layer.name] = non_zero_r * 0.1    # ts-64, 94.35
+                #self.bias_control_th[layer.name] = non_zero_r * 0.01    # ts-64, 94.29, 94.32
+                #self.bias_control_th[layer.name] = non_zero_r * 0.01* ((16-idx_layer)/16*0.5+0.5)   # ts-64, 94.29, 94.25, 94.38
+                #self.bias_control_th[layer.name] = non_zero_r*0.001 # ts-64, 94.4, 94.29
+                #self.bias_control_th[layer.name] = non_zero_r*0.0001 # ts-64, 94.36
 
                 print('< bias_control_th >')
                 print('{:} - {:}'.format(layer.name,self.bias_control_th[layer.name]))

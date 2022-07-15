@@ -625,7 +625,7 @@ if load_model and (not f_hp_tune_load):
 
         latest_model = lib_snn.util.get_latest_saved_model(filepath_load)
         load_weight = os.path.join(filepath_load, latest_model)
-        print('load weight: '+load_weight)
+        #print('load weight: '+load_weight)
         #pre_model = tf.keras.models.load_model(load_weight)
 
         #latest_model = lib_snn.util.get_latest_saved_model(filepath)
@@ -809,8 +809,8 @@ elif load_model:
         assert False
 
     elif not f_hp_tune_train:
-        #model.load_weights(load_weight)
-        model.load_weights(load_weight,by_name=True,skip_mismatch=True)
+        model.load_weights(load_weight)
+        #model.load_weights(load_weight,by_name=True,skip_mismatch=True)
         #model.load_weights_custom(load_weight)
         #model.load_weights(load_weight, by_name=True)
 
