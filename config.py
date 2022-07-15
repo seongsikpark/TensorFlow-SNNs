@@ -262,9 +262,9 @@ tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220712_finetune_vgg16_cifa
 
 
 # mode
-#tf.compat.v1.app.flags.DEFINE_enum('mode', 'inference', ['train', 'load_and_train', 'inference'], 'run mode')
+tf.compat.v1.app.flags.DEFINE_enum('mode', 'inference', ['train', 'load_and_train', 'inference'], 'run mode')
 #tf.compat.v1.app.flags.DEFINE_enum('mode', 'load_and_train', ['train', 'load_and_train', 'inference'], 'run mode')
-tf.compat.v1.app.flags.DEFINE_enum('mode', 'train', ['train', 'load_and_train', 'inference'], 'run mode')
+#tf.compat.v1.app.flags.DEFINE_enum('mode', 'train', ['train', 'load_and_train', 'inference'], 'run mode')
 
 #
 tf.compat.v1.app.flags.DEFINE_bool('hp_tune', False, 'hyperparameter tune mode')
@@ -272,8 +272,8 @@ tf.compat.v1.app.flags.DEFINE_bool('hp_tune', False, 'hyperparameter tune mode')
 
 
 #
-tf.compat.v1.app.flags.DEFINE_bool('dnn_to_snn', False, 'dnn-to-snn conversion')
-#tf.compat.v1.app.flags.DEFINE_bool('dnn_to_snn', True, 'dnn-to-snn conversion')
+#tf.compat.v1.app.flags.DEFINE_bool('dnn_to_snn', False, 'dnn-to-snn conversion')
+tf.compat.v1.app.flags.DEFINE_bool('dnn_to_snn', True, 'dnn-to-snn conversion')
 
 # neural network mode
 #tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'ANN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
@@ -310,8 +310,8 @@ tf.compat.v1.app.flags.DEFINE_string('model', 'VGG16', 'model')
 
 
 #
-#tf.compat.v1.app.flags.DEFINE_bool('load_best_model', True, 'load best model (model, dataset)')
-tf.compat.v1.app.flags.DEFINE_bool('load_best_model', False, 'load best model (model, dataset)')
+tf.compat.v1.app.flags.DEFINE_bool('load_best_model', True, 'load best model (model, dataset)')
+#tf.compat.v1.app.flags.DEFINE_bool('load_best_model', False, 'load best model (model, dataset)')
 
 #
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size', 500, '')
@@ -433,8 +433,8 @@ tf.compat.v1.app.flags.DEFINE_enum('snn_output_type',"VMEM", ["SPIKE", "VMEM", "
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 1024, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 512, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 256, 'time steps per sample in SNN')
-tf.compat.v1.app.flags.DEFINE_integer('time_step', 128, 'time steps per sample in SNN')
-#tf.compat.v1.app.flags.DEFINE_integer('time_step', 64, 'time steps per sample in SNN')
+#tf.compat.v1.app.flags.DEFINE_integer('time_step', 128, 'time steps per sample in SNN')
+tf.compat.v1.app.flags.DEFINE_integer('time_step', 64, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 32, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 20, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 16, 'time steps per sample in SNN')
@@ -456,7 +456,7 @@ tf.compat.v1.app.flags.DEFINE_bool('f_record_first_spike_time',True,'flag - reco
 #
 tf.compat.v1.app.flags.DEFINE_bool('f_fused_bn',True,'f_fused_bn')
 #tf.compat.v1.app.flags.DEFINE_bool('f_fused_bn',False,'f_fused_bn')
-220715
+
 #
 tf.compat.v1.app.flags.DEFINE_bool('f_w_norm_data',True,'f_w_norm_data')
 #tf.compat.v1.app.flags.DEFINE_bool('f_w_norm_data',False,'f_w_norm_data')
@@ -473,8 +473,8 @@ tf.compat.v1.app.flags.DEFINE_bool('f_stat_train_mode',True,'stat with train dat
 #tf.compat.v1.app.flags.DEFINE_bool('f_stat_train_mode',False,'stat with train data')
 
 
-tf.compat.v1.app.flags.DEFINE_string('path_stat_root','', 'path stat - root, empty->path_model_load')
-#tf.compat.v1.app.flags.DEFINE_string('path_stat_root','/home/sspark/Models/CNN/VGG16_CIFAR10', 'path stat - root, empty->path_model_load')
+#tf.compat.v1.app.flags.DEFINE_string('path_stat_root','', 'path stat - root, empty->path_model_load')
+tf.compat.v1.app.flags.DEFINE_string('path_stat_root','/home/sspark/Models/CNN/VGG16_CIFAR10', 'path stat - root, empty->path_model_load')
 
 tf.compat.v1.app.flags.DEFINE_string('path_stat_dir','stat', 'path stat dir under path_stat_root')
 tf.compat.v1.app.flags.DEFINE_string('prefix_stat', '', 'prefix of stat file name')
@@ -507,8 +507,8 @@ tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_new',True,'bias calibration
 #tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_new',False,'bias calibration')
 
 
-#tf.compat.v1.app.flags.DEFINE_bool('weight_comp_proposed',False,'calibration - bias, new')
-tf.compat.v1.app.flags.DEFINE_bool('weight_comp_proposed',True,'calibration - bias, new')
+tf.compat.v1.app.flags.DEFINE_bool('weight_comp_proposed',False,'calibration - bias, new')
+#tf.compat.v1.app.flags.DEFINE_bool('weight_comp_proposed',True,'calibration - bias, new')
 
 
 #############

@@ -1828,7 +1828,10 @@ def vth_set_and_norm(self):
         # print(vth_init_fm)
 
         #
-        norm[l.name]=vth_init
+        if l.last_layer:
+            norm[l.name]=1.0
+        else:
+            norm[l.name]=vth_init
 
         if False:
             stat_max = read_stat(self, l, 'max_999')

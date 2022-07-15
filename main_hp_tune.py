@@ -2015,16 +2015,17 @@ else:
             calibration_batch_idx.append(conf.calibration_idx)
 
 
-        calibration_num_batch = len(calibration_batch_idx)
-        count_cal_batch=0
+    calibration_num_batch = len(calibration_batch_idx)
+    count_cal_batch=0
 
 
-        #layers_record = []
-        #for layer in model_ann.layers:
-        #    if (layer in model_ann.layers_w_kernel) or (layer in model_ann.layers_w_act):
-        #        layers_record.append(layer)
-        #model_ann.layers_record = layers_record
+    #layers_record = []
+    #for layer in model_ann.layers:
+    #    if (layer in model_ann.layers_w_kernel) or (layer in model_ann.layers_w_act):
+    #        layers_record.append(layer)
+    #model_ann.layers_record = layers_record
 
+    if conf.nn_mode=='SNN' and conf.dnn_to_snn and conf.calibration_bias_new:
         print('calibration bias')
 
         last_batch = False

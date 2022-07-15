@@ -1009,7 +1009,7 @@ def w_norm_data_channel_wise(self, f_norm, stat, dict_stat=None):
                 stat_r = self.dict_stat_r[l.name]
             stat_r = stat_r.reshape(-1,stat_r.shape[-1])
 
-            if isinstance(l,lib_snn.layers.InputGenLayer):
+            if isinstance(l,lib_snn.layers.InputGenLayer) or (l.last_layer and (self.conf.snn_output_type!='SPIKE')):
                 norm = 1
             else:
                 norm = f_norm(stat_r)
@@ -1027,7 +1027,6 @@ def w_norm_data_channel_wise(self, f_norm, stat, dict_stat=None):
                 #norm = f_norm(stat)
 
                 #self.norm[l.name] = (f_norm(stat).T / self.norm[prev_name]).T
-                #self.test = np.expand_dims(norm,axis=0).T
                 self.norm[l.name] = norm / np.expand_dims(self.norm_b[prev_name],axis=0).T
 
                 #print(self.norm[l.name])
