@@ -22,6 +22,9 @@ from lib_snn.sim import glb_weight_comp
 
 from lib_snn import config_glb
 
+import math
+
+
 #
 def vth_calibration_stat(self):
     #
@@ -3000,9 +3003,13 @@ def calibration_bias_ML21(model, model_ann, callbacks_test, callbacks_test_ann, 
 
 @tf.custom_gradient
 def clip_floor_act(x, vth, time_step):
+#def clip_floor_act(x):
+
     y = tf.clip_by_value(tf.math.floor(x * tf.stop_gradient(time_step)/ tf.stop_gradient(vth)) / tf.stop_gradient(time_step), 0, 1) * tf.stop_gradient(vth)
+    #y = x
     #n_spikes = tf.math.floor(x * time_step/ vth)
     #n_spikes_norm = n_spikes/time_step
+    #print('clip_floor_act - fwd')
 
     def grad(upstream):
         #if tf.math.greater_equal(x,tf.zeros(shape=x.shape)):
@@ -3010,12 +3017,64 @@ def clip_floor_act(x, vth, time_step):
         #else:
         #    return 0, tf.stop_gradient(vth), tf.stop_gradient(time_step)
         #dy_dx = tf.where(x>=0,upstream,tf.zeros(shape=upstream.shape))
-        cond_grad = tf.math.logical_and(tf.math.greater_equal(x,tf.zeros(shape=x.shape)), tf.math.less_equal(x,vth))
         #cond_grad = tf.math.greater_equal(x,tf.zeros(shape=x.shape))
+
+
+
+        cond_grad = tf.math.logical_and(tf.math.greater_equal(x,tf.zeros(shape=x.shape)), tf.math.less_equal(x,vth))
         dy_dx = tf.where(cond_grad,upstream,tf.zeros(shape=upstream.shape))
-        return dy_dx, tf.stop_gradient(vth), tf.stop_gradient(time_step)
-        #return dy_dx, tf.zeros(shape=upstream.shape), tf.zeros(shape=upstream.shape)
+
+        #dy_dx = tf.ones(shape=upstream.shape)
+        #dy_dx = upstream
+
+        #print('upstream')
+        #print(tf.reduce_mean(upstream))
+        #print(upstream)
+
+        #print('dy_dx - {:}'.format(tf.reduce_mean(dy_dx)))
+
+        #m = tf.reduce_mean(dy_dx)
+        #if tf.math.is_nan(m) or tf.math.is_inf(m):
+        #    assert False
+
+        #print('cond_grad')
+        #print(cond_grad)
+
+        #assert False
+
+        #return dy_dx, tf.stop_gradient(vth), tf.stop_gradient(time_step)
+        return dy_dx, tf.zeros(shape=upstream.shape), tf.zeros(shape=upstream.shape)
+        #return dy_dx
+        #return upstream*x
+        #return upstream
+
 
 
     return y, grad
     #return tf.clip_by_value(n_spikes_norm,0,1)*vth, grad
+
+
+@tf.custom_gradient
+def clip_floor_shift_act(x, vth, time_step):
+    y = tf.clip_by_value(
+        tf.math.floor(x * tf.stop_gradient(time_step) / tf.stop_gradient(vth) + 0.5) / tf.stop_gradient(time_step), 0, 1) * tf.stop_gradient(vth)
+
+    # n_spikes = tf.math.floor(x * time_step/ vth)
+    # n_spikes_norm = n_spikes/time_step
+
+    def grad(upstream):
+        # if tf.math.greater_equal(x,tf.zeros(shape=x.shape)):
+        #    return dy, tf.stop_gradient(vth), tf.stop_gradient(time_step)
+        # else:
+        #    return 0, tf.stop_gradient(vth), tf.stop_gradient(time_step)
+        # dy_dx = tf.where(x>=0,upstream,tf.zeros(shape=upstream.shape))
+        cond_grad = tf.math.logical_and(tf.math.greater_equal(x, tf.zeros(shape=x.shape)), tf.math.less_equal(x, vth))
+        # cond_grad = tf.math.greater_equal(x,tf.zeros(shape=x.shape))
+        dy_dx = tf.where(cond_grad, upstream, tf.zeros(shape=upstream.shape))
+        return dy_dx, tf.stop_gradient(vth), tf.stop_gradient(time_step)
+        # return dy_dx, tf.zeros(shape=upstream.shape), tf.zeros(shape=upstream.shape)
+
+    return y, grad
+    # return tf.clip_by_value(n_spikes_norm,0,1)*vth, grad
+
+
