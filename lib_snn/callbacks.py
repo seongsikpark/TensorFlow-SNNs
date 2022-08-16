@@ -193,7 +193,8 @@ class SNNLIB(tf.keras.callbacks.Callback):
         lib_snn.proc.reset(self)
 
     def on_test_end(self, logs=None):
-        if not self.conf.train:
+        #if not self.conf.train:
+        if self.conf.mode=='inference':
             lib_snn.proc.postproc(self)
 
     def on_test_batch_begin(self, batch, logs=None):
@@ -202,7 +203,8 @@ class SNNLIB(tf.keras.callbacks.Callback):
 
     def on_test_batch_end(self, batch, logs=None):
         #print('on_test_batch_end')
-        if not self.conf.train:
+        #if not self.conf.train:
+        if self.conf.mode=='inference':
             lib_snn.proc.postproc_batch_test(self)
 
 

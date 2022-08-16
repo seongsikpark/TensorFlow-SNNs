@@ -454,25 +454,6 @@ else:
 image_shape = (input_size, input_size, 3)
 
 
-# dataset load
-#dataset = dataset_sel[dataset_name]
-#train_ds, valid_ds, test_ds = dataset.load(dataset_name,input_size,input_size_pre_crop_ratio,num_class,train,NUM_PARALLEL_CALL,conf,input_prec_mode)
-train_ds, valid_ds, test_ds, train_ds_num, valid_ds_num, test_ds_num, num_class =\
-    datasets.datasets.load(dataset_name,batch_size,input_size,train_type,train,conf,NUM_PARALLEL_CALL)
-
-# tmp
-# TODO:
-#train_ds = train_ds.take(1)
-
-
-# data-based weight normalization (DNN-to-SNN conversion)
-if conf.f_write_stat and conf.f_stat_train_mode:
-    test_ds = train_ds
-
-#assert False
-train_steps_per_epoch = train_ds.cardinality().numpy()
-
-
 
 
 # model compile

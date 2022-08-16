@@ -492,8 +492,7 @@ class Model(tf.keras.Model):
             #print(t)
             #print(self.count_accuracy_time_point)
             # TODO:
-            #if self.conf.nn_mode=='inference' and \
-            if not self.conf.train and \
+            if self.conf.nn_mode=='inference' and \
                 self.init_done and (t == self.accuracy_time_point[self.count_accuracy_time_point]):
             #if (t == self.accuracy_time_point[self.count_accuracy_time_point]):
                 self.record_acc_spike_time_point(inputs,ret)
@@ -1490,13 +1489,13 @@ class Model(tf.keras.Model):
                     grads = tape.gradient(loss, var_list, grad_loss)
                     grads_accum = [(grad_accum + grad) for grad_accum, grad in zip(grads_accum, grads)]
 
-                    print('y')
-                    print(y[0])
-                    print('y_pred')
-                    print(y_pred[0])
-                    print('grads')
-                    #print(grads)
-                    print(grads[-1])
+                    #print('y')
+                    #print(y[0])
+                    #print('y_pred')
+                    #print(y_pred[0])
+                    #print('grads')
+                    ##print(grads)
+                    #print(grads[-1])
 
                     #assert False
                     glb_t()

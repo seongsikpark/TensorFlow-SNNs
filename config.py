@@ -256,9 +256,9 @@ tf.compat.v1.app.flags.DEFINE_boolean('verbose_visual',False, 'verbose visual mo
 tf.compat.v1.app.flags.DEFINE_string('exp_set_name', 'manual_test', 'exp set name')
 
 # mode
-tf.compat.v1.app.flags.DEFINE_enum('mode', 'inference', ['train', 'load_and_train', 'inference'], 'run mode')
+#tf.compat.v1.app.flags.DEFINE_enum('mode', 'inference', ['train', 'load_and_train', 'inference'], 'run mode')
 #tf.compat.v1.app.flags.DEFINE_enum('mode', 'load_and_train', ['train', 'load_and_train', 'inference'], 'run mode')
-#tf.compat.v1.app.flags.DEFINE_enum('mode', 'train', ['train', 'load_and_train', 'inference'], 'run mode')
+tf.compat.v1.app.flags.DEFINE_enum('mode', 'train', ['train', 'load_and_train', 'inference'], 'run mode')
 
 #
 tf.compat.v1.app.flags.DEFINE_bool('hp_tune', False, 'hyperparameter tune mode')
@@ -332,8 +332,8 @@ tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.005, 'learning rate')
 # regularizer
 tf.compat.v1.app.flags.DEFINE_string('regularizer', 'L2', 'L2 or L1 regularizer')
 # VGG
-tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-5, 'lambda')
-#tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-4, 'lambda') # SNN
+#tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-5, 'lambda')
+tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-4, 'lambda') # SNN
 #tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-3, 'lambda') # SNN
 # ResNet
 #tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-4, 'lambda')
@@ -522,20 +522,20 @@ tf.compat.v1.app.flags.DEFINE_string('prefix_stat', '', 'prefix of stat file nam
 tf.compat.v1.app.flags.DEFINE_bool('bias_control',False,'bias control')
 
 #
-#tf.compat.v1.app.flags.DEFINE_bool('calibration_vmem_ICLR',False,'calibration - vmem, init_vmem=0.5*vth')
-tf.compat.v1.app.flags.DEFINE_bool('calibration_vmem_ICLR',True,'calibration - vmem, init_vmem=0.5*vth')
+tf.compat.v1.app.flags.DEFINE_bool('calibration_vmem_ICLR',False,'calibration - vmem, init_vmem=0.5*vth')
+#tf.compat.v1.app.flags.DEFINE_bool('calibration_vmem_ICLR',True,'calibration - vmem, init_vmem=0.5*vth')
 
 #
-#tf.compat.v1.app.flags.DEFINE_bool('leak_off_after_bias_en',False,'leakage off in neuron after bias enable')
-tf.compat.v1.app.flags.DEFINE_bool('leak_off_after_bias_en',True,'leakage off in neuron after bias enable')
+tf.compat.v1.app.flags.DEFINE_bool('leak_off_after_bias_en',False,'leakage off in neuron after bias enable')
+#tf.compat.v1.app.flags.DEFINE_bool('leak_off_after_bias_en',True,'leakage off in neuron after bias enable')
 
 # new
-tf.compat.v1.app.flags.DEFINE_bool('vth_search',True,'vth search for DNN-to-SNN conversion')
-#tf.compat.v1.app.flags.DEFINE_bool('vth_search',False,'vth search for DNN-to-SNN conversion')
+#tf.compat.v1.app.flags.DEFINE_bool('vth_search',True,'vth search for DNN-to-SNN conversion')
+tf.compat.v1.app.flags.DEFINE_bool('vth_search',False,'vth search for DNN-to-SNN conversion')
 
 
-tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_new',True,'bias calibration')
-#tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_new',False,'bias calibration')
+#tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_new',True,'bias calibration')
+tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_new',False,'bias calibration')
 
 
 tf.compat.v1.app.flags.DEFINE_bool('weight_comp_proposed',False,'calibration - bias, new')
@@ -650,18 +650,7 @@ tf.compat.v1.app.flags.DEFINE_integer('verbose_visual_idx',99,'verbose visual in
 tf.compat.v1.app.flags.DEFINE_bool('leak_time_dep',False,'time dependent leakage - LIF')
 #tf.compat.v1.app.flags.DEFINE_bool('leak_time_dep',True,'time dependent leakage - LIF')
 
-#
-tf.compat.v1.app.flags.DEFINE_bool('leak_off_after_bias_en',False,'leakage off in neuron after bias enable')
-#tf.compat.v1.app.flags.DEFINE_bool('leak_off_after_bias_en',True,'leakage off in neuron after bias enable')
 
-
-# new
-#tf.compat.v1.app.flags.DEFINE_bool('vth_search',True,'vth search for DNN-to-SNN conversion')
-tf.compat.v1.app.flags.DEFINE_bool('vth_search',False,'vth search for DNN-to-SNN conversion')
-
-
-#tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_new',True,'bias calibration')
-tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_new',False,'bias calibration')
 
 
 #

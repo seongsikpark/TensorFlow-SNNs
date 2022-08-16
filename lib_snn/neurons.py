@@ -317,7 +317,7 @@ class Neuron(tf.keras.layers.Layer):
 
     #@tf.function
     @tf.custom_gradient
-    def call(self ,inputs ,t):
+    def call(self ,inputs ,t, training):
 
         #print('neuron call')
         #if self.depth==15:
@@ -364,12 +364,12 @@ class Neuron(tf.keras.layers.Layer):
                 #grad_ret = upstream
 
 
-            print('here')
-            print(self.name)
-            print(upstream)
-            print(self.out)
+            #print('here')
+            #print(self.name)
+            #print(upstream)
+            #print(self.out)
 
-            return grad_ret, tf.stop_gradient(t)
+            return grad_ret, tf.stop_gradient(t), tf.stop_gradient(training)
 
         self.inputs = inputs
 
@@ -384,7 +384,7 @@ class Neuron(tf.keras.layers.Layer):
             'IF': self.run_type_if,
             'LIF': self.run_type_lif,
             'OUT': self.run_type_out
-        }[self.n_type](inputs ,t)
+        }[self.n_type](inputs ,t, training)
 
         out_ret = self.out
 
@@ -398,8 +398,8 @@ class Neuron(tf.keras.layers.Layer):
             #print(self.vmem[0,0])
             print(self.out[0,0])
 
-        #if False:
-        if True:
+        if False:
+        #if True:
             if self.n_type=='OUT':
                 #if (self.conf.time_step==t):
                 print('snn out_ret')
@@ -1296,13 +1296,13 @@ class Neuron(tf.keras.layers.Layer):
     ## run fwd pass
     ############################################################
 
-    def run_type_in(self, inputs, t):
+    def run_type_in(self, inputs, t, training):
         # print('run_type_in')
         self.input_spike_gen(inputs, t)
         self.count_spike(t)
 
     #
-    def run_type_if(self, inputs, t):
+    def run_type_if(self, inputs, t, training):
         #self.leak()
         self.integration(inputs, t)
         self.fire(t)
@@ -1372,14 +1372,14 @@ class Neuron(tf.keras.layers.Layer):
         #self.out = inputs
 
     #
-    def run_type_lif(self, inputs, t):
+    def run_type_lif(self, inputs, t, training):
         # print('run_type_lif')
         self.leak()
         self.integration(inputs, t)
         self.fire(t)
         self.count_spike(t)
 
-    def run_type_out(self, inputs, t):
+    def run_type_out(self, inputs, t, training):
         # print("output layer")
         # self.integration(inputs,t)
         ##self.fire_type_out(t)
@@ -1405,15 +1405,18 @@ class Neuron(tf.keras.layers.Layer):
             #out = tf.divide(self.vmem,self.vth)
             #self.out = tf.divide(self.vmem,self.conf.time_step*self.vth)
 
-        if self.conf.train:
-            #print('logits')
-            #print(self.out)
-            self.out = tf.keras.activations.softmax(self.out)
-            #self.out = tf.keras.activations.softmax(out)
-            #sm = tf.keras.layers.Softmax()
-            #self.out = sm(self.out)
-        #else:
-            #self.out = out
+#        #if self.conf.train:
+#        if training:
+#            #print('logits')
+#            #print(self.out)
+#            self.out = tf.keras.activations.softmax(self.out)
+#            #self.out = tf.keras.activations.softmax(out)
+#            #sm = tf.keras.layers.Softmax()
+#            #self.out = sm(self.out)
+#        #else:
+#            #self.out = out
+#
+        self.out = tf.cond(training,lambda:tf.keras.activations.softmax(self.out),lambda:tf.identity(self.out))
 
 
     ############################################################

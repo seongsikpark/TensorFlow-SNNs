@@ -680,7 +680,8 @@ def postproc_snn(self):
     #}
     #postproc_snn_sel[self.model.run_mode](self)
 
-    if self.conf.train:
+    #if self.conf.train:
+    if self.conf.mode=='train' or self.conf.mode=='load_and_train':
         postproc_snn_train(self)
     else:
         postproc_snn_infer(self)

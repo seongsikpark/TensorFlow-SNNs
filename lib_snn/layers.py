@@ -204,7 +204,7 @@ class Layer():
             #if hasattr(self, 'activation'):
             #if self.activation is None:
             if self.act_dnn is None:
-                self.act_snn = lambda x,y : tf.identity(x)
+                self.act_snn = lambda x,y,z : tf.identity(x)
                 #print(self.name)
                 #assert False
             else:
@@ -331,7 +331,7 @@ class Layer():
             n = b
         else:
             if self.en_snn:
-                n = self.act(b, glb_t.t)
+                n = self.act(b, glb_t.t, training)
             else:
                 if self.conf.fine_tune_quant and not self.last_layer:
                     n = lib_snn.calibration.clip_floor_act(b, self.vth_l, 64.0)
