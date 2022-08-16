@@ -1,13 +1,22 @@
 
+import tensorflow as tf
 
 import datasets
 
-def load(dataset_name,batch_size,input_size,train_type,train,conf,num_parallel_call):
+from models.imagenet_input_preprocessor import preprocessor_input_imagenet
+#from tensorflow.python.keras.applications.imagenet_utils import preprocess_input as preprocess_input_others
+
+preprocess_input_others = tf.keras.applications.imagenet_utils.preprocess_input
+
+def load(model_name,dataset_name,batch_size,input_size,train_type,train,conf,num_parallel_call):
 
     dataset_sel = {
-        'ImageNet': datasets.imagenet,
-        'CIFAR10': datasets.cifar,
-        'CIFAR100': datasets.cifar,
+        #'ImageNet': datasets.imagenet,
+        #'CIFAR10': datasets.cifar,
+        #'CIFAR100': datasets.cifar,
+        'ImageNet': datasets.image_cls,
+        'CIFAR10': datasets.image_cls,
+        'CIFAR100': datasets.image_cls,
     }
     dataset = dataset_sel[dataset_name]
 
@@ -23,13 +32,21 @@ def load(dataset_name,batch_size,input_size,train_type,train,conf,num_parallel_c
     # input shape
     if dataset_name == 'ImageNet':
         # include_top = True
-        input_size_pre_crop_ratio = 256 / 224
+
+        if 'MobileNet' in model_name:
+            input_size_pre_crop_ratio = 1
+        elif 'EfficientNet' in model_name:
+            input_size_pre_crop_ratio = 1
+        else:
+            input_size_pre_crop_ratio = 256 / 224
+
         # TODO: set
         if train:
             input_prec_mode = None  # should be modified
         else:
             input_prec_mode = 'caffe'  # keras pre-trained model
 
+        preprocessor_input = preprocessor_input_imagenet[model_name]
     else:
         # CIFAR-10
         # TODO:
@@ -44,9 +61,11 @@ def load(dataset_name,batch_size,input_size,train_type,train,conf,num_parallel_c
         else:
             assert False, 'not supported train type {}'.format(train_type)
 
+        preprocessor_input = preprocess_input_others
+
 
     train_ds, valid_ds, test_ds, train_ds_num, valid_ds_num, test_ds_num = dataset.load(dataset_name,
                                                batch_size,input_size, input_size_pre_crop_ratio, num_class, train,
-                                               num_parallel_call, conf, input_prec_mode)
+                                               num_parallel_call, conf, input_prec_mode, preprocessor_input)
 
     return train_ds, valid_ds, test_ds, train_ds_num, valid_ds_num, test_ds_num, num_class

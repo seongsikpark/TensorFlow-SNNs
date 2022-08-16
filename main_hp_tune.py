@@ -12,10 +12,13 @@ import os
 
 # TF logging setup
 #os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-
+import keras_tuner
 import tensorflow as tf
 import tensorflow_probability as tfp
 from tensorflow.python.keras.engine import data_adapter
+
+#
+from tensorflow.python.keras.utils import data_utils
 
 from keras.utils.vis_utils import plot_model
 
@@ -71,12 +74,19 @@ global model_name
 from lib_snn.sim import glb_plot
 from lib_snn.sim import glb_plot_1
 from lib_snn.sim import glb_plot_2
+from lib_snn.sim import glb_plot_3
 
 from lib_snn.sim import glb_ig_attributions
 from lib_snn.sim import glb_rand_vth
 from lib_snn.sim import glb_vth_search_err
 from lib_snn.sim import glb_vth_init
 from lib_snn.sim import glb_bias_comp
+
+#
+from lib_snn import config_glb
+
+# ImageNet utils
+from models import imagenet_utils
 
 #
 #conf = flags.FLAGS
@@ -91,7 +101,7 @@ from lib_snn.sim import glb_bias_comp
 
 # GPU setting
 #
-GPU_NUMBER=3
+GPU_NUMBER=0
 
 GPU_PARALLEL_RUN = 1
 #GPU_PARALLEL_RUN = 2
@@ -129,17 +139,20 @@ exp_set_name = conf.exp_set_name
 
 # hyperparamter tune mode
 #hp_tune = True
-hp_tune = False
+#hp_tune = False
+hp_tune = conf.hp_tune
 
 
 #
 #train=True
 #train=False
-train=conf.train
+
+train= (conf.mode=='train') or (conf.mode=='load_and_train')
 
 # TODO: parameterize
 #load_model=True
-load_model=False
+#load_model=False
+load_model = (conf.mode=='inference') or (conf.mode=='load_and_train')
 
 #
 #save_model = False
@@ -167,9 +180,8 @@ train_epoch = 300
 
 
 # learning rate schedule - step_decay
+step_decay_epoch = 100
 #step_decay_epoch = 200
-#step_decay_epoch = 100
-step_decay_epoch = 30
 
 
 # TODO: move to config
@@ -177,10 +189,6 @@ step_decay_epoch = 30
 root_hp_tune = './hp_tune'
 
 #
-#root_model = './models_trained'
-#root_model = './models_trained_resnet_relu_debug'
-root_model = './SNN_training'
-
 # model
 #model_name = 'VGG16'
 #model_name = 'ResNet18'
@@ -322,7 +330,8 @@ assert conf.data_format == 'channels_last', 'not support "{}", only support chan
 ########################################
 
 #
-f_hp_tune = train and hp_tune
+f_hp_tune_train = train and hp_tune
+f_hp_tune_load = (not train) and hp_tune
 
 # data augmentation - mix
 
@@ -373,7 +382,7 @@ dataset_sel = {
 
 #
 input_size_default = {
-    'ImageNet': 244,
+    'ImageNet': 224,
     'CIFAR10': 32,
     'CIFAR100': 32,
 }
@@ -490,7 +499,11 @@ metric_accuracy_top5.name = metric_name_acc_top5
 
 #
 if conf.load_best_model:
-    root_model = conf.root_model_best
+    root_model_load = conf.root_model_best
+else:
+    root_model_load = conf.root_model_load
+
+root_model_save = conf.root_model_save
 
 
 # TODO: configuration & file naming
@@ -499,7 +512,24 @@ model_dataset_name = model_name + '_' + dataset_name
 
 # path_model = './'+exp_set_name
 #path_model = os.path.join(root_model, exp_set_name)
-path_model = os.path.join(root_model, model_dataset_name)
+#path_model = os.path.join(root_model, model_dataset_name)
+#path_model_load = os.path.join(root_model_load, model_dataset_name)
+#path_model_save = os.path.join(root_model_save, model_dataset_name)
+
+#config_glb.path_model_load = path_model_load
+#config_glb.path_stat = conf.path_stat
+
+
+#
+use_bn_dict = collections.OrderedDict()
+use_bn_dict['VGG16_ImageNet'] = False
+
+#
+try:
+    conf.use_bn = use_bn_dict[model_dataset_name]
+except KeyError:
+    pass
+
 
 
 # hyperparameter tune name
@@ -543,49 +573,130 @@ elif en_cutmix:
     config_name += '_cm'
 
 #
-if train:
-    filepath = os.path.join(path_model, config_name)
-else:
+
+#if train:
+#    filepath = os.path.join(path_model, config_name)
+#else:
+#    if conf.load_best_model:
+#        filepath = path_model
+#    else:
+#        filepath = os.path.join(path_model, config_name)
+
+
+# TODO: configuration & file naming
+#exp_set_name = model_name + '_' + dataset_name
+model_dataset_name = model_name + '_' + dataset_name
+
+if conf.name_model_load=='':
+    path_model_load = os.path.join(root_model_load, model_dataset_name)
     if conf.load_best_model:
-        filepath = path_model
+        filepath_load = path_model_load
     else:
-        filepath = os.path.join(path_model, config_name)
+        filepath_load = os.path.join(path_model_load, config_name)
+else:
+    path_model_load = conf.name_model_load
+    filepath_load = path_model_load
 
+if conf.name_model_save=='':
+    path_model_save = os.path.join(root_model_save, model_dataset_name)
+    filepath_save = os.path.join(path_model_save, config_name)
+else:
+    path_model_save = conf.name_model_save
+    filepath_save = path_model_save
+
+
+####
+# glb config set
+if conf.path_stat_root=='':
+    path_stat_root = path_model_load
+else:
+    path_stat_root = conf.path_stat_root
+#config_glb.path_stat = conf.path_stat
+config_glb.path_stat = os.path.join(path_stat_root,conf.path_stat_dir)
+config_glb.path_model_load = path_model_load
+#config_glb.path_stat = conf.path_stat
+config_glb.model_name = model_name
+config_glb.dataset_name = dataset_name
+
+#if conf.load_best_model:
+#    filepath_load = path_model_load
+#else:
+#    filepath_load = os.path.join(path_model_load, config_name)
+#filepath_save = os.path.join(path_model_save, config_name)
 
 
 
 ########################################
-#
+# load dataset
 ########################################
+# dataset load
+#dataset = dataset_sel[dataset_name]
+#train_ds, valid_ds, test_ds = dataset.load(dataset_name,input_size,input_size_pre_crop_ratio,num_class,train,NUM_PARALLEL_CALL,conf,input_prec_mode)
+train_ds, valid_ds, test_ds, train_ds_num, valid_ds_num, test_ds_num, num_class = \
+    datasets.datasets.load(model_name, dataset_name,batch_size,input_size,train_type,train,conf,NUM_PARALLEL_CALL)
 
+
+# data-based weight normalization (DNN-to-SNN conversion)
+if conf.f_write_stat and conf.f_stat_train_mode:
+    test_ds = train_ds
+
+#assert False
+train_steps_per_epoch = train_ds.cardinality().numpy()
+
+########################################
+# load model
+########################################
 model_top = model_sel(model_name,train_type)
 
-if load_model:
-    # get latest saved model
-    #latest_model = lib_snn.util.get_latest_saved_model(filepath)
+# TODO: integration - ImageNet
+if load_model and (not f_hp_tune_load):
+    #if conf.dataset == 'ImageNet':
+    if False:
+        # ImageNet pretrained model
+        load_weight = 'imagenet'
+        include_top = True
+        add_top = False
+    else:
+        # get latest saved model
+        #latest_model = lib_snn.util.get_latest_saved_model(filepath)
 
-    latest_model = lib_snn.util.get_latest_saved_model(filepath)
-    load_weight = os.path.join(filepath, latest_model)
-    print('load weight: '+load_weight)
-    #pre_model = tf.keras.models.load_model(load_weight)
+        latest_model = lib_snn.util.get_latest_saved_model(filepath_load)
+        load_weight = os.path.join(filepath_load, latest_model)
+        #print('load weight: '+load_weight)
+        #pre_model = tf.keras.models.load_model(load_weight)
 
-    #latest_model = lib_snn.util.get_latest_saved_model(filepath)
-    #load_weight = os.path.join(filepath, latest_model)
+        #latest_model = lib_snn.util.get_latest_saved_model(filepath)
+        #load_weight = os.path.join(filepath, latest_model)
 
 
-    if not latest_model.startswith('ep-'):
-        assert False, 'the name of latest model should start with ''ep-'''
-    init_epoch = int(re.split('-|\.',latest_model)[1])
+        if not latest_model.startswith('ep-'):
+            #assert False, 'the name of latest model should start with ''ep-'''
+            print('the name of latest model should start with ep-')
 
-    include_top = True
-    add_top = False
+            load_weight = tf.train.latest_checkpoint(filepath_load)
 
-    #if train_type == 'transfer':
-        #model_top = model_sel_tr[model_name]
-    #elif train_type == 'scratch':
-        #model_top = model_sel_sc[model_name]
-    #else:
-        #assert False
+            # TODO:
+            init_epoch = 0
+        else:
+            print('load weight: '+load_weight)
+
+            if conf.mode=='inference':
+                init_epoch = int(re.split('-|\.',latest_model)[1])
+            elif conf.mode=='load_and_train':
+                init_epoch = 0
+            else:
+                assert False
+
+
+        include_top = True
+        add_top = False
+
+        #if train_type == 'transfer':
+            #model_top = model_sel_tr[model_name]
+        #elif train_type == 'scratch':
+            #model_top = model_sel_sc[model_name]
+        #else:
+            #assert False
 else:
     if train_type == 'transfer':
         load_weight = 'imagenet'
@@ -628,7 +739,7 @@ model_top_glb = model_top
 
 #
 # model builder
-if f_hp_tune:
+if f_hp_tune_train or f_hp_tune_load:
 
     # TODO: move to config.py
     #hp_model_builder = model_builder
@@ -654,14 +765,18 @@ if f_hp_tune:
     hp_tune_args['train_steps_per_epoch'] = train_steps_per_epoch
 
     #hp_model_builder = partial(model_builder, hp, hps)
-    hp_model_builder = lib_snn.hp_tune_model.CustomHyperModel(hp_tune_args, hps)
+    hp_model = lib_snn.hp_tune_model.CustomHyperModel(hp_tune_args, hps)
 
+    #search_func = lib_snn.hp_tune.GridSearch
+    search_func = keras_tuner.RandomSearch
+    search_max_trials = 20
 
     #tuner = kt.Hyperband(model_builder,
     #tuner=kt.RandomSearch(model_builder,
-    tuner=lib_snn.hp_tune.GridSearch(hp_model_builder,
+    #tuner=lib_snn.hp_tune.GridSearch(hp_model_builder,
+    tuner=search_func(hp_model_builder,
                          objective='val_acc',
-                         #max_trials=12,
+                         max_trials=search_max_trials,
                          #max_epochs = 300,
                          #factor=3,
                          #overwrite=True,
@@ -679,9 +794,15 @@ else:
         train_epoch, train_steps_per_epoch,
         opt, learning_rate,
         lr_schedule, step_decay_epoch,
-        metric_accuracy, metric_accuracy_top5)
+        metric_accuracy, metric_accuracy_top5, dataset_name)
 
-#
+
+
+
+
+########################################
+# load model
+########################################
 if conf.nn_mode=='SNN' and conf.dnn_to_snn:
     print('DNN-to-SNN mode')
     nn_mode_ori = conf.nn_mode
@@ -691,27 +812,59 @@ if conf.nn_mode=='SNN' and conf.dnn_to_snn:
         train_epoch, train_steps_per_epoch,
         opt, learning_rate,
         lr_schedule, step_decay_epoch,
-        metric_accuracy, metric_accuracy_top5)
+        metric_accuracy, metric_accuracy_top5, dataset_name)
     conf.nn_mode=nn_mode_ori
 
     model_ann.nn_mode = 'ANN'
 
     #model_ann.set_en_snn('ANN')
 
-    model_ann.load_weights(load_weight)
+    if dataset_name=='ImageNet':
+        #imagenet_utils.load_weights(model_name,model_ann)
+        model_ann.load_weights(load_weight)
+    else:
+        model_ann.load_weights(load_weight)
+        #model_ann.load_weights(load_weight,by_name=True)
 
     print('-- model_ann - load done')
     model.load_weights_dnn_to_snn(model_ann)
-
-    #del(model_ann)
+    #model.load_weights_dnn_to_snn(model_ann,by_name=True)
 
 
 elif load_model:
-    model.load_weights(load_weight)
-    #model.load_weights(load_weight, by_name=True, skip_mismatch=True)
-    #model.load_weights_custom(load_weight)
-    #model.load_weights(load_weight, by_name=True)
-    # model.load_weights(load_weight,by_name=
+    if f_hp_tune_load:
+        tuner.reload()
+        best_model = tuner.get_best_models()[0]
+        print(tuner)
+        print(tuner.directory)
+        #print(tuner.load_model(0))
+        print(tuner.get_best_models()[0])
+        print(tuner.get_best_hyperparameters(num_trials=1)[0].values)
+        print(tuner.results_summary(num_trials=2))
+
+        print('best trial')
+        best_trial = tuner.oracle.get_best_trials(num_trials=1)[0]
+        print(best_trial.trial_id)
+
+        print('best model evaluate')
+        best_model.evaluate(test_ds)
+
+        print('test model evaluate')
+        #test_model = tuner.load_model(tuner.oracle.get_best_trials(num_trials=2)[1])
+        test_model = tuner.get_best_models(num_models=2)[1]
+        test_model.evaluate(test_ds)
+
+        assert False
+
+    elif not f_hp_tune_train:
+        if dataset_name == 'ImageNet':
+            #imagenet_utils.load_weights(model_name, model)
+            model.load_weights(load_weight)
+        else:
+            model.load_weights(load_weight)
+        #model.load_weights(load_weight,by_name=True,skip_mismatch=True)
+        #model.load_weights_custom(load_weight)
+        #model.load_weights(load_weight, by_name=True)
 
 if conf.nn_mode=='ANN' or (conf.nn_mode=='SNN' and train):
     model_ann=None
@@ -794,13 +947,13 @@ if conf.nn_mode=='ANN' or (conf.nn_mode=='SNN' and train):
 # remove dir - train model
 if not load_model:
     if overwrite_train_model:
-        if os.path.isdir(filepath):
-            shutil.rmtree(filepath)
+        if os.path.isdir(filepath_save):
+            shutil.rmtree(filepath_save)
 
 # path_tensorboard = root_tensorboard+exp_set_name
 # path_tensorboard = root_tensorboard+filepath
 
-if f_hp_tune:
+if f_hp_tune_train:
     path_tensorboard = os.path.join(root_tensorboard, hp_tune_name)
 
 else:
@@ -824,7 +977,7 @@ if not overwrite_tensorboard:
 ########
 
 #
-if train and load_model:
+if train and load_model and (not f_hp_tune_train):
     print('Evaluate pretrained model')
     assert monitor_cri == 'val_acc', 'currently only consider monitor criterion - val_acc'
     result = model.evaluate(valid_ds)
@@ -838,7 +991,7 @@ else:
 cb_model_checkpoint = lib_snn.callbacks.ModelCheckpointResume(
     # filepath=filepath + '/ep-{epoch:04d}',
     # filepath=filepath + '/ep-{epoch:04d}.ckpt',
-    filepath=filepath + '/ep-{epoch:04d}.hdf5',
+    filepath=filepath_save + '/ep-{epoch:04d}.hdf5',
     save_weight_only=True,
     save_best_only=True,
     monitor=monitor_cri,
@@ -847,14 +1000,15 @@ cb_model_checkpoint = lib_snn.callbacks.ModelCheckpointResume(
     log_dir=path_tensorboard,
     # tensorboard_writer=cb_tensorboard._writers['train']
 )
-cb_manage_saved_model = lib_snn.callbacks.ManageSavedModels(filepath=filepath)
+cb_manage_saved_model = lib_snn.callbacks.ManageSavedModels(filepath=filepath_save)
 cb_tensorboard = tf.keras.callbacks.TensorBoard(log_dir=path_tensorboard, update_freq='epoch')
 
 #cb_dnntosnn = lib_snn.callbacks.DNNtoSNN()
-cb_libsnn = lib_snn.callbacks.SNNLIB(conf,path_model,test_ds_num,model_ann)
-cb_libsnn_ann = lib_snn.callbacks.SNNLIB(conf,path_model,test_ds_num)
+cb_libsnn = lib_snn.callbacks.SNNLIB(conf,path_model_load,test_ds_num,model_ann)
+cb_libsnn_ann = lib_snn.callbacks.SNNLIB(conf,path_model_load,test_ds_num)
 
 #
+#callbacks_train = [cb_tensorboard]
 callbacks_train = []
 if save_model:
     callbacks_train.append(cb_model_checkpoint)
@@ -1329,94 +1483,111 @@ else:
         glb_plot_2.mark = 'bo'
 
 
-    # new start
-    #num_batch_for_vth_search = 10
-    #num_batch_for_vth_search = 4
-    #num_batch_for_vth_search = 3
-    #num_batch_for_vth_search = 2
-    #num_batch_for_vth_search = 1
+    if conf.nn_mode=='SNN' and conf.dnn_to_snn and conf.vth_search:
+        # new start
+        #num_batch_for_vth_search = 10
+        #num_batch_for_vth_search = 4
+        #num_batch_for_vth_search = 3
+        #num_batch_for_vth_search = 2
+        #num_batch_for_vth_search = 1
 
 
-    #train_ds = test_ds
+        #train_ds = test_ds
 
-    # 1,3,23,43
+        # 1,3,23,43
 
-    if False:
-        comp_batch_index = []
-        comp_batch_index.append(3)
+        if False:
+            comp_batch_index = []
+            comp_batch_index.append(3)
 
-        #comp_batch_index.append(0)
-        comp_batch_index.append(1)
-        #comp_batch_index.append(2)
+            #comp_batch_index.append(0)
+            comp_batch_index.append(1)
+            #comp_batch_index.append(2)
 
-        #comp_batch_index.append(3)
-        #comp_batch_index.append(4)
-        #comp_batch_index.append(5)
-        #comp_batch_index.append(6)
-        #comp_batch_index.append(7)
-        #comp_batch_index.append(8)
-        #comp_batch_index.append(10)
-        #comp_batch_index.append(13)
+            #comp_batch_index.append(3)
+            #comp_batch_index.append(4)
+            #comp_batch_index.append(5)
+            #comp_batch_index.append(6)
+            #comp_batch_index.append(7)
+            #comp_batch_index.append(8)
+            #comp_batch_index.append(10)
+            #comp_batch_index.append(13)
 
-        comp_batch_index.append(23)    #
-        #comp_batch_index.append(33)
+            comp_batch_index.append(23)    #
+            #comp_batch_index.append(33)
 
-        #comp_batch_index.append(43)
+            #comp_batch_index.append(43)
 
-        #comp_batch_index.append(53)
-        #comp_batch_index.append(100)
-        #comp_batch_index.append(111)
-        #comp_batch_index.append(122)
-        #comp_batch_index.append(87)
-        #comp_batch_index.append(84)
-        #comp_batch_index.append(74)
-        #comp_batch_index.append(7)
-        comp_batch_index.append(20)     #
-        #comp_batch_index.append(40)
-
-
-    if conf.dataset=='CIFAR10':
-        # comp_batch_index = [1,3,20,23]
-        comp_batch_index = [3, 1, 23, 20]
-    elif conf.dataset=='CIFAR100':
-        comp_batch_index = [1, 0]
-    else:
-        assert False
+            #comp_batch_index.append(53)
+            #comp_batch_index.append(100)
+            #comp_batch_index.append(111)
+            #comp_batch_index.append(122)
+            #comp_batch_index.append(87)
+            #comp_batch_index.append(84)
+            #comp_batch_index.append(74)
+            #comp_batch_index.append(7)
+            comp_batch_index.append(20)     #
+            #comp_batch_index.append(40)
 
 
-    #if conf.model=='ResNet44':
-    if conf.batch_size_inf!=400:
-        if conf.batch_size_inf==200:
-            comp_batch_index_tmp = []
-            for idx in comp_batch_index:
-                comp_batch_index_tmp.append(2 * idx)
-                comp_batch_index_tmp.append(2 * idx + 1)
+        if conf.dataset=='CIFAR10':
+            #comp_batch_index = [1,3,20,23]  # VGG16, CIFAR10, not optmized
+            comp_batch_index = [4,100]      # ResNet20, ts-64
+            #pass
+            # comp_batch_index = [1,3,20,23]
+            #comp_batch_index = [3, 1, 23, 20]
+            comp_batch_index = [92]
 
-            comp_batch_index = comp_batch_index_tmp
+            if model_name=='VGG16':
+                comp_batch_index = [3, 1, 23, 20]
+        elif conf.dataset=='CIFAR100':
+            #comp_batch_index = [1, 0]
+            #comp_batch_index = [97]
+            comp_batch_index = [24]     # ResNet20, ts-64,128
+            #comp_batch_index = [97]
+            #comp_batch_index = [34]
+            if conf.model=='VGG16':
+                comp_batch_index = [34,79]
+            else:
+                assert False
         else:
             assert False
 
 
-    if conf.vth_search_idx_test:
-        comp_batch_index= []
-        comp_batch_index.append(conf.vth_search_idx)
+        #if conf.model=='ResNet44':
+        if conf.batch_size_inf!=400:
+            if conf.batch_size_inf==200:
+                comp_batch_index_tmp = []
+                for idx in comp_batch_index:
+                    comp_batch_index_tmp.append(2 * idx)
+                    comp_batch_index_tmp.append(2 * idx + 1)
 
-    #assert (conf.batch_size_inf!=400) and (conf.model=='ResNet44')
-
-    #rand_int = tf.random.uniform(shape=(),minval=0,maxval=25,dtype=tf.int32)
-    #comp_batch_index.append(rand_int)
-    print('comp_batch_index')
-    print(comp_batch_index)
+                comp_batch_index = comp_batch_index_tmp
+            else:
+                assert False
 
 
+        if conf.vth_search_idx_test:
+            comp_batch_index= []
+            comp_batch_index = [4,100]      # ResNet20, ts-64
+            comp_batch_index = [34,79]      # VGG16, CIFAR100
+            comp_batch_index.append(conf.vth_search_idx)
 
-    ##vth_search = True
-    #vth_search = False
+        #assert (conf.batch_size_inf!=400) and (conf.model=='ResNet44')
 
-    vth_search_num_batch = len(comp_batch_index)
-    #count_vth_search_batch = 0
+        #rand_int = tf.random.uniform(shape=(),minval=0,maxval=25,dtype=tf.int32)
+        #comp_batch_index.append(rand_int)
+        print('comp_batch_index')
+        print(comp_batch_index)
 
-    if conf.vth_search:
+
+
+        ##vth_search = True
+        #vth_search = False
+
+        vth_search_num_batch = len(comp_batch_index)
+        #count_vth_search_batch = 0
+
 
         # for initial setting
         #ds_one_batch = train_ds.take(1)
@@ -1712,128 +1883,160 @@ else:
         err_act['total']=err_tot
 
 
-    #
-    #calibration_ML=True
-    #calibration_ML=False
-
-    #calibration_batch_idx.append(0)
-
-    #calibration_batch_idx.append(1)
-    #calibration_batch_idx.append(29)
-    #calibration_batch_idx.append(79)
-    #calibration_batch_idx.append(97)
-    #calibration_batch_idx.append(109)
-    #calibration_batch_idx.append(18)
-    #calibration_batch_idx.append(25)
 
 
-    calibration_batch_idx=[]
-    #if False:
-    #if True:
-    if False:
+    if conf.nn_mode=='SNN' and conf.dnn_to_snn and conf.calibration_bias_new:
+        #
+        #calibration_ML=True
+        #calibration_ML=False
+
         #calibration_batch_idx.append(0)
+
+        #calibration_batch_idx.append(1)
+        #calibration_batch_idx.append(29)
+        #calibration_batch_idx.append(79)
+        #calibration_batch_idx.append(97)
+        #calibration_batch_idx.append(109)
+        #calibration_batch_idx.append(18)
+        #calibration_batch_idx.append(25)
+
+
+        calibration_batch_idx=[]
+        #if False:
+        #if True:
+        if False:
+            #calibration_batch_idx.append(0)
+            calibration_batch_idx.append(1)
+            calibration_batch_idx.append(2)
+            calibration_batch_idx.append(3)
+            calibration_batch_idx.append(5)
+
+            #calibration_batch_idx.append(17)
+
+        #calibration_batch_idx.append(0)
+        #calibration_batch_idx.append(1)
+        #calibration_batch_idx.append(2)
+
+        #calibration_batch_idx.append(3) # pred-3
+        #calibration_batch_idx.append(4) # pred-6
+        #calibration_batch_idx.append(10)
+        #calibration_batch_idx.append(20)
+
+
+        #num_target_sample = 400
+        num_target_sample = 800
+        #num_target_sample = 1000
+        #num_target_sample = 1200
+        #num_target_sample = 1400
+        #num_target_sample = 1600
+        #num_target_sample = 3200
+        #num_target_sample = 6400
+
+        num_batch = tf.cast(tf.math.ceil(num_target_sample / batch_size),tf.int32)
+
+        # TODO: why?
+        num_batch = 2
+
+        for idx_batch in range(num_batch):
+            calibration_batch_idx.append(idx_batch)
+
+
+
+        calibration_batch_idx=[]
+
+        #calibration_batch_idx.append(0)
+        #calibration_batch_idx.append(1)
+        #calibration_batch_idx.append(2)
+        #calibration_batch_idx.append(3)
+        #calibration_batch_idx.append(10)
+        #calibration_batch_idx.append(20)
+        #calibration_batch_idx.append(11)
+        calibration_batch_idx.append(40)
+        #calibration_batch_idx.append(10)
+
+        if False:
+                     calibration_batch_idx.append(1)
+                     calibration_batch_idx.append(2)
+                     calibration_batch_idx.append(3)
+                     calibration_batch_idx.append(5)
+                     calibration_batch_idx.append(17)
+                     calibration_batch_idx.append(19)
+                     calibration_batch_idx.append(20)
+        #calibration_batch_idx.append(27)
+        #calibration_batch_idx.append(28)
+        #calibration_batch_idx.append(29)
+        #calibration_batch_idx.append(30)
+        #calibration_batch_idx.append(31)
+        #calibration_batch_idx.append(32)
+
+        #calibration_batch_idx.append(4)
+        #calibration_batch_idx.append(6)
+        #calibration_batch_idx.append(8)
+        #calibration_batch_idx.append(9)
+        #calibration_batch_idx.append(10)
+        #calibration_batch_idx.append(11)
+        #calibration_batch_idx.append(12)
+        #calibration_batch_idx.append(13)
+        #calibration_batch_idx.append(16)
+        #calibration_batch_idx.append(18)
+        #calibration_batch_idx.append(21)
+        #calibration_batch_idx.append(23)
+        #calibration_batch_idx.append(24)
+        #calibration_batch_idx.append(25)
+        #calibration_batch_idx.append(26)
+
+
+
+
+    #    #if conf.model=='ResNet44':
+    #    if conf.batch_size_inf != 400:
+    #        if conf.batch_size_inf == 200:
+    #            calibration_batch_idx_tmp = []
+    #            for idx in calibration_batch_idx:
+    #                calibration_batch_idx_tmp.append(2 * idx)
+    #                calibration_batch_idx_tmp.append(2 * idx + 1)
+    #
+    #            calibration_batch_idx = calibration_batch_idx_tmp
+    #        else:
+    #            assert False
+
+        #assert (conf.batch_size_inf!=400) and (conf.model=='ResNet44')
+
+
+        calibration_batch_idx=[]
+        #calibration_batch_idx.append(40)
+        ## ResNet20, CIFAR10
+        #calibration_batch_idx.append(61)
+        #calibration_batch_idx.append(18)
+
+        # VGG16, CIFAR10
+        calibration_batch_idx.append(0)
         calibration_batch_idx.append(1)
-        calibration_batch_idx.append(2)
-        calibration_batch_idx.append(3)
-        calibration_batch_idx.append(5)
+        #calibration_batch_idx.append(10)
+        #calibration_batch_idx.append(20)
 
-        #calibration_batch_idx.append(17)
+        #calibration_batch_idx.append(40)
 
-    #calibration_batch_idx.append(0)
-    #calibration_batch_idx.append(1)
-    #calibration_batch_idx.append(2)
+        if conf.dataset=='CIFAR10':
+            #calibration_batch_idx.append(1) # tmp
+            pass
+            #assert False
+        elif conf.dataset=='CIFAR100':
+            if conf.model == 'VGG16':
+                #calibration_batch_idx.append(1)
+                calibration_batch_idx.append(55)
+                #pass
+            else:
+                assert False
+        else:
+            assert False
 
-    #calibration_batch_idx.append(3) # pred-3
-    #calibration_batch_idx.append(4) # pred-6
-    #calibration_batch_idx.append(10)
-    #calibration_batch_idx.append(20)
-
-
-    #num_target_sample = 400
-    num_target_sample = 800
-    #num_target_sample = 1000
-    #num_target_sample = 1200
-    #num_target_sample = 1400
-    #num_target_sample = 1600
-    #num_target_sample = 3200
-    #num_target_sample = 6400
-
-    num_batch = tf.cast(tf.math.ceil(num_target_sample / batch_size),tf.int32)
-
-    # TODO: why?
-    num_batch = 2
-
-    for idx_batch in range(num_batch):
-        calibration_batch_idx.append(idx_batch)
-
-
-
-    calibration_batch_idx=[]
-
-    #calibration_batch_idx.append(0)
-    #calibration_batch_idx.append(1)
-    #calibration_batch_idx.append(2)
-    #calibration_batch_idx.append(3)
-    #calibration_batch_idx.append(10)
-    #calibration_batch_idx.append(20)
-    #calibration_batch_idx.append(11)
-    calibration_batch_idx.append(40)
-    #calibration_batch_idx.append(10)
-
-
-    if False:
-        calibration_batch_idx.append(1)
-        calibration_batch_idx.append(2)
-        calibration_batch_idx.append(3)
-        calibration_batch_idx.append(5)
-        calibration_batch_idx.append(17)
-        calibration_batch_idx.append(19)
-        calibration_batch_idx.append(20)
-    #calibration_batch_idx.append(27)
-    #calibration_batch_idx.append(28)
-    #calibration_batch_idx.append(29)
-    #calibration_batch_idx.append(30)
-    #calibration_batch_idx.append(31)
-    #calibration_batch_idx.append(32)
-
-    #calibration_batch_idx.append(4)
-    #calibration_batch_idx.append(6)
-    #calibration_batch_idx.append(8)
-    #calibration_batch_idx.append(9)
-    #calibration_batch_idx.append(10)
-    #calibration_batch_idx.append(11)
-    #calibration_batch_idx.append(12)
-    #calibration_batch_idx.append(13)
-    #calibration_batch_idx.append(16)
-    #calibration_batch_idx.append(18)
-    #calibration_batch_idx.append(21)
-    #calibration_batch_idx.append(23)
-    #calibration_batch_idx.append(24)
-    #calibration_batch_idx.append(25)
-    #calibration_batch_idx.append(26)
-
-
-
-
-#    #if conf.model=='ResNet44':
-#    if conf.batch_size_inf != 400:
-#        if conf.batch_size_inf == 200:
-#            calibration_batch_idx_tmp = []
-#            for idx in calibration_batch_idx:
-#                calibration_batch_idx_tmp.append(2 * idx)
-#                calibration_batch_idx_tmp.append(2 * idx + 1)
-#
-#            calibration_batch_idx = calibration_batch_idx_tmp
-#        else:
-#            assert False
-
-    #assert (conf.batch_size_inf!=400) and (conf.model=='ResNet44')
-
-
-
-    if conf.calibration_idx_test:
-        calibration_batch_idx = []
-        calibration_batch_idx.append(conf.calibration_idx)
+        if conf.calibration_idx_test:
+            calibration_batch_idx = []
+            calibration_batch_idx.append(55)    # VGG16, CIFAR100
+            calibration_batch_idx.append(61)    # ResNet20?, CIFAR100?
+            calibration_batch_idx.append(18)    # ResNet20?, CIFAR100?
+            calibration_batch_idx.append(conf.calibration_idx)
 
 
     calibration_num_batch = len(calibration_batch_idx)
@@ -1846,7 +2049,7 @@ else:
     #        layers_record.append(layer)
     #model_ann.layers_record = layers_record
 
-    if conf.calibration_bias_new:
+    if conf.nn_mode=='SNN' and conf.dnn_to_snn and conf.calibration_bias_new:
         print('calibration bias')
 
         last_batch = False
@@ -1927,6 +2130,7 @@ else:
     if (not conf.full_test) and conf.verbose_visual:
         lib_snn.sim.set_for_visual_debug(True)
 
+    callbacks_test[0].f_save_result=True
     result = model.evaluate(test_ds, callbacks=callbacks_test)
     lib_snn.sim.set_for_visual_debug(False)
 
@@ -1935,8 +2139,10 @@ else:
 
     print(result)
 
-    #
+
+    ########################################
     # dynamic, static ratio
+    ########################################
     if conf.ds_err_act_check and conf.nn_mode=='SNN' and (not conf.f_write_stat):
 
         model.evaluate(ds_err_act, callbacks=callbacks_test)
@@ -2029,6 +2235,35 @@ else:
 if (not conf.full_test) and conf.verbose_visual:
     plt.show()
 
+
+#
+#if (not conf.full_test) and conf.verbose_visual:
+
+verbose_visual_tmp=False
+if (not conf.full_test) and verbose_visual_tmp:
+
+    #
+    model_ann.evaluate(test_ds, callbacks=callbacks_test_ann)
+
+    #
+    for layer in model.layers:
+        if hasattr(layer,'en_record_output'):
+            if layer.en_record_output:
+                if isinstance(layer.act,lib_snn.neurons.Neuron):
+                    axe=glb_plot_3.axes.flatten()[layer.depth]
+
+                    vth = conf.n_init_vth
+                    ann_out = model_ann.get_layer(layer.name).record_output
+                    ann_out = tf.math.floor(ann_out/vth*conf.time_step)
+                    ann_out = tf.clip_by_value(ann_out,0,conf.time_step)
+                    ann_out = ann_out*vth/conf.time_step
+
+                    snn_out = layer.act.spike_count/conf.time_step
+
+                    axe.hist(ann_out.numpy().flatten(),bins=100,density=True)
+                    snn_hist = axe.hist(snn_out.numpy().flatten(),bins=100,density=True)
+                    ylim = np.mean(snn_hist[0][0:10])
+                    axe.set_ylim([0,ylim])
 
 
 

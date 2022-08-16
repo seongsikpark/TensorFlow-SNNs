@@ -70,7 +70,6 @@ def load(dataset_name,batch_size,input_size,input_size_pre_crop_ratio,num_class,
 
             train_ds_num = ds_info.splits['train'].num_examples
             valid_ds_num = ds_info.splits['test'].num_examples
-
     else:
         if conf.calibration_idx_test or conf.vth_search_idx_test or (not conf.train):
             train_ds, train_ds_info = tfds.load(dataset_name, split='train', shuffle_files=False, as_supervised=True, with_info=True)

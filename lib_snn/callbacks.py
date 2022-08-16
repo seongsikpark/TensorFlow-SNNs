@@ -9,10 +9,12 @@ from tensorflow.python.keras.utils.io_utils import path_to_string
 #
 import lib_snn
 
+from lib_snn import config_glb
+
 class ManageSavedModels(tf.keras.callbacks.Callback):
     def __init__(self,
                  filepath,
-                 max_to_keep=5,
+                 max_to_keep=1,
                  **kwargs):
         super(ManageSavedModels, self).__init__()
 
@@ -21,7 +23,10 @@ class ManageSavedModels(tf.keras.callbacks.Callback):
 
     #
     def check_and_remove(self):
-        list_dir = os.listdir(self.filepath)
+        try:
+            list_dir = os.listdir(self.filepath)
+        except FileNotFoundError:
+            return
 
         if len(list_dir) <= self.max_to_keep:
             return
@@ -117,10 +122,10 @@ class TensorboardBestValAcc(tf.keras.callbacks.Callback):
 
 #
 class SNNLIB(tf.keras.callbacks.Callback):
-    def __init__(self, conf, path_model, test_ds_num, model_ann=None, **kwargs):
+    def __init__(self, conf, path_model_load, test_ds_num, model_ann=None, **kwargs):
         super(SNNLIB, self).__init__(**kwargs)
         self.conf = conf
-        self.path_model = path_model
+        self.path_model_load = path_model_load
         self.test_ds_num = test_ds_num
         self.model_ann = model_ann
 
@@ -137,6 +142,9 @@ class SNNLIB(tf.keras.callbacks.Callback):
 
         #
         self.set_leak_const_done=False
+
+        #
+        self.f_save_result=False
 
         # calibration
         self.calibration=True
@@ -155,8 +163,8 @@ class SNNLIB(tf.keras.callbacks.Callback):
         self.f_vth_set_and_norm = False
 
 
-        if not self.conf.calibration_weight:
-            self.calibration_static_done=True
+        #if not self.conf.calibration_weight:
+        #    self.calibration_static_done=True
 
         if not self.conf.calibration_weight_act_based:
             self.calibration_act_based_done=True

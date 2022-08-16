@@ -15,6 +15,7 @@ def VGG16(
         batch_size,
         input_shape,
         conf,
+        model_name,
         include_top=True,
         # weights='imagenet',
         weights=None,
@@ -23,7 +24,8 @@ def VGG16(
         classes=1000,
         classifier_activation='softmax',
         #nn_mode='ANN',
-        name='VGG16',
+        #name='VGG16',
+        dataset_name=None,
         **kwargs):
 
 
@@ -59,6 +61,15 @@ def VGG16(
     #
     channels = initial_channels
 
+    #
+    if dataset_name=='ImageNet':
+        n_dim_cls = 4096
+    elif 'CIFAR' in dataset_name:
+        n_dim_cls = 512
+    else:
+        assert False
+
+    #
     img_input = tf.keras.layers.Input(shape=input_shape, batch_size=batch_size)
     # x = img_input
     x = lib_snn.layers.InputGenLayer(name='in')(img_input)
@@ -105,14 +116,14 @@ def VGG16(
     #
     x = tf.keras.layers.Flatten(data_format=data_format)(x)
     x = tf.keras.layers.Dropout(dropout_conv_r[2], name='flatten_do')(x)
-    x = lib_snn.layers.Dense(512, activation=act_relu, use_bn=use_bn_cls, name='fc1')(x)
+    x = lib_snn.layers.Dense(n_dim_cls, activation=act_relu, use_bn=use_bn_cls, name='fc1')(x)
     x = tf.keras.layers.Dropout(dropout_conv_r[2], name='fc1_do')(x)
-    x = lib_snn.layers.Dense(512, activation=act_relu, use_bn=use_bn_cls, name='fc2')(x)
+    x = lib_snn.layers.Dense(n_dim_cls, activation=act_relu, use_bn=use_bn_cls, name='fc2')(x)
     x = tf.keras.layers.Dropout(dropout_conv_r[2], name='fc2_do')(x)
     x = lib_snn.layers.Dense(classes, activation=act_sm, use_bn=False, last_layer=True, name='predictions')(x)
 
     #model = training.Model(img_input, x, name=name)
-    model = lib_snn.model.Model(img_input, x, batch_size, input_shape,  data_format, classes, conf, name=name)
+    model = lib_snn.model.Model(img_input, x, batch_size, input_shape,  classes, conf, name=model_name)
     #model = lib_snModel.init_graph(img_input, x, name=name)
 
 
@@ -139,13 +150,3 @@ def VGG16(
     #model.summary()
 
     return model
-
-#
-# def build(self, input_shapes):
-#
-## build model
-# lib_snn.model.Model.build(self, input_shapes)
-#
-#
-##self.model.set_weights(self.load_weights)
-#

@@ -20,10 +20,15 @@ from lib_snn.sim import glb_vth_init
 from lib_snn.sim import glb_bias_comp
 from lib_snn.sim import glb_weight_comp
 
+from lib_snn import config_glb
+
+import math
+
+
 #
 def vth_calibration_stat(self):
     #
-    path_stat = os.path.join(self.path_model,self.conf.path_stat)
+    path_stat = os.path.join(self.path_model_load,self.conf.path_stat)
     #stat = 'max'
     stat = 'max_999'
     #stat = 'max_99'
@@ -154,7 +159,18 @@ def vth_calibration_manual(self):
 # TODO: move
 def read_stat(self,layer,stat):
 
-    path_stat = os.path.join(self.path_model,self.conf.path_stat)
+    if self is None:
+        path_model_load = config_glb.path_model_load
+        path_stat_r = config_glb.path_stat
+    else:
+        path_model_load = self.path_model_load
+        path_stat_r = self.conf.path_stat
+
+        #path_stat = os.path.join(self.path_model_load,self.conf.path_stat)
+
+    path_stat = os.path.join(path_model_load,path_stat_r)
+
+    #path_stat = os.path.join(config_glb.path_model,config_glb.path_stat)
 
     key = layer.name + '_' + stat
 
@@ -253,7 +269,7 @@ def vth_toggle(self):
 def vth_calibration_old(self,f_norm, stat):
 
     #
-    path_stat = os.path.join(self.path_model,self.conf.path_stat)
+    path_stat = os.path.join(self.path_model_load,self.conf.path_stat)
     stat = 'max'
     stat = 'max_999'
     #stat = 'max_99'
@@ -472,7 +488,7 @@ def weight_calibration(self):
         #if True:
         if False:
 
-            path_stat = os.path.join(self.path_model,self.conf.path_stat)
+            path_stat = os.path.join(self.path_model_load,self.conf.path_stat)
             #stat = 'median'
             stat = 'mean'
             for idx_l, l in enumerate(self.model.layers_w_kernel):
@@ -544,7 +560,7 @@ def weight_calibration(self):
 
     else:
         #
-        path_stat = os.path.join(self.path_model,self.conf.path_stat)
+        path_stat = os.path.join(self.path_model_load,self.conf.path_stat)
         #stat = 'max_999'
         #stat = 'max'
         #stat = 'max_75'
@@ -1325,9 +1341,9 @@ def calibration_bias_set(self):
 
 
 
-
-            if l.name == 'predictions':
-                print('biac_comp_tot: {} - {}'.format(l.name,glb_bias_comp[l.name]))
+            if self.conf.verbose:
+                if l.name == 'predictions':
+                    print('bias_comp_tot: {} - {}'.format(l.name,glb_bias_comp[l.name]))
 
 
 
@@ -1569,8 +1585,6 @@ def vth_set_and_norm(self):
     #
     #error_level = 'layer'
     error_level = 'channel'
-
-
 
     #for idx_l, l in enumerate(self.model.layers_w_kernel):
     for idx_l, l in enumerate(self.model.layers_w_act):
@@ -1814,7 +1828,10 @@ def vth_set_and_norm(self):
         # print(vth_init_fm)
 
         #
-        norm[l.name]=vth_init
+        if l.last_layer:
+            norm[l.name]=1.0
+        else:
+            norm[l.name]=vth_init
 
         if False:
             stat_max = read_stat(self, l, 'max_999')
@@ -1913,11 +1930,12 @@ def vth_set_and_norm(self):
             #if layer.name in norm_b_wc.keys():
             layer.bias = layer.bias / norm_b_wc[layer.name]
 
-        print('layer norm')
-        for layer in self.model.layers_w_kernel:
-            print(layer.name)
-            print(norm_wc[layer.name])
-            print(norm_b_wc[layer.name])
+        if self.conf.verbose:
+            print('layer norm')
+            for layer in self.model.layers_w_kernel:
+                print(layer.name)
+                print(norm_wc[layer.name])
+                print(norm_b_wc[layer.name])
 
     else:
     #if True:
@@ -1979,11 +1997,12 @@ def vth_set_and_norm(self):
                 #
                 l.act.set_vth_init(vth_init_fm)
 
-    print('layer norm')
-    for layer in self.model.layers_w_kernel:
-        print(layer.name)
-        print(norm_wc[layer.name])
-        print(norm_b_wc[layer.name])
+    if self.conf.verbose:
+        print('layer norm')
+        for layer in self.model.layers_w_kernel:
+            print(layer.name)
+            print(norm_wc[layer.name])
+            print(norm_b_wc[layer.name])
 
 
 # TODO: merge, move
@@ -2057,7 +2076,7 @@ def weight_calibration_inv_vth(self):
 def vmem_calibration(self):
 
     #
-    path_stat = os.path.join(self.path_model,self.conf.path_stat)
+    path_stat = os.path.join(self.path_model_load,self.conf.path_stat)
     #stat = 'max_999'
     stat = 'max'
     #stat = 'max_90'
@@ -2127,7 +2146,20 @@ def bias_calibration_ICLR_21(self):
 
         l.bias = l.bias + bias_comp
 
-        print('bias_comp: {:}'.format(bias_comp))
+        if self.conf.verbose:
+            print('bias_comp: {:}'.format(bias_comp))
+
+    print('- Done')
+
+#
+
+def vmem_calibration_ICLR(self):
+    print('bias_calibration_ICLR - init_vmem = 1/2*vth')
+
+    for idx_l, l in enumerate(self.model.layers_w_kernel):
+
+        init_vmem = 0.5*l.act.vth_init
+        l.act.set_vmem_init(init_vmem)
 
     print('- Done')
 
@@ -2412,11 +2444,11 @@ def bias_calibration_ICML_21(self):
             #print('bias_comp (pre mean): {:}'.format(tf.reduce_mean(bias_comp)))
             #print('bias_comp: {:}'.format(tf.reduce_mean(bias_comp)))
 
-
-            if l.name=='predictions':
-                print('bias_comp: {} - {:}'.format(l.name, bias_comp))
-                #print(tf.argmax(bias_comp,axis=1))
-                print(tf.argmax(bias_comp))
+            if self.conf.verbose:
+                if l.name=='predictions':
+                    print('bias_comp: {} - {:}'.format(l.name, bias_comp))
+                    #print(tf.argmax(bias_comp,axis=1))
+                    print(tf.argmax(bias_comp))
 
             # test
             #r = tf.random.uniform(shape=bias_comp.shape,minval=0,maxval=1)
@@ -2971,3 +3003,81 @@ def calibration_bias_ML21(model, model_ann, callbacks_test, callbacks_test_ann, 
             #if idx_batch == num_batch_for_vth_search-1:
             if last_batch:
                 break
+
+@tf.custom_gradient
+def clip_floor_act(x, vth, time_step):
+#def clip_floor_act(x):
+
+    y = tf.clip_by_value(tf.math.floor(x * tf.stop_gradient(time_step)/ tf.stop_gradient(vth)) / tf.stop_gradient(time_step), 0, 1) * tf.stop_gradient(vth)
+    #y = x
+    #n_spikes = tf.math.floor(x * time_step/ vth)
+    #n_spikes_norm = n_spikes/time_step
+    #print('clip_floor_act - fwd')
+
+    def grad(upstream):
+        #if tf.math.greater_equal(x,tf.zeros(shape=x.shape)):
+        #    return dy, tf.stop_gradient(vth), tf.stop_gradient(time_step)
+        #else:
+        #    return 0, tf.stop_gradient(vth), tf.stop_gradient(time_step)
+        #dy_dx = tf.where(x>=0,upstream,tf.zeros(shape=upstream.shape))
+        #cond_grad = tf.math.greater_equal(x,tf.zeros(shape=x.shape))
+
+
+
+        cond_grad = tf.math.logical_and(tf.math.greater_equal(x,tf.zeros(shape=x.shape)), tf.math.less_equal(x,vth))
+        dy_dx = tf.where(cond_grad,upstream,tf.zeros(shape=upstream.shape))
+
+        #dy_dx = tf.ones(shape=upstream.shape)
+        #dy_dx = upstream
+
+        #print('upstream')
+        #print(tf.reduce_mean(upstream))
+        #print(upstream)
+
+        #print('dy_dx - {:}'.format(tf.reduce_mean(dy_dx)))
+
+        #m = tf.reduce_mean(dy_dx)
+        #if tf.math.is_nan(m) or tf.math.is_inf(m):
+        #    assert False
+
+        #print('cond_grad')
+        #print(cond_grad)
+
+        #assert False
+
+        #return dy_dx, tf.stop_gradient(vth), tf.stop_gradient(time_step)
+        return dy_dx, tf.zeros(shape=upstream.shape), tf.zeros(shape=upstream.shape)
+        #return dy_dx
+        #return upstream*x
+        #return upstream
+
+
+
+    return y, grad
+    #return tf.clip_by_value(n_spikes_norm,0,1)*vth, grad
+
+
+@tf.custom_gradient
+def clip_floor_shift_act(x, vth, time_step):
+    y = tf.clip_by_value(
+        tf.math.floor(x * tf.stop_gradient(time_step) / tf.stop_gradient(vth) + 0.5) / tf.stop_gradient(time_step), 0, 1) * tf.stop_gradient(vth)
+
+    # n_spikes = tf.math.floor(x * time_step/ vth)
+    # n_spikes_norm = n_spikes/time_step
+
+    def grad(upstream):
+        # if tf.math.greater_equal(x,tf.zeros(shape=x.shape)):
+        #    return dy, tf.stop_gradient(vth), tf.stop_gradient(time_step)
+        # else:
+        #    return 0, tf.stop_gradient(vth), tf.stop_gradient(time_step)
+        # dy_dx = tf.where(x>=0,upstream,tf.zeros(shape=upstream.shape))
+        cond_grad = tf.math.logical_and(tf.math.greater_equal(x, tf.zeros(shape=x.shape)), tf.math.less_equal(x, vth))
+        # cond_grad = tf.math.greater_equal(x,tf.zeros(shape=x.shape))
+        dy_dx = tf.where(cond_grad, upstream, tf.zeros(shape=upstream.shape))
+        return dy_dx, tf.stop_gradient(vth), tf.stop_gradient(time_step)
+        # return dy_dx, tf.zeros(shape=upstream.shape), tf.zeros(shape=upstream.shape)
+
+    return y, grad
+    # return tf.clip_by_value(n_spikes_norm,0,1)*vth, grad
+
+

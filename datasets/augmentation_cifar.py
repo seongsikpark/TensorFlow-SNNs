@@ -18,8 +18,11 @@ import tensorflow_addons as tfa
 
 #from models.input_preprocessor import preprocessor_input
 
-#from tensorflow.python.keras.applications.imagenet_utils import preprocess_input
-preprocess_input = tf.keras.applications.imagenet_utils.preprocess_input
+from lib_snn.config_glb import model_name
+from lib_snn.config_glb import dataset_name
+
+#from tensorflow.python.keras.applications.imagenet_utils import preprocess_input as preprocess_input_others
+preprocess_input_others = tf.keras.applications.imagenet_utils.preprocess_input
 
 ########
 # cutmix
@@ -60,7 +63,7 @@ def eager_cutmix(ds_one, ds_two, alpha=1.0):
 
 #
 @tf.function
-def cutmix(train_ds_one, train_ds_two, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode):
+def cutmix(train_ds_one, train_ds_two, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input):
     (images_one, labels_one), (images_two, labels_two) = train_ds_one, train_ds_two
 
     # Get a sample from the Beta distribution
@@ -72,8 +75,8 @@ def cutmix(train_ds_one, train_ds_two, input_size, input_size_pre_crop_ratio, nu
     # Get the bounding box offsets, heights and widths
     boundaryx1, boundaryy1, target_w, target_h = get_box(lambda_value,input_size)
 
-    images_one, labels_one = resize_with_crop_aug(images_one,labels_one,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode)
-    images_two, labels_two = resize_with_crop_aug(images_two,labels_two,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode)
+    images_one, labels_one = resize_with_crop_aug(images_one,labels_one,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input)
+    images_two, labels_two = resize_with_crop_aug(images_two,labels_two,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input)
 
     # Get a patch from the second image
     crop2 = tf.image.crop_to_bounding_box(images_two, boundaryy1, boundaryx1, target_h, target_w)
@@ -113,7 +116,7 @@ def eager_mixup(ds_one, ds_two, alpha=1.0):
     #return tf.py_function(mixup, [ds_one, ds_two, alpha],[tf.uint8,tf.uint8,tf.int64),tf.float32])
     #return tf.py_function(mixup, [ds_one, ds_two, alpha],[(tf.uint8,tf.int64),(tf.uint8,tf.int64),tf.float32])
 
-def mixup(ds_one, ds_two, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode):
+def mixup(ds_one, ds_two, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input):
 
     # unpack two datasets
     images_one, labels_one = ds_one
@@ -124,8 +127,8 @@ def mixup(ds_one, ds_two, input_size, input_size_pre_crop_ratio, num_class, alph
     #assert False
 
     #
-    images_one, labels_one = resize_with_crop_aug(images_one,labels_one,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode)
-    images_two, labels_two = resize_with_crop_aug(images_two,labels_two,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode)
+    images_one, labels_one = resize_with_crop_aug(images_one,labels_one,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input)
+    images_two, labels_two = resize_with_crop_aug(images_two,labels_two,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input)
 
     labels_one = tf.cast(labels_one,tf.float32)
     labels_two = tf.cast(labels_two,tf.float32)
@@ -167,7 +170,8 @@ def eager_resize_with_crop(image, label):
 
 #
 #@tf.function
-def resize_with_crop(image, label, input_size,input_size_pre_crop_ratio, num_class, input_prec_mode='torch'):
+#def resize_with_crop(image, label, dataset_name, input_size,input_size_pre_crop_ratio, num_class, input_prec_mode='torch'):
+def resize_with_crop(image, label, input_size, input_size_pre_crop_ratio, num_class, input_prec_mode, preprocess_input):
 
     i=image
     i=tf.cast(i,tf.float32)
@@ -179,16 +183,24 @@ def resize_with_crop(image, label, input_size,input_size_pre_crop_ratio, num_cla
     #print(tf.shape(image))
     #s = input_size_pre_crop
 
-    s = input_size
-    if input_prec_mode=='torch':
-        i = tf.image.resize_with_crop_or_pad(i, s, s)
-    elif input_prec_mode == 'caffe':
-        # transfer learning with pre-trained modes in Keras (ImageNet)
-        i = tf.image.resize(i, (s, s), method='lanczos3')
+    from lib_snn.config_glb import dataset_name
+    if dataset_name == 'imagenet2012':
+        i = _resize_with_crop_imagenet(image,input_size,input_size_pre_crop_ratio)
     else:
-        assert False
+        s = input_size
+        if input_prec_mode=='torch':
+            i = tf.image.resize_with_crop_or_pad(i, s, s)
+        elif input_prec_mode == 'caffe':
+            # transfer learning with pre-trained modes in Keras (ImageNet)
+            i = tf.image.resize(i, (s, s), method='lanczos3')
+        else:
+            assert False
 
-    i=preprocess_input(i,mode=input_prec_mode)
+    try:
+        i = preprocess_input(i, mode=input_prec_mode)
+    except:
+        i=preprocess_input(i)
+
 
     #
     label = tf.one_hot(label,num_class)
@@ -197,8 +209,41 @@ def resize_with_crop(image, label, input_size,input_size_pre_crop_ratio, num_cla
 
 
 
+
+##@tf.function
+#def resize_with_crop_bck_220616(image, label, input_size,input_size_pre_crop_ratio, num_class, input_prec_mode='torch'):
+#
+#    i=image
+#    i=tf.cast(i,tf.float32)
+#
+#    #[w,h,c] = tf.shape(image)
+#    #w=tf.shape(image)[0]
+#    #h=tf.shape(image)[1]
+#
+#    #print(tf.shape(image))
+#    #s = input_size_pre_crop
+#
+#    s = input_size
+#    if input_prec_mode=='torch':
+#        i = tf.image.resize_with_crop_or_pad(i, s, s)
+#    elif input_prec_mode == 'caffe':
+#        # transfer learning with pre-trained modes in Keras (ImageNet)
+#        i = tf.image.resize(i, (s, s), method='lanczos3')
+#    else:
+#        assert False
+#
+#    i=preprocess_input(i,mode=input_prec_mode)
+#
+#    #
+#    label = tf.one_hot(label,num_class)
+#
+#    return (i, label)
+
+
+
 #@tf.function
-def resize_with_crop_aug(image, label, input_size, input_size_pre_crop_ratio, num_class, input_prec_mode='torch'):
+#def resize_with_crop_aug(image, label, dataset_name, input_size, input_size_pre_crop_ratio, num_class, input_prec_mode='torch'):
+def resize_with_crop_aug(image, label, input_size, input_size_pre_crop_ratio, num_class, input_prec_mode, preprocess_input):
 
     i=image
     i=tf.cast(i,tf.float32)
@@ -207,24 +252,29 @@ def resize_with_crop_aug(image, label, input_size, input_size_pre_crop_ratio, nu
     #w=tf.shape(image)[0]
     #h=tf.shape(image)[1]
 
-    s = input_size * input_size_pre_crop_ratio
-    s = tf.cast(s, tf.int32)
 
-    # data augmentation from "A Simple Framework for Contrastive Learning of Visual Representations"
-
-    #i=tf.numpy_function(lambda i: tf.keras.preprocessing.image.random_zoom(i, (0.2,0.2)),[i],tf.float32)
-    #i=tf.keras.preprocessing.image.random_zoom(i,[-0.1,0.2])
-    #i=tf.keras.preprocessing.image.random_rotation(i,0.3)
-    #i=tf.image.random_brightness(i,max_delta=63)
-    #i=tf.image.random_contrast(i,lower=0.2,upper=1.8)
-
-    if input_prec_mode=='torch':
-        i = tf.image.resize_with_crop_or_pad(i, s, s)
-    elif input_prec_mode == 'caffe':
-        # transfer learning with pre-trained modes in Keras (ImageNet)
-        i = tf.image.resize(i, (s, s), method='lanczos3')
+    from lib_snn.config_glb import dataset_name
+    if dataset_name == 'imagenet2012':
+        i=_resize_with_crop_imagenet(image,input_size,input_size_pre_crop_ratio)
     else:
-        assert False
+        s = input_size * input_size_pre_crop_ratio
+        s = tf.cast(s, tf.int32)
+
+        # data augmentation from "A Simple Framework for Contrastive Learning of Visual Representations"
+
+        #i=tf.numpy_function(lambda i: tf.keras.preprocessing.image.random_zoom(i, (0.2,0.2)),[i],tf.float32)
+        #i=tf.keras.preprocessing.image.random_zoom(i,[-0.1,0.2])
+        #i=tf.keras.preprocessing.image.random_rotation(i,0.3)
+        #i=tf.image.random_brightness(i,max_delta=63)
+        #i=tf.image.random_contrast(i,lower=0.2,upper=1.8)
+
+        if input_prec_mode=='torch':
+            i = tf.image.resize_with_crop_or_pad(i, s, s)
+        elif input_prec_mode == 'caffe':
+            # transfer learning with pre-trained modes in Keras (ImageNet)
+            i = tf.image.resize(i, (s, s), method='lanczos3')
+        else:
+            assert False
 
     # color jitter
     #i=tf.image.random_brightness(i,max_delta=0.8)
@@ -243,8 +293,10 @@ def resize_with_crop_aug(image, label, input_size, input_size_pre_crop_ratio, nu
     i=tf.image.random_flip_left_right(i)
 
     #
-    #i=preprocess_input(i)
-    i=preprocess_input(i,mode=input_prec_mode)
+    try:
+        i = preprocess_input(i, mode=input_prec_mode)
+    except:
+        i=preprocess_input(i)
 
     # one-hot vectorization - label
     label = tf.one_hot(label, num_class)
@@ -252,4 +304,79 @@ def resize_with_crop_aug(image, label, input_size, input_size_pre_crop_ratio, nu
     return (i, label)
 
 
+
+def _resize_with_crop_imagenet(image,input_size,input_size_pre_crop_ratio):
+    from lib_snn.config_glb import model_name
+    #print(model_name)
+
+    i=image
+    i=tf.cast(i,tf.float32)
+    #i=tf.image.resize(i,256,preserve_aspect_ratio=True)
+
+    #[w,h,c] = tf.shape(image)
+    w=tf.shape(image)[0]
+    h=tf.shape(image)[1]
+
+    #s = 270 # 71.43. 90.06
+    #s = 260 # 71.37, 90.09
+    #s = 256 # 71.26, 90.10
+    #s = 250 # 71.13, 90.05
+    #print(tf.shape(image))
+    #s = input_size_pre_crop
+    s = input_size*input_size_pre_crop_ratio
+
+    #if w >= h:
+    if tf.greater(w,h):
+        w = tf.cast(tf.math.multiply(tf.math.divide(w,h),s),tf.int32)
+        ##i=tf.image.resize(i,(w,256),method='bicubic',preserve_aspect_ratio=True)
+        #i=tf.image.resize(i,(w,256),method='bicubic')
+        s=tf.cast(s,tf.int32)
+        if 'MobileNet' in model_name:
+            i=tf.image.resize(i,(w,s),method='bilinear')
+            #i=tf.image.resize(i,(w,s),method='bicubic')
+            #i=tf.image.resize(i,(w,s),method='lanczos3')   # VGG, ResNet
+        elif 'EfficientNet' in model_name:
+            i=tf.image.resize(i,(w,s),method='bicubic',preserve_aspect_ratio=True,antialias=True)      # EfficientNet
+        else:
+            i=tf.image.resize(i,(w,s),method='lanczos3')   # VGG, ResNet
+            #i=tf.image.resize(i,(w,s),method='bicubic')
+        #i=tf.image.resize(i,(w,s),method='bilinear')
+        #i=tf.image.resize(i,(w,s),method='bilinear',preserve_aspect_ratio=True,antialias=True)
+        #i=tf.image.resize(i,(w,s),method='lanczos3',preserve_aspect_ratio=True,antialias=True)   #
+        #i=tf.image.resize(i,(w,s),method='lanczos5')
+        #i=tf.image.resize(i,(w,s),method='bicubic')
+        #i=tf.image.resize(i,(w,s),method='bicubic',preserve_aspect_ratio=True,antialias=True)      # EfficientNet
+        #i=tf.image.resize(i,(w,s),method='nearest')
+        #i=tf.image.resize(i,(w,s),method='mitchellcubic')
+        #i=tf.image.resize(i,(w,s),method='mitchellcubic',preserve_aspect_ratio=True,antialias=True)
+        #i=tf.image.resize(i,(w,s),method='area')
+    else:
+        h = tf.cast(tf.math.multiply(tf.math.divide(h,w),s),tf.int32)
+        ##i=tf.image.resize(i,(256,h),method='bicubic',preserve_aspect_ratio=True)
+        #i=tf.image.resize(i,(256,h),method='bicubic')
+        s=tf.cast(s,tf.int32)
+        if 'MobileNet' in model_name:
+            i=tf.image.resize(i,(s,h),method='bilinear')
+            #i=tf.image.resize(i,(s,h),method='bicubic')
+            #i=tf.image.resize(i,(s,h),method='lanczos3')   # VGG ,ResNet
+        elif 'EfficientNet' in model_name:
+            i=tf.image.resize(i,(s,h),method='bicubic',preserve_aspect_ratio=True,antialias=True)      # EfficientNet
+        else:
+            i=tf.image.resize(i,(s,h),method='lanczos3')   # VGG ,ResNet
+        #i=tf.image.resize(i,(s,h),method='bilinear')
+        #i=tf.image.resize(i,(s,h),method='bilinear',preserve_aspect_ratio=True,antialias=True)
+        #i=tf.image.resize(i,(s,h),method='lanczos3')   # VGG ,ResNet
+        #i=tf.image.resize(i,(s,h),method='lanczos3',preserve_aspect_ratio=True,antialias=True)   #
+        #i=tf.image.resize(i,(s,h),method='lanczos5')
+        #i=tf.image.resize(i,(s,h),method='bicubic')
+        #i=tf.image.resize(i,(s,h),method='bicubic',preserve_aspect_ratio=True,antialias=True)      # EfficientNet
+        #i=tf.image.resize(i,(s,h),method='nearest')
+        #i=tf.image.resize(i,(s,h),method='mitchellcubic')
+        #i=tf.image.resize(i,(s,h),method='mitchellcubic',preserve_aspect_ratio=True,antialias=True)
+        #i=tf.image.resize(i,(s,h),method='area')
+
+    #i=tf.image.resize_with_crop_or_pad(i,224,224)
+    i=tf.image.resize_with_crop_or_pad(i,input_size,input_size)
+
+    return i
 

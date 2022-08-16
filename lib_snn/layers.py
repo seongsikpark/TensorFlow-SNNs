@@ -40,7 +40,7 @@ class Layer():
     index = None    # layer index count starts from InputGenLayer
 
 
-    def __init__(self, use_bn, activation, last_layer=False, **kwargs):
+    def __init__(self, use_bn, activation, last_layer=False, kwargs=None):
         #
         self.depth = -1
 
@@ -84,18 +84,23 @@ class Layer():
         self.out_n = None  # output - neuron
 
         # name
-        name = kwargs.pop('name', None)
-        if name is not None:
-            name_bn = name + '_bn'
-            name_act = name + '_act'
-        else:
-            name_bn = None
-            name_act = None
+        #name = kwargs.pop('name', None)
+        #if name is not None:
+        #    name_bn = name + '_bn'
+        #    name_act = name + '_act'
+        #else:
+        #    name_bn = None
+        #    name_act = None
+
+        # ReLU-6
+        relu_max_value = kwargs.pop('relu_max_value',None)
 
         # batch norm.
         if self.use_bn:
-            self.bn = tf.keras.layers.BatchNormalization(name=name_bn)
-            # self.bn = tf.keras.layers.BatchNormalization(epsilon=1.001e-5,name=name_bn)
+            #self.bn = tf.keras.layers.BatchNormalization(name=name_bn)
+            #self.bn = tf.keras.layers.BatchNormalization()
+            #self.bn = tf.keras.layers.BatchNormalization(epsilon=1.001e-5,name=name_bn)
+            self.bn = tf.keras.layers.BatchNormalization(epsilon=1.001e-5)
         else:
             self.bn = None
 
@@ -110,9 +115,12 @@ class Layer():
 
         # DNN mode
         if activation == 'relu':
-            self.act_dnn = tf.keras.layers.ReLU(name=name_act)
+            #self.act_dnn = tf.keras.layers.ReLU(max_value=relu_max_value, name=name_act)
+            self.act_dnn = tf.keras.layers.ReLU(max_value=relu_max_value)
+            #self.act_dnn = tf.keras.layers.ReLU(max_value=6.0)
         elif activation == 'softmax':
-            self.act_dnn = tf.keras.layers.Softmax(name=name_act)
+            #self.act_dnn = tf.keras.layers.Softmax(name=name_act)
+            self.act_dnn = tf.keras.layers.Softmax()
         else:
             self.act_dnn = None
 
@@ -204,8 +212,8 @@ class Layer():
 
                 if isinstance(self,lib_snn.layers.Add):
                 #if isinstance(self, lib_snn.layers.Conv2D):
-                    #n_type = 'IF'
-                    n_type = 'LIF'
+                    n_type = 'IF'
+                    #n_type = 'LIF'
 
                 self.act_snn = lib_snn.neurons.Neuron(self.output_shape_fixed_batch, self.conf, \
                                                       n_type, self.conf.neural_coding, self.depth, 'n_'+self.name)
@@ -230,8 +238,41 @@ class Layer():
             self.act = self.act_dnn
 
         #
+        if self.conf.fine_tune_quant:
+            #self.quant_max = tf.Variable(tf.zeros([]),trainable=False,name=name+'/quant_max')
+            #self.quant_max = tf.constant(0.0,shape=[],name='quant_max')
+
+            if hasattr(self, 'act'):
+                #if not isinstance(layer,lib_snn.layers.InputGenLayer):
+                #if not layer.act_dnn is None:
+                #if not (layer.activation is None):
+                if not (self.act_dnn is None):
+                    #print(self)
+                    #print(self.name)
+                    stat = lib_snn.calibration.read_stat(None, self, 'max_999')
+
+                    if self.conf.f_w_norm_data:
+                        stat_max = tf.ones(shape=[])
+                    else:
+                        stat_max = tf.reduce_max(stat)
+                    #self.quant_max = tf.constant(stat_max,shape=[],name=self.name+'/quant_max')
+                    #layer.quant_max = tf.Variable(stat_max, trainable=False, name='quant_max')
+
+                    if self.depth==100:
+                        #self.vth_l = tf.Variable(initial_value=stat_max,shape=[],name=self.name+'/vth_l',trainable=True)
+                        self.vth_l = tf.Variable(initial_value=stat_max,shape=[],name=self.name+'/vth_l',trainable=False)
+                    else:
+                        self.vth_l = tf.constant(stat_max,shape=[],name=self.name+'/vth_l')
+
+        #
         self.built = True
         #print('build layer - done')
+
+    def init_record_output(self):
+        self.record_output = tf.Variable(tf.zeros(self.output_shape_fixed_batch),trainable=False,name='record_output')
+        if self.last_layer:
+            self.record_logit= tf.Variable(tf.zeros(self.output_shape_fixed_batch),trainable=False,name='record_logit')
+
 
     #
     # def call(self,input,training):
@@ -273,7 +314,7 @@ class Layer():
         #self.use_bias = False
 
         # bias control
-        if self.bias_control:
+        if self.en_snn and self.bias_control:
             s = self.bias_control_run(s)
 
 
@@ -292,7 +333,10 @@ class Layer():
             if self.en_snn:
                 n = self.act(b, glb_t.t)
             else:
-                n = self.act(b)
+                if self.conf.fine_tune_quant and not self.last_layer:
+                    n = lib_snn.calibration.clip_floor_act(b, self.vth_l, 64.0)
+                else:
+                    n = self.act(b)
 
                 #
                 #num_bits=np.log2(self.conf.time_step)
@@ -303,10 +347,28 @@ class Layer():
         #if self.quant_act:
         ##    #n = tf.quantization.fake_quant_with_min_max_vars(n,0,1,num_bits=8)
         #    #n = tf.quantization.fake_quant_with_min_max_vars(n,0,1,num_bits=8)
-        #    #n=tf.quantize_and_dequantize_v4(n, 0, 1, signed_input=False, num_bits=8, range_given=True)
+            #if self.conf.fine_tune_quant and (not self.last_layer):
+            #if self.conf.fine_tune_quant:
+                #n=tf.quantize_and_dequantize_v4(n, 0, 1, signed_input=False, num_bits=8, range_given=True)
+                #n = tf.quantize_and_dequantize_v4(n, 0, self.quant_max, signed_input=False, num_bits=8, range_given=True)
+                #n = tf.quantize_and_dequantize_v4(n, 0, self.quant_max, signed_input=False, num_bits=6, range_given=True)
+                #n = tf.quantize_and_dequantize_v4(n, 0, self.quant_max, signed_input=False, num_bits=4, range_given=True)
+                #n = tf.clip_by_value(tf.math.floor(b*64/self.quant_max)/64,0,1)*self.quant_max
+                #n=lib_snn.calibration.clip_floor_act(b, self.quant_max, 64.0)
+
+                #print('layer name')
+                #print(self.name)
+
+                #n=lib_snn.calibration.clip_floor_act(b)
+                #n=lib_snn.calibration.clip_floor_shift_act(b, self.vth_l, 64.0)
+                #n = tf.quantize_and_dequantize_v4(n, 0, self.quant_max, signed_input=False, num_bits=12, range_given=True)
         #    n=tf.quantize_and_dequantize_v4(n, 0, 1, signed_input=False, num_bits=16, range_given=True)
         #    #n = tf.quantization.quantize(n,0,1,T=tf.qint8)
-
+        #if self.name=='conv1' and glb.model_compiled:
+        #    print('layer - {}'.format(self.name))
+        #    self.n =n
+        #    print
+        #    assert False
         ret = n
 
         #if self.en_snn:
@@ -344,10 +406,12 @@ class Layer():
 
 
         if self.en_record_output:
-            self.record_output = ret
+            #self.record_output = ret
+            self.record_output.assign(ret)
             #if self.name == 'predictions':
             if self.last_layer:
-                self.record_logit = b
+                #self.record_logit = b
+                self.record_logit.assign(b)
 
         # debug
         # TODO: debug mode set - glb.model_compiled and self.conf.debug_mode and ~~
@@ -504,9 +568,22 @@ class Layer():
         inv = math_ops.rsqrt(var + ep)
         inv *= gamma
 
-        self.kernel = self.kernel * math_ops.cast(inv, self.kernel.dtype)
+        #if self.name == 'expanded_conv_depthwise':
+        #    print(self.depthwise_kernel.shape)
+
+        if isinstance(self,lib_snn.layers.DepthwiseConv2D):
+            inv_e = tf.expand_dims(inv,0)
+            inv_e = tf.expand_dims(inv_e,0)
+            inv_e = tf.expand_dims(inv_e,-1)
+            self.depthwise_kernel = self.depthwise_kernel* math_ops.cast(inv_e, self.depthwise_kernel.dtype)
+            #if self.name=='expanded_conv_depthwise':
+            #    print(self.depthwise_kernel.shape)
+        else:
+            self.kernel = self.kernel * math_ops.cast(inv, self.kernel.dtype)
+
         self.bias = ((self.bias - mean) * inv + beta)
         #self.bias = self.bias*2
+        #assert False
 
 #
 def _bn_defusion(layer, bn):
@@ -545,7 +622,7 @@ class InputLayer(Layer, tf.keras.layers.InputLayer):
             ragged,
             type_spec,
             **kwargs)
-        Layer.__init__(self, False, None, **kwargs)
+        Layer.__init__(self, False, None, kwargs=kwargs)
 
         print('init')
         # assert False
@@ -568,7 +645,7 @@ class InputLayer(Layer, tf.keras.layers.InputLayer):
 class InputGenLayer(Layer, tf.keras.layers.Layer):
     def __init__(self, **kwargs):
         tf.keras.layers.Layer.__init__(self, **kwargs)
-        Layer.__init__(self, False, None, **kwargs)
+        Layer.__init__(self, False, None, kwargs=kwargs)
 
         #self.act_dnn = tf.identity()
 
@@ -599,12 +676,13 @@ class Conv2D(Layer, tf.keras.layers.Conv2D):
                  dilation_rate=(1, 1),
                  activation=None,
                  activity_regularizer=None,
+                 kernel_initializer='glorot_uniform',
                  kernel_constraint=None,
                  bias_constraint=None,
                  use_bn=False,  # use batch norm.
                  **kwargs):
 
-        Layer.__init__(self, use_bn, activation, **kwargs)
+        Layer.__init__(self, use_bn, activation, kwargs=kwargs)
 
         tf.keras.layers.Conv2D.__init__(
             self,
@@ -616,7 +694,7 @@ class Conv2D(Layer, tf.keras.layers.Conv2D):
             dilation_rate=dilation_rate,
             activation=None,
             use_bias=conf.use_bias,
-            # kernel_initializer=Model.kernel_initializer,
+            kernel_initializer=kernel_initializer,
             bias_initializer='zeros',
             kernel_regularizer=self.kernel_regularizer,
             #bias_regularizer=None,
@@ -633,13 +711,61 @@ class Conv2D(Layer, tf.keras.layers.Conv2D):
         self.synapse=True
 
 
+# Conv2D
+class DepthwiseConv2D(Layer, tf.keras.layers.DepthwiseConv2D):
+    def __init__(self,
+                 kernel_size,
+                 strides=(1, 1),
+                 padding='valid',
+                 depth_multiplier=1,
+                 data_format=None,
+                 dilation_rate=(1, 1),
+                 activation=None,
+                 use_bias=True,
+                 depthwise_initializer='glorot_uniform',
+                 bias_initializer='zeros',
+                 depthwise_regularizer=None,
+                 bias_regularizer=None,
+                 activity_regularizer=None,
+                 depthwise_constraint=None,
+                 bias_constraint=None,
+                 use_bn=False,  # use batch norm.
+                 **kwargs):
+        Layer.__init__(self, use_bn, activation, kwargs=kwargs)
+
+        tf.keras.layers.DepthwiseConv2D.__init__(
+            self,
+            kernel_size=kernel_size,
+            strides=strides,
+            padding=padding,
+            depth_multiplier=depth_multiplier,
+            data_format=data_format,
+            dilation_rate=dilation_rate,
+            activation=None,
+            use_bias=use_bias,
+            depthwise_initializer=depthwise_initializer,
+            bias_initializer=bias_initializer,
+            depthwise_regularizer=depthwise_regularizer,
+            bias_regularizer=bias_regularizer,
+            activity_regularizer=activity_regularizer,
+            depthwise_constraint=depthwise_constraint,
+            bias_constraint=bias_constraint,
+            **kwargs)
+
+        #
+        Layer.index += 1
+        self.depth = Layer.index
+        self.synapse=True
+
+
+
 # Dense
 class Dense(Layer, tf.keras.layers.Dense):
     def __init__(self,
                  units,
                  activation=None,
                  # use_bias=True
-                 # kernel_initializer='glorot_uniform',
+                 kernel_initializer='glorot_uniform',
                  # bias_initializer='zeros',
                  # kernel_regularizer=None,
                  # bias_regularizer=None,
@@ -650,14 +776,14 @@ class Dense(Layer, tf.keras.layers.Dense):
                  last_layer=False,
                  **kwargs):
 
-        Layer.__init__(self, use_bn, activation, last_layer, **kwargs)
+        Layer.__init__(self, use_bn, activation, last_layer, kwargs=kwargs)
 
         tf.keras.layers.Dense.__init__(
             self,
             units,
             activation=None,
             use_bias=conf.use_bias,
-            # kernel_initializer=Model.kernel_initializer,
+            kernel_initializer=kernel_initializer,
             bias_initializer='zeros',
             kernel_regularizer=self.kernel_regularizer,
             #bias_regularizer=None,
@@ -679,7 +805,8 @@ class Add(Layer, tf.keras.layers.Add):
     def __init__(self, use_bn=False, epsilon=0.001, activation=None, **kwargs):
         tf.keras.layers.Add.__init__(self, **kwargs)
 
-        Layer.__init__(self, use_bn=use_bn, epsilon=epsilon, activation=activation, **kwargs)
+        #Layer.__init__(self, use_bn=use_bn, epsilon=epsilon, activation=activation, kwargs=kwargs)
+        Layer.__init__(self, use_bn=use_bn, activation=activation, kwargs=kwargs)
 
         # self.act = activation
 
@@ -716,7 +843,8 @@ class Add(Layer, tf.keras.layers.Add):
 class Identity(Layer, tf.keras.layers.Layer):
     def __init__(self, use_bn=False, epsilon=0.001, activation=None, **kwargs):
         tf.keras.layers.Layer.__init__(self, **kwargs)
-        Layer.__init__(self, use_bn=use_bn, epsilon=epsilon, activation=activation, **kwargs)
+        #Layer.__init__(self, use_bn=use_bn, epsilon=epsilon, activation=activation, kwargs=kwargs)
+        Layer.__init__(self, use_bn=use_bn, activation=activation, kwargs=kwargs)
 
         self.kernel = tf.constant(1.0, shape=[], name='kernel')
         self.bias = tf.zeros(shape=[],name='bias')
@@ -730,7 +858,8 @@ class Identity(Layer, tf.keras.layers.Layer):
         ret = tf.add(ret,self.bias)
 
         if self.en_record_output:
-            self.record_output = ret
+            #self.record_output = ret
+            self.record_output.assign(ret)
 
         return ret
 
@@ -765,7 +894,7 @@ class MaxPool2D(Layer, tf.keras.layers.MaxPool2D):
             data_format=conf.data_format,
             **kwargs)
 
-        Layer.__init__(self, False, None, **kwargs)
+        Layer.__init__(self, False, None, kwargs=kwargs)
 
         self.prev_layer_set_done=False
 
@@ -814,11 +943,19 @@ class GlobalAveragePooling2D(Layer, tf.keras.layers.GlobalAveragePooling2D):
                  **kwargs):
 
         tf.keras.layers.GlobalAveragePooling2D.__init__(self,**kwargs)
-        Layer.__init__(self, use_bn=False, activation=None, last_layer=False, **kwargs)
+        Layer.__init__(self, use_bn=False, activation=None, last_layer=False, kwargs=kwargs)
 
     #def call(self, inputs):
 
         #name='avg_pool')(x)
+
+# ZeroPadding2D
+class ZeroPadding2D(Layer, tf.keras.layers.ZeroPadding2D):
+    def __init__(self,
+                 **kwargs):
+
+        tf.keras.layers.ZeroPadding2D.__init__(self,**kwargs)
+        Layer.__init__(self, use_bn=False, activation=None, last_layer=False, kwargs=kwargs)
 
 
 

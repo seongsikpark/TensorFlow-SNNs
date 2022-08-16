@@ -25,6 +25,13 @@ import lib_snn
 from lib_snn.sim import glb_t
 from lib_snn.sim import glb_plot
 
+from lib_snn import config_glb
+
+########################################
+# init (on_train_begin)
+########################################
+
+
 
 ########################################
 # preprocessing (on_test_begin)
@@ -93,6 +100,20 @@ def set_init(self):
 
     self.model.init(self.model_ann)
 
+    # quantization fine tuning
+#    if self.conf.fine_tune_quant:
+#        #if False:
+#        for layer in self.model.layers_w_act:
+#            stat=lib_snn.calibration.read_stat(self,layer,'max_999')
+#            stat_max = tf.reduce_max(stat)
+#            #layer.quant_max = tf.Variable(stat_max,trainable=False,name='quant_max')
+#            layer.quant_max.assign(stat_max)
+#            #layer.quant_max = tf.constant(stat_max,shape=[],name='quant_max')
+#            print('proproc_ann')
+#            print(layer.name)
+#            print(layer.quant_max)
+#
+
 
     #self.init_done=True
 
@@ -123,6 +144,9 @@ def preproc_ann(self):
     if self.conf.f_surrogate_training_model:
         assert False
         #self.preproc_surrogate_training_model()
+
+
+
 
 #
 def preproc_snn(self):
@@ -180,6 +204,10 @@ def preproc_ann_to_snn(self):
 
     # calibration
     #if self.calibration:
+    if not self.calibration_static_done:
+        calibration_static(self)
+
+
     if False:
 
         print(self.run_for_calibration)
@@ -208,6 +236,14 @@ def preproc_ann_to_snn(self):
 
 #
 def calibration_static(self):
+    #
+    if self.conf.calibration_vmem_ICLR:
+        lib_snn.calibration.vmem_calibration_ICLR(self)
+
+    self.calibration_static_done = True
+
+#
+def calibration_static_old(self):
 
     if self.model.nn_mode=='SNN':
         if self.conf.calibration_vth:
@@ -227,13 +263,15 @@ def calibration_static(self):
     if self.conf.calibration_bias:
         lib_snn.calibration.bias_calibration(self)
 
+
     #
     #lib_snn.calibration.vth_calibration(self)
 
     self.calibration_static_done = True
 
 def calibration_act_based(self):
-    print('calibration_act_based')
+    if self.conf.verbose:
+        print('calibration_act_based')
 
     if self.conf.calibration_weight_act_based:
         lib_snn.calibration.weight_calibration_act_based(self)
@@ -242,7 +280,8 @@ def calibration_act_based(self):
 
 
 def calibration_act_based_post(self):
-    print('calibration_act_based_post')
+    if self.conf.verbose:
+        print('calibration_act_based_post')
 
     #assert tf.math.logical_not(tf.math.reduce_all(self.conf.calibration_bias,self.conf.calibration_bias_ICLR_21,self.conf.calibration_bias_ICML_21))
     assert tf.math.logical_not(tf.math.logical_and(self.conf.calibration_vmem,self.conf.calibration_vmem_ICML_21))
@@ -370,7 +409,9 @@ def postproc_batch_test(self):
         #print(self.model)
         idx_acc = self.model.metrics_names.index('acc')
         acc=self.model.metrics[idx_acc].result().numpy()
+        #print('debug early stop inference')
         #print(acc)
+        #print(self.conf.early_stop_search_acc)
 
         if acc < self.conf.early_stop_search_acc:
             assert False
@@ -663,6 +704,7 @@ def postproc_snn_infer(self):
     save_condition = (self.conf.full_test and \
                      not (self.run_for_calibration_ML or self.run_for_vth_search or self.f_vth_set_and_norm))\
                      or self.conf.calibration_idx_test or self.conf.vth_search_idx_test
+    save_condition = save_condition and self.f_save_result
 
     #if self.conf.full_test and not (self.run_for_calibration_ML or self.run_for_vth_search or self.f_vth_set_and_norm):
     if save_condition:
@@ -674,7 +716,9 @@ def postproc_snn_infer(self):
     #if dnn_snn_compare:
         dnn_snn_compare_func(self)
 
-    if self.conf.bias_control:
+
+
+    if self.conf.verbose and self.conf.bias_control:
         print('bias en time')
 
         # for layer in self.layers_w_kernel:
@@ -815,6 +859,11 @@ def save_results(self):
     if self.conf.bias_control:
         config += '_bc'
 
+
+    # dynamic_bn test
+    if self.conf.dynamic_bn_test:
+        config += '_dbn-' + str(self.conf.dynamic_bn_dnn_act_scale) + '-' + str(self.conf.dynamic_bn_test_const)
+
     #
     file = config+'.xlsx'
 
@@ -862,7 +911,8 @@ def w_norm_data(self):
     #f_name_stat_pre=model_dataset
     #path_stat = os.path.join(path_stat,model_dataset)
 
-    path_stat = os.path.join(self.path_model,self.conf.path_stat)
+    #path_stat = os.path.join(self.path_model_load,self.conf.path_stat)
+    path_stat = os.path.join(config_glb.path_stat)
 
     #stat_conf=['max','mean','max_999','max_99','max_98']
 
@@ -989,7 +1039,7 @@ def w_norm_data_channel_wise(self, f_norm, stat, dict_stat=None):
                 stat_r = self.dict_stat_r[l.name]
             stat_r = stat_r.reshape(-1,stat_r.shape[-1])
 
-            if isinstance(l,lib_snn.layers.InputGenLayer):
+            if isinstance(l,lib_snn.layers.InputGenLayer) or (l.last_layer and (self.conf.snn_output_type!='SPIKE')):
                 norm = 1
             else:
                 norm = f_norm(stat_r)
@@ -1007,7 +1057,6 @@ def w_norm_data_channel_wise(self, f_norm, stat, dict_stat=None):
                 #norm = f_norm(stat)
 
                 #self.norm[l.name] = (f_norm(stat).T / self.norm[prev_name]).T
-                #self.test = np.expand_dims(norm,axis=0).T
                 self.norm[l.name] = norm / np.expand_dims(self.norm_b[prev_name],axis=0).T
 
                 #print(self.norm[l.name])
@@ -1220,17 +1269,17 @@ def w_norm_data_channel_wise(self, f_norm, stat, dict_stat=None):
                 #print(norm)
                 self.norm[l.name] = norm / np.expand_dims(self.norm_b[prev_name],axis=0).T
 
-
-                print('l_name: - {}'.format(l.name))
-                print('l_name_prev: - {}'.format(prev_name))
-                print('')
+                #if self.conf.verbose:
+                    #print('l_name: - {}'.format(l.name))
+                    #print('l_name_prev: - {}'.format(prev_name))
+                    #print('')
 
             elif ('conv' in l.name):
                 conv_block_name = l.name.split('_')
                 conv_name = conv_block_name[2]
                 conv_block_name = conv_block_name[0] + '_' + conv_block_name[1]
 
-                print('conv_name - {}'.format(conv_name))
+                #print('conv_name - {}'.format(conv_name))
 
                 if 'conv0' in conv_name:
                     norm_l_name = self.model.block_norm_out_name[conv_block_name]
@@ -1263,9 +1312,9 @@ def w_norm_data_channel_wise(self, f_norm, stat, dict_stat=None):
                     self.norm[l.name] = norm / np.expand_dims(norm_prev, axis=0).T
 
                 #
-                print('norm_l_name: - {}'.format(norm_l_name))
-                print('norm_prev_l_name: - {}'.format(norm_prev_l_name))
-                print('')
+                #print('norm_l_name: - {}'.format(norm_l_name))
+                #print('norm_prev_l_name: - {}'.format(norm_prev_l_name))
+                #print('')
 
             else:
                 assert False
