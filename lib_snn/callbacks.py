@@ -63,7 +63,8 @@ class ModelCheckpointResume(tf.keras.callbacks.ModelCheckpoint):
                 log_dir = None,
                 ** kwargs):
 
-        if save_freq is not 'epoch':
+        #if save_freq is not 'epoch':
+        if save_freq != 'epoch':
             assert False, 'only supported save_freq=epoch'
 
         super(ModelCheckpointResume, self).__init__(
@@ -171,16 +172,21 @@ class SNNLIB(tf.keras.callbacks.Callback):
     #def build(self):
         #lib_snn.proc.set_init(self)
 
+    ################
+    # test callbacks
+    ################
     def on_test_begin(self, logs=None):
+        #print('on test begin')
         # initialization
-        lib_snn.proc.preproc(self)
+        if not self.init_done:
+            lib_snn.proc.preproc(self)
 
         # reset
         lib_snn.proc.reset(self)
 
-
     def on_test_end(self, logs=None):
-        lib_snn.proc.postproc(self)
+        if not self.conf.train:
+            lib_snn.proc.postproc(self)
 
     def on_test_batch_begin(self, batch, logs=None):
         #print('on_test_batch_begin')
@@ -188,7 +194,31 @@ class SNNLIB(tf.keras.callbacks.Callback):
 
     def on_test_batch_end(self, batch, logs=None):
         #print('on_test_batch_end')
-        lib_snn.proc.postproc_batch(self)
+        if not self.conf.train:
+            lib_snn.proc.postproc_batch_test(self)
+
+
+    ################
+    # train callbacks
+    ################
+    def on_train_begin(self, logs=None):
+        # initialization
+        if not self.init_done:
+            lib_snn.proc.preproc(self)
+
+        # reset
+        lib_snn.proc.reset(self)
+
+    def on_train_end(self, logs=None):
+        lib_snn.proc.postproc(self)
+
+    def on_train_batch_begin(self, batch, logs=None):
+        #print('on_test_batch_begin')
+        lib_snn.proc.preproc_batch(self)
+
+    def on_train_batch_end(self, batch, logs=None):
+        #print('on_test_batch_end')
+        lib_snn.proc.postproc_batch_train(self)
 
 
 #

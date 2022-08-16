@@ -646,9 +646,9 @@ def weight_calibration(self):
         if layer.name in norm_b_wc.keys():
             layer.bias = layer.bias / norm_b_wc[layer.name]
 
-    for layer in self.model.layers_w_kernel:
-        print(layer.name)
-        print(norm_wc[layer.name])
+    #for layer in self.model.layers_w_kernel:
+    #    print(layer.name)
+    #    print(norm_wc[layer.name])
 
 
 
@@ -1285,7 +1285,7 @@ def calibration_bias_set(self):
 
         #if not l.name is 'predictions':
         if True:
-            print(l.name)
+            #print(l.name)
             #print(l.bias)
             if ('ResNet' in self.model.name) and ('out' in l.name):
                 if not hasattr(l, 'bias'):
@@ -2380,7 +2380,7 @@ def bias_calibration_ICML_21(self):
             #print(dnn_act.shape)
             #print(snn_act.shape)
 
-            print(l.name)
+            #print(l.name)
             #print(dnn_act)
             #print(snn_act)
             assert not(dnn_act is None), 'dnn_act is none'

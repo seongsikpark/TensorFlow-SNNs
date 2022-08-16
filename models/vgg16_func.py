@@ -40,15 +40,21 @@ def VGG16(
     act_sm = 'softmax'
 
     #
-    dropout_conv_r = [0.2, 0.2, 0]
+    if conf.nn_mode=='ANN':
+        dropout_conv_r = [0.2, 0.2, 0.0]      # DNN training
+    elif conf.nn_mode=='SNN':
+        #dropout_conv_r = [0.2, 0.2, 0.0]      # SNN training
+        dropout_conv_r = [0.0, 0.0, 0.0]      # SNN training
+    else:
+        assert False
 
     #
     initial_channels = kwargs.pop('initial_channels', None)
     assert initial_channels is not None
 
     #
-    use_bn_feat = True
-    use_bn_cls = True
+    use_bn_feat = conf.use_bn
+    use_bn_cls = conf.use_bn
 
     #
     channels = initial_channels

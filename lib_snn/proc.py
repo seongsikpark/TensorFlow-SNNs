@@ -44,8 +44,8 @@ def preproc(self):
         print_total_num_neurons(self)
 
     # initialization
-    if not self.init_done:
-        set_init(self)
+    #if not self.init_done:
+    set_init(self)
 
     #
     preproc_sel={
@@ -53,6 +53,9 @@ def preproc(self):
         'SNN': preproc_snn,
     }
     preproc_sel[self.model.nn_mode](self)
+
+
+    self.init_done = True
 
 
 # reset on test begin
@@ -91,7 +94,7 @@ def set_init(self):
     self.model.init(self.model_ann)
 
 
-    self.init_done=True
+    #self.init_done=True
 
 
 
@@ -306,8 +309,8 @@ def reset_snn_time_step(self):
 ########################################
 # (on_test_batch_end)
 ########################################
-def postproc_batch(self):
-    #print('postproc_batch')
+def postproc_batch_test(self):
+    #print('postproc_batch_test')
 
     # TODO: need?
     if self.model.en_record_output:
@@ -382,7 +385,7 @@ def collect_record_output(self):
 
             if not (layer.name in self.model.dict_stat_w.keys()):
                 #self.dict_stat_w[layer.name] = layer.record_output.numpy()
-                self.model.dict_stat_w[layer.name] = tf.Variable(layer.record_output)
+                self.model.dict_stat_w[layer.name] = tf.Variable(layer.record_output,trainable=False,name='collect_record_output')
             else:
                 self.model.dict_stat_w[layer.name] = tf.concat([self.model.dict_stat_w[layer.name],layer.record_output],0)
                 #prev = self.dict_stat_w[layer.name]
@@ -627,6 +630,21 @@ def plot_dnn_act(self, layers=None, idx=None):
 
 
 def postproc_snn(self):
+    #
+    # TODO: to be updated
+    #postproc_snn_sel={
+        #'inference': postproc_snn_infer,
+        #'train': postproc_snn_train,
+        #'load_and_train': postproc_snn_train,
+    #}
+    #postproc_snn_sel[self.model.run_mode](self)
+
+    if self.conf.train:
+        postproc_snn_train(self)
+    else:
+        postproc_snn_infer(self)
+
+def postproc_snn_infer(self):
     # results
     cal_results(self)
 
@@ -656,14 +674,24 @@ def postproc_snn(self):
     #if dnn_snn_compare:
         dnn_snn_compare_func(self)
 
-
-
     if self.conf.bias_control:
         print('bias en time')
 
         # for layer in self.layers_w_kernel:
         for layer in self.model.layers_w_kernel:
             print('{:<8} - {:3d}'.format(layer.name, tf.reduce_mean(layer.bias_en_time)))
+
+#
+def postproc_snn_train(self):
+    pass
+
+
+########################################
+# (on_train_batch_end)
+########################################
+def postproc_batch_train(self):
+#print('postproc_batch_train')
+    pass
 
 #
 def dnn_snn_compare_func(self):

@@ -70,26 +70,30 @@ def load(dataset_name,batch_size,input_size,input_size_pre_crop_ratio,num_class,
 
             train_ds_num = ds_info.splits['train'].num_examples
             valid_ds_num = ds_info.splits['test'].num_examples
-    else:
-        if conf.full_test:
-            split_test = tfds.core.ReadInstruction('test', from_=0, to=100, unit='%')
-        else:
-            idx_test_s = conf.idx_test_data
-            idx_test_e = idx_test_s + conf.num_test_data
-            split_test = tfds.core.ReadInstruction('test', from_=idx_test_s, to=idx_test_e, unit='abs')
 
+    else:
         if conf.calibration_idx_test or conf.vth_search_idx_test or (not conf.train):
             train_ds, train_ds_info = tfds.load(dataset_name, split='train', shuffle_files=False, as_supervised=True, with_info=True)
             #train_ds, train_ds_info = tfds.load(dataset_name, split='train', shuffle_files=False, as_supervised=True, with_info=True)
         else:
             train_ds, train_ds_info = tfds.load(dataset_name, split='train', shuffle_files=True, as_supervised=True, with_info=True)
-        valid_ds, valid_ds_info = tfds.load(dataset_name, split=split_test, shuffle_files=False, as_supervised=True, with_info=True)
 
         train_ds_num = train_ds_info.splits['train'].num_examples
-        if conf.full_test:
-            valid_ds_num = valid_ds_info.splits['test'].num_examples
-        else:
-            valid_ds_num = conf.num_test_data
+
+    #
+    if conf.full_test:
+        split_test = tfds.core.ReadInstruction('test', from_=0, to=100, unit='%')
+    else:
+        idx_test_s = conf.idx_test_data
+        idx_test_e = idx_test_s + conf.num_test_data
+        split_test = tfds.core.ReadInstruction('test', from_=idx_test_s, to=idx_test_e, unit='abs')
+
+    valid_ds, valid_ds_info = tfds.load(dataset_name, split=split_test, shuffle_files=False, as_supervised=True, with_info=True)
+
+    if conf.full_test:
+        valid_ds_num = valid_ds_info.splits['test'].num_examples
+    else:
+        valid_ds_num = conf.num_test_data
 
     #
     #input_prec_mode = 'torch'

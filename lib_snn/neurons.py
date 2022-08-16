@@ -127,8 +127,9 @@ class Neuron(tf.keras.layers.Layer):
         #self.leak_const = tf.constant(0.99,dtype=tf.float32,shape=self.dim)
         #self.leak_const = tf.constant(leak_const,dtype=tf.float32,shape=self.dim)
 
-        self.leak_const_init = tf.constant(leak_const,dtype=tf.float32,shape=self.dim)
-        self.leak_const = tf.Variable(self.leak_const_init,dtype=tf.float32,shape=self.dim)
+        self.leak_const_init = tf.constant(leak_const,dtype=tf.float32,shape=self.dim,name='leak_const_init')
+        #self.leak_const = tf.Variable(self.leak_const_init,dtype=tf.float32,shape=self.dim,name='leak_const')
+        self.leak_const = tf.Variable(self.leak_const_init,trainable=False,dtype=tf.float32,shape=self.dim,name='leak_const')
 
 
         # vth scheduling
@@ -304,8 +305,8 @@ class Neuron(tf.keras.layers.Layer):
 
         self.built = True
 
-
-
+    #@tf.function
+    @tf.custom_gradient
     def call(self ,inputs ,t):
 
         #print('neuron call')
@@ -313,6 +314,52 @@ class Neuron(tf.keras.layers.Layer):
         #print('depth: {}'.format(self.depth))
         #print(inputs)
         #assert self.init_done, 'should call init() before start simulation'
+
+        #
+        #def grad(upstream, variables=None):
+        def grad(upstream):
+#            if variables is not None:
+#                print(variables)
+#                assert False
+            #print('grad')
+            #print(self.name)
+            #print(tf.reduce_mean(upstream))
+
+            #if self.name=='n_predictions':
+            #    print(upstream)
+
+            if self.n_type=='OUT':
+                #grad_ret = upstream/10.0
+                #if self.conf.dataset!='CIFAR10':
+                #    assert False
+                #grad_ret = upstream
+                grad_ret = tf.divide(upstream,self.conf.batch_size)
+                #print(upstream)
+                #grad_ret = tf.divide(upstream,self.conf.time_step)
+            else:
+                a=0.5
+                if False:
+                    cond_1=tf.math.less_equal(tf.math.abs(self.vth-self.vmem),a)
+                    cond_1 = tf.math.logical_and(cond_1,tf.math.logical_not(self.f_fire))
+                    cond_2 = self.f_fire
+                    cond = tf.math.logical_or(cond_1,cond_2)
+                else:
+                    cond=tf.math.less_equal(tf.math.abs(self.vth-inputs),a)
+                #cond_1 = tf.math.logical_or(tf.greater_equal(self.vmem,(1.0-a)*self.vth),tf.less_equal(self.vmem,(1.0+a)*self.vth))
+                #cond = cond_1
+                #cond = cond_2
+                grad_ret = tf.where(cond,upstream,tf.zeros(upstream.shape))
+                #grad_ret = tf.clip_by_norm(grad_ret,0.1)
+                #grad_ret = tf.clip_by_norm(grad_ret,2)
+                #grad_ret = upstream
+
+
+            print('here')
+            print(self.name)
+            print(upstream)
+            print(self.out)
+
+            return grad_ret, tf.stop_gradient(t)
 
         self.inputs = inputs
 
@@ -330,6 +377,31 @@ class Neuron(tf.keras.layers.Layer):
 
         out_ret = self.out
 
+        #self.t = t
+        #print(self.conf.time_step)
+        #print(t)
+
+        #if True:
+        if False:
+            print('name: {:}'.format(self.name))
+            #print(self.vmem[0,0])
+            print(self.out[0,0])
+
+        #if False:
+        if True:
+            if self.n_type=='OUT':
+                #if (self.conf.time_step==t):
+                print('snn out_ret')
+                print(self.vmem[0])
+                print(out_ret[0])
+                print('')
+
+
+
+        #if self.name=='n_predictions':
+        #    print('output')
+        #    print(out_ret)
+
         #
         if self.conf.f_record_first_spike_time:
             self.record_first_spike_time(t)
@@ -338,7 +410,8 @@ class Neuron(tf.keras.layers.Layer):
             #print(self.vmem)
             #print(tf.reduce_mean(self.out))
 
-        return out_ret
+
+        return out_ret, grad
 
     # initialization
     def init(self):
@@ -351,7 +424,7 @@ class Neuron(tf.keras.layers.Layer):
 
     # reset - sample
     def reset(self):
-        # print('reset neuron')
+        #print('reset neuron')
         self.reset_vmem()
         # self.reset_out()
         self.reset_spike_count()
@@ -1197,10 +1270,13 @@ class Neuron(tf.keras.layers.Layer):
         # spike_time = self.relative_time_fire(t)
         spike_time = t
 
+        #print(spike_time)
+
         self.first_spike_time = tf.where(
             #tf.math.logical_and(self.f_fire,tf.equal(self.first_spike_time,self.init_first_spike_time)),
             tf.math.logical_and(self.f_fire,tf.math.is_nan(self.first_spike_time)),
-            tf.constant(spike_time, dtype=tf.float32, shape=self.first_spike_time.shape),
+            #tf.constant(spike_time, dtype=tf.float32, shape=self.first_spike_time.shape),
+            tf.constant(spike_time, dtype=tf.int32, shape=self.first_spike_time.shape),
             self.first_spike_time)
 
         #print(tf.reduce_mean(self.first_spike_time))
@@ -1301,12 +1377,33 @@ class Neuron(tf.keras.layers.Layer):
             # in current implementation, output layer acts as IF neuron.
             # If the other types of neuron is needed for the output layer,
             # the declarations of neuron layers in other files should be modified.
-            self.run_type_if(inputs, t)
+            #assert False, 'only support IF?'
+            if self.conf.n_type=='IF':
+                self.run_type_if(inputs, t)
+            elif self.conf.n_type=='LIF':
+                self.run_type_lif(inputs, t)
+            else:
+                assert False
+
         else:
+            self.integration(inputs, t)
             if self.conf.n_type=='LIF':
                 self.leak()
-            self.integration(inputs, t)
             self.out = self.vmem
+            #self.out = tf.divide(self.vmem,self.conf.time_step)
+            #out = tf.divide(self.vmem,self.vth)
+            #self.out = tf.divide(self.vmem,self.conf.time_step*self.vth)
+
+        if self.conf.train:
+            #print('logits')
+            #print(self.out)
+            self.out = tf.keras.activations.softmax(self.out)
+            #self.out = tf.keras.activations.softmax(out)
+            #sm = tf.keras.layers.Softmax()
+            #self.out = sm(self.out)
+        #else:
+            #self.out = out
+
 
     ############################################################
     ##

@@ -244,6 +244,7 @@ class Layer():
     #
     # def call_set_aside_for_future(self,input,training):
     def call(self, input, training):
+        #print('layer - {:}, training - {:}'.format(self.name,training))
         #print('layer call - {}'.format(self.name))
 
 
@@ -315,24 +316,31 @@ class Layer():
         #        ret = ret / time
         #        #ret = ret
 
-        if (self.name == 'predictions') and (glb.model_compiled) and (not conf.full_test):
-            #print('time: {}'.format(t))
-            #print(ret)
+        #print(self.name)
+        #print(n[0])
 
-            if self.conf.num_test_data == 1:
-                print('curr')
-                print(tf.argmax(b,axis=1))
-                print(b)
-                print('acum')
-                print(tf.argmax(n,axis=1))
-                print(n)
-            else:
-                print('curr')
-                print(tf.argmax(b,axis=1)[conf.verbose_visual_idx])
-                print(b[conf.verbose_visual_idx])
-                print('acum')
-                print(tf.argmax(n,axis=1)[conf.verbose_visual_idx])
-                print(n[conf.verbose_visual_idx])
+        #if (self.name == 'predictions') and (glb.model_compiled) and (not conf.full_test):
+        #    print(n)
+
+        if False:
+            if (self.name == 'predictions') and (glb.model_compiled) and (not conf.full_test):
+                #print('time: {}'.format(t))
+                #print(ret)
+
+                if self.conf.num_test_data == 1:
+                    print('curr')
+                    print(tf.argmax(b,axis=1))
+                    print(b)
+                    print('acum')
+                    print(tf.argmax(n,axis=1))
+                    print(n)
+                else:
+                    print('curr')
+                    print(tf.argmax(b,axis=1)[conf.verbose_visual_idx])
+                    print(b[conf.verbose_visual_idx])
+                    print('acum')
+                    print(tf.argmax(n,axis=1)[conf.verbose_visual_idx])
+                    print(n[conf.verbose_visual_idx])
 
 
         if self.en_record_output:
@@ -611,7 +619,8 @@ class Conv2D(Layer, tf.keras.layers.Conv2D):
             # kernel_initializer=Model.kernel_initializer,
             bias_initializer='zeros',
             kernel_regularizer=self.kernel_regularizer,
-            bias_regularizer=None,
+            #bias_regularizer=None,
+            bias_regularizer=self.kernel_regularizer,
             activity_regularizer=activity_regularizer,
             kernel_constraint=kernel_constraint,
             bias_constraint=bias_constraint,
@@ -651,7 +660,8 @@ class Dense(Layer, tf.keras.layers.Dense):
             # kernel_initializer=Model.kernel_initializer,
             bias_initializer='zeros',
             kernel_regularizer=self.kernel_regularizer,
-            bias_regularizer=None,
+            #bias_regularizer=None,
+            bias_regularizer=self.kernel_regularizer,
             activity_regularizer=activity_regularizer,
             kernel_constraint=kernel_constraint,
             bias_constraint=bias_constraint,
@@ -744,6 +754,9 @@ class MaxPool2D(Layer, tf.keras.layers.MaxPool2D):
                  # data_format=None,
                  **kwargs):
 
+        if strides!=(2,2):
+            assert False, 'only support stride (2x2) in maxpooling2d'
+
         tf.keras.layers.MaxPool2D.__init__(
             self,
             pool_size=pool_size,
@@ -786,7 +799,11 @@ class MaxPool2D(Layer, tf.keras.layers.MaxPool2D):
             output_shape = self.output_shape_fixed_batch
 
             # print('spike count - {}'.format(tf.reduce_sum(spike_count)))
-            return lib_snn.layers.spike_max_pool(inputs, spike_count, output_shape)
+            #print(self.name)
+            ret = lib_snn.layers.spike_max_pool_2d_22(inputs, spike_count, output_shape)
+            #print(inputs.shape)
+            #print(ret.shape)
+            return ret
         else:
             return tf.keras.layers.MaxPool2D.call(self, inputs)
 
@@ -809,7 +826,9 @@ class GlobalAveragePooling2D(Layer, tf.keras.layers.GlobalAveragePooling2D):
 ## spike max pool (spike count based gating function)
 ############################################################
 #@tf.function
-def spike_max_pool(feature_map, spike_count, output_shape):
+# spike max pool 2d, stride = (2,2)
+@tf.custom_gradient
+def spike_max_pool_2d_22(feature_map, spike_count, output_shape):
     # tmp = tf.reshape(spike_count,(1,-1,)+spike_count.numpy().shape[2:])
 
     #assert False
@@ -821,19 +840,83 @@ def spike_max_pool(feature_map, spike_count, output_shape):
     #print(tmp)
     #assert False
     #tmp = tf.reshape(spike_count, (1, -1,) + tf.shape(spike_count)[2:])
+
+    # old
     _, arg = tf.nn.max_pool_with_argmax(tmp, (1, 2, 2, 1), (1, 2, 2, 1), padding='SAME')
-    #_, arg = tf.nn.max_pool_with_argmax(tmp, (1, 2, 2, 1), (1, 2, 2, 1), padding='SAME', include_batch_in_index=True)
-    # arg = tf.reshape(arg,output_shape)
     conv_f = tf.reshape(feature_map, [-1])
     arg = tf.reshape(arg, [-1])
-
 
     p_conv = tf.gather(conv_f, arg)
     p_conv = tf.reshape(p_conv, output_shape)
 
+    #_, arg = tf.nn.max_pool_with_argmax(spike_count, (1, 2, 2, 1), (1, 2, 2, 1), padding='SAME')
+
+    #_, arg = tf.nn.max_pool_with_argmax(tmp, (1, 2, 2, 1), (1, 2, 2, 1), padding='SAME', include_batch_in_index=True)
+    # arg = tf.reshape(arg,output_shape)
+
+    #print(arg)
+
+    #print(feature_map.shape)
+
+    #print(arg.shape)
+    #assert False
+
     # p_conv = tf.convert_to_tensor(conv_f.numpy()[arg],dtype=tf.float32)
 
-    return p_conv
+    def grad(upstream):
+        #print(p_conv.shape)
+        #print(upstream.shape)
+        #assert False
+
+        if False:
+            dim_in_b, dim_in_y, dim_in_x, dim_in_c = upstream.shape
+
+            dim_out_b=dim_in_b
+            dim_out_y=dim_in_y*2
+            dim_out_x=dim_in_x*2
+            dim_out_c=dim_in_c
+
+            dim_out = [dim_out_b,dim_out_x,dim_out_y,dim_out_c]
+            #print(dim_out)
+
+            print(upstream.shape)
+            print(dim_out)
+
+            upstream_expand = tf.broadcast_to(upstream,dim_out)
+
+            #dy_dx_z = tf.zeros(dy_dx.shape)
+
+            dim_flat=tf.reduce_prod(tmp.shape)
+            zeros = tf.zeros(dim_flat)
+            ones = tf.ones(arg.shape)
+
+            #print(arg)
+            #print(zeros)
+            #print(ones)
+
+            arg_wrap = [[_arg] for _arg in arg]
+
+            grad_mask = tf.tensor_scatter_nd_update(zeros,arg_wrap,ones)
+            grad_mask = tf.reshape(grad_mask,upstream_expand.shape)
+
+            #dy_dx = tf.where(grad_mask)
+            dy_dx = tf.math.multiply(upstream_expand,grad_mask)
+
+        zeros = tf.zeros(conv_f.shape)
+        #ones = tf.ones(arg.shape)
+        #print(upstream.shape)
+        upstream_flat=tf.reshape(upstream,[-1])
+        #arg_wrap = [[_arg] for _arg in arg]
+        arg_wrap = tf.reshape(arg,[arg.shape[0],1])
+
+        dy_dx = tf.tensor_scatter_nd_update(zeros,arg_wrap,upstream_flat)
+        dy_dx = tf.reshape(dy_dx, feature_map.shape)
+
+        #assert False
+
+        return dy_dx, tf.stop_gradient(spike_count), tf.stop_gradient(output_shape)
+
+    return p_conv, grad
 
 # def spike_max_pool_temporal(feature_map, spike_count, output_shape):
 

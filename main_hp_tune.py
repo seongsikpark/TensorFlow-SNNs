@@ -17,6 +17,8 @@ import tensorflow as tf
 import tensorflow_probability as tfp
 from tensorflow.python.keras.engine import data_adapter
 
+from keras.utils.vis_utils import plot_model
+
 #
 from absl import app
 from absl import flags
@@ -89,7 +91,7 @@ from lib_snn.sim import glb_bias_comp
 
 # GPU setting
 #
-GPU_NUMBER=0
+GPU_NUMBER=3
 
 GPU_PARALLEL_RUN = 1
 #GPU_PARALLEL_RUN = 2
@@ -136,8 +138,8 @@ hp_tune = False
 train=conf.train
 
 # TODO: parameterize
-load_model=True
-#load_model=False
+#load_model=True
+load_model=False
 
 #
 #save_model = False
@@ -150,16 +152,24 @@ overwrite_train_model=False
 #
 overwrite_tensorboard = True
 
+#
+tf.config.experimental.enable_tensor_float_32_execution(conf.tf32_mode)
+
 #epoch = 20000
 #epoch = 20472
-#train_epoch = 300
-train_epoch = 1000
+train_epoch = 300
+#train_epoch = 500
+#train_epoch = 1500
+#train_epoch = 1000
+#train_epoch = 100
+#train_epoch = 10
 #train_epoch = 1
 
 
 # learning rate schedule - step_decay
+#step_decay_epoch = 200
 #step_decay_epoch = 100
-step_decay_epoch = 200
+step_decay_epoch = 30
 
 
 # TODO: move to config
@@ -168,7 +178,8 @@ root_hp_tune = './hp_tune'
 
 #
 #root_model = './models_trained'
-root_model = './models_trained_resnet_relu_debug'
+#root_model = './models_trained_resnet_relu_debug'
+root_model = './SNN_training'
 
 # model
 #model_name = 'VGG16'
@@ -440,6 +451,10 @@ image_shape = (input_size, input_size, 3)
 train_ds, valid_ds, test_ds, train_ds_num, valid_ds_num, test_ds_num, num_class =\
     datasets.datasets.load(dataset_name,batch_size,input_size,train_type,train,conf,NUM_PARALLEL_CALL)
 
+# tmp
+# TODO:
+#train_ds = train_ds.take(1)
+
 
 # data-based weight normalization (DNN-to-SNN conversion)
 if conf.f_write_stat and conf.f_stat_train_mode:
@@ -649,7 +664,7 @@ if f_hp_tune:
                          #max_trials=12,
                          #max_epochs = 300,
                          #factor=3,
-                         overwrite=True,
+                         #overwrite=True,
                          directory=root_hp_tune,
                          project_name=hp_tune_name,
                          #directory='test_hp_dir',
@@ -698,7 +713,7 @@ elif load_model:
     #model.load_weights(load_weight, by_name=True)
     # model.load_weights(load_weight,by_name=
 
-if conf.nn_mode=='ANN':
+if conf.nn_mode=='ANN' or (conf.nn_mode=='SNN' and train):
     model_ann=None
 
 
@@ -840,10 +855,12 @@ cb_libsnn = lib_snn.callbacks.SNNLIB(conf,path_model,test_ds_num,model_ann)
 cb_libsnn_ann = lib_snn.callbacks.SNNLIB(conf,path_model,test_ds_num)
 
 #
-callbacks_train = [cb_tensorboard]
+callbacks_train = []
 if save_model:
     callbacks_train.append(cb_model_checkpoint)
     callbacks_train.append(cb_manage_saved_model)
+callbacks_train.append(cb_libsnn)
+callbacks_train.append(cb_tensorboard)
 
 callbacks_test = []
 # TODO: move to parameters

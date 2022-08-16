@@ -343,7 +343,8 @@ class Model(tf.keras.Model):
         if Model.en_snn:
             self.snn_output_neuron=self.output_layer.act
 
-            self.snn_output = tf.Variable(initial_value=tf.zeros((self.num_accuracy_time_point,)+tuple(self.snn_output_neuron.dim)),dtype=tf.float32,trainable=False)
+            self.snn_output = tf.Variable(initial_value=tf.zeros((self.num_accuracy_time_point,)+tuple(self.snn_output_neuron.dim)),
+                                          dtype=tf.float32,trainable=False,name='snn_output')
             #self.spike_count = tf.Variable(initial_value=tf.zeros((self.num_accuracy_time_point,)+tuple(self.snn_output_neuron.dim)),dtype=tf.float32,trainable=False)
 
 
@@ -363,8 +364,15 @@ class Model(tf.keras.Model):
         #ret_val = self.run_mode[self.conf.nn_mode](inputs, training, self.conf.time_step, epoch)
         #ret_val = self.run_mode[self.conf.nn_mode](inputs, training)
 
-        ret_val = self.run_mode[self.nn_mode](inputs,training,mask)
+        #ret_val = self.run_mode[self.nn_mode](inputs,training,mask)
         #ret_val = self.call_snn(inputs,training,mask)
+
+        ret_val = {
+            #'ANN': self.call_ann if not self.conf.f_surrogate_training_model else self.call_ann_surrogate_training,
+            'ANN': self.call_ann if not self.conf.f_surrogate_training_model else self.call_ann_surrogate_training,
+            'SNN': self.call_snn if not training else self.call_snn_one_time_step
+        }[self.nn_mode] (inputs,training,mask)
+
 
         return ret_val
 
@@ -437,6 +445,7 @@ class Model(tf.keras.Model):
     #@tf.function
     #def call_snn(self,inputs,training, tw, epoch):
     def call_snn(self,inputs,training=None, mask=None):
+        #assert False
 
         #for t in range(500):
             #self.bias_control(t)
@@ -446,16 +455,10 @@ class Model(tf.keras.Model):
         #print(self.accuracy_time_point)
         #assert False
 
-        #
-        #for t in range(tw):
-        #for t in range(self.conf.tw):
-        #for t in range(1000):
-        #for t in range(2000):
-        #for t in range(500):
-        #glb_t()
-        #for t in range(200):
+        # return tensor - [batch, time, output]
+        ret_tensor = None
+        f_create_output_tensor = False
 
-        # bias control
 
         # plot control
         #f_plot = (self.conf.verbose_visual) and (not self.conf.full_test) and (glb.model_compiled) and (self.conf.debug_mode and self.conf.nn_mode == 'SNN')
@@ -479,16 +482,19 @@ class Model(tf.keras.Model):
 
             #self.bias_disable()
 
-            if not self.conf.full_test:
-                print('time: {}'.format(t))
+            #if not self.conf.full_test:
+            #    print('time: {}'.format(t))
 
-            ret = self._run_internal_graph(inputs, training=training, mask=mask)
+            #ret = self._run_internal_graph(inputs, training=training, mask=mask)
+            y_pred = self._run_internal_graph(inputs, training=training, mask=mask)
 
             #
             #print(t)
             #print(self.count_accuracy_time_point)
-            #if False:
-            if self.init_done and (t == self.accuracy_time_point[self.count_accuracy_time_point]):
+            # TODO:
+            #if self.conf.nn_mode=='inference' and \
+            if not self.conf.train and \
+                self.init_done and (t == self.accuracy_time_point[self.count_accuracy_time_point]):
             #if (t == self.accuracy_time_point[self.count_accuracy_time_point]):
                 self.record_acc_spike_time_point(inputs,ret)
 
@@ -521,14 +527,36 @@ class Model(tf.keras.Model):
                     print('')
                     print('logit - {} - {}'.format(t,self.get_layer('predictions').record_output/time))
 
+            if t==self.conf.time_step:
+                ret=y_pred
+
             # end of time step - increase global time
             glb_t()
 
             #print(ret.numpy())
 
-
             #
             #self.postproc_snn_time_step()
+
+            #
+            if not f_create_output_tensor:
+                # return tensor - [batch, time, output]
+                ret_tensor = tf.expand_dims(y_pred,axis=1)
+
+                #print(ret_tensor)
+                #print(y_pred)
+
+                f_create_output_tensor = True
+
+            else:
+                y_pred = tf.expand_dims(y_pred,axis=1)
+
+                #print(ret_tensor)
+                #print(y_pred)
+
+                ret_tensor = tf.concat([ret_tensor,y_pred],axis=1)
+
+
 
 
         #if (glb.model_compiled):
@@ -536,7 +564,17 @@ class Model(tf.keras.Model):
 
         #return self.snn_output
 
-        return ret
+        #print(ret)
+        #return ret
+        return ret_tensor
+
+
+    #
+    def call_snn_one_time_step(self, inputs, training=None, mask=None):
+
+        y_pred = self._run_internal_graph(inputs, training=training, mask=mask)
+
+        return y_pred
 
     #
     def bias_control_test_pre(self):
@@ -840,6 +878,46 @@ class Model(tf.keras.Model):
     # this function is based on Model.test_step in training.py
     # TODO: override Model.test_step
     def test_step(self, data):
+
+        ret = {
+            'ANN': self.test_step_ann,
+            'SNN': self.test_step_snn,
+        }[self.nn_mode](data)
+
+        return ret
+
+    # from keras training.py
+    def test_step_ann(self, data):
+        """The logic for one evaluation step.
+
+        This method can be overridden to support custom evaluation logic.
+        This method is called by `Model.make_test_function`.
+
+        This function should contain the mathematical logic for one step of
+        evaluation.
+        This typically includes the forward pass, loss calculation, and metrics
+        updates.
+
+        Configuration details for *how* this logic is run (e.g. `tf.function` and
+        `tf.distribute.Strategy` settings), should be left to
+        `Model.make_test_function`, which can also be overridden.
+
+        Args:
+          data: A nested structure of `Tensor`s.
+
+        Returns:
+          A `dict` containing values that will be passed to
+          `tf.keras.callbacks.CallbackList.on_train_batch_end`. Typically, the
+          values of the `Model`'s metrics are returned.
+        """
+        x, y, sample_weight = data_adapter.unpack_x_y_sample_weight(data)
+
+        y_pred = self(x, training=False)
+        # Updates stateful loss metrics.
+        self.compute_loss(x, y, y_pred, sample_weight)
+        return self.compute_metrics(x, y, y_pred, sample_weight)
+
+    def test_step_snn(self, data):
         """The logic for one evaluation step.
 
         This method can be overridden to support custom evaluation logic.
@@ -869,6 +947,7 @@ class Model(tf.keras.Model):
         self.y = y
         self.sample_weight=sample_weight
         y_pred = self(x, training=False)
+        y_pred = y_pred[:,-1,:]
         # Updates stateful loss metrics.
         self.compiled_loss(
             y, y_pred, sample_weight, regularization_losses=self.losses)
@@ -883,6 +962,259 @@ class Model(tf.keras.Model):
             else:
                 return_metrics[metric.name] = result
         return return_metrics
+
+
+    # this function is based on Model.train_step in training.py
+    def train_step(self, data):
+
+        ret = {
+            'ANN': self.train_step_ann,
+            'SNN': self.train_step_snn,
+            #'SNN': self.train_step_ann,
+        }[self.nn_mode](data)
+
+        return ret
+
+    def train_step_ann(self, data):
+        """The logic for one training step.
+  
+        This method can be overridden to support custom training logic.
+        For concrete examples of how to override this method see
+        [Customizing what happends in fit](https://www.tensorflow.org/guide/keras/customizing_what_happens_in_fit).
+        This method is called by `Model.make_train_function`.
+  
+        This method should contain the mathematical logic for one step of training.
+        This typically includes the forward pass, loss calculation, backpropagation,
+        and metric updates.
+  
+        Configuration details for *how* this logic is run (e.g. `tf.function` and
+        `tf.distribute.Strategy` settings), should be left to
+        `Model.make_train_function`, which can also be overridden.
+  
+        Args:
+          data: A nested structure of `Tensor`s.
+  
+        Returns:
+          A `dict` containing values that will be passed to
+          `tf.keras.callbacks.CallbackList.on_train_batch_end`. Typically, the
+          values of the `Model`'s metrics are returned. Example:
+          `{'loss': 0.2, 'accuracy': 0.7}`.
+        """
+        x, y, sample_weight = data_adapter.unpack_x_y_sample_weight(data)
+        # Run forward pass.
+        with tf.GradientTape() as tape:
+            y_pred = self(x, training=True)
+            loss = self.compute_loss(x, y, y_pred, sample_weight)
+
+            # train_vars_w = [v for v in self.trainable_variables if ('neuron' not in v.name) and ('temporal_kernel' not in v.name)]
+            # print(train_vars_w)
+
+            # grads = tape.gradient(loss, train_vars_w)
+            # grads_and_vars = zip(grads, train_vars_w)
+            # self.grads=grads
+            # self.grads_and_vars=grads_and_vars
+            # optimizer.apply_gradients(grads_and_vars)
+
+            # print(self.grads_and_vars)
+
+        self._validate_target_and_loss(y, loss)
+        # Run backwards pass.
+        self.optimizer.minimize(loss, self.trainable_variables, tape=tape)
+        return self.compute_metrics(x, y, y_pred, sample_weight)
+
+    def train_step_snn(self, data):
+        x, y, sample_weight = data_adapter.unpack_x_y_sample_weight(data)
+        #print(data)
+        #print(x)
+        #y=tf.reshape(y,[x.shape[0],y.shape[1]])
+
+        # Run forward pass.
+        last_ts = self.conf.time_step
+        range_ts = range(1,last_ts+1)
+        grad_loss = None
+        name = None
+
+        var_list = self.trainable_variables
+        #grads = None
+
+        grads_accum = [tf.zeros_like(v) for v in var_list]
+
+        f_grad_accum=False
+        #f_grad_accum=True
+
+        if f_grad_accum:
+            for t in range_ts:
+                #with tf.GradientTape(persistent=True) as tape:
+                #print(t)
+                #print(last_ts)
+                #if t==self.conf.time_step:
+                if t<last_ts+1:
+                #if t>2:
+                    #assert False
+                    with tf.GradientTape() as tape:
+                        y_pred = self._run_internal_graph(x, training=True, mask=None)
+                        loss = self.compute_loss(x, y, y_pred, sample_weight)
+                    grads = tape.gradient(loss, var_list, grad_loss)
+                    self._validate_target_and_loss(y, loss)
+                    grads_accum = [(grad_accum + grad) for grad_accum, grad in zip(grads_accum, grads)]
+                    #print(grads[-1][0])
+                else:
+                    y_pred = self._run_internal_graph(x, training=True)
+
+                # end of time step - increase global time
+                glb_t()
+
+                #print(loss)
+
+                #print(grads[-1])
+                #assert False
+                #grads = [grad * (t / last_ts) for grad in grads]
+                #grads = [grad * (t / last_ts)*(t / last_ts) for grad in grads]
+                #grads = [tf.math.multiply(grad,(t/last_ts)) for grad in grads]
+                #grads = [tf.math.multiply(grad,(t/last_ts)*(t/last_ts)) for grad in grads]
+
+                #time_norm_c = t/last_ts
+                #time_norm = tf.constant(time_norm_c,shape=grads.shape)
+                #grads = tf.math.multiply(grads,time_norm)
+
+                #grads = grads*t/last_ts
+                #self._grads = _grads
+                # integration gradients
+                #if grads == None:
+                #~    grads = _grads
+                #else:
+                #    grads = tf.add(grads,_grads)
+
+                #grads_accum = [tf.math.add(grad_accum,grad) for grad_accum,grad in zip(grads_accum,grads)]
+                #grads_accum = grads
+                #grads_and_vars = list(zip(grads, var_list))
+                #self.optimizer.apply_gradients(grads_and_vars)
+
+            # for debug
+            #self.grads_accum = grads_accum
+            #self.grads = grads
+            #self.tape = tape
+
+
+            # assert False
+            #grads_accum = [grad_accum / self.conf.time_step for grad_accum in grads_accum]
+
+            grads_accum_and_vars = list(zip(grads_accum, var_list))
+            self.optimizer.apply_gradients(grads_accum_and_vars)
+
+            # self.grads_and_vars = grads_accum_and_vars
+            # self.optimizer.apply_gradients(grads_accum_and_vars,name=name)
+
+
+        else:
+            if False:
+            #if True:
+                with tf.GradientTape(persistent=True) as tape:
+                    y_pred = self(x, training=True)
+                    loss_0 = self.compute_loss(x, y, y_pred[:,0,:], sample_weight)
+                    loss_1 = self.compute_loss(x, y, y_pred[:,1,:], sample_weight)
+                    loss_2 = self.compute_loss(x, y, y_pred[:,2,:], sample_weight)
+                    loss_3 = self.compute_loss(x, y, y_pred[:,3,:], sample_weight)
+
+                    loss = loss_0+loss_1+loss_2+loss_3
+                    #loss = loss_2+loss_3
+                    #loss = loss_3
+
+                    #grads_2 = tape.gradient(loss_2, var_list, grad_loss)
+                    #grads_3 = tape.gradient(loss_3, var_list, grad_loss)
+                    #print(grads_2)
+                    #print(grads_3)
+                    #grads = grads_2+grads_3
+                    #assert False
+
+                    #grads_accum = [(grad_accum + grad) for grad_accum, grad in zip(grads_accum, grads)]
+
+                self._validate_target_and_loss(y, loss)
+
+                grads_and_vars = self.optimizer._compute_gradients(loss, var_list=var_list, grad_loss=grad_loss,
+                                                                   tape=tape)
+                self.optimizer.apply_gradients(grads_and_vars, name=name)
+
+                return self.compute_metrics(x, y, y_pred[:, -1, :], sample_weight)
+            elif True:
+                for t in range_ts:
+                    with tf.GradientTape() as tape:
+                        y_pred = self(x, training=True)
+                        loss = self.compute_loss(x, y, y_pred, sample_weight)
+
+                    self._validate_target_and_loss(y, loss)
+
+
+                    grads = tape.gradient(loss, var_list, grad_loss)
+                    grads_accum = [(grad_accum + grad) for grad_accum, grad in zip(grads_accum, grads)]
+
+                    print('y')
+                    print(y[0])
+                    print('y_pred')
+                    print(y_pred[0])
+                    print('grads')
+                    #print(grads)
+                    print(grads[-1])
+
+                    #assert False
+                    glb_t()
+
+                grads_accum = [grad_accum/self.conf.time_step for grad_accum in grads_accum]
+
+                grads_accum_and_vars = list(zip(grads_accum, var_list))
+                self.optimizer.apply_gradients(grads_accum_and_vars)
+
+                return self.compute_metrics(x, y, y_pred, sample_weight)
+
+            else:
+                if True:
+                    for t in range_ts:
+                        #print(t)
+                        with tf.GradientTape() as tape:
+                            y_pred = self._run_internal_graph(x, training=True)
+                            loss = self.compute_loss(x, y, y_pred, sample_weight)
+
+                        #print(x)
+
+                        #if t==self.conf.time_step:
+                        #    y_pred=_y_pred
+
+                        # end of time step - increase global time
+                        glb_t()
+                else:
+                        y_pred_1 = self._run_internal_graph(x, training=True)
+                        glb_t()
+                        loss_1 = self.compute_loss(x, y, y_pred_1, sample_weight)
+
+                        y_pred_2 = self._run_internal_graph(x, training=True)
+                        glb_t()
+                        loss_2 = self.compute_loss(x, y, y_pred_2, sample_weight)
+                        y_pred_3 = self._run_internal_graph(x, training=True)
+                        glb_t()
+                        loss_3 = self.compute_loss(x, y, y_pred_3, sample_weight)
+                        y_pred = self._run_internal_graph(x, training=True)
+                        glb_t()
+                        loss_4 = self.compute_loss(x, y, y_pred, sample_weight)
+
+                #loss = self.compute_loss(x, y, y_pred, sample_weight)
+                #loss = loss + loss_1 + loss_2 + loss_3
+                #loss = loss_4 + loss_3
+
+                #self.loss=loss
+                #self.loss_4=loss_4
+                #self.loss_3=loss_3
+
+                self._validate_target_and_loss(y, loss)
+
+                #self.optimizer.minimize(loss, var_list, tape=tape)
+                grads_and_vars = self.optimizer._compute_gradients(loss, var_list=var_list, grad_loss=grad_loss, tape=tape)
+                self.optimizer.apply_gradients(grads_and_vars,name=name)
+                #grads = tape.gradient(loss, var_list, grad_loss)
+                #grads_accum = grads
+                #assert False
+
+        return self.compute_metrics(x, y, y_pred, sample_weight)
+        #return ret
 
     # TODO: move other part
     def record_acc_spike_time_point(self,inputs,outputs):
@@ -1191,7 +1523,7 @@ class Model(tf.keras.Model):
 
         # init - neuron
         for layer in self.layers_w_neuron:
-            print(layer.name)
+            #print(layer.name)
             layer.act_snn.init()
 
         #
@@ -1391,6 +1723,7 @@ class Model(tf.keras.Model):
 
     #
     def reset_snn_neuron(self):
+        #print('reset_snn_neuron')
         for layer in self.layers_w_neuron:
             layer.reset()
 

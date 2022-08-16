@@ -44,7 +44,13 @@ def model_builder(
 
     # optimizer
     if opt == 'SGD':
-        optimizer = tf.keras.optimizers.SGD(learning_rate=learning_rate, momentum=0.9, name='SGD')
+        if conf.grad_clipnorm == None:
+            optimizer = tf.keras.optimizers.SGD(learning_rate=learning_rate, momentum=0.9, name='SGD')
+        else:
+            optimizer = tf.keras.optimizers.SGD(learning_rate=learning_rate, momentum=0.9, name='SGD',clipnorm=conf.grad_clipnorm)
+        #optimizer = tf.keras.optimizers.SGD(learning_rate=learning_rate, momentum=0.9, name='SGD',clipnorm=2.0)
+        #optimizer = tf.keras.optimizers.SGD(learning_rate=learning_rate, momentum=0.9, name='SGD',clipvalue=1.0)
+        #optimizer = tf.keras.optimizers.SGD(learning_rate=learning_rate, momentum=0.9, name='SGD',global_clipnorm=1.0)
     else:
         assert False
 
@@ -62,7 +68,7 @@ def model_builder(
 
     # compile
     model.compile(optimizer=optimizer,
-                  # loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
+                  #loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
                   loss=tf.keras.losses.CategoricalCrossentropy(),
                   metrics=[metric_accuracy, metric_accuracy_top5], run_eagerly=eager_mode)
                 #metrics = [metric_accuracy, metric_accuracy_top5], run_eagerly = False)
