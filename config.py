@@ -398,8 +398,8 @@ tf.compat.v1.app.flags.DEFINE_bool('debug_mode', False, 'debug mode')
 tf.compat.v1.app.flags.DEFINE_bool('en_record_output', True, 'save intermediate layer output')
 
 tf.compat.v1.app.flags.DEFINE_integer('idx_train_data', 0, 'start index of train data')
-#tf.compat.v1.app.flags.DEFINE_integer('num_train_data', -1, 'number of train data - default: -1 (full dataset)')
-tf.compat.v1.app.flags.DEFINE_integer('num_train_data', 1, 'number of train data - default: -1 (full dataset)')
+tf.compat.v1.app.flags.DEFINE_integer('num_train_data', -1, 'number of train data - default: -1 (full dataset)')
+#tf.compat.v1.app.flags.DEFINE_integer('num_train_data', 1, 'number of train data - default: -1 (full dataset)')
 #tf.compat.v1.app.flags.DEFINE_integer('num_train_data', 10000, 'number of train data - default: -1 (full dataset)')
 
 tf.compat.v1.app.flags.DEFINE_bool('full_test', True, 'full dataset test')
