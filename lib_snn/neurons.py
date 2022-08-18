@@ -1,8 +1,11 @@
 
-import tensorflow as tf
 import numpy as np
 np.set_printoptions(precision=4)
 np.set_printoptions(linewidth=np.inf)
+
+
+import tensorflow as tf
+from keras import backend
 
 from lib_snn.sim import glb
 
@@ -347,14 +350,15 @@ class Neuron(tf.keras.layers.Layer):
                 #print(upstream)
                 #grad_ret = tf.divide(upstream,self.conf.time_step)
             else:
-                a=0.5
+                a=0.3
                 if False:
                     cond_1=tf.math.less_equal(tf.math.abs(self.vth-self.vmem),a)
                     cond_1 = tf.math.logical_and(cond_1,tf.math.logical_not(self.f_fire))
                     cond_2 = self.f_fire
                     cond = tf.math.logical_or(cond_1,cond_2)
                 else:
-                    cond=tf.math.less_equal(tf.math.abs(self.vth-inputs),a)
+                    #cond=tf.math.less_equal(tf.math.abs(self.vth-inputs),a)
+                    cond = tf.math.greater_equal(inputs, tf.zeros(shape=inputs.shape))
                 #cond_1 = tf.math.logical_or(tf.greater_equal(self.vmem,(1.0-a)*self.vth),tf.less_equal(self.vmem,(1.0+a)*self.vth))
                 #cond = cond_1
                 #cond = cond_2
@@ -1415,7 +1419,9 @@ class Neuron(tf.keras.layers.Layer):
 #            #self.out = sm(self.out)
 #        #else:
 #            #self.out = out
+
 #
+
         self.out = tf.cond(training,lambda:tf.keras.activations.softmax(self.out),lambda:tf.identity(self.out))
 
 
@@ -1835,7 +1841,7 @@ class Temporal_kernel(tf.keras.layers.Layer):
         self.out_dec = self.add_variable("out_dec", shape=self.dim_in, dtype=tf.float32,
                                          initializer=tf.zeros_initializer(), trainable=False)
 
-    def call(self, input, mode, epoch, training):
+    def call_tmp_question(self, input, mode, epoch, training=None):
         mode_sel = {
             'enc': self.call_encoding,
             'dec': self.call_decoding

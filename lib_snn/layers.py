@@ -6,6 +6,8 @@ import tensorflow as tf
 import tensorflow.keras.initializers as initializers
 import tensorflow.keras.regularizers as regularizers
 
+from keras import backend
+
 import sys
 
 from tensorflow.python.ops import math_ops
@@ -288,6 +290,9 @@ class Layer():
         #print('layer - {:}, training - {:}'.format(self.name,training))
         #print('layer call - {}'.format(self.name))
 
+        if training is None:
+            training = backend.learning_phase()
+
 
         s = super().call(input)
 
@@ -332,6 +337,8 @@ class Layer():
         else:
             if self.en_snn:
                 n = self.act(b, glb_t.t, training)
+                #n = self.act(s, glb_t.t, training)
+                #n = self.act(s, glb_t.t, )
             else:
                 if self.conf.fine_tune_quant and not self.last_layer:
                     n = lib_snn.calibration.clip_floor_act(b, self.vth_l, 64.0)
@@ -679,6 +686,7 @@ class Conv2D(Layer, tf.keras.layers.Conv2D):
                  kernel_initializer='glorot_uniform',
                  kernel_constraint=None,
                  bias_constraint=None,
+                 bias_regularizer=None,
                  use_bn=False,  # use batch norm.
                  **kwargs):
 
@@ -697,8 +705,8 @@ class Conv2D(Layer, tf.keras.layers.Conv2D):
             kernel_initializer=kernel_initializer,
             bias_initializer='zeros',
             kernel_regularizer=self.kernel_regularizer,
-            #bias_regularizer=None,
-            bias_regularizer=self.kernel_regularizer,
+            bias_regularizer=bias_regularizer,
+            #bias_regularizer=self.kernel_regularizer,
             activity_regularizer=activity_regularizer,
             kernel_constraint=kernel_constraint,
             bias_constraint=bias_constraint,
@@ -768,7 +776,7 @@ class Dense(Layer, tf.keras.layers.Dense):
                  kernel_initializer='glorot_uniform',
                  # bias_initializer='zeros',
                  # kernel_regularizer=None,
-                 # bias_regularizer=None,
+                 bias_regularizer=None,
                  activity_regularizer=None,
                  kernel_constraint=None,
                  bias_constraint=None,
@@ -786,8 +794,8 @@ class Dense(Layer, tf.keras.layers.Dense):
             kernel_initializer=kernel_initializer,
             bias_initializer='zeros',
             kernel_regularizer=self.kernel_regularizer,
-            #bias_regularizer=None,
-            bias_regularizer=self.kernel_regularizer,
+            bias_regularizer=bias_regularizer,
+            #bias_regularizer=self.kernel_regularizer,
             activity_regularizer=activity_regularizer,
             kernel_constraint=kernel_constraint,
             bias_constraint=bias_constraint,

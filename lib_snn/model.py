@@ -1489,13 +1489,21 @@ class Model(tf.keras.Model):
                     grads = tape.gradient(loss, var_list, grad_loss)
                     grads_accum = [(grad_accum + grad) for grad_accum, grad in zip(grads_accum, grads)]
 
-                    #print('y')
-                    #print(y[0])
-                    #print('y_pred')
-                    #print(y_pred[0])
-                    #print('grads')
-                    ##print(grads)
-                    #print(grads[-1])
+                    if False:
+                        print('y')
+                        print(y[0])
+                        print('y_pred')
+                        print(y_pred[0])
+                        print('grads')
+                        #print(grads)
+
+                        for grad in grads:
+                            print('grad min - max: {:} - {:}'.format(tf.reduce_min(grad),tf.reduce_max(grad)))
+                        #print(tf.reduce_max(grads[0]))
+                        #print(tf.reduce_max(grads[-1]))
+                        print(grads[-1])
+                        print()
+
 
                     #assert False
                     glb_t()
