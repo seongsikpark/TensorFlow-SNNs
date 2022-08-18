@@ -311,6 +311,7 @@ tf.compat.v1.app.flags.DEFINE_bool('load_best_model', True, 'load best model (mo
 #
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size', 500, '')
 tf.compat.v1.app.flags.DEFINE_integer('batch_size', 100, '')
+#tf.compat.v1.app.flags.DEFINE_integer('batch_size', 2, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size', 1, '')
 
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 1000, '')
@@ -396,6 +397,11 @@ tf.compat.v1.app.flags.DEFINE_bool('debug_mode', False, 'debug mode')
 #tf.compat.v1.app.flags.DEFINE_bool('en_record_output', False, 'save intermediate layer output')
 tf.compat.v1.app.flags.DEFINE_bool('en_record_output', True, 'save intermediate layer output')
 
+tf.compat.v1.app.flags.DEFINE_integer('idx_train_data', 0, 'start index of train data')
+#tf.compat.v1.app.flags.DEFINE_integer('num_train_data', -1, 'number of train data - default: -1 (full dataset)')
+tf.compat.v1.app.flags.DEFINE_integer('num_train_data', 1, 'number of train data - default: -1 (full dataset)')
+#tf.compat.v1.app.flags.DEFINE_integer('num_train_data', 10000, 'number of train data - default: -1 (full dataset)')
+
 tf.compat.v1.app.flags.DEFINE_bool('full_test', True, 'full dataset test')
 #tf.compat.v1.app.flags.DEFINE_bool('full_test', False, 'full dataset test')
 
@@ -425,8 +431,8 @@ tf.compat.v1.app.flags.DEFINE_string('input_spike_mode','REAL','input spike mode
 tf.compat.v1.app.flags.DEFINE_string('neural_coding','RATE','neural coding - RATE, WEIGHTED_SPIKE, PROPOSED')
 
 #
-tf.compat.v1.app.flags.DEFINE_bool('binary_spike', True, 'binary spike activation, if false - vth activation')
-#/tf.compat.v1.app.flags.DEFINE_bool('binary_spike', False, 'binary spike activation, if false - vth activation')
+#tf.compat.v1.app.flags.DEFINE_bool('binary_spike', True, 'binary spike activation, if false - vth activation')
+tf.compat.v1.app.flags.DEFINE_bool('binary_spike', False, 'binary spike activation, if false - vth activation')
 
 #
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 20.0, 'initial value of vth')

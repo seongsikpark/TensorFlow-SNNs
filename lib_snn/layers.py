@@ -337,8 +337,9 @@ class Layer():
         else:
             if self.en_snn:
                 n = self.act(b, glb_t.t, training)
-                #n = self.act(s, glb_t.t, training)
-                #n = self.act(s, glb_t.t, )
+                if self.last_layer:
+                    # softmax
+                    n = self.act_dnn(n)
             else:
                 if self.conf.fine_tune_quant and not self.last_layer:
                     n = lib_snn.calibration.clip_floor_act(b, self.vth_l, 64.0)
@@ -774,7 +775,8 @@ class Dense(Layer, tf.keras.layers.Dense):
                  activation=None,
                  # use_bias=True
                  kernel_initializer='glorot_uniform',
-                 # bias_initializer='zeros',
+                 bias_initializer='zeros',
+                 #bias_initializer='glorot_uniform',
                  # kernel_regularizer=None,
                  bias_regularizer=None,
                  activity_regularizer=None,
@@ -792,7 +794,8 @@ class Dense(Layer, tf.keras.layers.Dense):
             activation=None,
             use_bias=conf.use_bias,
             kernel_initializer=kernel_initializer,
-            bias_initializer='zeros',
+            bias_initializer=bias_initializer,
+            #bias_initializer='zeros',
             kernel_regularizer=self.kernel_regularizer,
             bias_regularizer=bias_regularizer,
             #bias_regularizer=self.kernel_regularizer,

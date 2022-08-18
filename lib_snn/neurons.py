@@ -345,8 +345,8 @@ class Neuron(tf.keras.layers.Layer):
                 #grad_ret = upstream/10.0
                 #if self.conf.dataset!='CIFAR10':
                 #    assert False
-                #grad_ret = upstream
-                grad_ret = tf.divide(upstream,self.conf.batch_size)
+                grad_ret = upstream
+                #grad_ret = tf.divide(upstream,self.conf.batch_size)
                 #print(upstream)
                 #grad_ret = tf.divide(upstream,self.conf.time_step)
             else:
@@ -1422,7 +1422,8 @@ class Neuron(tf.keras.layers.Layer):
 
 #
 
-        self.out = tf.cond(training,lambda:tf.keras.activations.softmax(self.out),lambda:tf.identity(self.out))
+        #self.out = tf.cond(training,lambda:tf.keras.activations.softmax(self.out),lambda:tf.identity(self.out))
+        #self.out = tf.keras.activations.softmax(self.out)
 
 
     ############################################################

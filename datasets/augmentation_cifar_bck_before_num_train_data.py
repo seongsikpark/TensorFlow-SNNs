@@ -171,7 +171,7 @@ def eager_resize_with_crop(image, label):
 #
 #@tf.function
 #def resize_with_crop(image, label, dataset_name, input_size,input_size_pre_crop_ratio, num_class, input_prec_mode='torch'):
-def resize_with_crop(image, label, dataset_name, input_size, input_size_pre_crop_ratio, num_class, input_prec_mode, preprocess_input):
+def resize_with_crop(image, label, input_size, input_size_pre_crop_ratio, num_class, input_prec_mode, preprocess_input):
 
     i=image
     i=tf.cast(i,tf.float32)
@@ -183,6 +183,7 @@ def resize_with_crop(image, label, dataset_name, input_size, input_size_pre_crop
     #print(tf.shape(image))
     #s = input_size_pre_crop
 
+    from lib_snn.config_glb import dataset_name
     if dataset_name == 'imagenet2012':
         i = _resize_with_crop_imagenet(image,input_size,input_size_pre_crop_ratio)
     else:
@@ -242,7 +243,7 @@ def resize_with_crop(image, label, dataset_name, input_size, input_size_pre_crop
 
 #@tf.function
 #def resize_with_crop_aug(image, label, dataset_name, input_size, input_size_pre_crop_ratio, num_class, input_prec_mode='torch'):
-def resize_with_crop_aug(image, label, dataset_name, input_size, input_size_pre_crop_ratio, num_class, input_prec_mode, preprocess_input):
+def resize_with_crop_aug(image, label, input_size, input_size_pre_crop_ratio, num_class, input_prec_mode, preprocess_input):
 
     i=image
     i=tf.cast(i,tf.float32)
@@ -251,6 +252,8 @@ def resize_with_crop_aug(image, label, dataset_name, input_size, input_size_pre_
     #w=tf.shape(image)[0]
     #h=tf.shape(image)[1]
 
+
+    from lib_snn.config_glb import dataset_name
     if dataset_name == 'imagenet2012':
         i=_resize_with_crop_imagenet(image,input_size,input_size_pre_crop_ratio)
     else:

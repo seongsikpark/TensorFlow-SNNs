@@ -1490,6 +1490,7 @@ class Model(tf.keras.Model):
                     grads_accum = [(grad_accum + grad) for grad_accum, grad in zip(grads_accum, grads)]
 
                     if False:
+                    #if True:
                         print('y')
                         print(y[0])
                         print('y_pred')
@@ -1499,6 +1500,12 @@ class Model(tf.keras.Model):
 
                         for grad in grads:
                             print('grad min - max: {:} - {:}'.format(tf.reduce_min(grad),tf.reduce_max(grad)))
+
+                        for idx, grad in enumerate(grads):
+                            print('grad <{:}> - min - max: {:} - {:}'.format(
+                                var_list[idx].name, tf.reduce_min(grad),
+                                tf.reduce_max(grad)))
+                        #
                         #print(tf.reduce_max(grads[0]))
                         #print(tf.reduce_max(grads[-1]))
                         print(grads[-1])
