@@ -1487,6 +1487,7 @@ class Model(tf.keras.Model):
 
 
                     grads = tape.gradient(loss, var_list, grad_loss)
+                    grads = [grad/self.conf.time_step for grad in grads]
                     grads_accum = [(grad_accum + grad) for grad_accum, grad in zip(grads_accum, grads)]
 
                     if False:
@@ -1497,9 +1498,6 @@ class Model(tf.keras.Model):
                         print(y_pred[0])
                         print('grads')
                         #print(grads)
-
-                        for grad in grads:
-                            print('grad min - max: {:} - {:}'.format(tf.reduce_min(grad),tf.reduce_max(grad)))
 
                         for idx, grad in enumerate(grads):
                             print('grad <{:}> - min - max: {:} - {:}'.format(
@@ -1515,7 +1513,7 @@ class Model(tf.keras.Model):
                     #assert False
                     glb_t()
 
-                grads_accum = [grad_accum/self.conf.time_step for grad_accum in grads_accum]
+                #grads_accum = [grad_accum/self.conf.time_step for grad_accum in grads_accum]
 
                 grads_accum_and_vars = list(zip(grads_accum, var_list))
                 self.optimizer.apply_gradients(grads_accum_and_vars)

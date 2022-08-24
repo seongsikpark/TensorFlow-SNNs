@@ -350,15 +350,17 @@ class Neuron(tf.keras.layers.Layer):
                 #print(upstream)
                 #grad_ret = tf.divide(upstream,self.conf.time_step)
             else:
-                a=0.3
-                if False:
+                a=0.5
+                if True:
+                #if False:
                     cond_1=tf.math.less_equal(tf.math.abs(self.vth-self.vmem),a)
-                    cond_1 = tf.math.logical_and(cond_1,tf.math.logical_not(self.f_fire))
+                    #cond_1 = tf.math.logical_and(cond_1,tf.math.logical_not(self.f_fire))
                     cond_2 = self.f_fire
                     cond = tf.math.logical_or(cond_1,cond_2)
                 else:
                     #cond=tf.math.less_equal(tf.math.abs(self.vth-inputs),a)
-                    cond = tf.math.greater_equal(inputs, tf.zeros(shape=inputs.shape))
+                    #cond = tf.math.greater_equal(inputs, tf.zeros(shape=inputs.shape))
+                    cond = tf.math.greater_equal(self.vmem, tf.zeros(shape=self.vmem.shape))
                 #cond_1 = tf.math.logical_or(tf.greater_equal(self.vmem,(1.0-a)*self.vth),tf.less_equal(self.vmem,(1.0+a)*self.vth))
                 #cond = cond_1
                 #cond = cond_2

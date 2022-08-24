@@ -70,57 +70,61 @@ def VGG16(
         assert False
 
     #
+    k_init = 'glorot_uniform'
+    #k_init = tf.keras.initializers.RandomUniform(minval=-1.0, maxval=1.0,seed=None)
+
+    #
     img_input = tf.keras.layers.Input(shape=input_shape, batch_size=batch_size)
     # x = img_input
     x = lib_snn.layers.InputGenLayer(name='in')(img_input)
 
     #
-    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, name='conv1')(x)
+    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv1')(x)
     x = tf.keras.layers.Dropout(dropout_conv_r[0], name='conv1_do')(x)
-    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, name='conv1_1')(x)
+    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv1_1')(x)
     x = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='conv1_p')(x)
 
     #
     channels = channels * 2
-    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, name='conv2')(x)
+    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv2')(x)
     x = tf.keras.layers.Dropout(dropout_conv_r[0], name='conv2_do')(x)
-    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, name='conv2_1')(x)
+    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv2_1')(x)
     x = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='conv2_p')(x)
 
     #
     channels = channels * 2
-    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, name='conv3')(x)
+    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv3')(x)
     x = tf.keras.layers.Dropout(dropout_conv_r[1], name='conv3_do')(x)
-    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, name='conv3_1')(x)
+    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv3_1')(x)
     x = tf.keras.layers.Dropout(dropout_conv_r[1], name='conv3_1_do')(x)
-    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, name='conv3_2')(x)
+    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv3_2')(x)
     x = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='conv3_p')(x)
 
     #
     channels = channels * 2
-    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, name='conv4')(x)
+    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv4')(x)
     x = tf.keras.layers.Dropout(dropout_conv_r[1], name='conv4_do')(x)
-    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, name='conv4_1')(x)
+    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv4_1')(x)
     x = tf.keras.layers.Dropout(dropout_conv_r[1], name='conv4_1_do')(x)
-    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, name='conv4_2')(x)
+    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv4_2')(x)
     x = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='conv4_p')(x)
 
     #
-    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, name='conv5')(x)
+    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv5')(x)
     x = tf.keras.layers.Dropout(dropout_conv_r[1], name='conv5_do')(x)
-    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, name='conv5_1')(x)
+    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv5_1')(x)
     x = tf.keras.layers.Dropout(dropout_conv_r[1], name='conv5_1_do')(x)
-    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, name='conv5_2')(x)
+    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv5_2')(x)
     x = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='conv5_p')(x)
 
     #
     x = tf.keras.layers.Flatten(data_format=data_format)(x)
     x = tf.keras.layers.Dropout(dropout_conv_r[2], name='flatten_do')(x)
-    x = lib_snn.layers.Dense(n_dim_cls, activation=act_relu, use_bn=use_bn_cls, name='fc1')(x)
+    x = lib_snn.layers.Dense(n_dim_cls, activation=act_relu, use_bn=use_bn_cls, kernel_initializer=k_init, name='fc1')(x)
     x = tf.keras.layers.Dropout(dropout_conv_r[2], name='fc1_do')(x)
-    x = lib_snn.layers.Dense(n_dim_cls, activation=act_relu, use_bn=use_bn_cls, name='fc2')(x)
+    x = lib_snn.layers.Dense(n_dim_cls, activation=act_relu, use_bn=use_bn_cls, kernel_initializer=k_init, name='fc2')(x)
     x = tf.keras.layers.Dropout(dropout_conv_r[2], name='fc2_do')(x)
-    x = lib_snn.layers.Dense(classes, activation=act_sm, use_bn=False, last_layer=True, name='predictions')(x)
+    x = lib_snn.layers.Dense(classes, activation=act_sm, use_bn=False, last_layer=True, kernel_initializer=k_init, name='predictions')(x)
 
     #model = training.Model(img_input, x, name=name)
     model = lib_snn.model.Model(img_input, x, batch_size, input_shape,  classes, conf, name=model_name)

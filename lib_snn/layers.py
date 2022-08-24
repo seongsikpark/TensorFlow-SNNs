@@ -41,7 +41,6 @@ from config import conf
 class Layer():
     index = None    # layer index count starts from InputGenLayer
 
-
     def __init__(self, use_bn, activation, last_layer=False, kwargs=None):
         #
         self.depth = -1
@@ -102,7 +101,9 @@ class Layer():
             #self.bn = tf.keras.layers.BatchNormalization(name=name_bn)
             #self.bn = tf.keras.layers.BatchNormalization()
             #self.bn = tf.keras.layers.BatchNormalization(epsilon=1.001e-5,name=name_bn)
-            self.bn = tf.keras.layers.BatchNormalization(epsilon=1.001e-5)
+            #self.bn = tf.keras.layers.BatchNormalization(epsilon=1.001e-5)
+
+            self.bn = lib_snn.layers_new.BatchNormalization(epsilon=1.001e-5)
         else:
             self.bn = None
 
@@ -157,7 +158,6 @@ class Layer():
             self.bias_control = self.conf.bias_control
         else:
             self.bias_control = False
-
 
     #
     def build(self, input_shapes):

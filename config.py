@@ -326,23 +326,23 @@ tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 400, '')
 #
 # VGG
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.005, 'learning rate')
-#tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.1, 'learning rate')
-tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.001, 'learning rate')
+#tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.01, 'learning rate')
+tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.005, 'learning rate')
 # ResNet
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.2, 'learning rate')
 
 # regularizer
 tf.compat.v1.app.flags.DEFINE_string('regularizer', 'L2', 'L2 or L1 regularizer')
 # VGG
-tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-5, 'lambda')
-#tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-4, 'lambda') # SNN
+#tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-5, 'lambda')
+tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-4, 'lambda') # SNN
 #tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-3, 'lambda') # SNN
 # ResNet
 #tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-4, 'lambda')
 
 #
-tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',None,'gradient clip norm')
-#tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',1.0,'gradient clip norm')
+#tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',None,'gradient clip norm')
+tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',1.0,'gradient clip norm')
 #tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',2.0,'gradient clip norm')
 
 
@@ -361,8 +361,8 @@ tf.compat.v1.app.flags.DEFINE_boolean('use_bias', True, 'use bias')
 #tf.compat.v1.app.flags.DEFINE_boolean('use_bias', False, 'use bias')
 
 #
-#tf.compat.v1.app.flags.DEFINE_boolean('use_bn', True, 'use batchnorm')
-tf.compat.v1.app.flags.DEFINE_boolean('use_bn', False, 'use batchnorm')
+tf.compat.v1.app.flags.DEFINE_boolean('use_bn', True, 'use batchnorm')
+#tf.compat.v1.app.flags.DEFINE_boolean('use_bn', False, 'use batchnorm')
 
 
 ################
@@ -431,8 +431,8 @@ tf.compat.v1.app.flags.DEFINE_string('input_spike_mode','REAL','input spike mode
 tf.compat.v1.app.flags.DEFINE_string('neural_coding','RATE','neural coding - RATE, WEIGHTED_SPIKE, PROPOSED')
 
 #
-#tf.compat.v1.app.flags.DEFINE_bool('binary_spike', True, 'binary spike activation, if false - vth activation')
-tf.compat.v1.app.flags.DEFINE_bool('binary_spike', False, 'binary spike activation, if false - vth activation')
+tf.compat.v1.app.flags.DEFINE_bool('binary_spike', True, 'binary spike activation, if false - vth activation')
+#tf.compat.v1.app.flags.DEFINE_bool('binary_spike', False, 'binary spike activation, if false - vth activation')
 
 #
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 20.0, 'initial value of vth')
@@ -447,8 +447,8 @@ tf.compat.v1.app.flags.DEFINE_bool('binary_spike', False, 'binary spike activati
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.9, 'initial value of vth')
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.7, 'initial value of vth')
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.6, 'initial value of vth')
-tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.5, 'initial value of vth')
-#tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.4, 'initial value of vth')
+#tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.5, 'initial value of vth')
+tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.4, 'initial value of vth')
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.3, 'initial value of vth')
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.2, 'initial value of vth')
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.1, 'initial value of vth')
