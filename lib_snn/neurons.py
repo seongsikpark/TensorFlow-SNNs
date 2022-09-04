@@ -328,6 +328,8 @@ class Neuron(tf.keras.layers.Layer):
         #print(inputs)
         #assert self.init_done, 'should call init() before start simulation'
 
+        self.vmem_pre = self.vmem
+
         #
         #def grad(upstream, variables=None):
         def grad(upstream):
@@ -350,10 +352,11 @@ class Neuron(tf.keras.layers.Layer):
                 #print(upstream)
                 #grad_ret = tf.divide(upstream,self.conf.time_step)
             else:
+                # TODO: parameterize
                 a=0.5
                 if True:
                 #if False:
-                    cond_1=tf.math.less_equal(tf.math.abs(self.vth-self.vmem),a)
+                    cond_1=tf.math.less_equal(tf.math.abs(self.vmem-self.vth),a)
                     #cond_1 = tf.math.logical_and(cond_1,tf.math.logical_not(self.f_fire))
                     cond_2 = self.f_fire
                     cond = tf.math.logical_or(cond_1,cond_2)
@@ -364,7 +367,25 @@ class Neuron(tf.keras.layers.Layer):
                 #cond_1 = tf.math.logical_or(tf.greater_equal(self.vmem,(1.0-a)*self.vth),tf.less_equal(self.vmem,(1.0+a)*self.vth))
                 #cond = cond_1
                 #cond = cond_2
-                grad_ret = tf.where(cond,upstream,tf.zeros(upstream.shape))
+                spatio = tf.where(cond, upstream, tf.zeros(upstream.shape))  # spaio BP only
+                temp_rand = tf.random.normal(spatio.shape,mean=1.0,stddev=0.1)
+                temp_rand = upstream            # speculate next time step gradient
+                #temp_rand = upstream * temp_rand           # speculate next time step gradient
+                #temporal_1 = tf.where(self.f_fire, -self.vth, tf.zeros(spatio.shape))
+                temporal_1 = tf.where(self.f_fire, -self.vth, tf.zeros(spatio.shape))  # reset-by-sub
+                #temporal_1 = tf.where(self.f_fire, -self.vmem_pre, tf.zeros(spatio.shape))  # reset-to-zero
+
+
+                #temporal_1 = tf.where(cond, temporal_1, tf.zeros(temporal_1.shape))
+
+                #temporal_2 = tf.ones(spatio.shape)          # du_(t+1)/du_(t) # IF
+                temporal_2 = self.leak_const_init        # du_(t+1)/du_(t) # LIF
+
+                temporal = tf.add(temporal_1,temporal_2)
+                temporal = tf.multiply(temporal, temp_rand)
+
+                grad_ret = spatio + temporal
+                #grad_ret = tf.where(cond,upstream,-upstream)
                 #grad_ret = tf.clip_by_norm(grad_ret,0.1)
                 #grad_ret = tf.clip_by_norm(grad_ret,2)
                 #grad_ret = upstream

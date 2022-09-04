@@ -325,17 +325,17 @@ tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 400, '')
 
 #
 # VGG
-#tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.005, 'learning rate')
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.01, 'learning rate')
 tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.005, 'learning rate')
+#tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.001, 'learning rate')
 # ResNet
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.2, 'learning rate')
 
 # regularizer
 tf.compat.v1.app.flags.DEFINE_string('regularizer', 'L2', 'L2 or L1 regularizer')
 # VGG
-#tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-5, 'lambda')
-tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-4, 'lambda') # SNN
+tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-5, 'lambda')
+#tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-4, 'lambda') # SNN
 #tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-3, 'lambda') # SNN
 # ResNet
 #tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-4, 'lambda')
@@ -414,8 +414,8 @@ tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 400, 'number of test data
 ################################
 
 # neuron type in SNN
-tf.compat.v1.app.flags.DEFINE_string('n_type', 'IF', 'LIF or IF: neuron type')
-#tf.compat.v1.app.flags.DEFINE_string('n_type', 'LIF', 'LIF or IF: neuron type')
+#tf.compat.v1.app.flags.DEFINE_string('n_type', 'IF', 'LIF or IF: neuron type')
+tf.compat.v1.app.flags.DEFINE_string('n_type', 'LIF', 'LIF or IF: neuron type')
 
 #tf.compat.v1.app.flags.DEFINE_enum('n_reset_type','reset_by_sub', ['reset_by_sub', 'reset_to_zero'], 'neuron reset type')
 tf.compat.v1.app.flags.DEFINE_enum('n_reset_type','reset_to_zero', ['reset_by_sub', 'reset_to_zero'], 'neuron reset type')
@@ -447,8 +447,8 @@ tf.compat.v1.app.flags.DEFINE_bool('binary_spike', True, 'binary spike activatio
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.9, 'initial value of vth')
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.7, 'initial value of vth')
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.6, 'initial value of vth')
-#tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.5, 'initial value of vth')
-tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.4, 'initial value of vth')
+tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.5, 'initial value of vth')
+#tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.4, 'initial value of vth')
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.3, 'initial value of vth')
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.2, 'initial value of vth')
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.1, 'initial value of vth')
@@ -471,9 +471,9 @@ tf.compat.v1.app.flags.DEFINE_enum('snn_output_type',"VMEM", ["SPIKE", "VMEM", "
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 32, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 20, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 16, 'time steps per sample in SNN')
-tf.compat.v1.app.flags.DEFINE_integer('time_step', 8, 'time steps per sample in SNN')
+#tf.compat.v1.app.flags.DEFINE_integer('time_step', 8, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 6, 'time steps per sample in SNN')
-#tf.compat.v1.app.flags.DEFINE_integer('time_step', 4, 'time steps per sample in SNN')
+tf.compat.v1.app.flags.DEFINE_integer('time_step', 4, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 2, 'time steps per sample in SNN')
 
 #tf.compat.v1.app.flags.DEFINE_integer('time_step_save_interval',10,'snn test save interval')
@@ -523,8 +523,6 @@ tf.compat.v1.app.flags.DEFINE_string('prefix_stat', '', 'prefix of stat file nam
 ################
 # calibration - DNN-to-SNN conversion
 ################
-
-
 #tf.compat.v1.app.flags.DEFINE_bool('bias_control',True,'bias control')
 tf.compat.v1.app.flags.DEFINE_bool('bias_control',False,'bias control')
 
@@ -547,6 +545,14 @@ tf.compat.v1.app.flags.DEFINE_bool('calibration_bias_new',False,'bias calibratio
 
 tf.compat.v1.app.flags.DEFINE_bool('weight_comp_proposed',False,'calibration - bias, new')
 #tf.compat.v1.app.flags.DEFINE_bool('weight_comp_proposed',True,'calibration - bias, new')
+
+
+
+################
+# SNN training - supervised learning, surrogate gradient
+################
+#tf.compat.v1.app.flags.DEFINE_bool('tdbn',False,'threshold-dependent batch normalization - AAAI21')
+tf.compat.v1.app.flags.DEFINE_bool('tdbn',True,'threshold-dependent batch normalization - AAAI21')
 
 
 #############

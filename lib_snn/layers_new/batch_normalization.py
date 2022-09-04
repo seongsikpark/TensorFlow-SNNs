@@ -925,9 +925,11 @@ class BatchNormalizationBase(Layer):
             offset = tf.cast(offset, inputs.dtype)
         if scale is not None:
             scale = tf.cast(scale, inputs.dtype)
-        # sspark - tdBN
-        #scale = scale*0.5
-        #scale = scale*conf.n_init_vth
+        # TODO: parameterize
+        if conf.nn_mode=='SNN' and conf.tdbn:
+            # sspark - tdBN
+            #scale = scale*0.5
+            scale = scale*conf.n_init_vth
         outputs = tf.nn.batch_normalization(inputs, _broadcast(mean),
                                             _broadcast(variance), offset, scale,
                                             self.epsilon)

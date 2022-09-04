@@ -492,10 +492,10 @@ class Model(tf.keras.Model):
             #print(t)
             #print(self.count_accuracy_time_point)
             # TODO:
-            if self.conf.nn_mode=='inference' and \
+            if self.conf.mode=='inference' and \
                 self.init_done and (t == self.accuracy_time_point[self.count_accuracy_time_point]):
             #if (t == self.accuracy_time_point[self.count_accuracy_time_point]):
-                self.record_acc_spike_time_point(inputs,ret)
+                self.record_acc_spike_time_point(inputs,y_pred)
 
 
             # plot output
@@ -538,22 +538,22 @@ class Model(tf.keras.Model):
             #self.postproc_snn_time_step()
 
             #
-            if not f_create_output_tensor:
-                # return tensor - [batch, time, output]
-                ret_tensor = tf.expand_dims(y_pred,axis=1)
-
-                #print(ret_tensor)
-                #print(y_pred)
-
-                f_create_output_tensor = True
-
-            else:
-                y_pred = tf.expand_dims(y_pred,axis=1)
-
-                #print(ret_tensor)
-                #print(y_pred)
-
-                ret_tensor = tf.concat([ret_tensor,y_pred],axis=1)
+#            if not f_create_output_tensor:
+#                # return tensor - [batch, time, output]
+#                ret_tensor = tf.expand_dims(y_pred,axis=1)
+#
+#                #print(ret_tensor)
+#                #print(y_pred)
+#
+#                f_create_output_tensor = True
+#
+#            else:
+#                y_pred = tf.expand_dims(y_pred,axis=1)
+#
+#                #print(ret_tensor)
+#                #print(y_pred)
+#
+#                ret_tensor = tf.concat([ret_tensor,y_pred],axis=1)
 
 
 
@@ -564,8 +564,8 @@ class Model(tf.keras.Model):
         #return self.snn_output
 
         #print(ret)
-        #return ret
-        return ret_tensor
+        return ret
+        #return ret_tensor
 
 
     #
@@ -1288,7 +1288,7 @@ class Model(tf.keras.Model):
         self.y = y
         self.sample_weight=sample_weight
         y_pred = self(x, training=False)
-        y_pred = y_pred[:,-1,:]
+        #y_pred = y_pred[:,-1,:]
         # Updates stateful loss metrics.
         self.compiled_loss(
             y, y_pred, sample_weight, regularization_losses=self.losses)
