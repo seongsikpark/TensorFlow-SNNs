@@ -254,7 +254,7 @@ tf.compat.v1.app.flags.DEFINE_boolean('verbose_visual',False, 'verbose visual mo
 #tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220401_CIFAR-100_calibration_idx_test', 'exp set name')
 #tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220403_test_CIFAR-100', 'exp set name')
 #tf.compat.v1.app.flags.DEFINE_string('exp_set_name', 'manual_test', 'exp set name')
-tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220817_train_snn_VGG16_CIFAR-10', 'exp set name')
+tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220914_train_snn_VGG16_CIFAR-10', 'exp set name')
 
 # mode
 #tf.compat.v1.app.flags.DEFINE_enum('mode', 'inference', ['train', 'load_and_train', 'inference'], 'run mode')
@@ -325,9 +325,11 @@ tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 400, '')
 
 #
 # VGG
+#tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.1, 'learning rate')
+#tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.02, 'learning rate')
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.01, 'learning rate')
-tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.005, 'learning rate')
-#tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.001, 'learning rate')
+#tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.005, 'learning rate')
+tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.001, 'learning rate')
 # ResNet
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.2, 'learning rate')
 
@@ -342,12 +344,13 @@ tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-5, 'lambda')
 
 #
 #tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',None,'gradient clip norm')
-tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',1.0,'gradient clip norm')
-#tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',2.0,'gradient clip norm')
+#tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',1.0,'gradient clip norm')
+tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',2.0,'gradient clip norm')
 
 
 # data augmentation
-tf.compat.v1.app.flags.DEFINE_enum('data_aug_mix', 'None', ['mixup', 'cutmix', 'None'], 'data augmentation - mixup')
+#tf.compat.v1.app.flags.DEFINE_enum('data_aug_mix', 'None', ['mixup', 'cutmix', 'None'], 'data augmentation - mixup')
+tf.compat.v1.app.flags.DEFINE_enum('data_aug_mix', 'cutmix', ['mixup', 'cutmix', 'None'], 'data augmentation - mixup')
 
 
 
@@ -553,6 +556,12 @@ tf.compat.v1.app.flags.DEFINE_bool('weight_comp_proposed',False,'calibration - b
 ################
 #tf.compat.v1.app.flags.DEFINE_bool('tdbn',False,'threshold-dependent batch normalization - AAAI21')
 tf.compat.v1.app.flags.DEFINE_bool('tdbn',True,'threshold-dependent batch normalization - AAAI21')
+
+
+#
+tf.compat.v1.app.flags.DEFINE_bool('snn_training_spatial_first',True,'SNN training spatial domain first')
+#tf.compat.v1.app.flags.DEFINE_bool('snn_training_spatial_first',False,'SNN training spatial domain first') # Not implemented yet?
+
 
 
 #############

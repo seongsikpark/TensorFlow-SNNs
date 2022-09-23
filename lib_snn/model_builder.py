@@ -54,6 +54,12 @@ def model_builder(
         #optimizer = tf.keras.optimizers.SGD(learning_rate=learning_rate, momentum=0.9, name='SGD',clipnorm=2.0)
         #optimizer = tf.keras.optimizers.SGD(learning_rate=learning_rate, momentum=0.9, name='SGD',clipvalue=1.0)
         #optimizer = tf.keras.optimizers.SGD(learning_rate=learning_rate, momentum=0.9, name='SGD',global_clipnorm=1.0)
+    elif opt == 'ADAM':
+        learning_rate = learning_rate
+        if conf.grad_clipnorm == None:
+            optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate, name='ADAM')
+        else:
+            optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate, name='ADAM',clipnorm=conf.grad_clipnorm)
     else:
         assert False
 

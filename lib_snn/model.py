@@ -370,7 +370,8 @@ class Model(tf.keras.Model):
         ret_val = {
             #'ANN': self.call_ann if not self.conf.f_surrogate_training_model else self.call_ann_surrogate_training,
             'ANN': self.call_ann if not self.conf.f_surrogate_training_model else self.call_ann_surrogate_training,
-            'SNN': self.call_snn if not training else self.call_snn_one_time_step
+            #'SNN': self.call_snn if not training else self.call_snn_one_time_step
+            'SNN': self.call_snn
         }[self.nn_mode] (inputs,training,mask)
 
 
@@ -455,9 +456,16 @@ class Model(tf.keras.Model):
         #print(self.accuracy_time_point)
         #assert False
 
+
+        if training and self.conf.snn_training_spatial_first:
+            y_pred = self._run_internal_graph(inputs, training=training, mask=mask)
+            return y_pred
+
         # return tensor - [batch, time, output]
         ret_tensor = None
         f_create_output_tensor = False
+
+
 
 
         # plot control
@@ -1478,8 +1486,12 @@ class Model(tf.keras.Model):
 
                 return self.compute_metrics(x, y, y_pred[:, -1, :], sample_weight)
             elif True:
+                tape_prev = None
+                loss_prev = None
+                var_list_prev = None
                 for t in range_ts:
-                    with tf.GradientTape() as tape:
+                    #with tf.GradientTape() as tape:
+                    with tf.GradientTape(persistent=True) as tape:
                         y_pred = self(x, training=True)
                         loss = self.compute_loss(x, y, y_pred, sample_weight)
 
@@ -1487,8 +1499,16 @@ class Model(tf.keras.Model):
 
 
                     grads = tape.gradient(loss, var_list, grad_loss)
-                    grads = [grad/self.conf.time_step for grad in grads]
+                    #if tape_prev is not None:
+                    #    grads_prev = tape_prev.gradient(loss, var_list_prev, grad_loss)
+                    #    grads = grads+grads_prev
+                    #grads = [grad * (t / last_ts) for grad in grads]
+                    #grads = [grad/self.conf.time_step for grad in grads]
                     grads_accum = [(grad_accum + grad) for grad_accum, grad in zip(grads_accum, grads)]
+
+                    #tape_prev = tape
+                    #loss_prev = loss
+                    #var_list_prev = var_list
 
                     if False:
                     #if True:

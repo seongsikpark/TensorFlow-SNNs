@@ -63,7 +63,7 @@ def eager_cutmix(ds_one, ds_two, alpha=1.0):
 
 #
 @tf.function
-def cutmix(train_ds_one, train_ds_two, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input):
+def cutmix(train_ds_one, train_ds_two, dataset_name, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input):
     (images_one, labels_one), (images_two, labels_two) = train_ds_one, train_ds_two
 
     # Get a sample from the Beta distribution
@@ -75,8 +75,8 @@ def cutmix(train_ds_one, train_ds_two, input_size, input_size_pre_crop_ratio, nu
     # Get the bounding box offsets, heights and widths
     boundaryx1, boundaryy1, target_w, target_h = get_box(lambda_value,input_size)
 
-    images_one, labels_one = resize_with_crop_aug(images_one,labels_one,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input)
-    images_two, labels_two = resize_with_crop_aug(images_two,labels_two,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input)
+    images_one, labels_one = resize_with_crop_aug(images_one,labels_one,dataset_name,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input)
+    images_two, labels_two = resize_with_crop_aug(images_two,labels_two,dataset_name,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input)
 
     # Get a patch from the second image
     crop2 = tf.image.crop_to_bounding_box(images_two, boundaryy1, boundaryx1, target_h, target_w)
@@ -116,7 +116,7 @@ def eager_mixup(ds_one, ds_two, alpha=1.0):
     #return tf.py_function(mixup, [ds_one, ds_two, alpha],[tf.uint8,tf.uint8,tf.int64),tf.float32])
     #return tf.py_function(mixup, [ds_one, ds_two, alpha],[(tf.uint8,tf.int64),(tf.uint8,tf.int64),tf.float32])
 
-def mixup(ds_one, ds_two, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input):
+def mixup(ds_one, ds_two, dataset_name, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input):
 
     # unpack two datasets
     images_one, labels_one = ds_one
@@ -127,8 +127,8 @@ def mixup(ds_one, ds_two, input_size, input_size_pre_crop_ratio, num_class, alph
     #assert False
 
     #
-    images_one, labels_one = resize_with_crop_aug(images_one,labels_one,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input)
-    images_two, labels_two = resize_with_crop_aug(images_two,labels_two,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input)
+    images_one, labels_one = resize_with_crop_aug(images_one,labels_one,dataset_name,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input)
+    images_two, labels_two = resize_with_crop_aug(images_two,labels_two,dataset_name,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input)
 
     labels_one = tf.cast(labels_one,tf.float32)
     labels_two = tf.cast(labels_two,tf.float32)

@@ -23,6 +23,10 @@ from tensorflow.python.keras.utils import data_utils
 from keras.utils.vis_utils import plot_model
 
 #
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
+
+#
 from absl import app
 from absl import flags
 
@@ -40,7 +44,7 @@ tfds.disable_progress_bar()
 #import tqdm
 
 import matplotlib
-matplotlib.use('TkAgg')
+#matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
 import numpy as np
@@ -101,7 +105,7 @@ from models import imagenet_utils
 
 # GPU setting
 #
-GPU_NUMBER=0
+GPU_NUMBER=1
 
 GPU_PARALLEL_RUN = 1
 #GPU_PARALLEL_RUN = 2
@@ -213,6 +217,7 @@ learning_rate = conf.learning_rate
 
 #
 opt='SGD'
+#opt='ADAM'
 
 #
 #lr_schedule = 'COS'     # COSine

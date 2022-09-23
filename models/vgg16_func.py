@@ -82,14 +82,16 @@ def VGG16(
     x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv1')(x)
     x = tf.keras.layers.Dropout(dropout_conv_r[0], name='conv1_do')(x)
     x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv1_1')(x)
-    x = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='conv1_p')(x)
+    #x = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='conv1_p')(x)
+    x = tf.keras.layers.AveragePooling2D((2, 2), (2, 2), name='conv1_p')(x)
 
     #
     channels = channels * 2
     x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv2')(x)
     x = tf.keras.layers.Dropout(dropout_conv_r[0], name='conv2_do')(x)
     x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv2_1')(x)
-    x = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='conv2_p')(x)
+    #x = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='conv2_p')(x)
+    x = tf.keras.layers.AveragePooling2D((2, 2), (2, 2), name='conv2_p')(x)
 
     #
     channels = channels * 2
@@ -98,7 +100,8 @@ def VGG16(
     x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv3_1')(x)
     x = tf.keras.layers.Dropout(dropout_conv_r[1], name='conv3_1_do')(x)
     x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv3_2')(x)
-    x = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='conv3_p')(x)
+    #x = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='conv3_p')(x)
+    x = tf.keras.layers.AveragePooling2D((2, 2), (2, 2), name='conv3_p')(x)
 
     #
     channels = channels * 2
@@ -107,7 +110,8 @@ def VGG16(
     x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv4_1')(x)
     x = tf.keras.layers.Dropout(dropout_conv_r[1], name='conv4_1_do')(x)
     x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv4_2')(x)
-    x = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='conv4_p')(x)
+    #x = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='conv4_p')(x)
+    x = tf.keras.layers.AveragePooling2D((2, 2), (2, 2), name='conv4_p')(x)
 
     #
     x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv5')(x)
@@ -115,7 +119,8 @@ def VGG16(
     x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv5_1')(x)
     x = tf.keras.layers.Dropout(dropout_conv_r[1], name='conv5_1_do')(x)
     x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv5_2')(x)
-    x = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='conv5_p')(x)
+    #x = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='conv5_p')(x)
+    x = tf.keras.layers.AveragePooling2D((2, 2), (2, 2), name='conv5_p')(x)
 
     #
     x = tf.keras.layers.Flatten(data_format=data_format)(x)
