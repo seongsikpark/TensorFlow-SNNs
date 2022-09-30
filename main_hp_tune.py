@@ -10,6 +10,18 @@ from functools import partial
 
 import os
 
+# GPU setting
+#
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+#GPU_NUMBER=1
+#os.environ["CUDA_VISIBLE_DEVICES"]=str(GPU_NUMBER)
+#os.environ["CUDA_VISIBLE_DEVICES"]="1,7,0,6"
+#os.environ["CUDA_VISIBLE_DEVICES"]="0,1,4"
+#os.environ["CUDA_VISIBLE_DEVICES"]="1,3,5,7"
+#os.environ["CUDA_VISIBLE_DEVICES"]="0,4,5,7"
+os.environ["CUDA_VISIBLE_DEVICES"]="0,5"
+
+
 # TF logging setup
 #os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import keras_tuner
@@ -103,10 +115,15 @@ from models import imagenet_utils
 #tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 
-# GPU setting
-#
-GPU_NUMBER=1
+# distribute strategy
+devices = tf.config.list_physical_devices('GPU')
+devices = ['/gpu:{}'.format(i) for i in range(len(devices))]
+dist_strategy = tf.distribute.MirroredStrategy(devices=devices)
+#dist_strategy = tf.distribute.MirroredStrategy(devices=['/gpu:0', '/gpu:1'])
+#dist_strategy = tf.distribute.OneDeviceStrategy(device='/gpu:0')
 
+
+#
 GPU_PARALLEL_RUN = 1
 #GPU_PARALLEL_RUN = 2
 #GPU_PARALLEL_RUN = 3
@@ -221,8 +238,8 @@ opt='SGD'
 
 #
 #lr_schedule = 'COS'     # COSine
-#lr_schedule = 'COSR'    # COSine with Restart
-lr_schedule = 'STEP'    # STEP wise
+lr_schedule = 'COSR'    # COSine with Restart
+#lr_schedule = 'STEP'    # STEP wise
 #lr_schedule = 'STEP_WUP'    # STEP wise, warmup
 
 
@@ -273,7 +290,6 @@ from models.models import model_sel
 #tf.config.functions_run_eagerly()
 
 
-os.environ["CUDA_VISIBLE_DEVICES"]=str(GPU_NUMBER)
 
 # TODO: gpu mem usage - parameterize
 # GPU mem usage
@@ -632,7 +648,7 @@ train_steps_per_epoch = train_ds.cardinality().numpy()
 ########################################
 # load model
 ########################################
-model_top = model_sel(model_name,train_type)
+
 
 # TODO: integration - ImageNet
 if load_model and (not f_hp_tune_load):
@@ -720,488 +736,934 @@ if conf.debug_mode:
     eager_mode=True
 
 
-# for HP tune
-model_top_glb = model_top
-
-#
-# model builder
-if f_hp_tune_train or f_hp_tune_load:
-
-    # TODO: move to config.py
-    #hp_model_builder = model_builder
-    hps = collections.OrderedDict()
-    hps['dataset'] = [dataset_name]
-    hps['model'] = [model_name]
-    hps['opt'] = [opt]
-    hps['lr_schedule'] = [lr_schedule]
-    hps['train_epoch'] = [train_epoch]
-    hps['step_decay_epoch'] = [step_decay_epoch]
-
-    # main to hp_tune, need to seperate configuration
-    hp_tune_args = collections.OrderedDict()
-    hp_tune_args['model_top'] = model_top
-    hp_tune_args['batch_size'] = batch_size
-    hp_tune_args['image_shape'] = image_shape
-    hp_tune_args['conf'] = conf
-    hp_tune_args['include_top'] = include_top
-    hp_tune_args['load_weight'] = load_weight
-    hp_tune_args['num_class'] = num_class
-    hp_tune_args['metric_accuracy'] = metric_accuracy
-    hp_tune_args['metric_accuracy_top_5'] = metric_accuracy_top5
-    hp_tune_args['train_steps_per_epoch'] = train_steps_per_epoch
-
-    #hp_model_builder = partial(model_builder, hp, hps)
-    hp_model = lib_snn.hp_tune_model.CustomHyperModel(hp_tune_args, hps)
-
-    #search_func = lib_snn.hp_tune.GridSearch
-    search_func = keras_tuner.RandomSearch
-    search_max_trials = 20
-
-    #tuner = kt.Hyperband(model_builder,
-    #tuner=kt.RandomSearch(model_builder,
-    #tuner=lib_snn.hp_tune.GridSearch(hp_model_builder,
-    tuner=search_func(hp_model_builder,
-                         objective='val_acc',
-                         max_trials=search_max_trials,
-                         #max_epochs = 300,
-                         #factor=3,
-                         #overwrite=True,
-                         directory=root_hp_tune,
-                         project_name=hp_tune_name,
-                         #directory='test_hp_dir',
-                         #project_name='test_hp')
-                          )
-
-    #tuner.results_summary()
-    #assert False
-else:
-    model = lib_snn.model_builder.model_builder(
-        eager_mode, model_top, batch_size, image_shape, conf, include_top, load_weight, num_class, model_name, lmb, initial_channels,
-        train_epoch, train_steps_per_epoch,
-        opt, learning_rate,
-        lr_schedule, step_decay_epoch,
-        metric_accuracy, metric_accuracy_top5, dataset_name)
 
 
 
 
+with dist_strategy.scope():
 
-########################################
-# load model
-########################################
-if conf.nn_mode=='SNN' and conf.dnn_to_snn:
-    print('DNN-to-SNN mode')
-    nn_mode_ori = conf.nn_mode
-    conf.nn_mode='ANN'
-    model_ann = lib_snn.model_builder.model_builder(
-        eager_mode, model_top, batch_size, image_shape, conf, include_top, load_weight, num_class, model_name, lmb, initial_channels,
-        train_epoch, train_steps_per_epoch,
-        opt, learning_rate,
-        lr_schedule, step_decay_epoch,
-        metric_accuracy, metric_accuracy_top5, dataset_name)
-    conf.nn_mode=nn_mode_ori
-
-    model_ann.nn_mode = 'ANN'
-
-    #model_ann.set_en_snn('ANN')
-
-    if dataset_name=='ImageNet':
-        #imagenet_utils.load_weights(model_name,model_ann)
-        model_ann.load_weights(load_weight)
-    else:
-        model_ann.load_weights(load_weight)
-        #model_ann.load_weights(load_weight,by_name=True)
-
-    print('-- model_ann - load done')
-    model.load_weights_dnn_to_snn(model_ann)
-    #model.load_weights_dnn_to_snn(model_ann,by_name=True)
-
-
-elif load_model:
-    if f_hp_tune_load:
-        tuner.reload()
-        best_model = tuner.get_best_models()[0]
-        print(tuner)
-        print(tuner.directory)
-        #print(tuner.load_model(0))
-        print(tuner.get_best_models()[0])
-        print(tuner.get_best_hyperparameters(num_trials=1)[0].values)
-        print(tuner.results_summary(num_trials=2))
-
-        print('best trial')
-        best_trial = tuner.oracle.get_best_trials(num_trials=1)[0]
-        print(best_trial.trial_id)
-
-        print('best model evaluate')
-        best_model.evaluate(test_ds)
-
-        print('test model evaluate')
-        #test_model = tuner.load_model(tuner.oracle.get_best_trials(num_trials=2)[1])
-        test_model = tuner.get_best_models(num_models=2)[1]
-        test_model.evaluate(test_ds)
-
-        assert False
-
-    elif not f_hp_tune_train:
-        if dataset_name == 'ImageNet':
-            #imagenet_utils.load_weights(model_name, model)
-            model.load_weights(load_weight)
-        else:
-            model.load_weights(load_weight)
-        #model.load_weights(load_weight,by_name=True,skip_mismatch=True)
-        #model.load_weights_custom(load_weight)
-        #model.load_weights(load_weight, by_name=True)
-
-if conf.nn_mode=='ANN' or (conf.nn_mode=='SNN' and train):
-    model_ann=None
-
-
-#ann_kernel={}
-#snn_kernel={}
-#
-#ann_bias={}
-#snn_bias={}
-#
-#ann_bn={}
-#snn_bn={}
-#
-#print('loaded kernel')
-#for layer in model_ann.layers:
-#    if hasattr(layer,'kernel'):
-#        print('{} - {}'.format(layer.name,tf.reduce_sum(layer.kernel)))
-#        ann_kernel[layer.name] = tf.reduce_sum(layer.kernel)
-#
-#
-#print('loaded bias')
-#for layer in model_ann.layers:
-#    if hasattr(layer,'bias'):
-#        print('{} - {}'.format(layer.name,tf.reduce_sum(layer.bias)))
-#        ann_bias[layer.name] = tf.reduce_sum(layer.bias)
-#
-#print('loaded bn')
-#for layer in model_ann.layers:
-#    if hasattr(layer, 'bn') and layer.bn is not None:
-#        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.beta)))
-#        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.gamma)))
-#        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.moving_mean)))
-#        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.moving_variance)))
-#        ann_bn[layer.name] = tf.reduce_sum(layer.bn.beta)
-#
-#
-#print('loaded kernel')
-#for layer in model.layers:
-#    if hasattr(layer,'kernel'):
-#        print('{} - {}'.format(layer.name,tf.reduce_sum(layer.kernel)))
-#        snn_kernel[layer.name] = tf.reduce_sum(layer.kernel)
-#
-#
-#print('loaded bias')
-#for layer in model.layers:
-#    if hasattr(layer,'bias'):
-#        print('{} - {}'.format(layer.name,tf.reduce_sum(layer.bias)))
-#        snn_bias[layer.name] = tf.reduce_sum(layer.bias)
-#
-#print('loaded bn')
-#for layer in model.layers:
-#    if hasattr(layer, 'bn') and layer.bn is not None:
-#        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.beta)))
-#        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.gamma)))
-#        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.moving_mean)))
-#        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.moving_variance)))
-#        snn_bn[layer.name] = tf.reduce_sum(layer.bn.beta)
-#
-#
-##for layer in model.layers:
-#for layer_name in snn_kernel.keys():
-#    assert snn_kernel[layer_name]==ann_kernel[layer_name]
-#
-#for layer_name in snn_bias.keys():
-#    assert snn_bias[layer_name]==ann_bias[layer_name]
-#
-#for layer_name in snn_bn.keys():
-#    assert snn_bn[layer_name]==ann_bn[layer_name]
-
-#assert False
-
-
-#
-#model.make_test_function = lib_snn.training.make_test_function(model)
-
-#
-#if train:
-    #print('Train mode')
-# remove dir - train model
-if not load_model:
-    if overwrite_train_model:
-        if os.path.isdir(filepath_save):
-            shutil.rmtree(filepath_save)
-
-# path_tensorboard = root_tensorboard+exp_set_name
-# path_tensorboard = root_tensorboard+filepath
-
-if f_hp_tune_train:
-    path_tensorboard = os.path.join(root_tensorboard, hp_tune_name)
-
-else:
-    path_tensorboard = os.path.join(root_tensorboard, exp_set_name)
-    path_tensorboard = os.path.join(path_tensorboard, model_dataset_name)
-    path_tensorboard = os.path.join(path_tensorboard, config_name)
-
-if not overwrite_tensorboard:
-    if os.path.isdir(path_tensorboard):
-        date_cur = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M')
-        path_dest_tensorboard = path_tensorboard + '_' + date_cur
-        print('tensorboard data already exists')
-        print('move {} to {}'.format(path_tensorboard, path_dest_tensorboard))
-
-        shutil.move(path_tensorboard, path_dest_tensorboard)
-
-
-
-########
-# Callbacks
-########
-
-#
-if train and load_model and (not f_hp_tune_train):
-    print('Evaluate pretrained model')
-    assert monitor_cri == 'val_acc', 'currently only consider monitor criterion - val_acc'
-    result = model.evaluate(valid_ds)
-    idx_monitor_cri = model.metrics_names.index('acc')
-    best = result[idx_monitor_cri]
-    print('previous best result - {}'.format(best))
-else:
-    best = None
-
-# model checkpoint save and resume
-cb_model_checkpoint = lib_snn.callbacks.ModelCheckpointResume(
-    # filepath=filepath + '/ep-{epoch:04d}',
-    # filepath=filepath + '/ep-{epoch:04d}.ckpt',
-    filepath=filepath_save + '/ep-{epoch:04d}.hdf5',
-    save_weight_only=True,
-    save_best_only=True,
-    monitor=monitor_cri,
-    verbose=1,
-    best=best,
-    log_dir=path_tensorboard,
-    # tensorboard_writer=cb_tensorboard._writers['train']
-)
-cb_manage_saved_model = lib_snn.callbacks.ManageSavedModels(filepath=filepath_save)
-cb_tensorboard = tf.keras.callbacks.TensorBoard(log_dir=path_tensorboard, update_freq='epoch')
-
-#cb_dnntosnn = lib_snn.callbacks.DNNtoSNN()
-cb_libsnn = lib_snn.callbacks.SNNLIB(conf,path_model_load,test_ds_num,model_ann)
-cb_libsnn_ann = lib_snn.callbacks.SNNLIB(conf,path_model_load,test_ds_num)
-
-#
-#callbacks_train = [cb_tensorboard]
-callbacks_train = []
-if save_model:
-    callbacks_train.append(cb_model_checkpoint)
-    callbacks_train.append(cb_manage_saved_model)
-callbacks_train.append(cb_libsnn)
-callbacks_train.append(cb_tensorboard)
-
-callbacks_test = []
-# TODO: move to parameters
-#dnn_to_snn = True
-#if dnn_to_snn:
-    #callbacks_test.append(cb_dnntosnn)
-
-callbacks_test = [cb_libsnn]
-callbacks_test_ann = [cb_libsnn_ann]
-
-#
-if train:
-    if hp_tune:
-        print('HP Tune mode')
-
-        #callbacks = [cb_tensorboard]
-
-        tuner.search(train_ds, epochs=train_epoch, initial_epoch=init_epoch, validation_data=valid_ds,
-                     callbacks=callbacks_train)
-    else:
-        print('Train mode')
-
-        #callbacks = [
-            #cb_model_checkpoint,
-            #cb_manage_saved_model,
-            #cb_tensorboard
-        #]
-
-        model.summary()
-
-        train_histories = model.fit(train_ds, epochs=train_epoch, initial_epoch=init_epoch, validation_data=valid_ds,
-                                    callbacks=callbacks_train)
-else:
-    print('Test mode')
+    model_top = model_sel(model_name,train_type)
+    # for HP tune
+    model_top_glb = model_top
 
     #
-    #dnn_snn_compare=True
-    #dnn_snn_compare=False
+    # model builder
+    if f_hp_tune_train or f_hp_tune_load:
 
-    compare_control_snn = False
-    #compare_control_snn = True
+        # TODO: move to config.py
+        #hp_model_builder = model_builder
+        hps = collections.OrderedDict()
+        hps['dataset'] = [dataset_name]
+        hps['model'] = [model_name]
+        hps['opt'] = [opt]
+        hps['lr_schedule'] = [lr_schedule]
+        hps['train_epoch'] = [train_epoch]
+        hps['step_decay_epoch'] = [step_decay_epoch]
 
-    act_based_calibration = conf.calibration_bias_ICML_21 or conf.calibration_vmem_ICML_21 or conf.calibration_weight_act_based
-    #if (conf.nn_mode=='SNN') and (dnn_snn_compare or conf.calibration_bias_ICML_21 or conf.calibration_vmem_ICML_21) :
-    #if (conf.nn_mode == 'SNN') and (dnn_snn_compare or act_based_calibration):
-    if (conf.nn_mode == 'SNN') and (compare_control_snn or act_based_calibration):
+        # main to hp_tune, need to seperate configuration
+        hp_tune_args = collections.OrderedDict()
+        hp_tune_args['model_top'] = model_top
+        hp_tune_args['batch_size'] = batch_size
+        hp_tune_args['image_shape'] = image_shape
+        hp_tune_args['conf'] = conf
+        hp_tune_args['include_top'] = include_top
+        hp_tune_args['load_weight'] = load_weight
+        hp_tune_args['num_class'] = num_class
+        hp_tune_args['metric_accuracy'] = metric_accuracy
+        hp_tune_args['metric_accuracy_top_5'] = metric_accuracy_top5
+        hp_tune_args['train_steps_per_epoch'] = train_steps_per_epoch
 
-        cb_libsnn_ann.run_for_calibration = True
+        #hp_model_builder = partial(model_builder, hp, hps)
+        hp_model = lib_snn.hp_tune_model.CustomHyperModel(hp_tune_args, hps)
+
+        #search_func = lib_snn.hp_tune.GridSearch
+        search_func = keras_tuner.RandomSearch
+        search_max_trials = 20
+
+        #tuner = kt.Hyperband(model_builder,
+        #tuner=kt.RandomSearch(model_builder,
+        #tuner=lib_snn.hp_tune.GridSearch(hp_model_builder,
+        tuner=search_func(hp_model_builder,
+                             objective='val_acc',
+                             max_trials=search_max_trials,
+                             #max_epochs = 300,
+                             #factor=3,
+                             #overwrite=True,
+                             directory=root_hp_tune,
+                             project_name=hp_tune_name,
+                             #directory='test_hp_dir',
+                             #project_name='test_hp')
+                              )
+
+        #tuner.results_summary()
+        #assert False
+    else:
+        model = lib_snn.model_builder.model_builder(
+            eager_mode, model_top, batch_size, image_shape, conf, include_top, load_weight, num_class, model_name, lmb, initial_channels,
+            train_epoch, train_steps_per_epoch,
+            opt, learning_rate,
+            lr_schedule, step_decay_epoch,
+            metric_accuracy, metric_accuracy_top5, dataset_name, dist_strategy)
 
         #
-        #compare_control_snn = True
-        if (not conf.full_test) and compare_control_snn and conf.verbose_visual:
-            #cb_libsnn_ann.run_for_compare_post_calib = True
-            lib_snn.sim.set_for_visual_debug(True)
-            model_ann.evaluate(test_ds, callbacks=callbacks_test_ann)
-            #cb_libsnn_ann.run_for_compare_post_calib=False
-            lib_snn.sim.set_for_visual_debug(False)
+        # test
+        #train_ds = dist_strategy.experimental_distribute_dataset(train_ds)
+        #print('fit start')
+        #model.fit(train_ds,epochs=1,steps_per_epoch=100)
 
 
-        #if conf.calibration_bias_ICML_21 or conf.calibration_vmem_ICML_21:
-        #if act_based_calibration:
-        if True:
-            # random sampling
-            #test_ds_one_batch = tf.data.experimental.get_single_element(test_ds)
-            #test_ds_one_batch = tf.data.Dataset.from_tensors(test_ds_one_batch)
-            images_one_batch, labels_one_batch = next(iter(train_ds))
-            #images_one_batch, labels_one_batch = next(iter(test_ds))
-            #print(tf.reduce_mean(images_one_batch))
-        #else:
-            #images_one_batch, labels_one_batch = next(iter(test_ds))
 
-        ds_one_batch = tf.data.Dataset.from_tensors((images_one_batch,labels_one_batch))
-        ds_ann = ds_one_batch
 
-        #
-        #result = model.evaluate(ds_one_batch, callbacks=callbacks_test)
 
-        #
+    ########################################
+    # load model
+    ########################################
+    if conf.nn_mode=='SNN' and conf.dnn_to_snn:
+        print('DNN-to-SNN mode')
         nn_mode_ori = conf.nn_mode
-        conf.nn_mode = 'ANN'
+        conf.nn_mode='ANN'
+        model_ann = lib_snn.model_builder.model_builder(
+            eager_mode, model_top, batch_size, image_shape, conf, include_top, load_weight, num_class, model_name, lmb, initial_channels,
+            train_epoch, train_steps_per_epoch,
+            opt, learning_rate,
+            lr_schedule, step_decay_epoch,
+            metric_accuracy, metric_accuracy_top5, dataset_name)
+        conf.nn_mode=nn_mode_ori
 
-        # run for init
-        for data in ds_ann:
-            x = data[0]
-            y = data[1]
-            x = x[0]
-            y = y[0]
-            break
+        model_ann.nn_mode = 'ANN'
 
-        x = tf.expand_dims(x,axis=0)
-        y = tf.expand_dims(y,axis=0)
-        ds_one_sample = tf.data.Dataset.from_tensors((x,y))
+        #model_ann.set_en_snn('ANN')
 
-        #result_ann = model_ann.evaluate(ds_one_batch, callbacks=callbacks_test_ann)
-        result_ann = model_ann.evaluate(ds_one_sample, callbacks=callbacks_test_ann)
+        if dataset_name=='ImageNet':
+            #imagenet_utils.load_weights(model_name,model_ann)
+            model_ann.load_weights(load_weight)
+        else:
+            model_ann.load_weights(load_weight)
+            #model_ann.load_weights(load_weight,by_name=True)
 
-        #
-        calib_ori = cb_libsnn_ann.calibration
-        cb_libsnn_ann.calibration = False
-
-        #
-        gradient_test_tmp = False
-        #gradient_test_tmp = True
-        if gradient_test_tmp:
-            with tf.GradientTape(persistent=True) as tape:
-            #with tf.GradientTape(watch_accessed_variables=False) as tape:
-                for data in ds_ann:
-                    x = data[0]
-                    y = data[1]
-                    y_decoded = tf.argmax(y,axis=1)
-
-                    print(x)
-                    print(y)
-
-                    tape.watch(x)
-                    #tf.compat.v1.disable_eager_execution()
-                    #y_pred = model_ann(x, training=True)
-                    y_pred = model_ann(x, training=False)
-                    #loss = model_ann.compiled_loss(y,y_pred)
-
-                    print(y_pred)
-                    #top_class = y_pred[:, y_decoded]
-
-                    top_class = tf.gather(y_pred,y_decoded)
-                    print(top_class)
+        print('-- model_ann - load done')
+        model.load_weights_dnn_to_snn(model_ann)
+        #model.load_weights_dnn_to_snn(model_ann,by_name=True)
 
 
-                    #tape.gradient(loss,x)
-                    grads_pred_act = collections.OrderedDict()
+    elif load_model:
+        if f_hp_tune_load:
+            tuner.reload()
+            best_model = tuner.get_best_models()[0]
+            print(tuner)
+            print(tuner.directory)
+            #print(tuner.load_model(0))
+            print(tuner.get_best_models()[0])
+            print(tuner.get_best_hyperparameters(num_trials=1)[0].values)
+            print(tuner.results_summary(num_trials=2))
 
-                    for l in model_ann.layers_w_kernel:
-                        act = l.record_output
-                        grads_pred_act[l.name] = tape.gradient(top_class,act)
+            print('best trial')
+            best_trial = tuner.oracle.get_best_trials(num_trials=1)[0]
+            print(best_trial.trial_id)
 
-                    #grads = tape.gradient(top_class,x)
-                    #print(grads)
+            print('best model evaluate')
+            best_model.evaluate(test_ds)
 
-
-                    print([var.name for var in tape.watched_variables()])
-                    assert False
-
-
-                assert False
-                #if False:
-                #for epoch, iterator in data_handler.enumerate_epochs():
-                    #y_pred = model_ann(ds_ann, callbacks=callba)
-                    #data = data_adapter.expand_1d(ds_ann)
-                    #x, y, sample_weight = data_adapter.unpack_x_y_sample_weight(data)
-                    #print(x)
-                    #print(y)
+            print('test model evaluate')
+            #test_model = tuner.load_model(tuner.oracle.get_best_trials(num_trials=2)[1])
+            test_model = tuner.get_best_models(num_models=2)[1]
+            test_model.evaluate(test_ds)
 
             assert False
 
+        elif not f_hp_tune_train:
+            if dataset_name == 'ImageNet':
+                #imagenet_utils.load_weights(model_name, model)
+                model.load_weights(load_weight)
+            else:
+                model.load_weights(load_weight)
+            #model.load_weights(load_weight,by_name=True,skip_mismatch=True)
+            #model.load_weights_custom(load_weight)
+            #model.load_weights(load_weight, by_name=True)
+
+    if conf.nn_mode=='ANN' or (conf.nn_mode=='SNN' and train):
+        model_ann=None
+
+
+    #ann_kernel={}
+    #snn_kernel={}
+    #
+    #ann_bias={}
+    #snn_bias={}
+    #
+    #ann_bn={}
+    #snn_bn={}
+    #
+    #print('loaded kernel')
+    #for layer in model_ann.layers:
+    #    if hasattr(layer,'kernel'):
+    #        print('{} - {}'.format(layer.name,tf.reduce_sum(layer.kernel)))
+    #        ann_kernel[layer.name] = tf.reduce_sum(layer.kernel)
+    #
+    #
+    #print('loaded bias')
+    #for layer in model_ann.layers:
+    #    if hasattr(layer,'bias'):
+    #        print('{} - {}'.format(layer.name,tf.reduce_sum(layer.bias)))
+    #        ann_bias[layer.name] = tf.reduce_sum(layer.bias)
+    #
+    #print('loaded bn')
+    #for layer in model_ann.layers:
+    #    if hasattr(layer, 'bn') and layer.bn is not None:
+    #        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.beta)))
+    #        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.gamma)))
+    #        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.moving_mean)))
+    #        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.moving_variance)))
+    #        ann_bn[layer.name] = tf.reduce_sum(layer.bn.beta)
+    #
+    #
+    #print('loaded kernel')
+    #for layer in model.layers:
+    #    if hasattr(layer,'kernel'):
+    #        print('{} - {}'.format(layer.name,tf.reduce_sum(layer.kernel)))
+    #        snn_kernel[layer.name] = tf.reduce_sum(layer.kernel)
+    #
+    #
+    #print('loaded bias')
+    #for layer in model.layers:
+    #    if hasattr(layer,'bias'):
+    #        print('{} - {}'.format(layer.name,tf.reduce_sum(layer.bias)))
+    #        snn_bias[layer.name] = tf.reduce_sum(layer.bias)
+    #
+    #print('loaded bn')
+    #for layer in model.layers:
+    #    if hasattr(layer, 'bn') and layer.bn is not None:
+    #        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.beta)))
+    #        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.gamma)))
+    #        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.moving_mean)))
+    #        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.moving_variance)))
+    #        snn_bn[layer.name] = tf.reduce_sum(layer.bn.beta)
+    #
+    #
+    ##for layer in model.layers:
+    #for layer_name in snn_kernel.keys():
+    #    assert snn_kernel[layer_name]==ann_kernel[layer_name]
+    #
+    #for layer_name in snn_bias.keys():
+    #    assert snn_bias[layer_name]==ann_bias[layer_name]
+    #
+    #for layer_name in snn_bn.keys():
+    #    assert snn_bn[layer_name]==ann_bn[layer_name]
+
+    #assert False
+
+
+    #
+    #model.make_test_function = lib_snn.training.make_test_function(model)
+
+    #
+    #if train:
+        #print('Train mode')
+    # remove dir - train model
+    if not load_model:
+        if overwrite_train_model:
+            if os.path.isdir(filepath_save):
+                shutil.rmtree(filepath_save)
+
+    # path_tensorboard = root_tensorboard+exp_set_name
+    # path_tensorboard = root_tensorboard+filepath
+
+    if f_hp_tune_train:
+        path_tensorboard = os.path.join(root_tensorboard, hp_tune_name)
+
+    else:
+        path_tensorboard = os.path.join(root_tensorboard, exp_set_name)
+        path_tensorboard = os.path.join(path_tensorboard, model_dataset_name)
+        path_tensorboard = os.path.join(path_tensorboard, config_name)
+
+    if not overwrite_tensorboard:
+        if os.path.isdir(path_tensorboard):
+            date_cur = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M')
+            path_dest_tensorboard = path_tensorboard + '_' + date_cur
+            print('tensorboard data already exists')
+            print('move {} to {}'.format(path_tensorboard, path_dest_tensorboard))
+
+            shutil.move(path_tensorboard, path_dest_tensorboard)
+
+
+
+    ########
+    # Callbacks
+    ########
+
+    #
+    if train and load_model and (not f_hp_tune_train):
+        print('Evaluate pretrained model')
+        assert monitor_cri == 'val_acc', 'currently only consider monitor criterion - val_acc'
+        result = model.evaluate(valid_ds)
+        idx_monitor_cri = model.metrics_names.index('acc')
+        best = result[idx_monitor_cri]
+        print('previous best result - {}'.format(best))
+    else:
+        best = None
+
+    # model checkpoint save and resume
+    cb_model_checkpoint = lib_snn.callbacks.ModelCheckpointResume(
+        # filepath=filepath + '/ep-{epoch:04d}',
+        # filepath=filepath + '/ep-{epoch:04d}.ckpt',
+        filepath=filepath_save + '/ep-{epoch:04d}.hdf5',
+        save_weight_only=True,
+        save_best_only=True,
+        monitor=monitor_cri,
+        verbose=1,
+        best=best,
+        log_dir=path_tensorboard,
+        # tensorboard_writer=cb_tensorboard._writers['train']
+    )
+    cb_manage_saved_model = lib_snn.callbacks.ManageSavedModels(filepath=filepath_save)
+    cb_tensorboard = tf.keras.callbacks.TensorBoard(log_dir=path_tensorboard, update_freq='epoch')
+
+    #cb_dnntosnn = lib_snn.callbacks.DNNtoSNN()
+    cb_libsnn = lib_snn.callbacks.SNNLIB(conf,path_model_load,test_ds_num,model_ann)
+    cb_libsnn_ann = lib_snn.callbacks.SNNLIB(conf,path_model_load,test_ds_num)
+
+    #
+    #callbacks_train = [cb_tensorboard]
+    callbacks_train = []
+    if save_model:
+        callbacks_train.append(cb_model_checkpoint)
+        callbacks_train.append(cb_manage_saved_model)
+    callbacks_train.append(cb_libsnn)
+    callbacks_train.append(cb_tensorboard)
+
+    callbacks_test = []
+    # TODO: move to parameters
+    #dnn_to_snn = True
+    #if dnn_to_snn:
+        #callbacks_test.append(cb_dnntosnn)
+
+    callbacks_test = [cb_libsnn]
+    callbacks_test_ann = [cb_libsnn_ann]
+
+    #
+    if train:
+        if hp_tune:
+            print('HP Tune mode')
+
+            #callbacks = [cb_tensorboard]
+
+            tuner.search(train_ds, epochs=train_epoch, initial_epoch=init_epoch, validation_data=valid_ds,
+                         callbacks=callbacks_train)
+        else:
+            print('Train mode')
+
+            #callbacks = [
+                #cb_model_checkpoint,
+                #cb_manage_saved_model,
+                #cb_tensorboard
+            #]
+
+            model.summary()
+            train_steps_per_epoch = train_ds_num/batch_size
+            train_histories = model.fit(train_ds, epochs=train_epoch, steps_per_epoch=train_steps_per_epoch,
+                                        initial_epoch=init_epoch, validation_data=valid_ds, callbacks=callbacks_train)
+            #train_histories = model.fit(train_ds, epochs=train_epoch, initial_epoch=init_epoch, validation_data=valid_ds, callbacks=callbacks_train)
+    else:
+        print('Test mode')
+
         #
-        # integrated gradients
-        #
-        num_range = 1000
-        for l in model_ann.layers_w_kernel:
-            #glb_rand_vth[l.name] = tf.random.uniform(shape=[num_range], minval=0.0, maxval=1, dtype=tf.float32)
-            #glb_rand_vth[l.name] = tf.range(1 / num_range, 1 + 1 / num_range, 1 / num_range, dtype=tf.float32)
-            glb_rand_vth[l.name] = tf.random.uniform(shape=[num_range], minval=0.0, maxval=1, dtype=tf.float32)
-            #glb_rand_vth[l.name] = tf.random.uniform(shape=[num_range], minval=0.5, maxval=1, dtype=tf.float32)
-            glb_vth_search_err[l.name] = tf.TensorArray(tf.float32, size=0, dynamic_size=True, clear_after_read=False)
+        #dnn_snn_compare=True
+        #dnn_snn_compare=False
+
+        compare_control_snn = False
+        #compare_control_snn = True
+
+        act_based_calibration = conf.calibration_bias_ICML_21 or conf.calibration_vmem_ICML_21 or conf.calibration_weight_act_based
+        #if (conf.nn_mode=='SNN') and (dnn_snn_compare or conf.calibration_bias_ICML_21 or conf.calibration_vmem_ICML_21) :
+        #if (conf.nn_mode == 'SNN') and (dnn_snn_compare or act_based_calibration):
+        if (conf.nn_mode == 'SNN') and (compare_control_snn or act_based_calibration):
+
+            cb_libsnn_ann.run_for_calibration = True
+
+            #
+            #compare_control_snn = True
+            if (not conf.full_test) and compare_control_snn and conf.verbose_visual:
+                #cb_libsnn_ann.run_for_compare_post_calib = True
+                lib_snn.sim.set_for_visual_debug(True)
+                model_ann.evaluate(test_ds, callbacks=callbacks_test_ann)
+                #cb_libsnn_ann.run_for_compare_post_calib=False
+                lib_snn.sim.set_for_visual_debug(False)
 
 
-        #num_batch_for_vth_search = 10
-        num_batch_for_vth_search = 1
-
-        vth_search = True
-        #vth_search = False
-
-        if vth_search:
-            for idx_batch in range(num_batch_for_vth_search):
+            #if conf.calibration_bias_ICML_21 or conf.calibration_vmem_ICML_21:
+            #if act_based_calibration:
+            if True:
+                # random sampling
+                #test_ds_one_batch = tf.data.experimental.get_single_element(test_ds)
+                #test_ds_one_batch = tf.data.Dataset.from_tensors(test_ds_one_batch)
                 images_one_batch, labels_one_batch = next(iter(train_ds))
-                ds_ann_vth_search = tf.data.Dataset.from_tensors((images_one_batch, labels_one_batch))
+                #images_one_batch, labels_one_batch = next(iter(test_ds))
+                #print(tf.reduce_mean(images_one_batch))
+            #else:
+                #images_one_batch, labels_one_batch = next(iter(test_ds))
 
-                if conf.vth_search_ig:
-                    one_image=True
+            ds_one_batch = tf.data.Dataset.from_tensors((images_one_batch,labels_one_batch))
+            ds_ann = ds_one_batch
+
+            #
+            #result = model.evaluate(ds_one_batch, callbacks=callbacks_test)
+
+            #
+            nn_mode_ori = conf.nn_mode
+            conf.nn_mode = 'ANN'
+
+            # run for init
+            for data in ds_ann:
+                x = data[0]
+                y = data[1]
+                x = x[0]
+                y = y[0]
+                break
+
+            x = tf.expand_dims(x,axis=0)
+            y = tf.expand_dims(y,axis=0)
+            ds_one_sample = tf.data.Dataset.from_tensors((x,y))
+
+            #result_ann = model_ann.evaluate(ds_one_batch, callbacks=callbacks_test_ann)
+            result_ann = model_ann.evaluate(ds_one_sample, callbacks=callbacks_test_ann)
+
+            #
+            calib_ori = cb_libsnn_ann.calibration
+            cb_libsnn_ann.calibration = False
+
+            #
+            gradient_test_tmp = False
+            #gradient_test_tmp = True
+            if gradient_test_tmp:
+                with tf.GradientTape(persistent=True) as tape:
+                #with tf.GradientTape(watch_accessed_variables=False) as tape:
+                    for data in ds_ann:
+                        x = data[0]
+                        y = data[1]
+                        y_decoded = tf.argmax(y,axis=1)
+
+                        print(x)
+                        print(y)
+
+                        tape.watch(x)
+                        #tf.compat.v1.disable_eager_execution()
+                        #y_pred = model_ann(x, training=True)
+                        y_pred = model_ann(x, training=False)
+                        #loss = model_ann.compiled_loss(y,y_pred)
+
+                        print(y_pred)
+                        #top_class = y_pred[:, y_decoded]
+
+                        top_class = tf.gather(y_pred,y_decoded)
+                        print(top_class)
+
+
+                        #tape.gradient(loss,x)
+                        grads_pred_act = collections.OrderedDict()
+
+                        for l in model_ann.layers_w_kernel:
+                            act = l.record_output
+                            grads_pred_act[l.name] = tape.gradient(top_class,act)
+
+                        #grads = tape.gradient(top_class,x)
+                        #print(grads)
+
+
+                        print([var.name for var in tape.watched_variables()])
+                        assert False
+
+
+                    assert False
+                    #if False:
+                    #for epoch, iterator in data_handler.enumerate_epochs():
+                        #y_pred = model_ann(ds_ann, callbacks=callba)
+                        #data = data_adapter.expand_1d(ds_ann)
+                        #x, y, sample_weight = data_adapter.unpack_x_y_sample_weight(data)
+                        #print(x)
+                        #print(y)
+
+                assert False
+
+            #
+            # integrated gradients
+            #
+            num_range = 1000
+            for l in model_ann.layers_w_kernel:
+                #glb_rand_vth[l.name] = tf.random.uniform(shape=[num_range], minval=0.0, maxval=1, dtype=tf.float32)
+                #glb_rand_vth[l.name] = tf.range(1 / num_range, 1 + 1 / num_range, 1 / num_range, dtype=tf.float32)
+                glb_rand_vth[l.name] = tf.random.uniform(shape=[num_range], minval=0.0, maxval=1, dtype=tf.float32)
+                #glb_rand_vth[l.name] = tf.random.uniform(shape=[num_range], minval=0.5, maxval=1, dtype=tf.float32)
+                glb_vth_search_err[l.name] = tf.TensorArray(tf.float32, size=0, dynamic_size=True, clear_after_read=False)
+
+
+            #num_batch_for_vth_search = 10
+            num_batch_for_vth_search = 1
+
+            vth_search = True
+            #vth_search = False
+
+            if vth_search:
+                for idx_batch in range(num_batch_for_vth_search):
+                    images_one_batch, labels_one_batch = next(iter(train_ds))
+                    ds_ann_vth_search = tf.data.Dataset.from_tensors((images_one_batch, labels_one_batch))
+
+                    if conf.vth_search_ig:
+                        one_image=True
+                    else:
+                        one_image=False
+
+
+                    if conf.vth_search_ig:
+                        #glb_ig_attributions = []
+                        ig_attributions = collections.OrderedDict()
+
+                        m_steps = 50
+                        #m_steps = 250
+                        # preprocessing
+                        for l in model_ann.layers_w_kernel:
+                            #glb_ig_attributions[l.name] = tf.TensorArray(tf.float32, size=m_steps+1)
+                            ig_attributions[l.name] = tf.TensorArray(tf.float32, size=0, dynamic_size=True, clear_after_read=False)
+
+                        for data in ds_ann_vth_search:
+                        #for data in ds_one_batch:
+                            #x = data[0]
+                            #y = data[1]
+
+                            #y_decoded = tf.argmax(y, axis=1)
+
+                            #if one_image:
+                            #    x = x[1]
+                            #    y = y[1]
+                            #    y_decoded = tf.argmax(y)
+                            images = data[0]
+                            labels = data[1]
+
+                            for idx, image in enumerate(images):
+                                print(idx)
+                                label = labels[idx]
+
+                                #image = images[0]
+                                #label = labels[0]
+
+                                label_decoded = tf.argmax(label)
+
+                                baseline = tf.zeros(shape=image.shape)
+
+                                ig_attribution = lib_snn.xai.integrated_gradients(model=model_ann,
+                                                                                 baseline=baseline,
+                                                                                 images=image,
+                                                                                 target_class_idxs=label_decoded,
+                                                                                 m_steps=m_steps)
+                                #glb_ig_attributions.append(ig_attribution)
+
+                                for l in model_ann.layers_w_kernel:
+                                    ig_attributions[l.name] = ig_attributions[l.name].write(idx,ig_attribution[l.name])
+
+                                #assert False
+
+                            for l in model_ann.layers_w_kernel:
+                                ig_attr = ig_attributions[l.name].stack()
+                                #ig_attr = tf.reduce_mean(ig_attr,axis=0)
+                                glb_ig_attributions[l.name] = tf.reduce_sum(tf.math.abs(ig_attr),axis=1) # sum - alphas
+
+
+                        #cmap = plt.cm.inferno
+                        ##cmap = plt.cm.viridis
+                        #lib_snn.xai.plot_image_attributions(baseline,image,ig_attribution,cmap=cmap)
+
+                    #
+                    result_ann = model_ann.evaluate(ds_ann_vth_search, callbacks=callbacks_test_ann)
+
+                    # calculate and accumulate errors
+                    #error_level = 'layer'
+                    error_level = 'channel'
+
+                    for l in model_ann.layers_w_kernel:
+
+                        if error_level == 'layer':
+                            if isinstance(l, lib_snn.layers.Conv2D) or isinstance(l, lib_snn.layers.InputGenLayer):
+                                axis = [0, 1, 2, 3]
+                            elif isinstance(l, lib_snn.layers.Dense):
+                                axis = [0, 1]
+                            else:
+                                assert False
+                        elif error_level == 'channel':
+                            if isinstance(l, lib_snn.layers.Conv2D) or isinstance(l, lib_snn.layers.InputGenLayer):
+                                axis = [0, 1, 2]
+                            elif isinstance(l, lib_snn.layers.Dense):
+                                axis = [0]
+                            else:
+                                assert False
+                        else:
+                            assert False
+
+                        dnn_act = model_ann.get_layer(l.name).record_output
+
+                        if conf.f_w_norm_data:
+                            stat_max = tf.reduce_max(dnn_act, axis=axis)
+                            stat_max = tfp.stats.percentile(dnn_act, 99.9, axis=axis)
+                            stat_max = tf.ones(stat_max.shape)
+                            # stat_max = tf.reduce_max(dnn_act, axis=axis)
+                            # stat_max = read_stat(self, l, 'max')
+                            # stat_max = stat_max / self.norm_b[l.name]
+                            # stat_max = tf.expand_dims(stat_max,axis=0)
+                            # stat_max = tf.reduce_max(stat_max,axis=axis)
+                        else:
+                            stat_max = lib_snn.calibration.read_stat(cb_libsnn, l, 'max')
+                            stat_max = tf.expand_dims(stat_max, axis=0)
+                            stat_max = tf.reduce_max(stat_max, axis=axis)
+
+                        #
+                        #if error_level == 'layer':
+                            #errs = tf.zeros([num_range])
+                        #elif error_level == 'channel':
+                            #errs = tf.zeros([num_range, stat_max.shape[0]])
+                        #else:
+                            #assert False
+
+                        #errs = tf.TensorArray(tf.float32, size=0, dynamic_size=True, clear_after_read=False)
+
+                        # assert False
+                        # errs = []
+
+                        if conf.bias_control:
+                            time = tf.cast(conf.time_step - tf.reduce_mean(l.bias_en_time), tf.float32)
+                        else:
+                            time = conf.time_step
+                        # time = self.conf.time_step
+
+                        #
+                        for idx, vth_scale in enumerate(glb_rand_vth[l.name]):
+
+                            vth = vth_scale * stat_max
+
+                            # clip_max = vth*self.conf.time_step
+                            # clip_max = vth*time
+                            clip_max = time
+
+                            # dnn_act_clip_floor = tf.math.floor(dnn_act/vth)
+                            dnn_act_clip_floor = tf.math.floor(dnn_act / vth * time)
+                            dnn_act_clip_floor = tf.clip_by_value(dnn_act_clip_floor, 0, clip_max)
+                            dnn_act_clip_floor = dnn_act_clip_floor * vth / time
+
+                            # print(vth)
+                            err = dnn_act - dnn_act_clip_floor
+                            err = tf.math.square(err)
+                            # err = tf.math.square(err)*1/dnn_act
+
+                            # integrated gradients
+                            if conf.vth_search_ig:
+                                # if isinstance(l, lib_snn.layers.Conv2D):
+                                # ig_attributions = tf.reduce_mean(glb_ig_attributions[l.name],axis=[0,1])
+                                # elif isinstance(l, lib_snn.layers.Dense):
+                                # ig_attributions = glb_ig_attributions[l.name]
+                                # else:
+                                # assert False
+                                # print(err.shape)
+                                ig_attributions = glb_ig_attributions[l.name]
+                                eps = 0.01
+                                # print(err.shape)
+                                # print(ig_attributions.shape)
+                                # err = err*(1+ig_attributions)
+                                # err = err*(10+ig_attributions/tf.reduce_max(ig_attributions))
+                                # err = err*(2+ig_attributions/tf.reduce_max(ig_attributions))
+                                # err = err*(1+ig_attributions/tf.reduce_max(ig_attributions))
+                                # err = err*(0.5+ig_attributions/tf.reduce_max(ig_attributions))
+                                # err = err*(0.1+ig_attributions/tf.reduce_max(ig_attributions))
+                                # err = err*(0.01+ig_attributions/tf.reduce_max(ig_attributions))    # old best?
+                                # err = err*(0.001+ig_attributions/tf.reduce_max(ig_attributions))
+                                # err = err*(tf.reduce_min(ig_attributions)+ig_attributions)
+                                # alpha = 0.5
+                                # err = alpha*err/tf.reduce_max(err,axis=axis)+(1-alpha)*1/(ig_attributions/tf.reduce_max(ig_attributions,axis=axis))
+                                # err = err*ig_attributions
+                                # err = err*(ig_attributions/tf.reduce_max(ig_attributions,axis=axis))
+                                # err = err*(eps+ig_attributions/tf.reduce_max(ig_attributions,axis=axis))
+                                #err = err * (eps + ig_attributions / tf.reduce_max(ig_attributions))
+                                # err = err*(tf.reduce_min(ig_attributions)+ig_attributions/tf.reduce_max(ig_attributions))
+                                # err = err*(tf.reduce_mean(ig_attributions)+ig_attributions/tf.reduce_max(ig_attributions))
+                                # err = err*(eps+ig_attributions/tf.reduce_max(ig_attributions))    # old best?
+                                err = err*(ig_attributions/tf.reduce_max(ig_attributions))
+                                # print(err.shape)
+
+                            # err = err * snn_act
+                            # print(err)
+
+                            # err = tf.math.abs(err)
+
+                            # err = err * snn_act
+                            # print(err)
+                            # err = tf.math.square(err)
+                            err = tf.reduce_mean(err, axis=axis)
+                            # print(err)
+
+                            #if error_level == 'layer':
+                                #errs = tf.tensor_scatter_nd_update(errs, [[idx]], [err])
+                            #elif error_level == 'channel':
+                                #errs = tf.tensor_scatter_nd_update(errs, [[idx]], [err])
+
+                            #errs[l.name] = errs[l.name].write(idx, err)
+
+                            vth_err_arr = glb_vth_search_err[l.name]
+                            #if vth_err_arr.size() > 1:
+                            if idx_batch==0:
+                                glb_vth_search_err[l.name] = vth_err_arr.write(idx, err)
+                            else:
+                                glb_vth_search_err[l.name] = vth_err_arr.write(idx, vth_err_arr.read(idx) + err)
+
+                        assert False
+
+            if False:
+            #if vth_search:
+                for l in model_ann.layers_w_kernel:
+
+                    #ig_attr = ig_attributions[l.name].stack()
+                    # ig_attr = tf.reduce_mean(ig_attr,axis=0)
+                    #glb_ig_attributions[l.name] = tf.reduce_sum(tf.math.abs(ig_attr), axis=1)  # sum - alphas
+
+                    #errs [l.name] = ig_attributions[l.name].write(idx,ig_attribution[l.name])
+                    errs_layer = glb_vth_search_err[l.name].stack()
+                    #print(errs_layer.shape)
+
+                    vth_idx_min_err = tf.math.argmin(errs_layer)
+                    print(vth_idx_min_err)
+
+                    # vth_min_err = tf.gather(range_vth,vth_idx_min_err)
+                    vth_min_err_scale = tf.gather(glb_rand_vth[l.name], vth_idx_min_err)
+                    #vth_min_err = vth_min_err_scale * stat_max
+                    vth_min_err = vth_min_err_scale
+                    vth_init = vth_min_err
+
+                    glb_vth_init[l.name]=vth_init
+                    print(vth_init)
+
+                    #kssert False
+
+            assert False
+
+
+            cb_libsnn_ann.calibration = calib_ori
+            result_ann = model_ann.evaluate(ds_ann, callbacks=callbacks_test_ann)
+
+            #lib_snn.calibration.weight_calibration_act_based(cb_libsnn)
+
+            conf.nn_mode = nn_mode_ori
+
+            model.evaluate(ds_ann, callbacks=callbacks_test)
+
+            print('here')
+
+            if vth_search:
+                lib_snn.calibration.vth_set_and_norm(cb_libsnn)
+
+            #assert False
+
+        #
+        # calibration with activations
+        # calibration ICML-21
+        #
+        #if (conf.nn_mode == 'SNN') and (conf.calibration_bias_ICML_21 or conf.calibration_vmem_ICML_21):
+        #if (conf.nn_mode == 'SNN') and (act_based_calibration):
+        if False:
+            # pre
+            cb_libsnn.run_for_calibration = True
+            glb_plot.mark='ro'
+            glb_plot_1.mark='ro'
+            glb_plot_2.mark='ro'
+
+            #
+            compare_control_snn=True
+            if (not conf.full_test) and compare_control_snn and conf.verbose_visual:
+                lib_snn.sim.set_for_visual_debug(True)
+                model.evaluate(test_ds, callbacks=callbacks_test)
+                lib_snn.sim.set_for_visual_debug(False)
+
+            # run
+            if conf.calibration_weight:
+                print('run for calibration - static')
+                model.evaluate(ds_one_batch, callbacks=callbacks_test)
+
+            # run
+            if conf.calibration_weight_act_based:
+                print('run for calibration - act based')
+                model.evaluate(ds_one_batch, callbacks=callbacks_test)
+
+            # run
+            if conf.calibration_bias_ICML_21:
+                print('run for calibration - post')
+                model.evaluate(ds_one_batch, callbacks=callbacks_test)
+
+            # post
+            cb_libsnn.run_for_calibration = False
+            glb_plot.mark = 'bo'
+            glb_plot_1.mark = 'bo'
+            glb_plot_2.mark = 'bo'
+
+
+        if conf.nn_mode=='SNN' and conf.dnn_to_snn and conf.vth_search:
+            # new start
+            #num_batch_for_vth_search = 10
+            #num_batch_for_vth_search = 4
+            #num_batch_for_vth_search = 3
+            #num_batch_for_vth_search = 2
+            #num_batch_for_vth_search = 1
+
+
+            #train_ds = test_ds
+
+            # 1,3,23,43
+
+            if False:
+                comp_batch_index = []
+                comp_batch_index.append(3)
+
+                #comp_batch_index.append(0)
+                comp_batch_index.append(1)
+                #comp_batch_index.append(2)
+
+                #comp_batch_index.append(3)
+                #comp_batch_index.append(4)
+                #comp_batch_index.append(5)
+                #comp_batch_index.append(6)
+                #comp_batch_index.append(7)
+                #comp_batch_index.append(8)
+                #comp_batch_index.append(10)
+                #comp_batch_index.append(13)
+
+                comp_batch_index.append(23)    #
+                #comp_batch_index.append(33)
+
+                #comp_batch_index.append(43)
+
+                #comp_batch_index.append(53)
+                #comp_batch_index.append(100)
+                #comp_batch_index.append(111)
+                #comp_batch_index.append(122)
+                #comp_batch_index.append(87)
+                #comp_batch_index.append(84)
+                #comp_batch_index.append(74)
+                #comp_batch_index.append(7)
+                comp_batch_index.append(20)     #
+                #comp_batch_index.append(40)
+
+
+            if conf.dataset=='CIFAR10':
+                #comp_batch_index = [1,3,20,23]  # VGG16, CIFAR10, not optmized
+                comp_batch_index = [4,100]      # ResNet20, ts-64
+                #pass
+                # comp_batch_index = [1,3,20,23]
+                #comp_batch_index = [3, 1, 23, 20]
+                comp_batch_index = [92]
+
+                if model_name=='VGG16':
+                    comp_batch_index = [3, 1, 23, 20]
+            elif conf.dataset=='CIFAR100':
+                #comp_batch_index = [1, 0]
+                #comp_batch_index = [97]
+                comp_batch_index = [24]     # ResNet20, ts-64,128
+                #comp_batch_index = [97]
+                #comp_batch_index = [34]
+                if conf.model=='VGG16':
+                    comp_batch_index = [34,79]
                 else:
-                    one_image=False
+                    assert False
+            else:
+                assert False
+
+
+            #if conf.model=='ResNet44':
+            if conf.batch_size_inf!=400:
+                if conf.batch_size_inf==200:
+                    comp_batch_index_tmp = []
+                    for idx in comp_batch_index:
+                        comp_batch_index_tmp.append(2 * idx)
+                        comp_batch_index_tmp.append(2 * idx + 1)
+
+                    comp_batch_index = comp_batch_index_tmp
+                else:
+                    assert False
+
+
+            if conf.vth_search_idx_test:
+                comp_batch_index= []
+                comp_batch_index = [4,100]      # ResNet20, ts-64
+                comp_batch_index = [34,79]      # VGG16, CIFAR100
+                comp_batch_index.append(conf.vth_search_idx)
+
+            #assert (conf.batch_size_inf!=400) and (conf.model=='ResNet44')
+
+            #rand_int = tf.random.uniform(shape=(),minval=0,maxval=25,dtype=tf.int32)
+            #comp_batch_index.append(rand_int)
+            print('comp_batch_index')
+            print(comp_batch_index)
+
+
+
+            ##vth_search = True
+            #vth_search = False
+
+            vth_search_num_batch = len(comp_batch_index)
+            #count_vth_search_batch = 0
+
+
+            # for initial setting
+            #ds_one_batch = train_ds.take(1)
+            #result = model_ann.evaluate(ds_one_batch, callbacks=callbacks_test_ann)
+            #result = model.evaluate(ds_one_batch, callbacks=callbacks_test)
+
+            count_cal_batch = 0
+            last_batch=False
+            #for idx_batch, (x, y) in enumerate(train_ds):
+            for idx_batch in comp_batch_index:
+                # ds_one_batch_ann = tf.data.Dataset.from_tensors((images_one_batch, labels_one_batch)).take(1).cache()
+                # ds_one_batch_snn = tf.data.Dataset.from_tensors((images_one_batch, labels_one_batch)).take(1).cache()
+
+                #print(idx_batch)
+
+                if not (idx_batch in comp_batch_index):
+                    continue
+
+                if count_cal_batch == vth_search_num_batch- 1:
+                    last_batch = True
+
+                #ds_one_batch = tf.data.Dataset.from_tensors((x, y))
+                ds_one_batch = train_ds.skip(idx_batch).take(1)
+
+
+                #
+                #if not (model_ann is None):
+                #assert False
+                #model_ann.layers_record = model_ann.layers_w_act
+                #result = model_ann.evaluate(ds_one_batch, callbacks=callbacks_test_ann)
+
+                # run - ann
+                # callbacks_test[0].model_ann = model_ann
+                #result = model_ann.evaluate(ds_one_batch, callbacks=callbacks_test_ann)
+
+                # ds_one_batch = tf.data.Dataset.from_tensors((images_one_batch, labels_one_batch))
+                # run - snn
+                #result = model.evaluate(ds_one_batch, callbacks=callbacks_test)
 
 
                 if conf.vth_search_ig:
-                    #glb_ig_attributions = []
+                    # glb_ig_attributions = []
                     ig_attributions = collections.OrderedDict()
 
                     m_steps = 50
-                    #m_steps = 250
+                    # m_steps = 250
                     # preprocessing
                     for l in model_ann.layers_w_kernel:
-                        #glb_ig_attributions[l.name] = tf.TensorArray(tf.float32, size=m_steps+1)
-                        ig_attributions[l.name] = tf.TensorArray(tf.float32, size=0, dynamic_size=True, clear_after_read=False)
+                        # glb_ig_attributions[l.name] = tf.TensorArray(tf.float32, size=m_steps+1)
+                        ig_attributions[l.name] = tf.TensorArray(tf.float32, size=0, dynamic_size=True,
+                                                                 clear_after_read=False)
 
-                    for data in ds_ann_vth_search:
-                    #for data in ds_one_batch:
-                        #x = data[0]
-                        #y = data[1]
+                    for data in ds_one_batch:
+                        # for data in ds_one_batch:
+                        # x = data[0]
+                        # y = data[1]
 
-                        #y_decoded = tf.argmax(y, axis=1)
+                        # y_decoded = tf.argmax(y, axis=1)
 
-                        #if one_image:
+                        # if one_image:
                         #    x = x[1]
                         #    y = y[1]
                         #    y_decoded = tf.argmax(y)
@@ -1212,1103 +1674,671 @@ else:
                             print(idx)
                             label = labels[idx]
 
-                            #image = images[0]
-                            #label = labels[0]
+                            # image = images[0]
+                            # label = labels[0]
 
                             label_decoded = tf.argmax(label)
 
                             baseline = tf.zeros(shape=image.shape)
 
                             ig_attribution = lib_snn.xai.integrated_gradients(model=model_ann,
-                                                                             baseline=baseline,
-                                                                             images=image,
-                                                                             target_class_idxs=label_decoded,
-                                                                             m_steps=m_steps)
-                            #glb_ig_attributions.append(ig_attribution)
+                                                                              baseline=baseline,
+                                                                              images=image,
+                                                                              target_class_idxs=label_decoded,
+                                                                              m_steps=m_steps)
+                            # glb_ig_attributions.append(ig_attribution)
 
                             for l in model_ann.layers_w_kernel:
-                                ig_attributions[l.name] = ig_attributions[l.name].write(idx,ig_attribution[l.name])
+                                ig_attributions[l.name] = ig_attributions[l.name].write(idx, ig_attribution[l.name])
 
-                            #assert False
+                            # assert False
 
                         for l in model_ann.layers_w_kernel:
                             ig_attr = ig_attributions[l.name].stack()
-                            #ig_attr = tf.reduce_mean(ig_attr,axis=0)
-                            glb_ig_attributions[l.name] = tf.reduce_sum(tf.math.abs(ig_attr),axis=1) # sum - alphas
+                            # ig_attr = tf.reduce_mean(ig_attr,axis=0)
+                            glb_ig_attributions[l.name] = tf.reduce_sum(tf.math.abs(ig_attr), axis=1)  # sum - alphas
+                #assert False
 
+                if last_batch:
+                    cb_libsnn_ann.f_vth_set_and_norm = True
 
-                    #cmap = plt.cm.inferno
-                    ##cmap = plt.cm.viridis
-                    #lib_snn.xai.plot_image_attributions(baseline,image,ig_attribution,cmap=cmap)
+                callbacks_test_ann[0].run_for_vth_search = True
+                result = model_ann.evaluate(ds_one_batch, callbacks=callbacks_test_ann)
+                callbacks_test_ann[0].run_for_vth_search = False
 
-                #
-                result_ann = model_ann.evaluate(ds_ann_vth_search, callbacks=callbacks_test_ann)
 
-                # calculate and accumulate errors
-                #error_level = 'layer'
-                error_level = 'channel'
+                if last_batch:
+                    cb_libsnn_ann.f_vth_set_and_norm = False
 
-                for l in model_ann.layers_w_kernel:
+                #for layer in model_ann.layers:
+                    #if hasattr(layer,'record_output'):
+                        ##print(layer)
+                        #del layer.record_output
 
-                    if error_level == 'layer':
-                        if isinstance(l, lib_snn.layers.Conv2D) or isinstance(l, lib_snn.layers.InputGenLayer):
-                            axis = [0, 1, 2, 3]
-                        elif isinstance(l, lib_snn.layers.Dense):
-                            axis = [0, 1]
-                        else:
-                            assert False
-                    elif error_level == 'channel':
-                        if isinstance(l, lib_snn.layers.Conv2D) or isinstance(l, lib_snn.layers.InputGenLayer):
-                            axis = [0, 1, 2]
-                        elif isinstance(l, lib_snn.layers.Dense):
-                            axis = [0]
-                        else:
-                            assert False
-                    else:
-                        assert False
+                # idx_batch = idx_batch+1
+                # if idx_batch == num_batch_for_vth_search-1:
+                #if idx_batch == conf.vth_search_num_batch - 1:
 
-                    dnn_act = model_ann.get_layer(l.name).record_output
+                #count_vth_search_batch = count_vth_search_batch + 1
 
-                    if conf.f_w_norm_data:
-                        stat_max = tf.reduce_max(dnn_act, axis=axis)
-                        stat_max = tfp.stats.percentile(dnn_act, 99.9, axis=axis)
-                        stat_max = tf.ones(stat_max.shape)
-                        # stat_max = tf.reduce_max(dnn_act, axis=axis)
-                        # stat_max = read_stat(self, l, 'max')
-                        # stat_max = stat_max / self.norm_b[l.name]
-                        # stat_max = tf.expand_dims(stat_max,axis=0)
-                        # stat_max = tf.reduce_max(stat_max,axis=axis)
-                    else:
-                        stat_max = lib_snn.calibration.read_stat(cb_libsnn, l, 'max')
-                        stat_max = tf.expand_dims(stat_max, axis=0)
-                        stat_max = tf.reduce_max(stat_max, axis=axis)
+                count_cal_batch = count_cal_batch + 1
 
-                    #
-                    #if error_level == 'layer':
-                        #errs = tf.zeros([num_range])
-                    #elif error_level == 'channel':
-                        #errs = tf.zeros([num_range, stat_max.shape[0]])
-                    #else:
-                        #assert False
+                if last_batch:
+                    break
 
-                    #errs = tf.TensorArray(tf.float32, size=0, dynamic_size=True, clear_after_read=False)
-
-                    # assert False
-                    # errs = []
-
-                    if conf.bias_control:
-                        time = tf.cast(conf.time_step - tf.reduce_mean(l.bias_en_time), tf.float32)
-                    else:
-                        time = conf.time_step
-                    # time = self.conf.time_step
-
-                    #
-                    for idx, vth_scale in enumerate(glb_rand_vth[l.name]):
-
-                        vth = vth_scale * stat_max
-
-                        # clip_max = vth*self.conf.time_step
-                        # clip_max = vth*time
-                        clip_max = time
-
-                        # dnn_act_clip_floor = tf.math.floor(dnn_act/vth)
-                        dnn_act_clip_floor = tf.math.floor(dnn_act / vth * time)
-                        dnn_act_clip_floor = tf.clip_by_value(dnn_act_clip_floor, 0, clip_max)
-                        dnn_act_clip_floor = dnn_act_clip_floor * vth / time
-
-                        # print(vth)
-                        err = dnn_act - dnn_act_clip_floor
-                        err = tf.math.square(err)
-                        # err = tf.math.square(err)*1/dnn_act
-
-                        # integrated gradients
-                        if conf.vth_search_ig:
-                            # if isinstance(l, lib_snn.layers.Conv2D):
-                            # ig_attributions = tf.reduce_mean(glb_ig_attributions[l.name],axis=[0,1])
-                            # elif isinstance(l, lib_snn.layers.Dense):
-                            # ig_attributions = glb_ig_attributions[l.name]
-                            # else:
-                            # assert False
-                            # print(err.shape)
-                            ig_attributions = glb_ig_attributions[l.name]
-                            eps = 0.01
-                            # print(err.shape)
-                            # print(ig_attributions.shape)
-                            # err = err*(1+ig_attributions)
-                            # err = err*(10+ig_attributions/tf.reduce_max(ig_attributions))
-                            # err = err*(2+ig_attributions/tf.reduce_max(ig_attributions))
-                            # err = err*(1+ig_attributions/tf.reduce_max(ig_attributions))
-                            # err = err*(0.5+ig_attributions/tf.reduce_max(ig_attributions))
-                            # err = err*(0.1+ig_attributions/tf.reduce_max(ig_attributions))
-                            # err = err*(0.01+ig_attributions/tf.reduce_max(ig_attributions))    # old best?
-                            # err = err*(0.001+ig_attributions/tf.reduce_max(ig_attributions))
-                            # err = err*(tf.reduce_min(ig_attributions)+ig_attributions)
-                            # alpha = 0.5
-                            # err = alpha*err/tf.reduce_max(err,axis=axis)+(1-alpha)*1/(ig_attributions/tf.reduce_max(ig_attributions,axis=axis))
-                            # err = err*ig_attributions
-                            # err = err*(ig_attributions/tf.reduce_max(ig_attributions,axis=axis))
-                            # err = err*(eps+ig_attributions/tf.reduce_max(ig_attributions,axis=axis))
-                            #err = err * (eps + ig_attributions / tf.reduce_max(ig_attributions))
-                            # err = err*(tf.reduce_min(ig_attributions)+ig_attributions/tf.reduce_max(ig_attributions))
-                            # err = err*(tf.reduce_mean(ig_attributions)+ig_attributions/tf.reduce_max(ig_attributions))
-                            # err = err*(eps+ig_attributions/tf.reduce_max(ig_attributions))    # old best?
-                            err = err*(ig_attributions/tf.reduce_max(ig_attributions))
-                            # print(err.shape)
-
-                        # err = err * snn_act
-                        # print(err)
-
-                        # err = tf.math.abs(err)
-
-                        # err = err * snn_act
-                        # print(err)
-                        # err = tf.math.square(err)
-                        err = tf.reduce_mean(err, axis=axis)
-                        # print(err)
-
-                        #if error_level == 'layer':
-                            #errs = tf.tensor_scatter_nd_update(errs, [[idx]], [err])
-                        #elif error_level == 'channel':
-                            #errs = tf.tensor_scatter_nd_update(errs, [[idx]], [err])
-
-                        #errs[l.name] = errs[l.name].write(idx, err)
-
-                        vth_err_arr = glb_vth_search_err[l.name]
-                        #if vth_err_arr.size() > 1:
-                        if idx_batch==0:
-                            glb_vth_search_err[l.name] = vth_err_arr.write(idx, err)
-                        else:
-                            glb_vth_search_err[l.name] = vth_err_arr.write(idx, vth_err_arr.read(idx) + err)
-
-                    assert False
-
-        if False:
-        #if vth_search:
-            for l in model_ann.layers_w_kernel:
-
-                #ig_attr = ig_attributions[l.name].stack()
-                # ig_attr = tf.reduce_mean(ig_attr,axis=0)
-                #glb_ig_attributions[l.name] = tf.reduce_sum(tf.math.abs(ig_attr), axis=1)  # sum - alphas
-
-                #errs [l.name] = ig_attributions[l.name].write(idx,ig_attribution[l.name])
-                errs_layer = glb_vth_search_err[l.name].stack()
-                #print(errs_layer.shape)
-
-                vth_idx_min_err = tf.math.argmin(errs_layer)
-                print(vth_idx_min_err)
-
-                # vth_min_err = tf.gather(range_vth,vth_idx_min_err)
-                vth_min_err_scale = tf.gather(glb_rand_vth[l.name], vth_idx_min_err)
-                #vth_min_err = vth_min_err_scale * stat_max
-                vth_min_err = vth_min_err_scale
-                vth_init = vth_min_err
-
-                glb_vth_init[l.name]=vth_init
-                print(vth_init)
-
-                #kssert False
-
-        assert False
-
-
-        cb_libsnn_ann.calibration = calib_ori
-        result_ann = model_ann.evaluate(ds_ann, callbacks=callbacks_test_ann)
-
-        #lib_snn.calibration.weight_calibration_act_based(cb_libsnn)
-
-        conf.nn_mode = nn_mode_ori
-
-        model.evaluate(ds_ann, callbacks=callbacks_test)
-
-        print('here')
-
-        if vth_search:
-            lib_snn.calibration.vth_set_and_norm(cb_libsnn)
-
-        #assert False
-
-    #
-    # calibration with activations
-    # calibration ICML-21
-    #
-    #if (conf.nn_mode == 'SNN') and (conf.calibration_bias_ICML_21 or conf.calibration_vmem_ICML_21):
-    #if (conf.nn_mode == 'SNN') and (act_based_calibration):
-    if False:
-        # pre
-        cb_libsnn.run_for_calibration = True
-        glb_plot.mark='ro'
-        glb_plot_1.mark='ro'
-        glb_plot_2.mark='ro'
-
-        #
-        compare_control_snn=True
-        if (not conf.full_test) and compare_control_snn and conf.verbose_visual:
-            lib_snn.sim.set_for_visual_debug(True)
-            model.evaluate(test_ds, callbacks=callbacks_test)
-            lib_snn.sim.set_for_visual_debug(False)
-
-        # run
-        if conf.calibration_weight:
-            print('run for calibration - static')
-            model.evaluate(ds_one_batch, callbacks=callbacks_test)
-
-        # run
-        if conf.calibration_weight_act_based:
-            print('run for calibration - act based')
-            model.evaluate(ds_one_batch, callbacks=callbacks_test)
-
-        # run
-        if conf.calibration_bias_ICML_21:
-            print('run for calibration - post')
-            model.evaluate(ds_one_batch, callbacks=callbacks_test)
-
-        # post
-        cb_libsnn.run_for_calibration = False
-        glb_plot.mark = 'bo'
-        glb_plot_1.mark = 'bo'
-        glb_plot_2.mark = 'bo'
-
-
-    if conf.nn_mode=='SNN' and conf.dnn_to_snn and conf.vth_search:
-        # new start
-        #num_batch_for_vth_search = 10
-        #num_batch_for_vth_search = 4
-        #num_batch_for_vth_search = 3
-        #num_batch_for_vth_search = 2
-        #num_batch_for_vth_search = 1
-
-
-        #train_ds = test_ds
-
-        # 1,3,23,43
-
-        if False:
-            comp_batch_index = []
-            comp_batch_index.append(3)
-
-            #comp_batch_index.append(0)
-            comp_batch_index.append(1)
-            #comp_batch_index.append(2)
-
-            #comp_batch_index.append(3)
-            #comp_batch_index.append(4)
-            #comp_batch_index.append(5)
-            #comp_batch_index.append(6)
-            #comp_batch_index.append(7)
-            #comp_batch_index.append(8)
-            #comp_batch_index.append(10)
-            #comp_batch_index.append(13)
-
-            comp_batch_index.append(23)    #
-            #comp_batch_index.append(33)
-
-            #comp_batch_index.append(43)
-
-            #comp_batch_index.append(53)
-            #comp_batch_index.append(100)
-            #comp_batch_index.append(111)
-            #comp_batch_index.append(122)
-            #comp_batch_index.append(87)
-            #comp_batch_index.append(84)
-            #comp_batch_index.append(74)
-            #comp_batch_index.append(7)
-            comp_batch_index.append(20)     #
-            #comp_batch_index.append(40)
-
-
-        if conf.dataset=='CIFAR10':
-            #comp_batch_index = [1,3,20,23]  # VGG16, CIFAR10, not optmized
-            comp_batch_index = [4,100]      # ResNet20, ts-64
-            #pass
-            # comp_batch_index = [1,3,20,23]
-            #comp_batch_index = [3, 1, 23, 20]
-            comp_batch_index = [92]
-
-            if model_name=='VGG16':
-                comp_batch_index = [3, 1, 23, 20]
-        elif conf.dataset=='CIFAR100':
-            #comp_batch_index = [1, 0]
-            #comp_batch_index = [97]
-            comp_batch_index = [24]     # ResNet20, ts-64,128
-            #comp_batch_index = [97]
-            #comp_batch_index = [34]
-            if conf.model=='VGG16':
-                comp_batch_index = [34,79]
-            else:
-                assert False
-        else:
-            assert False
-
-
-        #if conf.model=='ResNet44':
-        if conf.batch_size_inf!=400:
-            if conf.batch_size_inf==200:
-                comp_batch_index_tmp = []
-                for idx in comp_batch_index:
-                    comp_batch_index_tmp.append(2 * idx)
-                    comp_batch_index_tmp.append(2 * idx + 1)
-
-                comp_batch_index = comp_batch_index_tmp
-            else:
-                assert False
-
-
-        if conf.vth_search_idx_test:
-            comp_batch_index= []
-            comp_batch_index = [4,100]      # ResNet20, ts-64
-            comp_batch_index = [34,79]      # VGG16, CIFAR100
-            comp_batch_index.append(conf.vth_search_idx)
-
-        #assert (conf.batch_size_inf!=400) and (conf.model=='ResNet44')
-
-        #rand_int = tf.random.uniform(shape=(),minval=0,maxval=25,dtype=tf.int32)
-        #comp_batch_index.append(rand_int)
-        print('comp_batch_index')
-        print(comp_batch_index)
-
-
-
-        ##vth_search = True
-        #vth_search = False
-
-        vth_search_num_batch = len(comp_batch_index)
-        #count_vth_search_batch = 0
-
-
-        # for initial setting
-        #ds_one_batch = train_ds.take(1)
-        #result = model_ann.evaluate(ds_one_batch, callbacks=callbacks_test_ann)
-        #result = model.evaluate(ds_one_batch, callbacks=callbacks_test)
-
-        count_cal_batch = 0
-        last_batch=False
-        #for idx_batch, (x, y) in enumerate(train_ds):
-        for idx_batch in comp_batch_index:
-            # ds_one_batch_ann = tf.data.Dataset.from_tensors((images_one_batch, labels_one_batch)).take(1).cache()
-            # ds_one_batch_snn = tf.data.Dataset.from_tensors((images_one_batch, labels_one_batch)).take(1).cache()
-
-            #print(idx_batch)
-
-            if not (idx_batch in comp_batch_index):
-                continue
-
-            if count_cal_batch == vth_search_num_batch- 1:
-                last_batch = True
-
-            #ds_one_batch = tf.data.Dataset.from_tensors((x, y))
-            ds_one_batch = train_ds.skip(idx_batch).take(1)
+                #if count_vth_search_batch == vth_search_num_batch - 1:
+                #    break
 
 
             #
-            #if not (model_ann is None):
-            #assert False
-            #model_ann.layers_record = model_ann.layers_w_act
-            #result = model_ann.evaluate(ds_one_batch, callbacks=callbacks_test_ann)
-
-            # run - ann
-            # callbacks_test[0].model_ann = model_ann
-            #result = model_ann.evaluate(ds_one_batch, callbacks=callbacks_test_ann)
-
-            # ds_one_batch = tf.data.Dataset.from_tensors((images_one_batch, labels_one_batch))
-            # run - snn
-            #result = model.evaluate(ds_one_batch, callbacks=callbacks_test)
+            #del glb_rand_vth
+            #
+            cb_libsnn.f_vth_set_and_norm=True
+            result = model.evaluate(ds_one_batch, callbacks=callbacks_test)
+            cb_libsnn.f_vth_set_and_norm=False
 
 
-            if conf.vth_search_ig:
-                # glb_ig_attributions = []
-                ig_attributions = collections.OrderedDict()
-
-                m_steps = 50
-                # m_steps = 250
-                # preprocessing
-                for l in model_ann.layers_w_kernel:
-                    # glb_ig_attributions[l.name] = tf.TensorArray(tf.float32, size=m_steps+1)
-                    ig_attributions[l.name] = tf.TensorArray(tf.float32, size=0, dynamic_size=True,
-                                                             clear_after_read=False)
-
-                for data in ds_one_batch:
-                    # for data in ds_one_batch:
-                    # x = data[0]
-                    # y = data[1]
-
-                    # y_decoded = tf.argmax(y, axis=1)
-
-                    # if one_image:
-                    #    x = x[1]
-                    #    y = y[1]
-                    #    y_decoded = tf.argmax(y)
-                    images = data[0]
-                    labels = data[1]
-
-                    for idx, image in enumerate(images):
-                        print(idx)
-                        label = labels[idx]
-
-                        # image = images[0]
-                        # label = labels[0]
-
-                        label_decoded = tf.argmax(label)
-
-                        baseline = tf.zeros(shape=image.shape)
-
-                        ig_attribution = lib_snn.xai.integrated_gradients(model=model_ann,
-                                                                          baseline=baseline,
-                                                                          images=image,
-                                                                          target_class_idxs=label_decoded,
-                                                                          m_steps=m_steps)
-                        # glb_ig_attributions.append(ig_attribution)
-
-                        for l in model_ann.layers_w_kernel:
-                            ig_attributions[l.name] = ig_attributions[l.name].write(idx, ig_attribution[l.name])
-
-                        # assert False
-
-                    for l in model_ann.layers_w_kernel:
-                        ig_attr = ig_attributions[l.name].stack()
-                        # ig_attr = tf.reduce_mean(ig_attr,axis=0)
-                        glb_ig_attributions[l.name] = tf.reduce_sum(tf.math.abs(ig_attr), axis=1)  # sum - alphas
-            #assert False
-
-            if last_batch:
-                cb_libsnn_ann.f_vth_set_and_norm = True
-
-            callbacks_test_ann[0].run_for_vth_search = True
-            result = model_ann.evaluate(ds_one_batch, callbacks=callbacks_test_ann)
-            callbacks_test_ann[0].run_for_vth_search = False
+    #        if True:
+    #        #if False:
+    #            cb_libsnn_ann.f_vth_set_and_norm=True
+    #            result = model_ann.evaluate(ds_one_batch, callbacks=callbacks_test_ann)
+    #            cb_libsnn_ann.f_vth_set_and_norm=False
+    #
+    #        if True:
+    #        #if False:
+    #            cb_libsnn.f_vth_set_and_norm=True
+    #            result = model.evaluate(ds_one_batch, callbacks=callbacks_test)
+    #            cb_libsnn.f_vth_set_and_norm=False
+    #            #cb_lib_snn.calibration.vth_set_and_norm(cb_libsnn)
 
 
-            if last_batch:
-                cb_libsnn_ann.f_vth_set_and_norm = False
+        #print('delete used variables')
+        #del glb_vth_search_err
+        #del glb_vth_init
 
-            #for layer in model_ann.layers:
-                #if hasattr(layer,'record_output'):
-                    ##print(layer)
-                    #del layer.record_output
-
-            # idx_batch = idx_batch+1
-            # if idx_batch == num_batch_for_vth_search-1:
-            #if idx_batch == conf.vth_search_num_batch - 1:
-
-            #count_vth_search_batch = count_vth_search_batch + 1
-
-            count_cal_batch = count_cal_batch + 1
-
-            if last_batch:
-                break
-
-            #if count_vth_search_batch == vth_search_num_batch - 1:
-            #    break
+        if False:
+            result = model_ann.evaluate(test_ds, callbacks=callbacks_test_ann)
 
 
+            lib_snn.sim.set_for_visual_debug(True)
+            result = model.evaluate(test_ds, callbacks=callbacks_test)
+            lib_snn.sim.set_for_visual_debug(False)
+
+            l = model.get_layer('predictions')
+            time = tf.cast(conf.time_step - tf.reduce_mean(l.bias_en_time), tf.float32)
+
+            ann_logit = model_ann.get_layer('predictions').record_logit
+            snn_logit = model.get_layer('predictions').record_output/time
+
+            if False:
+                ann_logit_part=ann_logit[60:70]
+                snn_logit_part=snn_logit[60:70]
+
+                print(ann_logit_part)
+                print(snn_logit_part)
+
+                print(tf.argmax(ann_logit_part,axis=1))
+                print(tf.argmax(snn_logit_part,axis=1))
+
+                print('')
+                print(ann_logit[62])
+                print(snn_logit[62])
+
+                print('')
+                print(ann_logit[67])
+                print(snn_logit[67])
+
+            print(ann_logit)
+            print(snn_logit)
+
+            print(tf.argmax(ann_logit, axis=1))
+            print(tf.argmax(snn_logit, axis=1))
+
+        #assert False
+
+        #calibration_bias_ML21(model,model_ann,callbacks_test,callbacks_test_ann,train_ds)
+
+    #def calibration_bias_ML21(model, model_ann, callback, callback_ann, dataset):
+
+        #test_detail = True
+        test_detail = False
+
+        if test_detail:
+
+            test_ds_idx = []
+            #test_ds_idx.append(4)
+
+            diff_list=[]
+            #for idx_batch, (x, y) in enumerate(train_ds):
+            for idx_batch, (x, y) in enumerate(test_ds):
+
+                #if not (idx_batch in test_ds_idx):
+                #    continue
+
+                print(idx_batch)
+                ds_one_batch = test_ds.skip(idx_batch).take(1)
+                result_ann = model_ann.evaluate(ds_one_batch, callbacks=callbacks_test_ann)
+                result = model.evaluate(ds_one_batch, callbacks=callbacks_test)
+
+                if result_ann[1] != result[1]:
+                    print('diff acc! - {}'.format(idx_batch))
+                    diff_list.append(idx_batch)
+
+
+            #
+            ann_logit = model_ann.get_layer('predictions').record_logit
+            snn_logit = model.get_layer('predictions').record_output
+
+            ann_pred = tf.argmax(ann_logit,axis=1)
+            snn_pred = tf.argmax(snn_logit,axis=1)
+
+            print('ann predictions')
+            print(ann_pred)
+            print('snn predictions')
+            print(snn_pred)
+
+            assert False
+
+        if conf.ds_err_act_check and conf.nn_mode == 'SNN' and (not conf.f_write_stat):
+            ds_err_act = test_ds.take(1)
+
+            model.evaluate(ds_err_act,callbacks=callbacks_test)
+            if not (model_ann is None):
+                model_ann.evaluate(ds_err_act,callbacks=callbacks_test_ann)
+
+            print('dynamic / static ratio - before calibration bias')
+
+            err_tot=0
+            err_act=collections.OrderedDict()
+            for idx_l, l in enumerate(model.layers_w_neuron):
+                 if isinstance(l,lib_snn.layers.InputGenLayer):
+                     continue
+
+                 if l.name=='predictions':
+                     dnn_act = model_ann.get_layer(l.name).record_logit
+                 else:
+                     dnn_act = model_ann.get_layer(l.name).record_output
+
+                 dnn_act_s = l.bias
+                 dnn_act_d = dnn_act - dnn_act_s
+                 dnn_act_s = tf.math.abs(dnn_act_s)
+                 dnn_act_d = tf.math.abs(dnn_act_d)
+
+                 dnn_act_r_s = dnn_act_s / (dnn_act_s + dnn_act_d)
+                 dnn_act_r_d = dnn_act_d / (dnn_act_s + dnn_act_d)
+
+                 avg_dnn_act_r_s = tf.reduce_mean(dnn_act_r_s)
+                 avg_dnn_act_r_d = tf.reduce_mean(dnn_act_r_d)
+
+                 time = conf.time_step - l.bias_en_time
+
+                 snn_act = l.act.spike_count+l.act.vmem
+                 snn_act_s = l.bias*time
+                 snn_act_d = snn_act - snn_act_s
+                 snn_act_s = tf.math.abs(snn_act_s)
+                 snn_act_d = tf.math.abs(snn_act_d)
+
+                 snn_act_r_s = snn_act_s / (snn_act_s + snn_act_d)
+                 snn_act_r_d = snn_act_d / (snn_act_s + snn_act_d)
+
+
+                 avg_snn_act_r_s = tf.reduce_mean(snn_act_r_s)
+                 avg_snn_act_r_d = tf.reduce_mean(snn_act_r_d)
+
+                 print('{:>8} - dnn (d/s): {:.3f} ({:.3f}, {:.3f}) / snn (d/s): {:.3f} ({:.3f}, {:.3f})'
+                 .format(l.name,avg_dnn_act_r_d/avg_dnn_act_r_s,avg_dnn_act_r_d,avg_dnn_act_r_s,
+                 avg_snn_act_r_d/avg_snn_act_r_s,avg_snn_act_r_d,avg_snn_act_r_s))
+
+
+                 err_l = tf.reduce_sum(tf.math.abs(dnn_act-snn_act))
+                 err_tot += err_l
+                 #print('{} - err: {:.3f}'.format(l.name,err_l))
+                 err_act[l.name] = err_l
+
+            #print('error total: {:.3f}'.format(err_tot))
+            err_act['total']=err_tot
+
+
+
+
+        if conf.nn_mode=='SNN' and conf.dnn_to_snn and conf.calibration_bias_new:
+            #
+            #calibration_ML=True
+            #calibration_ML=False
+
+            #calibration_batch_idx.append(0)
+
+            #calibration_batch_idx.append(1)
+            #calibration_batch_idx.append(29)
+            #calibration_batch_idx.append(79)
+            #calibration_batch_idx.append(97)
+            #calibration_batch_idx.append(109)
+            #calibration_batch_idx.append(18)
+            #calibration_batch_idx.append(25)
+
+
+            calibration_batch_idx=[]
+            #if False:
+            #if True:
+            if False:
+                #calibration_batch_idx.append(0)
+                calibration_batch_idx.append(1)
+                calibration_batch_idx.append(2)
+                calibration_batch_idx.append(3)
+                calibration_batch_idx.append(5)
+
+                #calibration_batch_idx.append(17)
+
+            #calibration_batch_idx.append(0)
+            #calibration_batch_idx.append(1)
+            #calibration_batch_idx.append(2)
+
+            #calibration_batch_idx.append(3) # pred-3
+            #calibration_batch_idx.append(4) # pred-6
+            #calibration_batch_idx.append(10)
+            #calibration_batch_idx.append(20)
+
+
+            #num_target_sample = 400
+            num_target_sample = 800
+            #num_target_sample = 1000
+            #num_target_sample = 1200
+            #num_target_sample = 1400
+            #num_target_sample = 1600
+            #num_target_sample = 3200
+            #num_target_sample = 6400
+
+            num_batch = tf.cast(tf.math.ceil(num_target_sample / batch_size),tf.int32)
+
+            # TODO: why?
+            num_batch = 2
+
+            for idx_batch in range(num_batch):
+                calibration_batch_idx.append(idx_batch)
+
+
+
+            calibration_batch_idx=[]
+
+            #calibration_batch_idx.append(0)
+            #calibration_batch_idx.append(1)
+            #calibration_batch_idx.append(2)
+            #calibration_batch_idx.append(3)
+            #calibration_batch_idx.append(10)
+            #calibration_batch_idx.append(20)
+            #calibration_batch_idx.append(11)
+            calibration_batch_idx.append(40)
+            #calibration_batch_idx.append(10)
+
+            if False:
+                         calibration_batch_idx.append(1)
+                         calibration_batch_idx.append(2)
+                         calibration_batch_idx.append(3)
+                         calibration_batch_idx.append(5)
+                         calibration_batch_idx.append(17)
+                         calibration_batch_idx.append(19)
+                         calibration_batch_idx.append(20)
+            #calibration_batch_idx.append(27)
+            #calibration_batch_idx.append(28)
+            #calibration_batch_idx.append(29)
+            #calibration_batch_idx.append(30)
+            #calibration_batch_idx.append(31)
+            #calibration_batch_idx.append(32)
+
+            #calibration_batch_idx.append(4)
+            #calibration_batch_idx.append(6)
+            #calibration_batch_idx.append(8)
+            #calibration_batch_idx.append(9)
+            #calibration_batch_idx.append(10)
+            #calibration_batch_idx.append(11)
+            #calibration_batch_idx.append(12)
+            #calibration_batch_idx.append(13)
+            #calibration_batch_idx.append(16)
+            #calibration_batch_idx.append(18)
+            #calibration_batch_idx.append(21)
+            #calibration_batch_idx.append(23)
+            #calibration_batch_idx.append(24)
+            #calibration_batch_idx.append(25)
+            #calibration_batch_idx.append(26)
+
+
+
+
+        #    #if conf.model=='ResNet44':
+        #    if conf.batch_size_inf != 400:
+        #        if conf.batch_size_inf == 200:
+        #            calibration_batch_idx_tmp = []
+        #            for idx in calibration_batch_idx:
+        #                calibration_batch_idx_tmp.append(2 * idx)
+        #                calibration_batch_idx_tmp.append(2 * idx + 1)
         #
-        #del glb_rand_vth
+        #            calibration_batch_idx = calibration_batch_idx_tmp
+        #        else:
+        #            assert False
+
+            #assert (conf.batch_size_inf!=400) and (conf.model=='ResNet44')
+
+
+            calibration_batch_idx=[]
+            #calibration_batch_idx.append(40)
+            ## ResNet20, CIFAR10
+            #calibration_batch_idx.append(61)
+            #calibration_batch_idx.append(18)
+
+            # VGG16, CIFAR10
+            calibration_batch_idx.append(0)
+            calibration_batch_idx.append(1)
+            #calibration_batch_idx.append(10)
+            #calibration_batch_idx.append(20)
+
+            #calibration_batch_idx.append(40)
+
+            if conf.dataset=='CIFAR10':
+                #calibration_batch_idx.append(1) # tmp
+                pass
+                #assert False
+            elif conf.dataset=='CIFAR100':
+                if conf.model == 'VGG16':
+                    #calibration_batch_idx.append(1)
+                    calibration_batch_idx.append(55)
+                    #pass
+                else:
+                    assert False
+            else:
+                assert False
+
+            if conf.calibration_idx_test:
+                calibration_batch_idx = []
+                calibration_batch_idx.append(55)    # VGG16, CIFAR100
+                calibration_batch_idx.append(61)    # ResNet20?, CIFAR100?
+                calibration_batch_idx.append(18)    # ResNet20?, CIFAR100?
+                calibration_batch_idx.append(conf.calibration_idx)
+
+
+        calibration_num_batch = len(calibration_batch_idx)
+        count_cal_batch=0
+
+
+        #layers_record = []
+        #for layer in model_ann.layers:
+        #    if (layer in model_ann.layers_w_kernel) or (layer in model_ann.layers_w_act):
+        #        layers_record.append(layer)
+        #model_ann.layers_record = layers_record
+
+        if conf.nn_mode=='SNN' and conf.dnn_to_snn and conf.calibration_bias_new:
+            print('calibration bias')
+
+            last_batch = False
+            #for idx_batch in range(num_batch_for_vth_search):
+            #    images_one_batch, labels_one_batch = next(iter(train_ds))
+            #for idx_batch, (x,y) in enumerate(dataset):
+            for idx_batch, (x,y) in enumerate(train_ds):
+            #for idx_batch, (x, y) in enumerate(test_ds):
+
+                if not (idx_batch in calibration_batch_idx):
+                    continue
+
+                if count_cal_batch == calibration_num_batch - 1:
+                    last_batch = True
+
+                #ds_one_batch_ann = tf.data.Dataset.from_tensors((images_one_batch, labels_one_batch)).take(1).cache()
+                #ds_one_batch_snn = tf.data.Dataset.from_tensors((images_one_batch, labels_one_batch)).take(1).cache()
+                ds_one_batch = tf.data.Dataset.from_tensors((x, y))
+
+                # run - ann
+                #callbacks_test[0].model_ann = model_ann
+                result = model_ann.evaluate(ds_one_batch, callbacks=callbacks_test_ann)
+
+                #ds_one_batch = tf.data.Dataset.from_tensors((images_one_batch, labels_one_batch))
+
+                # run - snn
+                callbacks_test[0].run_for_calibration_ML = True
+                if last_batch:
+                    callbacks_test[0].calibration_bias = True
+
+                print('run for calibration - bias')
+                result = model.evaluate(ds_one_batch, callbacks=callbacks_test)
+
+                callbacks_test[0].run_for_calibration_ML = False
+                callbacks_test[0].calibration_bias = False
+
+                #idx_batch = idx_batch+1
+                #if idx_batch == num_batch_for_vth_search-1:
+
+                if False:
+                    for layer in model_ann.layers:
+                        if hasattr(layer, 'record_output'):
+                            #print(layer)
+                            del layer.record_output
+
+                    for layer in model.layers:
+                        if hasattr(layer, 'record_output'):
+                            # print(layer)
+                            del layer.record_output
+
+                count_cal_batch = count_cal_batch + 1
+
+                if last_batch:
+                    break
+
+                #assert False
+
+
+            #cb_lib_snn.calibration.vth_set_and_norm(cb_libsnn)
+
+            #
+            #if not vth_search:
+            #lib_snn.calibration.vth_set_and_norm(cb_libsnn)
+            #cb_libsnn.calibration.calibration_bias_set(cb_libsnn)
+
+
+
+
+        if False:
+            cb_libsnn.f_vth_set_and_norm=True
+            result = model.evaluate(ds_one_batch, callbacks=callbacks_test)
+            cb_libsnn.f_vth_set_and_norm=False
+            #cb_lib_snn.calibration.vth_set_and_norm(cb_libsnn)
+
+        ####
+        # run - test dataset
         #
-        cb_libsnn.f_vth_set_and_norm=True
-        result = model.evaluate(ds_one_batch, callbacks=callbacks_test)
-        cb_libsnn.f_vth_set_and_norm=False
+        if (not conf.full_test) and conf.verbose_visual:
+            lib_snn.sim.set_for_visual_debug(True)
 
-
-#        if True:
-#        #if False:
-#            cb_libsnn_ann.f_vth_set_and_norm=True
-#            result = model_ann.evaluate(ds_one_batch, callbacks=callbacks_test_ann)
-#            cb_libsnn_ann.f_vth_set_and_norm=False
-#
-#        if True:
-#        #if False:
-#            cb_libsnn.f_vth_set_and_norm=True
-#            result = model.evaluate(ds_one_batch, callbacks=callbacks_test)
-#            cb_libsnn.f_vth_set_and_norm=False
-#            #cb_lib_snn.calibration.vth_set_and_norm(cb_libsnn)
-
-
-    #print('delete used variables')
-    #del glb_vth_search_err
-    #del glb_vth_init
-
-    if False:
-        result = model_ann.evaluate(test_ds, callbacks=callbacks_test_ann)
-
-
-        lib_snn.sim.set_for_visual_debug(True)
+        callbacks_test[0].f_save_result=True
         result = model.evaluate(test_ds, callbacks=callbacks_test)
         lib_snn.sim.set_for_visual_debug(False)
 
-        l = model.get_layer('predictions')
-        time = tf.cast(conf.time_step - tf.reduce_mean(l.bias_en_time), tf.float32)
+        #result = model.evaluate(test_ds)
+        # result = model.predict(test_ds)
 
-        ann_logit = model_ann.get_layer('predictions').record_logit
-        snn_logit = model.get_layer('predictions').record_output/time
+        print(result)
 
-        if False:
-            ann_logit_part=ann_logit[60:70]
-            snn_logit_part=snn_logit[60:70]
 
-            print(ann_logit_part)
-            print(snn_logit_part)
+        ########################################
+        # dynamic, static ratio
+        ########################################
+        if conf.ds_err_act_check and conf.nn_mode=='SNN' and (not conf.f_write_stat):
 
-            print(tf.argmax(ann_logit_part,axis=1))
-            print(tf.argmax(snn_logit_part,axis=1))
+            model.evaluate(ds_err_act, callbacks=callbacks_test)
+            if not (model_ann is None):
+                model_ann.evaluate(ds_err_act, callbacks=callbacks_test_ann)
 
-            print('')
-            print(ann_logit[62])
-            print(snn_logit[62])
+            print('dynamic / static ratio')
+            err_tot = 0
+            err_act_cal_b=collections.OrderedDict()
+            for idx_l, l in enumerate(model.layers_w_neuron):
+                if isinstance(l,lib_snn.layers.InputGenLayer):
+                    continue
 
-            print('')
-            print(ann_logit[67])
-            print(snn_logit[67])
+                if l.name=='predictions':
+                    dnn_act = model_ann.get_layer(l.name).record_logit
+                else:
+                    dnn_act = model_ann.get_layer(l.name).record_output
 
-        print(ann_logit)
-        print(snn_logit)
+                dnn_act_s = l.bias
+                dnn_act_d = dnn_act - dnn_act_s
+                dnn_act_s = tf.math.abs(dnn_act_s)
+                dnn_act_d = tf.math.abs(dnn_act_d)
 
-        print(tf.argmax(ann_logit, axis=1))
-        print(tf.argmax(snn_logit, axis=1))
+                dnn_act_r_s = dnn_act_s / (dnn_act_s + dnn_act_d)
+                dnn_act_r_d = dnn_act_d / (dnn_act_s + dnn_act_d)
 
-    #assert False
+                avg_dnn_act_r_s = tf.reduce_mean(dnn_act_r_s)
+                avg_dnn_act_r_d = tf.reduce_mean(dnn_act_r_d)
 
-    #calibration_bias_ML21(model,model_ann,callbacks_test,callbacks_test_ann,train_ds)
+                time = conf.time_step - l.bias_en_time
 
-#def calibration_bias_ML21(model, model_ann, callback, callback_ann, dataset):
+                snn_act = l.act.spike_count+l.act.vmem
+                snn_act_s = l.bias*time
+                snn_act_d = snn_act - snn_act_s
+                snn_act_s = tf.math.abs(snn_act_s)
+                snn_act_d = tf.math.abs(snn_act_d)
 
-    #test_detail = True
-    test_detail = False
+                snn_act_r_s = snn_act_s / (snn_act_s + snn_act_d)
+                snn_act_r_d = snn_act_d / (snn_act_s + snn_act_d)
 
-    if test_detail:
 
-        test_ds_idx = []
-        #test_ds_idx.append(4)
+                avg_snn_act_r_s = tf.reduce_mean(snn_act_r_s)
+                avg_snn_act_r_d = tf.reduce_mean(snn_act_r_d)
 
-        diff_list=[]
-        #for idx_batch, (x, y) in enumerate(train_ds):
-        for idx_batch, (x, y) in enumerate(test_ds):
+                print('{:>8} - dnn (d/s): {:.3f} ({:.3f}, {:.3f}) / snn (d/s): {:.3f} ({:.3f}, {:.3f})'
+                      .format(l.name,avg_dnn_act_r_d/avg_dnn_act_r_s,avg_dnn_act_r_d,avg_dnn_act_r_s,
+                              avg_snn_act_r_d/avg_snn_act_r_s,avg_snn_act_r_d,avg_snn_act_r_s))
 
-            #if not (idx_batch in test_ds_idx):
-            #    continue
+                err_l = tf.reduce_sum(tf.math.abs(dnn_act - snn_act))
+                err_tot += err_l
 
-            print(idx_batch)
-            ds_one_batch = test_ds.skip(idx_batch).take(1)
-            result_ann = model_ann.evaluate(ds_one_batch, callbacks=callbacks_test_ann)
-            result = model.evaluate(ds_one_batch, callbacks=callbacks_test)
+                err_act_cal_b[l.name]=err_l
 
-            if result_ann[1] != result[1]:
-                print('diff acc! - {}'.format(idx_batch))
-                diff_list.append(idx_batch)
+            err_act_cal_b['total'] = err_tot
+
+
+            #
+            print('error act')
+            for idx_l, l in enumerate(model.layers_w_neuron):
+                if isinstance(l, lib_snn.layers.InputGenLayer):
+                    continue
+                print('{:>8} - {:.3e}, after cal-b: {:.3e}'.format(l.name, err_act[l.name],err_act_cal_b[l.name]))
+            print('{:>8} - {:.3e}, after cal-b: {:.3e}'.format('total', err_act['total'], err_act_cal_b['total']))
 
 
         #
-        ann_logit = model_ann.get_layer('predictions').record_logit
-        snn_logit = model.get_layer('predictions').record_output
+        exp_act_dist=False
+        #exp_act_dist=True
 
-        ann_pred = tf.argmax(ann_logit,axis=1)
-        snn_pred = tf.argmax(snn_logit,axis=1)
+        if exp_act_dist and conf.nn_mode=='ANN':
+            fig = glb_plot
 
-        print('ann predictions')
-        print(ann_pred)
-        print('snn predictions')
-        print(snn_pred)
+            for layer in model.layers_w_kernel:
 
-        assert False
+                axe = fig.axes.flatten()[layer.depth]
+                act = layer.record_output
+                act = tf.reshape(act,-1)
 
-    if conf.ds_err_act_check and conf.nn_mode == 'SNN' and (not conf.f_write_stat):
-        ds_err_act = test_ds.take(1)
 
-        model.evaluate(ds_err_act,callbacks=callbacks_test)
-        if not (model_ann is None):
-            model_ann.evaluate(ds_err_act,callbacks=callbacks_test_ann)
+                #(n, bins, patches) = axe.hist(act,bins=bins)
+                (n, bins, patches) = axe.hist(act)
+                axe.axvline(x=np.max(act), color='b')
+                #axe.set_ylim([0,n[10]])
+                axe.set_title(layer.name)
 
-        print('dynamic / static ratio - before calibration bias')
-
-        err_tot=0
-        err_act=collections.OrderedDict()
-        for idx_l, l in enumerate(model.layers_w_neuron):
-             if isinstance(l,lib_snn.layers.InputGenLayer):
-                 continue
-
-             if l.name=='predictions':
-                 dnn_act = model_ann.get_layer(l.name).record_logit
-             else:
-                 dnn_act = model_ann.get_layer(l.name).record_output
-
-             dnn_act_s = l.bias
-             dnn_act_d = dnn_act - dnn_act_s
-             dnn_act_s = tf.math.abs(dnn_act_s)
-             dnn_act_d = tf.math.abs(dnn_act_d)
-
-             dnn_act_r_s = dnn_act_s / (dnn_act_s + dnn_act_d)
-             dnn_act_r_d = dnn_act_d / (dnn_act_s + dnn_act_d)
-
-             avg_dnn_act_r_s = tf.reduce_mean(dnn_act_r_s)
-             avg_dnn_act_r_d = tf.reduce_mean(dnn_act_r_d)
-
-             time = conf.time_step - l.bias_en_time
-
-             snn_act = l.act.spike_count+l.act.vmem
-             snn_act_s = l.bias*time
-             snn_act_d = snn_act - snn_act_s
-             snn_act_s = tf.math.abs(snn_act_s)
-             snn_act_d = tf.math.abs(snn_act_d)
-
-             snn_act_r_s = snn_act_s / (snn_act_s + snn_act_d)
-             snn_act_r_d = snn_act_d / (snn_act_s + snn_act_d)
-
-
-             avg_snn_act_r_s = tf.reduce_mean(snn_act_r_s)
-             avg_snn_act_r_d = tf.reduce_mean(snn_act_r_d)
-
-             print('{:>8} - dnn (d/s): {:.3f} ({:.3f}, {:.3f}) / snn (d/s): {:.3f} ({:.3f}, {:.3f})'
-             .format(l.name,avg_dnn_act_r_d/avg_dnn_act_r_s,avg_dnn_act_r_d,avg_dnn_act_r_s,
-             avg_snn_act_r_d/avg_snn_act_r_s,avg_snn_act_r_d,avg_snn_act_r_s))
-
-
-             err_l = tf.reduce_sum(tf.math.abs(dnn_act-snn_act))
-             err_tot += err_l
-             #print('{} - err: {:.3f}'.format(l.name,err_l))
-             err_act[l.name] = err_l
-
-        #print('error total: {:.3f}'.format(err_tot))
-        err_act['total']=err_tot
-
-
-
-
-    if conf.nn_mode=='SNN' and conf.dnn_to_snn and conf.calibration_bias_new:
-        #
-        #calibration_ML=True
-        #calibration_ML=False
-
-        #calibration_batch_idx.append(0)
-
-        #calibration_batch_idx.append(1)
-        #calibration_batch_idx.append(29)
-        #calibration_batch_idx.append(79)
-        #calibration_batch_idx.append(97)
-        #calibration_batch_idx.append(109)
-        #calibration_batch_idx.append(18)
-        #calibration_batch_idx.append(25)
-
-
-        calibration_batch_idx=[]
-        #if False:
-        #if True:
-        if False:
-            #calibration_batch_idx.append(0)
-            calibration_batch_idx.append(1)
-            calibration_batch_idx.append(2)
-            calibration_batch_idx.append(3)
-            calibration_batch_idx.append(5)
-
-            #calibration_batch_idx.append(17)
-
-        #calibration_batch_idx.append(0)
-        #calibration_batch_idx.append(1)
-        #calibration_batch_idx.append(2)
-
-        #calibration_batch_idx.append(3) # pred-3
-        #calibration_batch_idx.append(4) # pred-6
-        #calibration_batch_idx.append(10)
-        #calibration_batch_idx.append(20)
-
-
-        #num_target_sample = 400
-        num_target_sample = 800
-        #num_target_sample = 1000
-        #num_target_sample = 1200
-        #num_target_sample = 1400
-        #num_target_sample = 1600
-        #num_target_sample = 3200
-        #num_target_sample = 6400
-
-        num_batch = tf.cast(tf.math.ceil(num_target_sample / batch_size),tf.int32)
-
-        # TODO: why?
-        num_batch = 2
-
-        for idx_batch in range(num_batch):
-            calibration_batch_idx.append(idx_batch)
-
-
-
-        calibration_batch_idx=[]
-
-        #calibration_batch_idx.append(0)
-        #calibration_batch_idx.append(1)
-        #calibration_batch_idx.append(2)
-        #calibration_batch_idx.append(3)
-        #calibration_batch_idx.append(10)
-        #calibration_batch_idx.append(20)
-        #calibration_batch_idx.append(11)
-        calibration_batch_idx.append(40)
-        #calibration_batch_idx.append(10)
-
-        if False:
-                     calibration_batch_idx.append(1)
-                     calibration_batch_idx.append(2)
-                     calibration_batch_idx.append(3)
-                     calibration_batch_idx.append(5)
-                     calibration_batch_idx.append(17)
-                     calibration_batch_idx.append(19)
-                     calibration_batch_idx.append(20)
-        #calibration_batch_idx.append(27)
-        #calibration_batch_idx.append(28)
-        #calibration_batch_idx.append(29)
-        #calibration_batch_idx.append(30)
-        #calibration_batch_idx.append(31)
-        #calibration_batch_idx.append(32)
-
-        #calibration_batch_idx.append(4)
-        #calibration_batch_idx.append(6)
-        #calibration_batch_idx.append(8)
-        #calibration_batch_idx.append(9)
-        #calibration_batch_idx.append(10)
-        #calibration_batch_idx.append(11)
-        #calibration_batch_idx.append(12)
-        #calibration_batch_idx.append(13)
-        #calibration_batch_idx.append(16)
-        #calibration_batch_idx.append(18)
-        #calibration_batch_idx.append(21)
-        #calibration_batch_idx.append(23)
-        #calibration_batch_idx.append(24)
-        #calibration_batch_idx.append(25)
-        #calibration_batch_idx.append(26)
-
-
-
-
-    #    #if conf.model=='ResNet44':
-    #    if conf.batch_size_inf != 400:
-    #        if conf.batch_size_inf == 200:
-    #            calibration_batch_idx_tmp = []
-    #            for idx in calibration_batch_idx:
-    #                calibration_batch_idx_tmp.append(2 * idx)
-    #                calibration_batch_idx_tmp.append(2 * idx + 1)
-    #
-    #            calibration_batch_idx = calibration_batch_idx_tmp
-    #        else:
-    #            assert False
-
-        #assert (conf.batch_size_inf!=400) and (conf.model=='ResNet44')
-
-
-        calibration_batch_idx=[]
-        #calibration_batch_idx.append(40)
-        ## ResNet20, CIFAR10
-        #calibration_batch_idx.append(61)
-        #calibration_batch_idx.append(18)
-
-        # VGG16, CIFAR10
-        calibration_batch_idx.append(0)
-        calibration_batch_idx.append(1)
-        #calibration_batch_idx.append(10)
-        #calibration_batch_idx.append(20)
-
-        #calibration_batch_idx.append(40)
-
-        if conf.dataset=='CIFAR10':
-            #calibration_batch_idx.append(1) # tmp
-            pass
-            #assert False
-        elif conf.dataset=='CIFAR100':
-            if conf.model == 'VGG16':
-                #calibration_batch_idx.append(1)
-                calibration_batch_idx.append(55)
-                #pass
-            else:
-                assert False
-        else:
-            assert False
-
-        if conf.calibration_idx_test:
-            calibration_batch_idx = []
-            calibration_batch_idx.append(55)    # VGG16, CIFAR100
-            calibration_batch_idx.append(61)    # ResNet20?, CIFAR100?
-            calibration_batch_idx.append(18)    # ResNet20?, CIFAR100?
-            calibration_batch_idx.append(conf.calibration_idx)
-
-
-    calibration_num_batch = len(calibration_batch_idx)
-    count_cal_batch=0
-
-
-    #layers_record = []
-    #for layer in model_ann.layers:
-    #    if (layer in model_ann.layers_w_kernel) or (layer in model_ann.layers_w_act):
-    #        layers_record.append(layer)
-    #model_ann.layers_record = layers_record
-
-    if conf.nn_mode=='SNN' and conf.dnn_to_snn and conf.calibration_bias_new:
-        print('calibration bias')
-
-        last_batch = False
-        #for idx_batch in range(num_batch_for_vth_search):
-        #    images_one_batch, labels_one_batch = next(iter(train_ds))
-        #for idx_batch, (x,y) in enumerate(dataset):
-        for idx_batch, (x,y) in enumerate(train_ds):
-        #for idx_batch, (x, y) in enumerate(test_ds):
-
-            if not (idx_batch in calibration_batch_idx):
-                continue
-
-            if count_cal_batch == calibration_num_batch - 1:
-                last_batch = True
-
-            #ds_one_batch_ann = tf.data.Dataset.from_tensors((images_one_batch, labels_one_batch)).take(1).cache()
-            #ds_one_batch_snn = tf.data.Dataset.from_tensors((images_one_batch, labels_one_batch)).take(1).cache()
-            ds_one_batch = tf.data.Dataset.from_tensors((x, y))
-
-            # run - ann
-            #callbacks_test[0].model_ann = model_ann
-            result = model_ann.evaluate(ds_one_batch, callbacks=callbacks_test_ann)
-
-            #ds_one_batch = tf.data.Dataset.from_tensors((images_one_batch, labels_one_batch))
-
-            # run - snn
-            callbacks_test[0].run_for_calibration_ML = True
-            if last_batch:
-                callbacks_test[0].calibration_bias = True
-
-            print('run for calibration - bias')
-            result = model.evaluate(ds_one_batch, callbacks=callbacks_test)
-
-            callbacks_test[0].run_for_calibration_ML = False
-            callbacks_test[0].calibration_bias = False
-
-            #idx_batch = idx_batch+1
-            #if idx_batch == num_batch_for_vth_search-1:
-
-            if False:
-                for layer in model_ann.layers:
-                    if hasattr(layer, 'record_output'):
-                        #print(layer)
-                        del layer.record_output
-
-                for layer in model.layers:
-                    if hasattr(layer, 'record_output'):
-                        # print(layer)
-                        del layer.record_output
-
-            count_cal_batch = count_cal_batch + 1
-
-            if last_batch:
-                break
-
-            #assert False
-
-
-        #cb_lib_snn.calibration.vth_set_and_norm(cb_libsnn)
-
-        #
-        #if not vth_search:
-        #lib_snn.calibration.vth_set_and_norm(cb_libsnn)
-        #cb_libsnn.calibration.calibration_bias_set(cb_libsnn)
-
-
-
-
-    if False:
-        cb_libsnn.f_vth_set_and_norm=True
-        result = model.evaluate(ds_one_batch, callbacks=callbacks_test)
-        cb_libsnn.f_vth_set_and_norm=False
-        #cb_lib_snn.calibration.vth_set_and_norm(cb_libsnn)
-
-    ####
-    # run - test dataset
-    #
-    if (not conf.full_test) and conf.verbose_visual:
-        lib_snn.sim.set_for_visual_debug(True)
-
-    callbacks_test[0].f_save_result=True
-    result = model.evaluate(test_ds, callbacks=callbacks_test)
-    lib_snn.sim.set_for_visual_debug(False)
-
-    #result = model.evaluate(test_ds)
-    # result = model.predict(test_ds)
-
-    print(result)
-
-
-    ########################################
-    # dynamic, static ratio
-    ########################################
-    if conf.ds_err_act_check and conf.nn_mode=='SNN' and (not conf.f_write_stat):
-
-        model.evaluate(ds_err_act, callbacks=callbacks_test)
-        if not (model_ann is None):
-            model_ann.evaluate(ds_err_act, callbacks=callbacks_test_ann)
-
-        print('dynamic / static ratio')
-        err_tot = 0
-        err_act_cal_b=collections.OrderedDict()
-        for idx_l, l in enumerate(model.layers_w_neuron):
-            if isinstance(l,lib_snn.layers.InputGenLayer):
-                continue
-
-            if l.name=='predictions':
-                dnn_act = model_ann.get_layer(l.name).record_logit
-            else:
-                dnn_act = model_ann.get_layer(l.name).record_output
-
-            dnn_act_s = l.bias
-            dnn_act_d = dnn_act - dnn_act_s
-            dnn_act_s = tf.math.abs(dnn_act_s)
-            dnn_act_d = tf.math.abs(dnn_act_d)
-
-            dnn_act_r_s = dnn_act_s / (dnn_act_s + dnn_act_d)
-            dnn_act_r_d = dnn_act_d / (dnn_act_s + dnn_act_d)
-
-            avg_dnn_act_r_s = tf.reduce_mean(dnn_act_r_s)
-            avg_dnn_act_r_d = tf.reduce_mean(dnn_act_r_d)
-
-            time = conf.time_step - l.bias_en_time
-
-            snn_act = l.act.spike_count+l.act.vmem
-            snn_act_s = l.bias*time
-            snn_act_d = snn_act - snn_act_s
-            snn_act_s = tf.math.abs(snn_act_s)
-            snn_act_d = tf.math.abs(snn_act_d)
-
-            snn_act_r_s = snn_act_s / (snn_act_s + snn_act_d)
-            snn_act_r_d = snn_act_d / (snn_act_s + snn_act_d)
-
-
-            avg_snn_act_r_s = tf.reduce_mean(snn_act_r_s)
-            avg_snn_act_r_d = tf.reduce_mean(snn_act_r_d)
-
-            print('{:>8} - dnn (d/s): {:.3f} ({:.3f}, {:.3f}) / snn (d/s): {:.3f} ({:.3f}, {:.3f})'
-                  .format(l.name,avg_dnn_act_r_d/avg_dnn_act_r_s,avg_dnn_act_r_d,avg_dnn_act_r_s,
-                          avg_snn_act_r_d/avg_snn_act_r_s,avg_snn_act_r_d,avg_snn_act_r_s))
-
-            err_l = tf.reduce_sum(tf.math.abs(dnn_act - snn_act))
-            err_tot += err_l
-
-            err_act_cal_b[l.name]=err_l
-
-        err_act_cal_b['total'] = err_tot
-
-
-        #
-        print('error act')
-        for idx_l, l in enumerate(model.layers_w_neuron):
-            if isinstance(l, lib_snn.layers.InputGenLayer):
-                continue
-            print('{:>8} - {:.3e}, after cal-b: {:.3e}'.format(l.name, err_act[l.name],err_act_cal_b[l.name]))
-        print('{:>8} - {:.3e}, after cal-b: {:.3e}'.format('total', err_act['total'], err_act_cal_b['total']))
+            plt.show()
 
 
     #
-    exp_act_dist=False
-    #exp_act_dist=True
-
-    if exp_act_dist and conf.nn_mode=='ANN':
-        fig = glb_plot
-
-        for layer in model.layers_w_kernel:
-
-            axe = fig.axes.flatten()[layer.depth]
-            act = layer.record_output
-            act = tf.reshape(act,-1)
-
-
-            #(n, bins, patches) = axe.hist(act,bins=bins)
-            (n, bins, patches) = axe.hist(act)
-            axe.axvline(x=np.max(act), color='b')
-            #axe.set_ylim([0,n[10]])
-            axe.set_title(layer.name)
-
+    if (not conf.full_test) and conf.verbose_visual:
         plt.show()
 
 
-#
-if (not conf.full_test) and conf.verbose_visual:
-    plt.show()
+    #
+    #if (not conf.full_test) and conf.verbose_visual:
+
+    verbose_visual_tmp=False
+    if (not conf.full_test) and verbose_visual_tmp:
+
+        #
+        model_ann.evaluate(test_ds, callbacks=callbacks_test_ann)
+
+        #
+        for layer in model.layers:
+            if hasattr(layer,'en_record_output'):
+                if layer.en_record_output:
+                    if isinstance(layer.act,lib_snn.neurons.Neuron):
+                        axe=glb_plot_3.axes.flatten()[layer.depth]
+
+                        vth = conf.n_init_vth
+                        ann_out = model_ann.get_layer(layer.name).record_output
+                        ann_out = tf.math.floor(ann_out/vth*conf.time_step)
+                        ann_out = tf.clip_by_value(ann_out,0,conf.time_step)
+                        ann_out = ann_out*vth/conf.time_step
+
+                        snn_out = layer.act.spike_count/conf.time_step
+
+                        axe.hist(ann_out.numpy().flatten(),bins=100,density=True)
+                        snn_hist = axe.hist(snn_out.numpy().flatten(),bins=100,density=True)
+                        ylim = np.mean(snn_hist[0][0:10])
+                        axe.set_ylim([0,ylim])
 
 
-#
-#if (not conf.full_test) and conf.verbose_visual:
 
-verbose_visual_tmp=False
-if (not conf.full_test) and verbose_visual_tmp:
+    #    ## compare control model
+    #    compare_control_snn_model = True
+    #    if compare_control_snn_model:
+    #
+    #        cb_libsnn_ctrl = lib_snn.callbacks.SNNLIB(conf, path_model, test_ds_num)
+    #        cb_libsnn_ctrl.run_for_calibration = True
+    #
+    #
+    #
+    #        #if dnn_snn_compare:
+    #        model_ann.evaluate(test_ds)
+    #
+    #        lib_snn.proc.dnn_snn_compare_func(cb_libsnn)
+
+        #
+        #for layer in model.layers_w_neuron:
+        #    print('{} - {}'.format(layer.name,tf.reduce_sum(layer.act.spike_count_int)))
+
+        # ANN for comparison
+
+        #print(result_ann)
 
     #
-    model_ann.evaluate(test_ds, callbacks=callbacks_test_ann)
+    if False:
+        zeros_input = tf.zeros([1,32,32,3])
+        zeros_output = tf.zeros([1,10])
+        #zeros_output = tf.constant([0,0,0,0,0,0,0,0,1,0])
+        result = model.evaluate(x=zeros_input,y=zeros_output,callbacks=callbacks_test)
+        #result = model.evaluate(test_ds,callbacks=callbacks_test)
+        print(result)
 
-    #
-    for layer in model.layers:
-        if hasattr(layer,'en_record_output'):
-            if layer.en_record_output:
-                if isinstance(layer.act,lib_snn.neurons.Neuron):
-                    axe=glb_plot_3.axes.flatten()[layer.depth]
+        #for layer in model.layers:
+        #    if hasattr(layer,'record_output'):
+        #        print('{} - {}'.format(layer.name,tf.reduce_mean(layer.record_output)))
 
-                    vth = conf.n_init_vth
-                    ann_out = model_ann.get_layer(layer.name).record_output
-                    ann_out = tf.math.floor(ann_out/vth*conf.time_step)
-                    ann_out = tf.clip_by_value(ann_out,0,conf.time_step)
-                    ann_out = ann_out*vth/conf.time_step
+    # debug - compare activation
+    if False:
+        result_ann = model_ann.evaluate(test_ds, callbacks=callbacks_test_ann)
 
-                    snn_out = layer.act.spike_count/conf.time_step
+        for layer in model.layers:
+            if hasattr(layer,'record_output'):
+                snn = layer.record_output
+                ann = model_ann.get_layer(layer.name).record_output
 
-                    axe.hist(ann_out.numpy().flatten(),bins=100,density=True)
-                    snn_hist = axe.hist(snn_out.numpy().flatten(),bins=100,density=True)
-                    ylim = np.mean(snn_hist[0][0:10])
-                    axe.set_ylim([0,ylim])
-
-
-
-#    ## compare control model
-#    compare_control_snn_model = True
-#    if compare_control_snn_model:
-#
-#        cb_libsnn_ctrl = lib_snn.callbacks.SNNLIB(conf, path_model, test_ds_num)
-#        cb_libsnn_ctrl.run_for_calibration = True
-#
-#
-#
-#        #if dnn_snn_compare:
-#        model_ann.evaluate(test_ds)
-#
-#        lib_snn.proc.dnn_snn_compare_func(cb_libsnn)
-
-    #
-    #for layer in model.layers_w_neuron:
-    #    print('{} - {}'.format(layer.name,tf.reduce_sum(layer.act.spike_count_int)))
-
-    # ANN for comparison
-
-    #print(result_ann)
-
-#
-if False:
-    zeros_input = tf.zeros([1,32,32,3])
-    zeros_output = tf.zeros([1,10])
-    #zeros_output = tf.constant([0,0,0,0,0,0,0,0,1,0])
-    result = model.evaluate(x=zeros_input,y=zeros_output,callbacks=callbacks_test)
-    #result = model.evaluate(test_ds,callbacks=callbacks_test)
-    print(result)
-
-    #for layer in model.layers:
-    #    if hasattr(layer,'record_output'):
-    #        print('{} - {}'.format(layer.name,tf.reduce_mean(layer.record_output)))
-
-# debug - compare activation
-if False:
-    result_ann = model_ann.evaluate(test_ds, callbacks=callbacks_test_ann)
-
-    for layer in model.layers:
-        if hasattr(layer,'record_output'):
-            snn = layer.record_output
-            ann = model_ann.get_layer(layer.name).record_output
-
-            #assert snn == ann
-            if snn is not None:
-                if tf.reduce_mean(snn) != tf.reduce_mean(ann):
-                    print(ann)
-                    print(layer.name)
-                    print(tf.reduce_mean(snn))
-                    print(tf.reduce_mean(ann))
-                    assert False
+                #assert snn == ann
+                if snn is not None:
+                    if tf.reduce_mean(snn) != tf.reduce_mean(ann):
+                        print(ann)
+                        print(layer.name)
+                        print(tf.reduce_mean(snn))
+                        print(tf.reduce_mean(ann))
+                        assert False
 
 
 
-#if __name__=="__main__":
-#    # logging.set_verbosity(logging.INfO)
-#    config.configurations()
-#    app.run(main)
+    #if __name__=="__main__":
+    #    # logging.set_verbosity(logging.INfO)
+    #    config.configurations()
+    #    app.run(main)

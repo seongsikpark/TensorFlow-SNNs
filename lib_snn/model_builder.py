@@ -11,7 +11,8 @@ def model_builder(
     opt, learning_rate,
     lr_schedule, step_decay_epoch,
     metric_accuracy, metric_accuracy_top5,
-    dataset_name
+    dataset_name,
+    dist_strategy=tf.distribute.OneDeviceStrategy
 ):
 
     print('Model Builder - {}'.format(conf.nn_mode))
@@ -23,6 +24,9 @@ def model_builder(
                           dataset_name=dataset_name, classes=num_class,
                           include_top=include_top,
                           initial_channels=initial_channels)
+
+    # set distribute strategy
+    model_top.dist_strategy = dist_strategy
 
 
     # TODO: parameterize
@@ -72,13 +76,15 @@ def model_builder(
 
 
     # dummy
-    img_input = tf.keras.layers.Input(shape=image_shape, batch_size=batch_size)
-    model(img_input)
+    #img_input = tf.keras.layers.Input(shape=image_shape, batch_size=batch_size)
+    #model(img_input)
 
+    #with dist_strategy.scope():
     # compile
     model.compile(optimizer=optimizer,
                   #loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
                   loss=tf.keras.losses.CategoricalCrossentropy(),
+                  #loss=tf.keras.losses.CategoricalCrossentropy(reduction=tf.keras.losses.Reduction.NONE),
                   metrics=[metric_accuracy, metric_accuracy_top5], run_eagerly=eager_mode)
                 #metrics = [metric_accuracy, metric_accuracy_top5], run_eagerly = False)
 

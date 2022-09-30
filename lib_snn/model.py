@@ -89,6 +89,9 @@ class Model(tf.keras.Model):
         # init done
         self.init_done = False
 
+        # multi-gpu strategy
+        self.dist_strategy = None
+
         #
         self.ts=conf.time_step
         self.epoch = -1
@@ -457,14 +460,25 @@ class Model(tf.keras.Model):
         #assert False
 
 
-        if training and self.conf.snn_training_spatial_first:
-            y_pred = self._run_internal_graph(inputs, training=training, mask=mask)
-            return y_pred
+        #if training and self.conf.snn_training_spatial_first:
+        #    y_pred = self._run_internal_graph(inputs, training=training, mask=mask)
+        #    return y_pred
 
         # return tensor - [batch, time, output]
         ret_tensor = None
         f_create_output_tensor = False
 
+
+        # spatial first
+        if training:
+            #for t in range_ts:
+            if True:
+                layer_in = inputs
+                for layer in self.layers:
+                    layer_out = layer(layer_in)
+                    layer_in = layer_out
+
+            return layer_out
 
 
 
@@ -1226,7 +1240,7 @@ class Model(tf.keras.Model):
 
     # this function is based on Model.test_step in training.py
     # TODO: override Model.test_step
-    def test_step(self, data):
+    def test_step_a(self, data):
 
         ret = {
             'ANN': self.test_step_ann,
@@ -1491,7 +1505,8 @@ class Model(tf.keras.Model):
                 var_list_prev = None
                 for t in range_ts:
                     #with tf.GradientTape() as tape:
-                    with tf.GradientTape(persistent=True) as tape:
+                    #with tf.GradientTape(persistent=True) as tape:
+                    with tf.GradientTape() as tape:
                         y_pred = self(x, training=True)
                         loss = self.compute_loss(x, y, y_pred, sample_weight)
 
@@ -1528,7 +1543,6 @@ class Model(tf.keras.Model):
                         #print(tf.reduce_max(grads[-1]))
                         print(grads[-1])
                         print()
-
 
                     #assert False
                     glb_t()

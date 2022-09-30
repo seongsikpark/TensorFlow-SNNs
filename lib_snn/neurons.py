@@ -374,6 +374,8 @@ class Neuron(tf.keras.layers.Layer):
                 spatio = upstream
                 #dL_du_t1 = tf.random.normal(spatio.shape,mean=1.0,stddev=0.1)
                 dL_du_t1 = upstream            # speculate next time step gradient - dL/du_t+1
+                dL_du_t1 = dL_du_t1
+                #dL_du_t1 = dL_du_t1*do_du
                 #temp_rand = upstream * temp_rand           # speculate next time step gradient
 
                 #temporal_1 = tf.where(self.f_fire, -self.vth, tf.zeros(spatio.shape))
@@ -1431,6 +1433,8 @@ class Neuron(tf.keras.layers.Layer):
                 self.run_type_lif(inputs, t)
             else:
                 assert False
+
+            self.out = self.spike_count
 
         else:
             self.integration(inputs, t)
