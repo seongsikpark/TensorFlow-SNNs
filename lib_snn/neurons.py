@@ -519,6 +519,11 @@ class Neuron(tf.keras.layers.Layer):
             init_vmem = self.vmem_init
         #self.vmem.assign(tf.constant(self.conf.n_init_vinit ,tf.float32 ,self.vmem.shape))
 
+        f_init_vmem_rand=True
+        if f_init_vmem_rand:
+            init_vmem = tf.random.normal(init_vmem.shape,mean=0.0,stddev=0.5)
+
+
         self.vmem.assign(init_vmem)
 
 

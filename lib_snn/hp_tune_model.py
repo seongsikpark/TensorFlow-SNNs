@@ -64,6 +64,8 @@ def model_builder_default(hp, args, hps):
     metric_accuracy = args['metric_accuracy']
     metric_accuracy_top5 = args['metric_accuracy_top_5']
 
+    dist_strategy = args['dist_strategy']
+
     #
     hp_dataset = hp.Choice('dataset', values=hps['dataset'])
     hp_model = hp.Choice('model', values=hps['model'])
@@ -79,7 +81,7 @@ def model_builder_default(hp, args, hps):
     #hp_learning_rate = hp.Choice('learning_rate', values = [0.3])
     # hp_learning_rate = hp.Choice('learning_rate', values = [0.01, 0.015, 0.02])
     #hp_learning_rate = hp.Choice('learning_rate', values=[0.005])
-    hp_learning_rate = hp.Float('learning_rate', min_value=0.2, max_value=0.2, sampling='linear')
+    hp_learning_rate = hp.Float('learning_rate', min_value=0.001, max_value=0.1, sampling='linear')
 
     hp_initial_channels = hp.Choice('initial_channel', values=[64])
 
@@ -89,7 +91,7 @@ def model_builder_default(hp, args, hps):
         hp_train_epoch, train_steps_per_epoch,
         hp_optimizer, hp_learning_rate,
         hp_lr_schedule, hp_step_decay_epoch,
-        metric_accuracy, metric_accuracy_top5)
+        metric_accuracy, metric_accuracy_top5, hp_dataset, dist_strategy)
 
     if not load_weight is None:
         model.load_weights(load_weight)

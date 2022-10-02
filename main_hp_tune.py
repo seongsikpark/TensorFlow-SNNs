@@ -19,7 +19,8 @@ os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,4"
 #os.environ["CUDA_VISIBLE_DEVICES"]="1,3,5,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,4,5,7"
-os.environ["CUDA_VISIBLE_DEVICES"]="0,5"
+#os.environ["CUDA_VISIBLE_DEVICES"]="3,4,5,6"
+os.environ["CUDA_VISIBLE_DEVICES"]="4,5"
 
 
 # TF logging setup
@@ -772,9 +773,10 @@ with dist_strategy.scope():
         hp_tune_args['metric_accuracy'] = metric_accuracy
         hp_tune_args['metric_accuracy_top_5'] = metric_accuracy_top5
         hp_tune_args['train_steps_per_epoch'] = train_steps_per_epoch
+        hp_tune_args['dist_strategy'] = dist_strategy
 
         #hp_model_builder = partial(model_builder, hp, hps)
-        hp_model = lib_snn.hp_tune_model.CustomHyperModel(hp_tune_args, hps)
+        hp_model_builder = lib_snn.hp_tune_model.CustomHyperModel(hp_tune_args, hps)
 
         #search_func = lib_snn.hp_tune.GridSearch
         search_func = keras_tuner.RandomSearch
