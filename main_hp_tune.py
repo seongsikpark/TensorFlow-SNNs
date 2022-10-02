@@ -19,8 +19,7 @@ os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,4"
 #os.environ["CUDA_VISIBLE_DEVICES"]="1,3,5,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,4,5,7"
-#os.environ["CUDA_VISIBLE_DEVICES"]="3,4,5,6"
-os.environ["CUDA_VISIBLE_DEVICES"]="4,5"
+os.environ["CUDA_VISIBLE_DEVICES"]="0,4"
 
 
 # TF logging setup
@@ -239,8 +238,8 @@ opt='SGD'
 
 #
 #lr_schedule = 'COS'     # COSine
-lr_schedule = 'COSR'    # COSine with Restart
-#lr_schedule = 'STEP'    # STEP wise
+#lr_schedule = 'COSR'    # COSine with Restart
+lr_schedule = 'STEP'    # STEP wise
 #lr_schedule = 'STEP_WUP'    # STEP wise, warmup
 
 
