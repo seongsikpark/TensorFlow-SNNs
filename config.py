@@ -262,8 +262,8 @@ tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '220914_train_snn_VGG16_CIF
 tf.compat.v1.app.flags.DEFINE_enum('mode', 'train', ['train', 'load_and_train', 'inference'], 'run mode')
 
 #
-tf.compat.v1.app.flags.DEFINE_bool('hp_tune', False, 'hyperparameter tune mode')
-#tf.compat.v1.app.flags.DEFINE_bool('hp_tune', True, 'hyperparameter tune mode')
+#tf.compat.v1.app.flags.DEFINE_bool('hp_tune', False, 'hyperparameter tune mode')
+tf.compat.v1.app.flags.DEFINE_bool('hp_tune', True, 'hyperparameter tune mode')
 
 
 #
@@ -312,9 +312,9 @@ tf.compat.v1.app.flags.DEFINE_bool('load_best_model', True, 'load best model (mo
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size', 500, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size', 800, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size', 600, '')
-tf.compat.v1.app.flags.DEFINE_integer('batch_size', 400, '')
+#tf.compat.v1.app.flags.DEFINE_integer('batch_size', 400, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size', 200, '')
-#tf.compat.v1.app.flags.DEFINE_integer('batch_size', 100, '')
+tf.compat.v1.app.flags.DEFINE_integer('batch_size', 100, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size', 2, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size', 1, '')
 
@@ -331,8 +331,8 @@ tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 400, '')
 # VGG
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.1, 'learning rate')
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.02, 'learning rate')
-tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.01, 'learning rate')
-#tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.005, 'learning rate')
+#tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.01, 'learning rate')
+tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.005, 'learning rate')
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.001, 'learning rate')
 # ResNet
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.2, 'learning rate')

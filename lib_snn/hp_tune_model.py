@@ -79,7 +79,7 @@ def model_builder_default(hp, args, hps):
     #hp_learning_rate = hp.Choice('learning_rate', values = [0.3])
     # hp_learning_rate = hp.Choice('learning_rate', values = [0.01, 0.015, 0.02])
     #hp_learning_rate = hp.Choice('learning_rate', values=[0.005])
-    hp_learning_rate = hp.Float('learning_rate', min_value=0.2, max_value=0.2, sampling='linear')
+    hp_learning_rate = hp.Float('learning_rate', min_value=0.0001, max_value=0.001, sampling='linear')
 
     hp_initial_channels = hp.Choice('initial_channel', values=[64])
 
