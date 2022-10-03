@@ -773,9 +773,10 @@ with dist_strategy.scope():
         hp_tune_args['metric_accuracy'] = metric_accuracy
         hp_tune_args['metric_accuracy_top_5'] = metric_accuracy_top5
         hp_tune_args['train_steps_per_epoch'] = train_steps_per_epoch
+        hp_tune_args['dist_strategy'] = dist_strategy
 
         #hp_model_builder = partial(model_builder, hp, hps)
-        hp_model = lib_snn.hp_tune_model.CustomHyperModel(hp_tune_args, hps)
+        hp_model_builder = lib_snn.hp_tune_model.CustomHyperModel(hp_tune_args, hps)
 
         #search_func = lib_snn.hp_tune.GridSearch
         search_func = keras_tuner.RandomSearch

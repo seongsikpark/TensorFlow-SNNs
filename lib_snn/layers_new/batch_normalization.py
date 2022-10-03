@@ -930,7 +930,8 @@ class BatchNormalizationBase(Layer):
             # sspark - tdBN
             #scale = scale*0.5
             #scale = scale*conf.n_init_vth
-            scale = scale/conf.time_step
+            #scale = scale/conf.time_step
+            scale = scale / tf.math.sqrt(tf.cast(conf.time_step,tf.float32))
         outputs = tf.nn.batch_normalization(inputs, _broadcast(mean),
                                             _broadcast(variance), offset, scale,
                                             self.epsilon)

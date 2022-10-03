@@ -1517,7 +1517,7 @@ class Model(tf.keras.Model):
                     #if tape_prev is not None:
                     #    grads_prev = tape_prev.gradient(loss, var_list_prev, grad_loss)
                     #    grads = grads+grads_prev
-                    #grads = [grad * (t / last_ts) for grad in grads]
+                    #grads = [grad * ((t+1) / last_ts) for grad in grads]
                     #grads = [grad/self.conf.time_step for grad in grads]
                     grads_accum = [(grad_accum + grad) for grad_accum, grad in zip(grads_accum, grads)]
 
