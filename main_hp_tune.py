@@ -19,7 +19,8 @@ os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,4"
 #os.environ["CUDA_VISIBLE_DEVICES"]="1,3,5,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,4,5,7"
-os.environ["CUDA_VISIBLE_DEVICES"]="0,4"
+#os.environ["CUDA_VISIBLE_DEVICES"]="0,4"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 
 # TF logging setup
@@ -117,10 +118,12 @@ from models import imagenet_utils
 
 # distribute strategy
 devices = tf.config.list_physical_devices('GPU')
-devices = ['/gpu:{}'.format(i) for i in range(len(devices))]
-dist_strategy = tf.distribute.MirroredStrategy(devices=devices)
+if len(devices)==1:
+    dist_strategy = tf.distribute.OneDeviceStrategy(device='/gpu:0')
+else:
+    devices = ['/gpu:{}'.format(i) for i in range(len(devices))]
+    dist_strategy = tf.distribute.MirroredStrategy(devices=devices)
 #dist_strategy = tf.distribute.MirroredStrategy(devices=['/gpu:0', '/gpu:1'])
-#dist_strategy = tf.distribute.OneDeviceStrategy(device='/gpu:0')
 
 
 #
@@ -777,8 +780,8 @@ with dist_strategy.scope():
         #hp_model_builder = partial(model_builder, hp, hps)
         hp_model_builder = lib_snn.hp_tune_model.CustomHyperModel(hp_tune_args, hps)
 
-        #search_func = lib_snn.hp_tune.GridSearch
-        search_func = keras_tuner.RandomSearch
+        search_func = lib_snn.hp_tune.GridSearch
+        #search_func = keras_tuner.RandomSearch
         search_max_trials = 20
 
         #tuner = kt.Hyperband(model_builder,

@@ -73,13 +73,15 @@ def VGG16(
     k_init = 'glorot_uniform'
     #k_init = tf.keras.initializers.RandomUniform(minval=-1.0, maxval=1.0,seed=None)
 
+    tdbn_first_layer = conf.mode=='train' and conf.nn_mode=='SNN' and conf.input_spike_mode=='POISSON' and conf.tdbn
+
     #
     img_input = tf.keras.layers.Input(shape=input_shape, batch_size=batch_size)
     # x = img_input
     x = lib_snn.layers.InputGenLayer(name='in')(img_input)
 
     #
-    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv1')(x)
+    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, tdbn=tdbn_first_layer, name='conv1')(x)
     x = tf.keras.layers.Dropout(dropout_conv_r[0], name='conv1_do')(x)
     x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv1_1')(x)
     #x = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='conv1_p')(x)

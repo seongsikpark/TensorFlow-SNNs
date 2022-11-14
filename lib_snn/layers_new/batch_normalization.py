@@ -175,6 +175,12 @@ class BatchNormalizationBase(Layer):
                  adjustment=None,
                  name=None,
                  **kwargs):
+
+
+        #sspark
+        self.en_tdbn = kwargs.pop('en_tdbn', False)
+        self.tdbn_scale = 1.0 / tf.math.sqrt(tf.cast(conf.time_step,tf.float32))
+
         super(BatchNormalizationBase, self).__init__(name=name, **kwargs)
         if isinstance(axis, (list, tuple)):
             self.axis = axis[:]
@@ -199,6 +205,8 @@ class BatchNormalizationBase(Layer):
         self.renorm = renorm
         self.virtual_batch_size = virtual_batch_size
         self.adjustment = adjustment
+
+
         if self._USE_V2_BEHAVIOR:
             if fused:
                 self._raise_if_fused_cannot_be_used()
@@ -540,6 +548,10 @@ class BatchNormalizationBase(Layer):
         """Returns the output of fused batch norm."""
         beta = self.beta if self.center else self._beta_const
         gamma = self.gamma if self.scale else self._gamma_const
+
+        # sspark
+        if self.en_tdbn:
+            gamma=gamma*self.tdbn_scale
 
         # TODO(b/129279393): Support zero batch input in non DistributionStrategy
         # code as well.
@@ -926,12 +938,14 @@ class BatchNormalizationBase(Layer):
         if scale is not None:
             scale = tf.cast(scale, inputs.dtype)
         # TODO: parameterize
-        if conf.nn_mode=='SNN' and conf.tdbn:
+        #if conf.nn_mode=='SNN' and conf.tdbn:
+        if self.en_tdbn:
             # sspark - tdBN
             #scale = scale*0.5
             #scale = scale*conf.n_init_vth
             #scale = scale/conf.time_step
-            scale = scale / tf.math.sqrt(tf.cast(conf.time_step,tf.float32))
+            #scale = scale / tf.math.sqrt(tf.cast(conf.time_step,tf.float32))
+            scale = scale * self.tdbn_scale
         outputs = tf.nn.batch_normalization(inputs, _broadcast(mean),
                                             _broadcast(variance), offset, scale,
                                             self.epsilon)

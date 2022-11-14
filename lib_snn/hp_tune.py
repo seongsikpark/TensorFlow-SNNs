@@ -91,7 +91,7 @@ class GridSearch(multi_execution_tuner.MultiExecutionTuner):
         self,
         hypermodel,
         objective,
-        #max_trials,
+        max_trials,
         #seed=None,
         hyperparameters=None,
         tune_new_entries=True,

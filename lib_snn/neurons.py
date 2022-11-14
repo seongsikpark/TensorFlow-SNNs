@@ -178,6 +178,9 @@ class Neuron(tf.keras.layers.Layer):
         #
         # self.vmem = tf.Variable(shape=self.dim,dtype=tf.float32,initial_value=tf.constant(self.conf.n_init_vinit,shape=self.dim),trainable=False,name='vmem')
 
+        # SNN training
+        self.grad_in_prev = tf.Variable(initial_value=tf.zeros(self.dim), trainable=False, name='grad_in_prev')
+
     def build(self, input_shapes):
         #print('neuron build - {}'.format(self.name))
         super().build(input_shapes)
@@ -344,6 +347,7 @@ class Neuron(tf.keras.layers.Layer):
             #    print(upstream)
 
             if self.n_type=='OUT':
+            #if False:
                 #grad_ret = upstream/10.0
                 #if self.conf.dataset!='CIFAR10':
                 #    assert False
@@ -356,11 +360,14 @@ class Neuron(tf.keras.layers.Layer):
                 a=0.5
                 if True:
                 #if False:
-                    cond_1=tf.math.less_equal(tf.math.abs(self.vmem_pre-self.vth),a)
-                    #cond_1 = tf.math.logical_and(cond_1,tf.math.logical_not(self.f_fire))
+                    #cond_1=tf.math.less_equal(tf.math.abs(self.vmem_pre-self.vth),a)
+                    #cond = cond_1
+
                     #cond_2 = self.f_fire
                     #cond = tf.math.logical_or(cond_1,cond_2)
-                    cond = cond_1
+
+                    cond = self.f_fire
+                    #
                     do_du = tf.where(cond,tf.ones(cond.shape),tf.zeros(cond.shape))
                 else:
                     #cond=tf.math.less_equal(tf.math.abs(self.vth-inputs),a)
@@ -372,15 +379,26 @@ class Neuron(tf.keras.layers.Layer):
                 #spatio = tf.where(cond, upstream, tf.zeros(upstream.shape))  # spaio BP only
                 #spatio = tf.multiply(upstream,do_du)  # spaio BP only
                 spatio = upstream
+
+                #
                 #dL_du_t1 = tf.random.normal(spatio.shape,mean=1.0,stddev=0.1)
                 dL_du_t1 = upstream            # speculate next time step gradient - dL/du_t+1
-                dL_du_t1 = dL_du_t1
+                dL_du_t1 = dL_du_t1*do_du
                 #dL_du_t1 = dL_du_t1*do_du
+                #dL_du_t1 = tf.cond(tf.equal(self.grad_in_prev,tf.zeros(self.dim)),
+                #                    upstream,
+                #                    upstream - self.grad_in_prev)
+                #dL_du_t1 = (dL_du_t1 - self.grad_in_prev)*do_du
+                dL_du_t1 = (dL_du_t1+self.grad_in_prev)/2
+
                 #temp_rand = upstream * temp_rand           # speculate next time step gradient
 
+
+                # temporal_1 = du_(t+1)/do_(t)
                 #temporal_1 = tf.where(self.f_fire, -self.vth, tf.zeros(spatio.shape))
-                #temporal_1 = tf.where(self.f_fire, -self.vth, tf.zeros(spatio.shape))  # reset-by-sub
-                temporal_1 = tf.where(self.f_fire, -self.vmem_pre, tf.zeros(spatio.shape))  # reset-to-zero
+                temporal_1 = tf.where(self.f_fire, -self.vth, tf.zeros(spatio.shape))  # reset-by-sub
+                #temporal_1= tf.where(self.f_fire, -self.vmem_pre, tf.zeros(spatio.shape))  # reset-to-zero
+                #temporal_1 = tf.zeros(spatio.shape)
 
                 #temporal_2 = tf.ones(spatio.shape)          # du_(t+1)/du_(t) # IF
                 temporal_2 = self.leak_const_init        # du_(t+1)/du_(t) # LIF
@@ -389,6 +407,30 @@ class Neuron(tf.keras.layers.Layer):
                 dL_du = dL_do*do_du + dL_du_t1*temporal_2
 
                 grad_ret = dL_du
+                #grad_ret = dL_do*do_du
+                #grad_ret = spatio*do_du
+
+
+                #grad_ret = dL_do
+                #grad_ret = dL_du_t1*temporal_2
+                #grad_ret = dL_du_t1
+                #grad_ret = spatio*do_du
+                #grad_ret = upstream*do_du
+
+                #print()
+                ##if self.name=='n_fc1' or self.name=='n_fc2':
+                #if True:
+                    ##print(self.name)
+                    #print(upstream)
+                    #print(grad_ret)
+
+                #print(self.name)
+                #print(grad_ret)
+
+                #if tf.math.is_nan(tf.reduce_mean(grad_ret)):
+                    #print(self.name)
+                    #print(upstream)
+                    #assert False
 
 
                 #temporal = tf.add(temporal_1,temporal_2)
@@ -401,6 +443,13 @@ class Neuron(tf.keras.layers.Layer):
                 #grad_ret = tf.clip_by_norm(grad_ret,2)
                 #grad_ret = upstream
 
+                self.grad_in_prev.assign(dL_du_t1)
+                #self.grad_in_prev.assign(dL_du_t1)
+
+            # test
+            #grad_ret = spatio*do_du
+
+            #print("grad_ret> {} - max: {:.3g}, min: {:.3g}".format(self.name,tf.reduce_max(grad_ret),tf.reduce_mean(grad_ret)))
 
             #print('here')
             #print(self.name)
@@ -422,9 +471,12 @@ class Neuron(tf.keras.layers.Layer):
             'IF': self.run_type_if,
             'LIF': self.run_type_lif,
             'OUT': self.run_type_out
-        }[self.n_type](inputs ,t, training)
+        }
+        #}[self.n_type](inputs ,t, training)
+        #out_ret = self.out
 
-        out_ret = self.out
+        out = run_type[self.n_type](inputs, t, training)
+        out_ret = out
 
         #self.t = t
         #print(self.conf.time_step)
@@ -497,6 +549,9 @@ class Neuron(tf.keras.layers.Layer):
         if self.conf.f_record_first_spike_time:
             self.reset_first_spike_time()
 
+        #
+        self.reset_snn_direct_training()
+
     def reset_spike_count(self):
         # self.spike_count = tf.zeros(self.dim)
         # self.spike_count_int = tf.zeros(self.dim)
@@ -551,6 +606,10 @@ class Neuron(tf.keras.layers.Layer):
     #
     def reset_leak_const(self):
         self.leak_const.assign(self.leak_const_init)
+
+    #
+    def reset_snn_direct_training(self):
+        self.grad_in_prev.assign(tf.zeros(self.dim))
 
     #
     def set_vmem_init(self, vmem_init):
@@ -986,6 +1045,7 @@ class Neuron(tf.keras.layers.Layer):
         else:
             self.out = tf.where(self.f_fire, self.vth, self.zeros)
 
+
         # reset
         # vmem -> vrest
 
@@ -1344,6 +1404,7 @@ class Neuron(tf.keras.layers.Layer):
         # print('run_type_in')
         self.input_spike_gen(inputs, t)
         self.count_spike(t)
+        return self.out
 
     #
     def run_type_if(self, inputs, t, training):
@@ -1351,6 +1412,7 @@ class Neuron(tf.keras.layers.Layer):
         self.integration(inputs, t)
         self.fire(t)
         self.count_spike(t)
+
 
         if glb.model_compiled and self.conf.vth_toggle:
             #print(self.name)
@@ -1416,12 +1478,34 @@ class Neuron(tf.keras.layers.Layer):
         #self.out = inputs
 
     #
+    #@tf.custom_gradient
     def run_type_lif(self, inputs, t, training):
         # print('run_type_lif')
         self.leak()
         self.integration(inputs, t)
         self.fire(t)
         self.count_spike(t)
+
+
+        def grad(upstream):
+            # TODO: parameterize
+            a=0.5
+            if True:
+            #if False:
+                cond_1=tf.math.less_equal(tf.math.abs(self.vmem_pre-self.vth),a)
+                #cond_1 = tf.math.logical_and(cond_1,tf.math.logical_not(self.f_fire))
+                #cond_2 = self.f_fire
+                #cond = tf.math.logical_or(cond_1,cond_2)
+                cond = cond_1
+                do_du = tf.where(cond,tf.ones(cond.shape),tf.zeros(cond.shape))
+
+            grad_ret = upstream*do_du
+
+            return grad_ret, tf.stop_gradient(t), tf.stop_gradient(training)
+
+        #return self.out, grad
+        return self.out
+
 
     def run_type_out(self, inputs, t, training):
         # print("output layer")
@@ -1434,13 +1518,13 @@ class Neuron(tf.keras.layers.Layer):
             # the declarations of neuron layers in other files should be modified.
             #assert False, 'only support IF?'
             if self.conf.n_type=='IF':
-                self.run_type_if(inputs, t)
+                self.run_type_if(inputs, t, training)
             elif self.conf.n_type=='LIF':
-                self.run_type_lif(inputs, t)
+                self.run_type_lif(inputs, t, training)
             else:
                 assert False
 
-            self.out = self.spike_count
+            self.out = self.spike_count/tf.cast(t,tf.float32)
 
         else:
             self.integration(inputs, t)
@@ -1466,6 +1550,7 @@ class Neuron(tf.keras.layers.Layer):
 
         #self.out = tf.cond(training,lambda:tf.keras.activations.softmax(self.out),lambda:tf.identity(self.out))
         #self.out = tf.keras.activations.softmax(self.out)
+        return self.out
 
 
     ############################################################

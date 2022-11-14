@@ -478,6 +478,15 @@ class Model(tf.keras.Model):
                     layer_out = layer(layer_in)
                     layer_in = layer_out
 
+                    # debug
+                    if False:
+                    #if True:
+                        if hasattr(layer,'act') and isinstance(layer.act,lib_snn.neurons.Neuron):
+                            spike_count = layer.act.spike_count
+                            spike = layer.act.out
+                            print('spike count> {}: - sum {:.3e}, mean {:.3e}'.format(layer.name,tf.reduce_sum(spike_count),tf.reduce_mean(spike_count)))
+                            print('spike - sum {:.3e}, mean {:.3e}'.format(tf.reduce_sum(spike),tf.reduce_mean(spike)))
+
             return layer_out
 
 
@@ -1514,12 +1523,26 @@ class Model(tf.keras.Model):
 
 
                     grads = tape.gradient(loss, var_list, grad_loss)
+
+                    # spike norm - grad
+
+
                     #if tape_prev is not None:
                     #    grads_prev = tape_prev.gradient(loss, var_list_prev, grad_loss)
                     #    grads = grads+grads_prev
                     #grads = [grad * ((t+1) / last_ts) for grad in grads]
                     #grads = [grad/self.conf.time_step for grad in grads]
                     grads_accum = [(grad_accum + grad) for grad_accum, grad in zip(grads_accum, grads)]
+
+                    #
+                    if False:
+                        print()
+                        for layer in self.layers:
+                            if hasattr(layer,'kernel'):
+                                print('kernel> {} max {:.3e}, mean {:.3e}'.format(layer.name,tf.reduce_max(layer.kernel),tf.reduce_mean(layer.kernel)))
+
+                            if hasattr(layer,'bias'):
+                                print('bias> {} max {:.3e}, mean {:.3e}'.format(layer.name,tf.reduce_max(layer.bias),tf.reduce_mean(layer.bias)))
 
                     #tape_prev = tape
                     #loss_prev = loss
@@ -1547,10 +1570,110 @@ class Model(tf.keras.Model):
                     #assert False
                     glb_t()
 
-                #grads_accum = [grad_accum/self.conf.time_step for grad_accum in grads_accum]
-
                 grads_accum_and_vars = list(zip(grads_accum, var_list))
                 self.optimizer.apply_gradients(grads_accum_and_vars)
+
+                #grads_accum = [grad_accum/self.conf.time_step for grad_accum in grads_accum]
+
+                nan_test = [tf.reduce_any(tf.math.is_nan(grad_accum)) for grad_accum in grads_accum]
+                #if tf.reduce_any(nan_test):
+                #if tf.executing_eagerly() and tf.reduce_any(nan_test):
+                if tf.executing_eagerly():
+                    #
+                    #if False:
+                    if True:
+
+                        print('\n grads_accum')
+                        for grad_accum, var in grads_accum_and_vars:
+                            #print('{: <10}: - sum {:.3e}, mean {:.3e}'.format(var.name,tf.reduce_sum(grad_accum),tf.reduce_mean(grad_accum)))
+                            print('{: <10}: - max {:.3e}, min {:.3e}, mean {:.3e}, var {:.3e}'
+                                  .format(var.name,tf.reduce_max(grad_accum),tf.reduce_min(grad_accum),
+                                          tf.reduce_mean(grad_accum),tf.math.reduce_variance(grad_accum)))
+
+                        print('\n spike count')
+                        for layer in self.layers:
+                            if hasattr(layer,'act') and isinstance(layer.act,lib_snn.neurons.Neuron):
+                                spike_count = layer.act.spike_count
+                                spike = layer.act.out
+                                print('{: <10}: - sum {:.3e}, mean {:.3e}'.format(layer.name,tf.reduce_sum(spike_count),tf.reduce_mean(spike_count)))
+                                #print('spike - sum {:.3e}, mean {:.3e}'.format(tf.reduce_sum(spike),tf.reduce_mean(spike)))
+
+                        #
+                        print('\n kernel ')
+                        for layer in self.layers:
+                            if hasattr(layer,'kernel'):
+                                print('{: <10} max {:.3e}, min {:.3e}, mean {:.3e}, sq {:.3e}'
+                                      .format(layer.name,
+                                              tf.reduce_max(layer.kernel),
+                                              tf.reduce_min(layer.kernel),
+                                              tf.reduce_mean(layer.kernel),
+                                              tf.reduce_sum(tf.math.pow(layer.kernel,2))))
+
+                        #
+                        print('\n bias ')
+                        for layer in self.layers:
+                            if hasattr(layer,'bias'):
+                                print('{: <10} max {:.3e}, min {:.3e}, mean {:.3e}, sq {:.3e}'
+                                      .format(layer.name,
+                                              tf.reduce_max(layer.bias),
+                                              tf.reduce_min(layer.bias),
+                                              tf.reduce_mean(layer.bias),
+                                              tf.reduce_sum(tf.math.pow(layer.bias,2))))
+
+                        #
+                        print('\n bn - moving mean')
+                        for layer in self.layers:
+                            if hasattr(layer,'bn') and layer.bn is not None:
+                                bn_var = layer.bn.moving_mean
+                                print('{: <10} max {:.3e}, min {:.3e}, mean {:.3e}, sq {:.3e}'
+                                      .format(layer.name,
+                                              tf.reduce_max(bn_var),
+                                              tf.reduce_min(bn_var),
+                                              tf.reduce_mean(bn_var),
+                                              tf.reduce_sum(tf.math.pow(bn_var,2))))
+
+                        #
+                        print('\n bn - moving variance')
+                        for layer in self.layers:
+                            if hasattr(layer,'bn') and layer.bn is not None:
+                                bn_var = layer.bn.moving_variance
+                                print('{: <10} max {:.3e}, min {:.3e}, mean {:.3e}, sq {:.3e}'
+                                      .format(layer.name,
+                                              tf.reduce_max(bn_var),
+                                              tf.reduce_min(bn_var),
+                                              tf.reduce_mean(bn_var),
+                                              tf.reduce_sum(tf.math.pow(bn_var,2))))
+
+                        #
+                        print('\n bn - gamma')
+                        for layer in self.layers:
+                            if hasattr(layer,'bn') and layer.bn is not None:
+                                bn_var = layer.bn.gamma
+                                print('{: <10} max {:.3e}, min {:.3e}, mean {:.3e}, sq {:.3e}'
+                                      .format(layer.name,
+                                              tf.reduce_max(bn_var),
+                                              tf.reduce_min(bn_var),
+                                              tf.reduce_mean(bn_var),
+                                              tf.reduce_sum(tf.math.pow(bn_var,2))))
+
+                        #
+                        print('\n bn - beta')
+                        for layer in self.layers:
+                            if hasattr(layer,'bn') and layer.bn is not None:
+                                bn_var = layer.bn.beta
+                                print('{: <10} max {:.3e}, min {:.3e}, mean {:.3e}, sq {:.3e}'
+                                      .format(layer.name,
+                                              tf.reduce_max(bn_var),
+                                              tf.reduce_min(bn_var),
+                                              tf.reduce_mean(bn_var),
+                                              tf.reduce_sum(tf.math.pow(bn_var,2))))
+
+
+                    if tf.reduce_any(nan_test) or (loss > 100):
+                        #print('here')
+                        assert False
+
+
 
                 return self.compute_metrics(x, y, y_pred, sample_weight)
 
