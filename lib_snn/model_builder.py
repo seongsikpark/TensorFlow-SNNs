@@ -31,7 +31,7 @@ def model_builder(
 
     # TODO: parameterize
     # lr schedule
-    lr_schedule_first_decay_step = train_steps_per_epoch * 10  # in iteration
+    lr_schedule_first_decay_step = train_steps_per_epoch * 20  # in iteration
 
     #lr_schedule = hp_lr_schedule
     #train_epoch = hp_train_epoch

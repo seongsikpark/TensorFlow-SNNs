@@ -181,6 +181,10 @@ class Neuron(tf.keras.layers.Layer):
         # SNN training
         self.grad_in_prev = tf.Variable(initial_value=tf.zeros(self.dim), trainable=False, name='grad_in_prev')
 
+        # TODO: conditional - SNN direct training, test method
+        self.dL_du_t1_prev = tf.Variable(initial_value=tf.zeros(self.dim),trainable=False,name='dL_du_t1_prev')
+        #self.dL_du_t1_prev = None
+
     def build(self, input_shapes):
         #print('neuron build - {}'.format(self.name))
         super().build(input_shapes)
@@ -347,7 +351,6 @@ class Neuron(tf.keras.layers.Layer):
             #    print(upstream)
 
             if self.n_type=='OUT':
-            #if False:
                 #grad_ret = upstream/10.0
                 #if self.conf.dataset!='CIFAR10':
                 #    assert False
@@ -384,6 +387,23 @@ class Neuron(tf.keras.layers.Layer):
                 #dL_du_t1 = tf.random.normal(spatio.shape,mean=1.0,stddev=0.1)
                 dL_du_t1 = upstream            # speculate next time step gradient - dL/du_t+1
                 dL_du_t1 = dL_du_t1*do_du
+                
+                if False:
+                    #if tf.cond(hasattr(self, 'dL_du_t1_prev'):
+                        #dL_du_t1 = dL_du_t1+self.dL_du_t1_prev
+                    #print(self.dL_du_t1_prev == tf.zeros([]))
+
+
+                    #self.dL_du_t1_prev = tf.where(self.dL_du_t1_prev == tf.zeros([]),
+                    #                              tf.Variable(initial_value=tf.zeros(upstream.shape)),
+                    #                              self.dL_du_t1_prev)
+
+                    #dL_du_t1 = tf.cond(self.dL_du_t1_prev == tf.zeros([]),lambda: tf.identity(dL_du_t1),
+                    #                   lambda: tf.math.add(dL_du_t1,self.dL_du_t1_prev))
+                    dL_du_t1 = tf.math.add(dL_du_t1,self.dL_du_t1_prev)
+                    dL_du_t1 = dL_du_t1/tf.cast(self.conf.time_step,dtype=tf.float32)
+
+                #dL_du_t1 = dL_du_t1
                 #dL_du_t1 = dL_du_t1*do_du
                 #dL_du_t1 = tf.cond(tf.equal(self.grad_in_prev,tf.zeros(self.dim)),
                 #                    upstream,
@@ -450,6 +470,9 @@ class Neuron(tf.keras.layers.Layer):
             #grad_ret = spatio*do_du
 
             #print("grad_ret> {} - max: {:.3g}, min: {:.3g}".format(self.name,tf.reduce_max(grad_ret),tf.reduce_mean(grad_ret)))
+
+                #self.dL_du_t1_prev = dL_du_t1
+                self.dL_du_t1_prev.assign(dL_du_t1)
 
             #print('here')
             #print(self.name)
@@ -549,7 +572,7 @@ class Neuron(tf.keras.layers.Layer):
         if self.conf.f_record_first_spike_time:
             self.reset_first_spike_time()
 
-        #
+        # TODO: add condition
         self.reset_snn_direct_training()
 
     def reset_spike_count(self):
@@ -609,6 +632,12 @@ class Neuron(tf.keras.layers.Layer):
 
     #
     def reset_snn_direct_training(self):
+        #self.dL_du_t1_prev = tf.zeros(self.dim)
+        #self.dL_du_t1_prev = tf.Variable(initial_value=tf.zeros(self.dim))
+        self.dL_du_t1_prev.assign(tf.zeros(self.dim))
+        #self.dL_du_t1_prev = None
+
+        #
         self.grad_in_prev.assign(tf.zeros(self.dim))
 
     #
@@ -1045,7 +1074,6 @@ class Neuron(tf.keras.layers.Layer):
         else:
             self.out = tf.where(self.f_fire, self.vth, self.zeros)
 
-
         # reset
         # vmem -> vrest
 
@@ -1413,7 +1441,6 @@ class Neuron(tf.keras.layers.Layer):
         self.fire(t)
         self.count_spike(t)
 
-
         if glb.model_compiled and self.conf.vth_toggle:
             #print(self.name)
             # toggle_const = tf.where(tf.greater_equal(self.vth,self.fires),1/3,3)
@@ -1478,7 +1505,6 @@ class Neuron(tf.keras.layers.Layer):
         #self.out = inputs
 
     #
-    #@tf.custom_gradient
     def run_type_lif(self, inputs, t, training):
         # print('run_type_lif')
         self.leak()

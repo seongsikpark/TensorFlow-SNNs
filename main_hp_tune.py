@@ -124,6 +124,7 @@ else:
     devices = ['/gpu:{}'.format(i) for i in range(len(devices))]
     dist_strategy = tf.distribute.MirroredStrategy(devices=devices)
 #dist_strategy = tf.distribute.MirroredStrategy(devices=['/gpu:0', '/gpu:1'])
+#dist_strategy = tf.distribute.OneDeviceStrategy(device='/gpu:0')
 
 
 #

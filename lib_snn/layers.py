@@ -282,6 +282,16 @@ class Layer():
 
     def init_record_output(self):
         self.record_output = tf.Variable(tf.zeros(self.output_shape_fixed_batch),trainable=False,name='record_output')
+        #
+        f_hold_temporal_tensor=True
+        if self.conf.f_hold_temporal_tensor:
+            output_shape_list = self.output_shape_fixed_batch.as_list()
+            output_shape_list.insert(0,self.conf.time_step)
+            output_shape = tf.TensorShape(output_shape_list)
+
+            #[time, batch, width, height, channel]
+            self.record_output = tf.Variable(tf.zeros(output_shape),trainable=False,name='record_output')
+
         if self.last_layer:
             self.record_logit= tf.Variable(tf.zeros(self.output_shape_fixed_batch),trainable=False,name='record_logit')
 
@@ -447,7 +457,15 @@ class Layer():
 
         if self.en_record_output:
             #self.record_output = ret
-            self.record_output.assign(ret)
+            if self.conf.f_hold_temporal_tensor:
+                t=glb_t.t
+                indices = [[t]]
+                ret_t = tf.expand_dims(ret,axis=0)
+                tf.tensor_scatter_nd_update(self.record_output,indices,ret_t)
+                #indices=[[:,t]]
+                #tf.tensor_scatter_nd_update(self.record_output,[:,t,])
+            else:
+                self.record_output.assign(ret)
             #if self.name == 'predictions':
             if self.last_layer:
                 #self.record_logit = b
