@@ -397,7 +397,6 @@ class Neuron(tf.keras.layers.Layer):
                 #dL_du_t1 = tf.cond(self.dL_du_t1_prev == tf.zeros([]),lambda: tf.identity(dL_du_t1),
                 #                   lambda: tf.math.add(dL_du_t1,self.dL_du_t1_prev))
                 dL_du_t1 = tf.math.add(dL_du_t1,self.dL_du_t1_prev)
-                dL_du_t1 = dL_du_t1/tf.cast(self.conf.time_step,dtype=tf.float32)
 
                 #dL_du_t1 = dL_du_t1
                 #dL_du_t1 = dL_du_t1*do_du
@@ -427,6 +426,7 @@ class Neuron(tf.keras.layers.Layer):
                 #grad_ret = upstream
 
 
+                dL_du_t1 = dL_du_t1/tf.cast(self.conf.time_step,dtype=tf.float32)
                 #self.dL_du_t1_prev = dL_du_t1
                 self.dL_du_t1_prev.assign(dL_du_t1)
 

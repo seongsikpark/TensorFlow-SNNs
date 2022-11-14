@@ -262,8 +262,8 @@ tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '221002_train_snn_VGG16_CIF
 tf.compat.v1.app.flags.DEFINE_enum('mode', 'train', ['train', 'load_and_train', 'inference'], 'run mode')
 
 #
-#tf.compat.v1.app.flags.DEFINE_bool('hp_tune', False, 'hyperparameter tune mode')
-tf.compat.v1.app.flags.DEFINE_bool('hp_tune', True, 'hyperparameter tune mode')
+tf.compat.v1.app.flags.DEFINE_bool('hp_tune', False, 'hyperparameter tune mode')
+#tf.compat.v1.app.flags.DEFINE_bool('hp_tune', True, 'hyperparameter tune mode')
 
 
 #
@@ -331,8 +331,8 @@ tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 400, '')
 # VGG
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.1, 'learning rate')
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.02, 'learning rate')
-#tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.01, 'learning rate')
-tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.005, 'learning rate')
+tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.01, 'learning rate')
+#tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.005, 'learning rate')
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.001, 'learning rate')
 # ResNet
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.2, 'learning rate')
@@ -348,8 +348,8 @@ tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-5, 'lambda')
 
 #
 #tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',None,'gradient clip norm')
-tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',1.0,'gradient clip norm')
-#tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',2.0,'gradient clip norm')
+#tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',1.0,'gradient clip norm')
+tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',2.0,'gradient clip norm')
 
 
 # data augmentation
