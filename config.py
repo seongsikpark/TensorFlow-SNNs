@@ -237,6 +237,10 @@ tf.compat.v1.app.flags.DEFINE_boolean('verbose',False, 'verbose mode')
 tf.compat.v1.app.flags.DEFINE_boolean('verbose_visual',False, 'verbose visual mode')
 #tf.compat.v1.app.flags.DEFINE_boolean('verbose_visual',True, 'verbose visual mode')
 
+#
+tf.compat.v1.app.flags.DEFINE_boolean('verbose_snn_train',False, 'verbose mode')
+#tf.compat.v1.app.flags.DEFINE_boolean('verbose_snn_train',True, 'verbose mode')
+
 
 ################################
 # Common
@@ -340,7 +344,8 @@ tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.01, 'learning rate')
 # regularizer
 tf.compat.v1.app.flags.DEFINE_string('regularizer', 'L2', 'L2 or L1 regularizer')
 # VGG
-tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-5, 'lambda')
+#tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-5, 'lambda')
+tf.compat.v1.app.flags.DEFINE_float('lmb',5.0E-5, 'lambda')
 #tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-4, 'lambda') # SNN
 #tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-3, 'lambda') # SNN
 # ResNet
@@ -435,6 +440,7 @@ tf.compat.v1.app.flags.DEFINE_bool('f_neg_cap_vmem',False,'negative capped vmem'
 #tf.compat.v1.app.flags.DEFINE_bool('f_neg_cap_vmem',True,'negative capped vmem')
 
 tf.compat.v1.app.flags.DEFINE_string('input_spike_mode','REAL','input spike mode - REAL, POISSON, WEIGHTED_SPIKE, others...')
+#tf.compat.v1.app.flags.DEFINE_string('input_spike_mode','POISSON','input spike mode - REAL, POISSON, WEIGHTED_SPIKE, others...')
 tf.compat.v1.app.flags.DEFINE_string('neural_coding','RATE','neural coding - RATE, WEIGHTED_SPIKE, PROPOSED')
 
 #
@@ -466,8 +472,8 @@ tf.compat.v1.app.flags.DEFINE_float('n_init_vinit', 0.0, 'initial value of vinit
 tf.compat.v1.app.flags.DEFINE_float('n_init_vrest', 0.0, 'initial value of vrest')
 
 #
-tf.compat.v1.app.flags.DEFINE_enum('snn_output_type',"VMEM", ["SPIKE", "VMEM", "FIRST_SPIKE_TIME"], "snn output type")
-#tf.compat.v1.app.flags.DEFINE_enum('snn_output_type',"SPIKE", ["SPIKE", "VMEM", "FIRST_SPIKE_TIME"], "snn output type")
+#tf.compat.v1.app.flags.DEFINE_enum('snn_output_type',"VMEM", ["SPIKE", "VMEM", "FIRST_SPIKE_TIME"], "snn output type")
+tf.compat.v1.app.flags.DEFINE_enum('snn_output_type',"SPIKE", ["SPIKE", "VMEM", "FIRST_SPIKE_TIME"], "snn output type")
 
 #
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 1024, 'time steps per sample in SNN')

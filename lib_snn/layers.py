@@ -96,14 +96,24 @@ class Layer():
         # ReLU-6
         relu_max_value = kwargs.pop('relu_max_value',None)
 
+        # tdbn
+        tdbn_arg = kwargs.pop('tdbn',None)
+
+
         # batch norm.
         if self.use_bn:
+            if tdbn_arg is None:
+                tdbn = conf.mode=='train' and conf.nn_mode=='SNN' and conf.tdbn
+            else:
+                tdbn = tdbn_arg
             #self.bn = tf.keras.layers.BatchNormalization(name=name_bn)
             #self.bn = tf.keras.layers.BatchNormalization()
             #self.bn = tf.keras.layers.BatchNormalization(epsilon=1.001e-5,name=name_bn)
             #self.bn = tf.keras.layers.BatchNormalization(epsilon=1.001e-5)
 
-            self.bn = lib_snn.layers_new.BatchNormalization(epsilon=1.001e-5)
+            self.bn = lib_snn.layers_new.BatchNormalization(epsilon=1.001e-5,en_tdbn=tdbn)
+
+            #self.bn = lib_snn.layers_new.BatchNormalization(epsilon=1.0)
         else:
             self.bn = None
 
@@ -337,6 +347,21 @@ class Layer():
             b = self.bn(s, training=training)
             #if glb.model_compiled:
             #    assert False
+
+            #if False:
+            #if True:
+            if self.conf.verbose_snn_train:
+                if glb.model_compiled:
+                    #print('{:.3e}'.format(tf.reduce_max(b)))
+                    #print('after bn> {} - max: {}, mean: {}'.format(self.name,tf.reduce_max(b),tf.reduce_mean(b)))
+                    print('before bn> {} - max: {:.3g}, mean: {:.3g}, var: {:.3g}'
+                          .format(self.name,tf.reduce_max(s),tf.reduce_mean(s),tf.math.reduce_variance(s)))
+                    print('after bn> {} - max: {:.3g}, mean: {:.3g}, var: {:.3g}, moving_mean: {:.3g}, moving_var: {:.3g}'
+                          .format(self.name,tf.reduce_max(b),tf.reduce_mean(b),tf.math.reduce_variance(b), tf.reduce_mean(self.bn.moving_mean),tf.reduce_mean(self.bn.moving_variance)))
+                    #print('after bn> {} - max: {:.3e}, mean: {:.3e}'.format(self.name))
+
+                    if self.name=='conv1':
+                        print(self.bn.moving_variance)
         else:
             b = s
             #print('here')
@@ -347,7 +372,7 @@ class Layer():
         else:
             if self.en_snn:
                 n = self.act(b, glb_t.t, training)
-                if self.last_layer:
+                if self.last_layer and (not (self.act_dnn is None)):
                     # softmax
                     n = self.act_dnn(n)
             else:
@@ -395,6 +420,13 @@ class Layer():
         #        time = conf.time_step - self.bias_en_time
         #        ret = ret / time
         #        #ret = ret
+
+        #
+
+        #if self.name=='fc1' or self.name=='fc2':
+            #print(s)
+            #print(b)
+            #print()
 
         #print(self.name)
         #print(n[0])
