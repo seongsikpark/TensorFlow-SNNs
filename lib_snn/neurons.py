@@ -378,74 +378,112 @@ class Neuron(tf.keras.layers.Layer):
                     #cond=tf.math.less_equal(tf.math.abs(self.vth-inputs),a)
                     #cond = tf.math.greater_equal(inputs, tf.zeros(shape=inputs.shape))
                     cond = tf.math.greater_equal(self.vmem, tf.zeros(shape=self.vmem.shape))
-                #cond_1 = tf.math.logical_or(tf.greater_equal(self.vmem,(1.0-a)*self.vth),tf.less_equal(self.vmem,(1.0+a)*self.vth))
-                #cond = cond_1
-                #cond = cond_2
-                #spatio = tf.where(cond, upstream, tf.zeros(upstream.shape))  # spaio BP only
-                #spatio = tf.multiply(upstream,do_du)  # spaio BP only
+                # cond_1 = tf.math.logical_or(tf.greater_equal(self.vmem,(1.0-a)*self.vth),tf.less_equal(self.vmem,(1.0+a)*self.vth))
+                # cond = cond_1
+                # cond = cond_2
+                # spatio = tf.where(cond, upstream, tf.zeros(upstream.shape))  # spaio BP only
+                # spatio = tf.multiply(upstream,do_du)  # spaio BP only
                 spatio = upstream
 
                 #
-                #dL_du_t1 = tf.random.normal(spatio.shape,mean=1.0,stddev=0.1)
-                dL_du_t1 = upstream            # speculate next time step gradient - dL/du_t+1
-                #if tf.cond(hasattr(self, 'dL_du_t1_prev'):
-                    #dL_du_t1 = dL_du_t1+self.dL_du_t1_prev
-                #print(self.dL_du_t1_prev == tf.zeros([]))
+                # dL_du_t1 = tf.random.normal(spatio.shape,mean=1.0,stddev=0.1)
+                dL_du_t1 = upstream  # speculate next time step gradient - dL/du_t+1
+                dL_du_t1 = dL_du_t1 * do_du
 
+                if False:
+                    # if tf.cond(hasattr(self, 'dL_du_t1_prev'):
+                    # dL_du_t1 = dL_du_t1+self.dL_du_t1_prev
+                    # print(self.dL_du_t1_prev == tf.zeros([]))
 
-                #self.dL_du_t1_prev = tf.where(self.dL_du_t1_prev == tf.zeros([]),
-                #                              tf.Variable(initial_value=tf.zeros(upstream.shape)),
-                #                              self.dL_du_t1_prev)
+                    # self.dL_du_t1_prev = tf.where(self.dL_du_t1_prev == tf.zeros([]),
+                    #                              tf.Variable(initial_value=tf.zeros(upstream.shape)),
+                    #                              self.dL_du_t1_prev)
 
-                #dL_du_t1 = tf.cond(self.dL_du_t1_prev == tf.zeros([]),lambda: tf.identity(dL_du_t1),
-                #                   lambda: tf.math.add(dL_du_t1,self.dL_du_t1_prev))
-                dL_du_t1 = tf.math.add(dL_du_t1,self.dL_du_t1_prev)
+                    # dL_du_t1 = tf.cond(self.dL_du_t1_prev == tf.zeros([]),lambda: tf.identity(dL_du_t1),
+                    #                   lambda: tf.math.add(dL_du_t1,self.dL_du_t1_prev))
+                    dL_du_t1 = tf.math.add(dL_du_t1, self.dL_du_t1_prev)
+                    dL_du_t1 = dL_du_t1 / tf.cast(self.conf.time_step,
+                                                  dtype=tf.float32)
+                elif True:
+                    # dL_du_t1 = dL_du_t1
+                    # dL_du_t1 = dL_du_t1*do_du
+                    # dL_du_t1 = tf.cond(tf.equal(self.grad_in_prev,tf.zeros(self.dim)),
+                    #                    upstream,
+                    #                    upstream - self.grad_in_prev)
+                    # dL_du_t1 = (dL_du_t1 - self.grad_in_prev)*do_du
+                    dL_du_t1 = (dL_du_t1 + self.grad_in_prev) / 2
 
-                #dL_du_t1 = dL_du_t1
-                #dL_du_t1 = dL_du_t1*do_du
-                #temp_rand = upstream * temp_rand           # speculate next time step gradient
+                # temp_rand = upstream * temp_rand           # speculate next time step gradient
 
-                #temporal_1 = tf.where(self.f_fire, -self.vth, tf.zeros(spatio.shape))
+                # temporal_1 = du_(t+1)/do_(t)
+                # temporal_1 = tf.where(self.f_fire, -self.vth, tf.zeros(spatio.shape))
                 #temporal_1 = tf.where(self.f_fire, -self.vth, tf.zeros(spatio.shape))  # reset-by-sub
-                temporal_1 = tf.where(self.f_fire, -self.vmem_pre, tf.zeros(spatio.shape))  # reset-to-zero
+                temporal_1= tf.where(self.f_fire, -self.vmem_pre, tf.zeros(spatio.shape))  # reset-to-zero
+                # temporal_1 = tf.zeros(spatio.shape)
 
-                #temporal_2 = tf.ones(spatio.shape)          # du_(t+1)/du_(t) # IF
-                temporal_2 = self.leak_const_init        # du_(t+1)/du_(t) # LIF
+                # temporal_2 = tf.ones(spatio.shape)          # du_(t+1)/du_(t) # IF
+                temporal_2 = self.leak_const_init  # du_(t+1)/du_(t) # LIF
 
-                dL_do = spatio + dL_du_t1*temporal_1
-                dL_du = dL_do*do_du + dL_du_t1*temporal_2
+                dL_do = spatio + dL_du_t1 * temporal_1
+                dL_du = dL_do * do_du + dL_du_t1 * temporal_2
 
                 grad_ret = dL_du
+                # grad_ret = dL_do*do_du
+                # grad_ret = spatio*do_du
 
+                # test
+                # grad_ret = dL_do
+                # grad_ret = dL_du_t1*temporal_2
+                # grad_ret = dL_du_t1
+                # grad_ret = spatio*do_du
+                # grad_ret = upstream*do_du
+                grad_ret = upstream
 
-                #temporal = tf.add(temporal_1,temporal_2)
-                #temporal = tf.multiply(temporal, dL_du_t1)
+                # print()
+                ##if self.name=='n_fc1' or self.name=='n_fc2':
+                # if True:
+                ##print(self.name)
+                # print(upstream)
+                # print(grad_ret)
 
-                #grad_ret = spatio + temporal
-                #grad_ret = spatio
-                #grad_ret = tf.where(cond,upstream,-upstream)
-                #grad_ret = tf.clip_by_norm(grad_ret,0.1)
-                #grad_ret = tf.clip_by_norm(grad_ret,2)
-                #grad_ret = upstream
+                # print(self.name)
+                # print(grad_ret)
+
+                # if tf.math.is_nan(tf.reduce_mean(grad_ret)):
+                # print(self.name)
+                # print(upstream)
+                # assert False
+
+                # temporal = tf.add(temporal_1,temporal_2)
+                # temporal = tf.multiply(temporal, dL_du_t1)
+
+                # grad_ret = spatio + temporal
+                # grad_ret = spatio
+                # grad_ret = tf.where(cond,upstream,-upstream)
+                # grad_ret = tf.clip_by_norm(grad_ret,0.1)
+                # grad_ret = tf.clip_by_norm(grad_ret,2)
+                # grad_ret = upstream
 
                 self.grad_in_prev.assign(dL_du_t1)
-                #self.grad_in_prev.assign(dL_du_t1)
+                # self.grad_in_prev.assign(dL_du_t1)
 
-            # test
-            #grad_ret = spatio*do_du
+                # test
+                # grad_ret = spatio*do_du
 
-            #print("grad_ret> {} - max: {:.3g}, min: {:.3g}".format(self.name,tf.reduce_max(grad_ret),tf.reduce_mean(grad_ret)))
+                if self.conf.debug_mode:
+                    print("grad_ret> {} - max: {:.3g}, min: {:.3g}, mean: {:.3g}, var: {:.3g}"
+                          .format(self.name,tf.reduce_max(grad_ret),tf.reduce_min(grad_ret),tf.reduce_mean(grad_ret),tf.math.reduce_variance(grad_ret)))
 
-                dL_du_t1 = dL_du_t1/tf.cast(self.conf.time_step,dtype=tf.float32)
-                #self.dL_du_t1_prev = dL_du_t1
+                # self.dL_du_t1_prev = dL_du_t1
                 self.dL_du_t1_prev.assign(dL_du_t1)
 
-            #print('here')
-            #print(self.name)
-            #print(upstream)
-            #print(self.out)
+            # print('here')
+            # print(self.name)
+            # print(upstream)
+            # print(self.out)
 
             return grad_ret, tf.stop_gradient(t), tf.stop_gradient(training)
+
 
         self.inputs = inputs
 

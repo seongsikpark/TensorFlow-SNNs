@@ -30,6 +30,10 @@ from tensorflow.python.util.tf_export import keras_export
 
 #
 from config import conf
+import lib_snn
+
+from lib_snn.ops import nn_impl as lib_snn_nn
+
 
 
 class BatchNormalizationBase(Layer):
@@ -218,7 +222,12 @@ class BatchNormalizationBase(Layer):
             fused = True
         self.supports_masking = True
 
-        self.fused = fused
+        if self.en_tdbn:
+            self.fused = False
+        else:
+            self.fused = fused
+        #self.fused = fused
+
         self._bessels_correction_test_only = True
         self.trainable = trainable
 
@@ -594,7 +603,8 @@ class BatchNormalizationBase(Layer):
             return variance * factor
 
         def _fused_batch_norm_training():
-            return tf.compat.v1.nn.fused_batch_norm(
+            #return tf.compat.v1.nn.fused_batch_norm(
+            return lib_snn.ops.nn_impl.fused_batch_norm(
                 inputs,
                 gamma,
                 beta,
@@ -607,7 +617,8 @@ class BatchNormalizationBase(Layer):
                 exponential_avg_factor=exponential_avg_factor)
 
         def _fused_batch_norm_inference():
-            return tf.compat.v1.nn.fused_batch_norm(
+            #return tf.compat.v1.nn.fused_batch_norm(
+            return lib_snn.ops.nn_impl.fused_batch_norm(
                 inputs,
                 gamma,
                 beta,
@@ -946,7 +957,8 @@ class BatchNormalizationBase(Layer):
             #scale = scale/conf.time_step
             #scale = scale / tf.math.sqrt(tf.cast(conf.time_step,tf.float32))
             scale = scale * self.tdbn_scale
-        outputs = tf.nn.batch_normalization(inputs, _broadcast(mean),
+        #outputs = tf.nn.batch_normalization(inputs, _broadcast(mean),
+        outputs = lib_snn_nn.batch_normalization(inputs, _broadcast(mean),
                                             _broadcast(variance), offset, scale,
                                             self.epsilon)
         if inputs_dtype in (tf.float16, tf.bfloat16):
