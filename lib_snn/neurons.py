@@ -363,13 +363,13 @@ class Neuron(tf.keras.layers.Layer):
                 a=0.5
                 if True:
                 #if False:
-                    #cond_1=tf.math.less_equal(tf.math.abs(self.vmem_pre-self.vth),a)
-                    #cond = cond_1
+                    cond_1=tf.math.less_equal(tf.math.abs(self.vmem_pre-self.vth),a)
+                    cond = cond_1
 
                     #cond_2 = self.f_fire
                     #cond = tf.math.logical_or(cond_1,cond_2)
 
-                    cond = self.f_fire
+                    #cond = self.f_fire
                     #
                     do_du = tf.where(cond,tf.ones(cond.shape),tf.zeros(cond.shape))
                 else:

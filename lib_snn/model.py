@@ -468,11 +468,13 @@ class Model(tf.keras.Model):
         ret_tensor = None
         f_create_output_tensor = False
 
+        #range_ts = range(1, self.conf.time_step + 1)
+        range_ts = range(1, int(self.conf.time_step/2.0) + 1)
 
         # spatial first
         if training:
-            #for t in range_ts:
-            if True:
+            for t in range_ts:
+            #if True:
                 layer_in = inputs
                 for layer in self.layers:
                     layer_out = layer(layer_in)

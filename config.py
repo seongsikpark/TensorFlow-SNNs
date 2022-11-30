@@ -335,8 +335,8 @@ tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 400, '')
 # VGG
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.1, 'learning rate')
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.02, 'learning rate')
-#tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.01, 'learning rate')
-tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.005, 'learning rate')
+tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.01, 'learning rate')
+#tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.005, 'learning rate')
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.001, 'learning rate')
 # ResNet
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.2, 'learning rate')
@@ -472,8 +472,8 @@ tf.compat.v1.app.flags.DEFINE_float('n_init_vinit', 0.0, 'initial value of vinit
 tf.compat.v1.app.flags.DEFINE_float('n_init_vrest', 0.0, 'initial value of vrest')
 
 #
-#tf.compat.v1.app.flags.DEFINE_enum('snn_output_type',"VMEM", ["SPIKE", "VMEM", "FIRST_SPIKE_TIME"], "snn output type")
-tf.compat.v1.app.flags.DEFINE_enum('snn_output_type',"SPIKE", ["SPIKE", "VMEM", "FIRST_SPIKE_TIME"], "snn output type")
+tf.compat.v1.app.flags.DEFINE_enum('snn_output_type',"VMEM", ["SPIKE", "VMEM", "FIRST_SPIKE_TIME"], "snn output type")
+#tf.compat.v1.app.flags.DEFINE_enum('snn_output_type',"SPIKE", ["SPIKE", "VMEM", "FIRST_SPIKE_TIME"], "snn output type")
 
 #
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 1024, 'time steps per sample in SNN')
@@ -484,9 +484,9 @@ tf.compat.v1.app.flags.DEFINE_enum('snn_output_type',"SPIKE", ["SPIKE", "VMEM", 
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 32, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 20, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 16, 'time steps per sample in SNN')
-#tf.compat.v1.app.flags.DEFINE_integer('time_step', 8, 'time steps per sample in SNN')
+tf.compat.v1.app.flags.DEFINE_integer('time_step', 8, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 6, 'time steps per sample in SNN')
-tf.compat.v1.app.flags.DEFINE_integer('time_step', 4, 'time steps per sample in SNN')
+#tf.compat.v1.app.flags.DEFINE_integer('time_step', 4, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 2, 'time steps per sample in SNN')
 
 #tf.compat.v1.app.flags.DEFINE_integer('time_step_save_interval',10,'snn test save interval')
