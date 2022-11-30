@@ -17,6 +17,8 @@ import collections
 from tensorflow.python.keras.engine import data_adapter
 from tensorflow.python.keras.engine import compile_utils
 
+#
+import keras
 
 #
 import matplotlib
@@ -37,6 +39,8 @@ from lib_snn.sim import glb_plot_1
 from lib_snn.sim import glb_plot_2
 from lib_snn.sim import glb_plot_3
 from lib_snn.sim import glb_plot_1x2
+
+
 
 
 class Model(tf.keras.Model):
@@ -1393,7 +1397,25 @@ class Model(tf.keras.Model):
 
         self._validate_target_and_loss(y, loss)
         # Run backwards pass.
-        self.optimizer.minimize(loss, self.trainable_variables, tape=tape)
+        # from keras.optimizers.optimizer_v2.optimizer_v2.py
+        #self.optimizer.minimize(loss, self.trainable_variables, tape=tape)
+        grad_loss=None
+        name=None
+
+        grads_and_vars = self.optimizer._compute_gradients(loss=loss, var_list=self.trainable_variables, grad_loss=grad_loss, tape=tape)
+        #optimizer = keras.optimizers.optimizer_v2.optimizer_v2.OptimizerV2
+        self.optimizer.apply_gradients(grads_and_vars, name=name)
+
+
+        if self.conf.debug_mode:
+            print('\n grads')
+            for grad_accum, var in grads_and_vars:
+                print('{: <10}: - max {:.3e}, min {:.3e}, mean {:.3e}, var {:.3e}'
+                      .format(var.name,tf.reduce_max(grad_accum),tf.reduce_min(grad_accum),
+                              tf.reduce_mean(grad_accum),tf.math.reduce_variance(grad_accum)))
+
+
+
         return self.compute_metrics(x, y, y_pred, sample_weight)
 
     def train_step_snn(self, data):
@@ -1596,8 +1618,13 @@ class Model(tf.keras.Model):
                         for layer in self.layers:
                             if hasattr(layer,'act') and isinstance(layer.act,lib_snn.neurons.Neuron):
                                 spike_count = layer.act.spike_count
-                                spike = layer.act.out
-                                print('{: <10}: - sum {:.3e}, mean {:.3e}'.format(layer.name,tf.reduce_sum(spike_count),tf.reduce_mean(spike_count)))
+                                #spike = layer.act.out
+                                print('{: <10}: - sum {:.3e}, mean {:.3e}, non-zero percent {:.3e}'
+                                      .format(layer.name,tf.reduce_sum(spike_count),tf.reduce_mean(spike_count)
+                                              ,tf.math.count_nonzero(spike_count,dtype=tf.float32)/tf.cast(tf.reduce_prod(spike_count.shape),dtype=tf.float32)))
+
+                                print(spike_count[0])
+
                                 #print('spike - sum {:.3e}, mean {:.3e}'.format(tf.reduce_sum(spike),tf.reduce_mean(spike)))
 
                         #
@@ -1671,7 +1698,8 @@ class Model(tf.keras.Model):
                                               tf.reduce_sum(tf.math.pow(bn_var,2))))
 
 
-                    if tf.reduce_any(nan_test) or (loss > 100):
+                    #if tf.reduce_any(nan_test) or (loss > 100):
+                    if tf.reduce_any(nan_test) or (loss > 1000):
                         #print('here')
                         assert False
 

@@ -238,8 +238,8 @@ tf.compat.v1.app.flags.DEFINE_boolean('verbose_visual',False, 'verbose visual mo
 #tf.compat.v1.app.flags.DEFINE_boolean('verbose_visual',True, 'verbose visual mode')
 
 #
-tf.compat.v1.app.flags.DEFINE_boolean('verbose_snn_train',False, 'verbose mode')
-#tf.compat.v1.app.flags.DEFINE_boolean('verbose_snn_train',True, 'verbose mode')
+#tf.compat.v1.app.flags.DEFINE_boolean('verbose_snn_train',False, 'verbose mode')
+tf.compat.v1.app.flags.DEFINE_boolean('verbose_snn_train',True, 'verbose mode')
 
 
 ################################
@@ -319,6 +319,7 @@ tf.compat.v1.app.flags.DEFINE_bool('load_best_model', True, 'load best model (mo
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size', 400, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size', 200, '')
 tf.compat.v1.app.flags.DEFINE_integer('batch_size', 100, '')
+#tf.compat.v1.app.flags.DEFINE_integer('batch_size', 10, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size', 2, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size', 1, '')
 
@@ -352,8 +353,8 @@ tf.compat.v1.app.flags.DEFINE_float('lmb',5.0E-5, 'lambda')
 #tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-4, 'lambda')
 
 #
-#tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',None,'gradient clip norm')
-tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',1.0,'gradient clip norm')
+tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',None,'gradient clip norm')
+#tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',1.0,'gradient clip norm')
 #tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',2.0,'gradient clip norm')
 
 
@@ -375,6 +376,10 @@ tf.compat.v1.app.flags.DEFINE_boolean('use_bias', True, 'use bias')
 #
 tf.compat.v1.app.flags.DEFINE_boolean('use_bn', True, 'use batchnorm')
 #tf.compat.v1.app.flags.DEFINE_boolean('use_bn', False, 'use batchnorm')
+
+#
+tf.compat.v1.app.flags.DEFINE_boolean('tf_fused_bn', None, 'tf fused bn operation for computation efficiency - CNN')
+#tf.compat.v1.app.flags.DEFINE_boolean('tf_fused_bn', False, 'tf fused bn operation for computation efficiency - CNN')
 
 
 ################
@@ -403,8 +408,8 @@ tf.compat.v1.app.flags.DEFINE_string('root_results', './results', 'root results'
 ################
 # Debug
 ################
-tf.compat.v1.app.flags.DEFINE_bool('debug_mode', False, 'debug mode')
-#tf.compat.v1.app.flags.DEFINE_bool('debug_mode', True, 'debug mode')
+#tf.compat.v1.app.flags.DEFINE_bool('debug_mode', False, 'debug mode')
+tf.compat.v1.app.flags.DEFINE_bool('debug_mode', True, 'debug mode')
 
 #tf.compat.v1.app.flags.DEFINE_bool('en_record_output', False, 'save intermediate layer output')
 tf.compat.v1.app.flags.DEFINE_bool('en_record_output', True, 'save intermediate layer output')
@@ -444,8 +449,8 @@ tf.compat.v1.app.flags.DEFINE_string('input_spike_mode','REAL','input spike mode
 tf.compat.v1.app.flags.DEFINE_string('neural_coding','RATE','neural coding - RATE, WEIGHTED_SPIKE, PROPOSED')
 
 #
-tf.compat.v1.app.flags.DEFINE_bool('binary_spike', True, 'binary spike activation, if false - vth activation')
-#tf.compat.v1.app.flags.DEFINE_bool('binary_spike', False, 'binary spike activation, if false - vth activation')
+#tf.compat.v1.app.flags.DEFINE_bool('binary_spike', True, 'binary spike activation, if false - vth activation')
+tf.compat.v1.app.flags.DEFINE_bool('binary_spike', False, 'binary spike activation, if false - vth activation')
 
 #
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 20.0, 'initial value of vth')
@@ -488,6 +493,7 @@ tf.compat.v1.app.flags.DEFINE_integer('time_step', 8, 'time steps per sample in 
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 6, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 4, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 2, 'time steps per sample in SNN')
+tf.compat.v1.app.flags.DEFINE_integer('time_step', 1, 'time steps per sample in SNN')
 
 #tf.compat.v1.app.flags.DEFINE_integer('time_step_save_interval',10,'snn test save interval')
 tf.compat.v1.app.flags.DEFINE_integer('time_step_save_interval',8,'snn test save interval')
@@ -572,6 +578,10 @@ tf.compat.v1.app.flags.DEFINE_bool('tdbn',True,'threshold-dependent batch normal
 tf.compat.v1.app.flags.DEFINE_bool('snn_training_spatial_first',True,'SNN training spatial domain first')
 #tf.compat.v1.app.flags.DEFINE_bool('snn_training_spatial_first',False,'SNN training spatial domain first') # Not implemented yet?
 
+
+#
+tf.compat.v1.app.flags.DEFINE_bool('f_hold_temporal_tensor',False,'hold temporal tensor during SNN training')
+#tf.compat.v1.app.flags.DEFINE_bool('f_hold_temporal_tensor',True,'hold temporal tensor during SNN training')
 
 
 #############

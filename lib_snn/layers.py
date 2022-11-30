@@ -12,6 +12,12 @@ import sys
 
 from tensorflow.python.ops import math_ops
 
+# custom gradient
+import lib_snn.ops.nn_grad
+
+
+#
+
 import numpy as np
 
 import matplotlib.pyplot as plt
@@ -106,12 +112,15 @@ class Layer():
                 tdbn = conf.mode=='train' and conf.nn_mode=='SNN' and conf.tdbn
             else:
                 tdbn = tdbn_arg
+
             #self.bn = tf.keras.layers.BatchNormalization(name=name_bn)
             #self.bn = tf.keras.layers.BatchNormalization()
             #self.bn = tf.keras.layers.BatchNormalization(epsilon=1.001e-5,name=name_bn)
             #self.bn = tf.keras.layers.BatchNormalization(epsilon=1.001e-5)
 
-            self.bn = lib_snn.layers_new.BatchNormalization(epsilon=1.001e-5,en_tdbn=tdbn)
+            fused = self.conf.tf_fused_bn
+
+            self.bn = lib_snn.layers_new.BatchNormalization(epsilon=1.001e-5,en_tdbn=tdbn,fused=fused)
 
             #self.bn = lib_snn.layers_new.BatchNormalization(epsilon=1.0)
         else:
@@ -350,7 +359,7 @@ class Layer():
 
             #if False:
             #if True:
-            if self.conf.verbose_snn_train:
+            if self.conf.debug_mode and self.conf.verbose_snn_train:
                 if glb.model_compiled:
                     #print('{:.3e}'.format(tf.reduce_max(b)))
                     #print('after bn> {} - max: {}, mean: {}'.format(self.name,tf.reduce_max(b),tf.reduce_mean(b)))
