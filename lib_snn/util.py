@@ -24,6 +24,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
+from scipy.stats import norm
+#import matplotlib.mlab as mlab
+
 ##############################################################
 # keras model flops
 ##############################################################
@@ -333,6 +336,27 @@ def scatter(x, y, color='r', axe=None, s=1, marker='o',label=None):
         #plt.pause(0.0000000000000001)
 
     return scatter
+
+
+#
+def plot_hist(g_plot, x, title=None, bins=100, range=None, norm_fit=False):
+
+    axe = g_plot.axes.flatten()[g_plot.idx_current]
+
+    xx=x.numpy().flatten()
+    n, bins, patches = axe.hist(xx,bins=bins, range=range)
+
+
+    if norm_fit:
+        (mu, sigma) = norm.fit(xx)
+        y=norm.pdf(bins,mu,sigma)
+        axe.plot(bins,y,'r--',linewidth=2)
+        axe.text(-6,0,r'mu: %.3f, sig: %.3f'%(mu,sigma))
+        #axe.title(r'mu: %.3f, sig: %.3f'%(mu,sigma))
+    else:
+        plt.title(title)
+
+    g_plot.idx_current+=1
 
 #def figure_hold(self):
     #plt.close("dummy")

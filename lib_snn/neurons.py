@@ -388,7 +388,8 @@ class Neuron(tf.keras.layers.Layer):
                 #
                 # dL_du_t1 = tf.random.normal(spatio.shape,mean=1.0,stddev=0.1)
                 dL_du_t1 = upstream  # speculate next time step gradient - dL/du_t+1
-                dL_du_t1 = dL_du_t1 * do_du
+                # test - 221209
+                #dL_du_t1 = dL_du_t1 * do_du
 
                 if False:
                     # if tf.cond(hasattr(self, 'dL_du_t1_prev'):
@@ -411,14 +412,15 @@ class Neuron(tf.keras.layers.Layer):
                     #                    upstream,
                     #                    upstream - self.grad_in_prev)
                     # dL_du_t1 = (dL_du_t1 - self.grad_in_prev)*do_du
+
                     dL_du_t1 = (dL_du_t1 + self.grad_in_prev) / 2
 
                 # temp_rand = upstream * temp_rand           # speculate next time step gradient
 
                 # temporal_1 = du_(t+1)/do_(t)
                 # temporal_1 = tf.where(self.f_fire, -self.vth, tf.zeros(spatio.shape))
-                #temporal_1 = tf.where(self.f_fire, -self.vth, tf.zeros(spatio.shape))  # reset-by-sub
-                temporal_1= tf.where(self.f_fire, -self.vmem_pre, tf.zeros(spatio.shape))  # reset-to-zero
+                temporal_1 = tf.where(self.f_fire, -self.vth, tf.zeros(spatio.shape))  # reset-by-sub
+                #temporal_1= tf.where(self.f_fire, -self.vmem_pre, tf.zeros(spatio.shape))  # reset-to-zero
                 # temporal_1 = tf.zeros(spatio.shape)
 
                 # temporal_2 = tf.ones(spatio.shape)          # du_(t+1)/du_(t) # IF
@@ -437,7 +439,7 @@ class Neuron(tf.keras.layers.Layer):
                 # grad_ret = dL_du_t1
                 # grad_ret = spatio*do_du
                 # grad_ret = upstream*do_du
-                grad_ret = upstream
+                #grad_ret = upstream
 
                 # print()
                 ##if self.name=='n_fc1' or self.name=='n_fc2':
@@ -470,7 +472,7 @@ class Neuron(tf.keras.layers.Layer):
                 # test
                 # grad_ret = spatio*do_du
 
-                if self.conf.debug_mode:
+                if self.conf.debug_mode and self.conf.verbose_snn_train:
                     print("grad_ret> {} - max: {:.3g}, min: {:.3g}, mean: {:.3g}, var: {:.3g}"
                           .format(self.name,tf.reduce_max(grad_ret),tf.reduce_min(grad_ret),tf.reduce_mean(grad_ret),tf.math.reduce_variance(grad_ret)))
 
@@ -1516,7 +1518,6 @@ class Neuron(tf.keras.layers.Layer):
         self.fire(t)
         self.count_spike(t)
 
-
         def grad(upstream):
             # TODO: parameterize
             a=0.5
@@ -1535,6 +1536,10 @@ class Neuron(tf.keras.layers.Layer):
 
         #return self.out, grad
         return self.out
+        #print('here')
+        #print(t)
+        #return self.spike_count/tf.cast(t,tf.float32)
+        #return self.spike_count
 
 
     def run_type_out(self, inputs, t, training):

@@ -40,8 +40,9 @@ from lib_snn.sim import glb_plot_2
 from lib_snn.sim import glb_plot_3
 from lib_snn.sim import glb_plot_1x2
 
-
-
+from lib_snn.sim import glb_plot_gradient_kernel
+from lib_snn.sim import glb_plot_gradient_gamma
+from lib_snn.sim import glb_plot_gradient_beta
 
 class Model(tf.keras.Model):
     count=0
@@ -473,13 +474,21 @@ class Model(tf.keras.Model):
         f_create_output_tensor = False
 
 
+        #range_ts = range(1, self.conf.time_step + 1)
+        #range_ts = range(1, int(self.conf.time_step/2) + 1)
+        range_ts = range(1, 1+ 1)
+
+
+
         # spatial first
         if training:
-            #for t in range_ts:
-            if True:
+            for t in range_ts:
+            #if True:
                 layer_in = inputs
                 for layer in self.layers:
                     layer_out = layer(layer_in)
+                    #if hasattr(layer,'act') and isinstance(layer.act, lib_snn.neurons.Neuron):
+                    #    layer_out = layer.act.spike_count
                     layer_in = layer_out
 
                     # debug
@@ -490,6 +499,13 @@ class Model(tf.keras.Model):
                             spike = layer.act.out
                             print('spike count> {}: - sum {:.3e}, mean {:.3e}'.format(layer.name,tf.reduce_sum(spike_count),tf.reduce_mean(spike_count)))
                             print('spike - sum {:.3e}, mean {:.3e}'.format(tf.reduce_sum(spike),tf.reduce_mean(spike)))
+
+
+                #nan_test = [tf.reduce_any(tf.math.is_nan(grad_accum)) for grad_accum in grads_accum]
+                #zero_test = [tf.reduce_any(tf.math.is_nan(grad_accum)) for grad_accum in grads_accum]
+
+                #tf.reduce_sum
+                glb_t()
 
             return layer_out
 
@@ -1349,6 +1365,12 @@ class Model(tf.keras.Model):
             #'SNN': self.train_step_ann,
         }[self.nn_mode](data)
 
+
+        #
+        if self.conf.verbose_visual:
+            import matplotlib.pyplot as plt
+            plt.show()
+
         return ret
 
     def train_step_ann(self, data):
@@ -1412,6 +1434,14 @@ class Model(tf.keras.Model):
                       .format(var.name,tf.reduce_max(grad_accum),tf.reduce_min(grad_accum),
                               tf.reduce_mean(grad_accum),tf.math.reduce_variance(grad_accum)))
 
+                if True:
+                    if 'kernel' in var.name:
+                        lib_snn.util.plot_hist(glb_plot_gradient_kernel,grad_accum,1000,norm_fit=True)
+                    elif 'gamma' in var.name:
+                        lib_snn.util.plot_hist(glb_plot_gradient_gamma,grad_accum,1000,norm_fit=True)
+                    elif 'beta' in var.name:
+                        lib_snn.util.plot_hist(glb_plot_gradient_beta,grad_accum,1000,norm_fit=True)
+
 
 
         return self.compute_metrics(x, y, y_pred, sample_weight)
@@ -1425,6 +1455,8 @@ class Model(tf.keras.Model):
         # Run forward pass.
         last_ts = self.conf.time_step
         range_ts = range(1,last_ts+1)
+        #range_ts = range(1,2+1)
+        #range_ts = range(1,1+1)
         grad_loss = None
         name = None
 
@@ -1543,18 +1575,36 @@ class Model(tf.keras.Model):
 
                     self._validate_target_and_loss(y, loss)
 
+                    # drop out or skip update - p percent
+                    if False:
+                    #if True:
+                        rand = tf.random.uniform(shape=[],minval=0,maxval=1.0)
+                        drop_prop = 0.5
+                        grads = tape.gradient(loss, var_list, grad_loss)
+                        #grads = tf.cond(rand<drop_prop,
+                                        #lambda: tf.zeros(shape=grads.shape),
+                                        #lambda: grads)
+                        grads = tf.where(rand<drop_prop,[0]*len(grads),grads)
 
                     grads = tape.gradient(loss, var_list, grad_loss)
 
                     # spike norm - grad
-
 
                     #if tape_prev is not None:
                     #    grads_prev = tape_prev.gradient(loss, var_list_prev, grad_loss)
                     #    grads = grads+grads_prev
                     #grads = [grad * ((t+1) / last_ts) for grad in grads]
                     #grads = [grad/self.conf.time_step for grad in grads]
-                    grads_accum = [(grad_accum + grad) for grad_accum, grad in zip(grads_accum, grads)]
+                    #if grads is not None:
+
+                    # gradient accum
+                    f_stochastic_gradient_accum=True
+                    if f_stochastic_gradient_accum:
+                        rand = tf.random.uniform(shape=[],minval=0,maxval=1.0)
+                        drop_prop = 0.5
+                        grads_accum = tf.cond(rand<drop_prop,lambda: grads_accum,lambda: [(grad_accum + grad) for grad_accum, grad in zip(grads_accum, grads)])
+                    else:
+                        grads_accum = [(grad_accum + grad) for grad_accum, grad in zip(grads_accum, grads)]
 
                     #
                     if False:
@@ -1603,7 +1653,8 @@ class Model(tf.keras.Model):
                 if tf.executing_eagerly():
                     #
                     #if False:
-                    if True:
+                    #if True:
+                    if self.conf.verbose_snn_train:
 
                         print('\n grads_accum')
                         for grad_accum, var in grads_accum_and_vars:
@@ -1611,6 +1662,14 @@ class Model(tf.keras.Model):
                             print('{: <10}: - max {:.3e}, min {:.3e}, mean {:.3e}, var {:.3e}'
                                   .format(var.name,tf.reduce_max(grad_accum),tf.reduce_min(grad_accum),
                                           tf.reduce_mean(grad_accum),tf.math.reduce_variance(grad_accum)))
+
+                            if self.conf.verbose_visual:
+                                if 'kernel' in var.name:
+                                    lib_snn.util.plot_hist(glb_plot_gradient_kernel,grad_accum,1000)
+                                elif 'gamma' in var.name:
+                                    lib_snn.util.plot_hist(glb_plot_gradient_gamma,grad_accum,1000)
+                                elif 'beta' in var.name:
+                                    lib_snn.util.plot_hist(glb_plot_gradient_beta,grad_accum,1000)
 
                         print('\n spike count')
                         for layer in self.layers:
@@ -1621,7 +1680,7 @@ class Model(tf.keras.Model):
                                       .format(layer.name,tf.reduce_sum(spike_count),tf.reduce_mean(spike_count)
                                               ,tf.math.count_nonzero(spike_count,dtype=tf.float32)/tf.cast(tf.reduce_prod(spike_count.shape),dtype=tf.float32)))
 
-                                print(spike_count[0])
+                                #print(spike_count[0])
 
                                 #print('spike - sum {:.3e}, mean {:.3e}'.format(tf.reduce_sum(spike),tf.reduce_mean(spike)))
 
@@ -1698,8 +1757,11 @@ class Model(tf.keras.Model):
 
                     #if tf.reduce_any(nan_test) or (loss > 100):
                     if tf.reduce_any(nan_test) or (loss > 1000):
+                        print(loss)
+                        print(tf.reduce_any(nan_test))
                         #print('here')
                         assert False
+
 
 
 
