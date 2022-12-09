@@ -57,7 +57,7 @@ tfds.disable_progress_bar()
 #import tqdm
 
 import matplotlib
-#matplotlib.use('TkAgg')
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
 import numpy as np

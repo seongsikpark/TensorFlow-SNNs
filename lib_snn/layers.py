@@ -1,3 +1,4 @@
+import keras.layers
 import tensorflow as tf
 # import tensorflow.contrib.eager as tfe
 
@@ -32,6 +33,11 @@ from lib_snn.model import Model
 from lib_snn.sim import glb_t
 from lib_snn.sim import glb
 from lib_snn.sim import glb_plot
+
+from lib_snn.sim import glb_plot_act
+from lib_snn.sim import glb_plot_syn
+from lib_snn.sim import glb_plot_bn
+from lib_snn.sim import glb_plot_kernel
 
 #from main_hp_tune import conf
 
@@ -322,6 +328,19 @@ class Layer():
         if training is None:
             training = backend.learning_phase()
 
+        # test - add noise to input
+        #noise_input_layer = keras.layers.GaussianNoise(0.7)
+        #noise_input_layer = keras.layers.GaussianNoise(0.1)
+        #noise_input_layer = keras.layers.GaussianNoise(1.0)
+        #input_noise = noise_input_layer(input,training)
+        #input = tf.where(input==0,input_noise,input)
+
+        #n_dim = len(input.shape)
+        #reduction_axes = [i for i in range(n_dim-1)]
+        #variance_input = tf.math.reduce_variance(input,axis=reduction_axes)
+        #input = tf.where(variance_input<0.1,input_noise,input)
+        #input = input_noise
+
 
         s = super().call(input)
 
@@ -351,44 +370,83 @@ class Layer():
         if self.en_snn and self.bias_control:
             s = self.bias_control_run(s)
 
-
         if (self.use_bn) and (not self.f_skip_bn):
+
+            # add noise test - sspark, 221206
+            if False:
+                n_dim = len(s.shape)
+                reduction_axes = [i for i in range(n_dim-1)]
+                variance = tf.math.reduce_variance(s,axis=reduction_axes)
+                reduced_dim = variance.shape
+                #if variance < tf.constant(0.3,shape=reduced_dim):
+                #n=tf.cond(variance < tf.constant(0.3,shape=reduced_dim), lambda: add_noise(n), lambda: n)
+
+                #noise_layer = keras.layers.GaussianNoise(1.0-variance)
+                #noise_layer = keras.layers.GaussianNoise(variance)
+                #noise_layer = keras.layers.GaussianNoise(0.1)
+                #noise_layer = keras.layers.GaussianNoise(0.5)
+                #noise_layer = keras.layers.GaussianNoise(0.7)
+                #noise_layer = keras.layers.GaussianNoise(1.0)
+                #s_noise = noise_layer(s,training)
+
+            #print(s)
+            if False:
+                print('layer - '+self.name)
+                print('before - variance')
+                print(variance)
+                print(tf.reduce_min(variance))
+
+            #target_variance = 0.3
+            #s=tf.where(variance<tf.constant(target_variance,shape=reduced_dim),s_noise,s)
+
+            if False:
+                print(variance<tf.constant(target_variance,shape=reduced_dim))
+                variance_after = tf.math.reduce_variance(s,axis=reduction_axes)
+                print('after - variance')
+                print(variance_after)
+                print(tf.reduce_min(variance_after))
+
+
             b = self.bn(s, training=training)
             #if glb.model_compiled:
             #    assert False
 
-            #if False:
-            #if True:
-            if self.conf.debug_mode and self.conf.verbose_snn_train:
-                if glb.model_compiled:
-                    #print('{:.3e}'.format(tf.reduce_max(b)))
-                    #print('after bn> {} - max: {}, mean: {}'.format(self.name,tf.reduce_max(b),tf.reduce_mean(b)))
-                    print('before bn> {} - max: {:.3g}, mean: {:.3g}, var: {:.3g}'
-                          .format(self.name,tf.reduce_max(s),tf.reduce_mean(s),tf.math.reduce_variance(s)))
-                    print('after bn> {} - max: {:.3g}, mean: {:.3g}, var: {:.3g}, moving_mean: {:.3g}, moving_var: {:.3g}'
-                          .format(self.name,tf.reduce_max(b),tf.reduce_mean(b),tf.math.reduce_variance(b), tf.reduce_mean(self.bn.moving_mean),tf.reduce_mean(self.bn.moving_variance)))
-                    #print('after bn> {} - max: {:.3e}, mean: {:.3e}'.format(self.name))
 
-                    if self.name=='conv1':
-                        print(self.bn.moving_variance)
         else:
             b = s
             #print('here')
             #print(self.name)
+
+        # for debug
+        #if self.last_layer:
+        #    print(s)
+
 
         if self.act is None:
             n = b
         else:
             if self.en_snn:
                 n = self.act(b, glb_t.t, training)
+
+                # test - sspark, 221205
+                # act + noise
+
+
                 if self.last_layer and (not (self.act_dnn is None)):
                     # softmax
                     n = self.act_dnn(n)
+
+                else:
+                    pass
+
+
             else:
                 if self.conf.fine_tune_quant and not self.last_layer:
                     n = lib_snn.calibration.clip_floor_act(b, self.vth_l, 64.0)
                 else:
                     n = self.act(b)
+
+
 
                 #
                 #num_bits=np.log2(self.conf.time_step)
@@ -442,6 +500,38 @@ class Layer():
 
         #if (self.name == 'predictions') and (glb.model_compiled) and (not conf.full_test):
         #    print(n)
+
+        if self.conf.debug_mode and self.conf.verbose_snn_train:
+            if glb.model_compiled:
+                if (self.use_bn) and (not self.f_skip_bn):
+                    #print('{:.3e}'.format(tf.reduce_max(b)))
+                    #print('after bn> {} - max: {}, mean: {}'.format(self.name,tf.reduce_max(b),tf.reduce_mean(b)))
+                    print('before bn> {} - max: {:.3g}, mean: {:.3g}, var: {:.3g}'
+                          .format(self.name,tf.reduce_max(s),tf.reduce_mean(s),tf.math.reduce_variance(s)))
+                    print('after bn> {} - max: {:.3g}, mean: {:.3g}, var: {:.3g}, moving_mean: {:.3g}, moving_var: {:.3g}'
+                          .format(self.name,tf.reduce_max(b),tf.reduce_mean(b),tf.math.reduce_variance(b), tf.reduce_mean(self.bn.moving_mean),tf.reduce_mean(self.bn.moving_variance)))
+                    #print('after bn> {} - max: {:.3e}, mean: {:.3e}'.format(self.name))
+
+                    #if self.name=='conv1':
+                    #    print(self.bn.moving_variance)
+
+                #
+                if hasattr(self,'act') and isinstance(self.act,lib_snn.neurons.Neuron):
+                    print('\n spike count - layer')
+                    spike_count = self.act.spike_count
+                    print('{: <10}: - sum {:.3e}, mean {:.3e}, non-zero percent {:.3e}'
+                          .format(self.name,tf.reduce_sum(spike_count),tf.reduce_mean(spike_count)
+                                  ,tf.math.count_nonzero(spike_count,dtype=tf.float32)/tf.cast(tf.reduce_prod(spike_count.shape),dtype=tf.float32)))
+
+
+        # plot
+        #if True and (glb.model_compiled):
+        if self.conf.verbose_visual and (glb.model_compiled):
+            lib_snn.util.plot_hist(glb_plot_syn,s,1000,norm_fit=True)
+            lib_snn.util.plot_hist(glb_plot_bn,b,1000,norm_fit=True)
+            lib_snn.util.plot_hist(glb_plot_act,n,100,range=[-1,2])
+            if hasattr(self,'kernel'):
+                lib_snn.util.plot_hist(glb_plot_kernel,self.kernel,1000)
 
         if False:
             if (self.name == 'predictions') and (glb.model_compiled) and (not conf.full_test):
@@ -607,6 +697,8 @@ class Layer():
             out = self.act.get_spike_count_int().numpy().flatten()[idx]  # spike
             lib_snn.util.plot(glb_t.t, out / glb_t.t, axe=axe)
 
+
+
     #
     def reset(self):
         if self.en_snn:
@@ -744,6 +836,8 @@ class Conv2D(Layer, tf.keras.layers.Conv2D):
                  activation=None,
                  activity_regularizer=None,
                  kernel_initializer='glorot_uniform',
+                 #kernel_initializer='glorot_normal',
+                 #kernel_initializer='he_normal',
                  kernel_constraint=None,
                  bias_constraint=None,
                  bias_regularizer=None,
@@ -834,6 +928,8 @@ class Dense(Layer, tf.keras.layers.Dense):
                  activation=None,
                  # use_bias=True
                  kernel_initializer='glorot_uniform',
+                 #kernel_initializer='glorot_normal',
+                 #kernel_initializer='he_normal',
                  bias_initializer='zeros',
                  #bias_initializer='glorot_uniform',
                  # kernel_regularizer=None,

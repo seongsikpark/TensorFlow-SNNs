@@ -227,6 +227,7 @@ class BatchNormalizationBase(Layer):
         else:
             self.fused = fused
         #self.fused = fused
+        self.fused=False
 
         self._bessels_correction_test_only = True
         self.trainable = trainable
@@ -942,8 +943,34 @@ class BatchNormalizationBase(Layer):
             self.add_update(mean_update)
             self.add_update(variance_update)
 
+
+        #
+        #variance = tf.reduce_mean(tf.math.abs(inputs-mean),axis=reduction_axes)
+
+
+        #
         mean = tf.cast(mean, inputs.dtype)
         variance = tf.cast(variance, inputs.dtype)
+
+
+
+
+        if False:
+        #if True:
+            print('inputs')
+            #print(inputs)
+            print(tf.reduce_mean(inputs))
+            print('mean')
+            print(mean)
+            print(self.moving_mean)
+            print('variance')
+            print(variance)
+            print(self.moving_variance)
+
+            # test - sspark, 221205
+            #mean = self.moving_mean
+            #variance = self.moving_variance
+
         if offset is not None:
             offset = tf.cast(offset, inputs.dtype)
         if scale is not None:

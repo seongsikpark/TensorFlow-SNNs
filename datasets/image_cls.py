@@ -49,6 +49,44 @@ def load(dataset_name,batch_size,input_size,input_size_pre_crop_ratio,num_class,
         data_label_train='train'
         data_label_test='test'
 
+    #
+    def default_load():
+        if conf.num_train_data==-1:
+            split_train = tfds.core.ReadInstruction(data_label_train, from_=0, to=100, unit='%')
+        else:
+            idx_train_s = conf.idx_train_data
+            idx_train_e = idx_train_s + conf.num_train_data
+            split_train = tfds.core.ReadInstruction(data_label_train, from_=idx_train_s, to=idx_train_e, unit='abs')
+
+        if conf.full_test:
+            split_test = tfds.core.ReadInstruction(data_label_test, from_=0, to=100, unit='%')
+        else:
+            idx_test_s = conf.idx_test_data
+            idx_test_e = idx_test_s + conf.num_test_data
+            split_test = tfds.core.ReadInstruction(data_label_test, from_=idx_test_s, to=idx_test_e, unit='abs')
+
+        if conf.calibration_idx_test or conf.vth_search_idx_test or (not conf.mode=='train') or (conf.f_write_stat):
+            train_ds_shuffle = False
+        else:
+            train_ds_shuffle = True
+
+        train_ds, train_ds_info = tfds.load(dataset_name, split=split_train, shuffle_files=train_ds_shuffle, as_supervised=True, with_info=True,
+                                            data_dir = data_dir, download_and_prepare_kwargs = download_and_prepare_kwargs, )
+        valid_ds, valid_ds_info = tfds.load(dataset_name, split=split_test, shuffle_files=False, as_supervised=True, with_info=True,
+                                            data_dir = data_dir, download_and_prepare_kwargs = download_and_prepare_kwargs, )
+
+        if conf.num_train_data==-1:
+            train_ds_num = train_ds_info.splits[data_label_train].num_examples
+        else:
+            train_ds_num = conf.num_train_data
+
+        if conf.full_test:
+            valid_ds_num = valid_ds_info.splits[data_label_test].num_examples
+        else:
+            valid_ds_num = conf.num_test_data
+
+        return train_ds, valid_ds, train_ds_num, valid_ds_num
+    #
     if train:
         if f_cross_valid:
             #train_ds = tfds.load('cifar10',
@@ -105,56 +143,27 @@ def load(dataset_name,batch_size,input_size,input_size_pre_crop_ratio,num_class,
             train_ds_num = train_ds_1_info.splits[data_label_train].num_examples
             valid_ds_num = valid_ds_info.splits[data_label_test].num_examples
         else:
-            (train_ds, valid_ds), ds_info = tfds.load(dataset_name,
-                                           split=[data_label_train, data_label_test],
-                                           shuffle_files=True,
-                                           as_supervised=True,
-                                           with_info=True,
-                                           data_dir=data_dir,
-                                           download_and_prepare_kwargs=download_and_prepare_kwargs,
-                                           )
+            train_ds, valid_ds, train_ds_num, valid_ds_num = default_load()
+            #(train_ds, valid_ds), ds_info = tfds.load(dataset_name,
+            #                               split=[data_label_train, data_label_test],
+            #                               shuffle_files=True,
+            #                               as_supervised=True,
+            #                               with_info=True,
+            #                               data_dir=data_dir,
+            #                               download_and_prepare_kwargs=download_and_prepare_kwargs,
+            #                               )
+            #
+            #train_ds_num = ds_info.splits[data_label_train].num_examples
+            #valid_ds_num = ds_info.splits[data_label_test].num_examples
 
-            train_ds_num = ds_info.splits[data_label_train].num_examples
-            valid_ds_num = ds_info.splits[data_label_test].num_examples
     else:
-        if conf.num_train_data==-1:
-            split_train = tfds.core.ReadInstruction(data_label_train, from_=0, to=100, unit='%')
-        else:
-            idx_train_s = conf.idx_train_data
-            idx_train_e = idx_train_s + conf.num_train_data
-            split_train = tfds.core.ReadInstruction(data_label_train, from_=idx_train_s, to=idx_train_e, unit='abs')
+        train_ds, valid_ds, train_ds_num, valid_ds_num = default_load()
 
-
-        if conf.full_test:
-            split_test = tfds.core.ReadInstruction(data_label_test, from_=0, to=100, unit='%')
-        else:
-            idx_test_s = conf.idx_test_data
-            idx_test_e = idx_test_s + conf.num_test_data
-            split_test = tfds.core.ReadInstruction(data_label_test, from_=idx_test_s, to=idx_test_e, unit='abs')
-
-        if conf.calibration_idx_test or conf.vth_search_idx_test or (not conf.mode=='train') or (conf.f_write_stat):
-            train_ds_shuffle = False
-        else:
-            train_ds_shuffle = True
-
-        train_ds, train_ds_info = tfds.load(dataset_name, split=split_train, shuffle_files=train_ds_shuffle, as_supervised=True, with_info=True,
-                                                data_dir = data_dir, download_and_prepare_kwargs = download_and_prepare_kwargs, )
-        valid_ds, valid_ds_info = tfds.load(dataset_name, split=split_test, shuffle_files=False, as_supervised=True, with_info=True,
-                                            data_dir = data_dir, download_and_prepare_kwargs = download_and_prepare_kwargs, )
-
-        if conf.num_train_data==-1:
-            train_ds_num = train_ds_info.splits[data_label_train].num_examples
-        else:
-            train_ds_num = conf.num_train_data
-
-        if conf.full_test:
-            valid_ds_num = valid_ds_info.splits[data_label_test].num_examples
-        else:
-            valid_ds_num = conf.num_test_data
 
     #
     #input_prec_mode = 'torch'
 
+    #
     # data augmentation
     # Preprocess input
     if train:
