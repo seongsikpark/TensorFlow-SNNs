@@ -73,65 +73,141 @@ def VGG16(
     k_init = 'glorot_uniform'
     #k_init = tf.keras.initializers.RandomUniform(minval=-1.0, maxval=1.0,seed=None)
 
+
+
+
+    #
+    if conf.nn_mode=='ANN':
+        act_type = 'relu'
+        act_type_out = 'softmax'
+    else:
+        act_type = conf.n_type
+        act_type_out = conf.n_type
+
+
+    #
     tdbn_first_layer = conf.mode=='train' and conf.nn_mode=='SNN' and conf.input_spike_mode=='POISSON' and conf.tdbn
+    tdbn = conf.mode=='train' and conf.nn_mode=='SNN' and conf.tdbn
+
+
 
     #
     img_input = tf.keras.layers.Input(shape=input_shape, batch_size=batch_size)
     # x = img_input
     x = lib_snn.layers.InputGenLayer(name='in')(img_input)
+    if conf.nn_mode=='SNN':
+        x = lib_snn.activations.Activation(act_type=act_type,loc='IN',name='n_in')(x)
 
     #
-    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, tdbn=tdbn_first_layer, name='conv1')(x)
+    #x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, en_tdbn=tdbn_first_layer, name='conv1')(x)
+    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', use_bn=use_bn_feat, kernel_initializer=k_init, name='conv1')(x)
+    x = lib_snn.layers_new.BatchNormalization(en_tdbn=tdbn_first_layer,name='bn_conv1')(x)
+    x = lib_snn.activations.Activation(act_type=act_type,name='n_conv1')(x)
     x = tf.keras.layers.Dropout(dropout_conv_r[0], name='conv1_do')(x)
-    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv1_1')(x)
+    #x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv1_1')(x)
+    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', kernel_initializer=k_init, name='conv1_1')(x)
+    x = lib_snn.layers_new.BatchNormalization(en_tdbn=tdbn,name='bn_conv1_1')(x)
+    x = lib_snn.activations.Activation(act_type=act_type,name='n_conv1_1')(x)
     #x = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='conv1_p')(x)
-    x = tf.keras.layers.AveragePooling2D((2, 2), (2, 2), name='conv1_p')(x)
+    #x = tf.keras.layers.AveragePooling2D((2, 2), (2, 2), name='conv1_p')(x)
+    #x = lib_snn.layers.AveragePooling2D((2, 2), (2, 2), name='conv1_p', dynamic=True)(x)
+    x = lib_snn.layers.AveragePooling2D((2, 2), (2, 2), name='conv1_p')(x)
 
     #
     channels = channels * 2
-    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv2')(x)
+    #x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv2')(x)
+    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', kernel_initializer=k_init, name='conv2')(x)
+    x = lib_snn.layers_new.BatchNormalization(en_tdbn=tdbn,name='bn_conv2')(x)
+    x = lib_snn.activations.Activation(act_type=act_type,name='n_conv2')(x)
     x = tf.keras.layers.Dropout(dropout_conv_r[0], name='conv2_do')(x)
-    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv2_1')(x)
+    #x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv2_1')(x)
+    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', kernel_initializer=k_init, name='conv2_1')(x)
+    x = lib_snn.layers_new.BatchNormalization(en_tdbn=tdbn,name='bn_conv2_1')(x)
+    x = lib_snn.activations.Activation(act_type=act_type,name='n_conv2_1')(x)
     #x = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='conv2_p')(x)
-    x = tf.keras.layers.AveragePooling2D((2, 2), (2, 2), name='conv2_p')(x)
+    #x = tf.keras.layers.AveragePooling2D((2, 2), (2, 2), name='conv2_p')(x)
+    x = lib_snn.layers.AveragePooling2D((2, 2), (2, 2), name='conv2_p')(x)
 
     #
     channels = channels * 2
-    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv3')(x)
+    #x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv3')(x)
+    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', kernel_initializer=k_init, name='conv3')(x)
+    x = lib_snn.layers_new.BatchNormalization(en_tdbn=tdbn,name='bn_conv3')(x)
+    x = lib_snn.activations.Activation(act_type=act_type,name='n_conv3')(x)
     x = tf.keras.layers.Dropout(dropout_conv_r[1], name='conv3_do')(x)
-    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv3_1')(x)
+    #x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv3_1')(x)
+    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', kernel_initializer=k_init, name='conv3_1')(x)
+    x = lib_snn.layers_new.BatchNormalization(en_tdbn=tdbn,name='bn_conv3_1')(x)
+    x = lib_snn.activations.Activation(act_type=act_type,name='n_conv3_1')(x)
     x = tf.keras.layers.Dropout(dropout_conv_r[1], name='conv3_1_do')(x)
-    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv3_2')(x)
+    #x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv3_2')(x)
+    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', kernel_initializer=k_init, name='conv3_2')(x)
+    x = lib_snn.layers_new.BatchNormalization(en_tdbn=tdbn,name='bn_conv3_2')(x)
+    x = lib_snn.activations.Activation(act_type=act_type,name='n_conv3_2')(x)
     #x = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='conv3_p')(x)
-    x = tf.keras.layers.AveragePooling2D((2, 2), (2, 2), name='conv3_p')(x)
+    #x = tf.keras.layers.AveragePooling2D((2, 2), (2, 2), name='conv3_p')(x)
+    x = lib_snn.layers.AveragePooling2D((2, 2), (2, 2), name='conv3_p') (x)
 
     #
     channels = channels * 2
-    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv4')(x)
+    #x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv4')(x)
+    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', kernel_initializer=k_init, name='conv4')(x)
+    x = lib_snn.layers_new.BatchNormalization(en_tdbn=tdbn,name='bn_conv4')(x)
+    x = lib_snn.activations.Activation(act_type=act_type,name='n_conv4')(x)
     x = tf.keras.layers.Dropout(dropout_conv_r[1], name='conv4_do')(x)
-    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv4_1')(x)
+    #x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv4_1')(x)
+    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', kernel_initializer=k_init, name='conv4_1')(x)
+    x = lib_snn.layers_new.BatchNormalization(en_tdbn=tdbn,name='bn_conv4_1')(x)
+    x = lib_snn.activations.Activation(act_type=act_type,name='n_conv4_1')(x)
     x = tf.keras.layers.Dropout(dropout_conv_r[1], name='conv4_1_do')(x)
-    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv4_2')(x)
+    #x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv4_2')(x)
+    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', kernel_initializer=k_init, name='conv4_2')(x)
+    x = lib_snn.layers_new.BatchNormalization(en_tdbn=tdbn,name='bn_conv4_2')(x)
+    x = lib_snn.activations.Activation(act_type=act_type,name='n_conv4_2')(x)
     #x = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='conv4_p')(x)
-    x = tf.keras.layers.AveragePooling2D((2, 2), (2, 2), name='conv4_p')(x)
+    #x = tf.keras.layers.AveragePooling2D((2, 2), (2, 2), name='conv4_p')(x)
+    x = lib_snn.layers.AveragePooling2D((2, 2), (2, 2), name='conv4_p') (x)
+
 
     #
-    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv5')(x)
+    #x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv5')(x)
+    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', kernel_initializer=k_init, name='conv5')(x)
+    x = lib_snn.layers_new.BatchNormalization(en_tdbn=tdbn,name='bn_conv5')(x)
+    x = lib_snn.activations.Activation(act_type=act_type,name='n_conv5')(x)
     x = tf.keras.layers.Dropout(dropout_conv_r[1], name='conv5_do')(x)
-    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv5_1')(x)
+    #x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv5_1')(x)
+    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', kernel_initializer=k_init, name='conv5_1')(x)
+    x = lib_snn.layers_new.BatchNormalization(en_tdbn=tdbn,name='bn_conv5_1')(x)
+    x = lib_snn.activations.Activation(act_type=act_type,name='n_conv5_1')(x)
     x = tf.keras.layers.Dropout(dropout_conv_r[1], name='conv5_1_do')(x)
-    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv5_2')(x)
+    #x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv5_2')(x)
+    x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', kernel_initializer=k_init, name='conv5_2')(x)
+    x = lib_snn.layers_new.BatchNormalization(en_tdbn=tdbn,name='bn_conv5_2')(x)
+    x = lib_snn.activations.Activation(act_type=act_type,name='n_conv5_2')(x)
     #x = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='conv5_p')(x)
-    x = tf.keras.layers.AveragePooling2D((2, 2), (2, 2), name='conv5_p')(x)
+    #x = tf.keras.layers.AveragePooling2D((2, 2), (2, 2), name='conv5_p')(x)
+    x = lib_snn.layers.AveragePooling2D((2, 2), (2, 2), name='conv5_p') (x)
+
 
     #
     x = tf.keras.layers.Flatten(data_format=data_format)(x)
     x = tf.keras.layers.Dropout(dropout_conv_r[2], name='flatten_do')(x)
-    x = lib_snn.layers.Dense(n_dim_cls, activation=act_relu, use_bn=use_bn_cls, kernel_initializer=k_init, name='fc1')(x)
+    #x = lib_snn.layers.Dense(n_dim_cls, activation=act_relu, use_bn=use_bn_cls, kernel_initializer=k_init, name='fc1')(x)
+    x = lib_snn.layers.Dense(n_dim_cls, kernel_initializer=k_init, name='fc1')(x)
+    x = lib_snn.layers_new.BatchNormalization(en_tdbn=tdbn,name='bn_fc1')(x)
+    x = lib_snn.activations.Activation(act_type=act_type,name='n_fc1')(x)
     x = tf.keras.layers.Dropout(dropout_conv_r[2], name='fc1_do')(x)
-    x = lib_snn.layers.Dense(n_dim_cls, activation=act_relu, use_bn=use_bn_cls, kernel_initializer=k_init, name='fc2')(x)
+    #x = lib_snn.layers.Dense(n_dim_cls, activation=act_relu, use_bn=use_bn_cls, kernel_initializer=k_init, name='fc2')(x)
+    x = lib_snn.layers.Dense(n_dim_cls, kernel_initializer=k_init, name='fc2')(x)
+    x = lib_snn.layers_new.BatchNormalization(en_tdbn=tdbn,name='bn_fc2')(x)
+    x = lib_snn.activations.Activation(act_type=act_type,name='n_fc2')(x)
     x = tf.keras.layers.Dropout(dropout_conv_r[2], name='fc2_do')(x)
-    x = lib_snn.layers.Dense(classes, activation=act_sm, use_bn=False, last_layer=True, kernel_initializer=k_init, name='predictions')(x)
+    #x = lib_snn.layers.Dense(classes, activation=act_sm, use_bn=False, last_layer=True, kernel_initializer=k_init, name='predictions')(x)
+    x = lib_snn.layers.Dense(classes, last_layer=True, kernel_initializer=k_init, name='predictions')(x)
+    x = lib_snn.activations.Activation(act_type=act_type_out,loc='OUT',name='n_predictions')(x)
+    if conf.nn_mode=='SNN':
+        x = lib_snn.activations.Activation(act_type='softmax',name='a_predictions')(x)
+
 
     #model = training.Model(img_input, x, name=name)
     model = lib_snn.model.Model(img_input, x, batch_size, input_shape,  classes, conf, name=model_name)

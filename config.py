@@ -314,12 +314,12 @@ tf.compat.v1.app.flags.DEFINE_bool('load_best_model', True, 'load best model (mo
 
 #
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size', 1000, '')
-tf.compat.v1.app.flags.DEFINE_integer('batch_size', 500, '')
+#tf.compat.v1.app.flags.DEFINE_integer('batch_size', 500, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size', 800, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size', 600, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size', 400, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size', 200, '')
-#tf.compat.v1.app.flags.DEFINE_integer('batch_size', 100, '')
+tf.compat.v1.app.flags.DEFINE_integer('batch_size', 100, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size', 10, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size', 2, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size', 1, '')
@@ -446,8 +446,8 @@ tf.compat.v1.app.flags.DEFINE_bool('f_positive_vmem',False,'positive vmem')
 tf.compat.v1.app.flags.DEFINE_bool('f_neg_cap_vmem',False,'negative capped vmem')
 #tf.compat.v1.app.flags.DEFINE_bool('f_neg_cap_vmem',True,'negative capped vmem')
 
-#tf.compat.v1.app.flags.DEFINE_string('input_spike_mode','REAL','input spike mode - REAL, POISSON, WEIGHTED_SPIKE, others...')
-tf.compat.v1.app.flags.DEFINE_string('input_spike_mode','POISSON','input spike mode - REAL, POISSON, WEIGHTED_SPIKE, others...')
+tf.compat.v1.app.flags.DEFINE_string('input_spike_mode','REAL','input spike mode - REAL, POISSON, WEIGHTED_SPIKE, others...')
+#tf.compat.v1.app.flags.DEFINE_string('input_spike_mode','POISSON','input spike mode - REAL, POISSON, WEIGHTED_SPIKE, others...')
 tf.compat.v1.app.flags.DEFINE_string('neural_coding','RATE','neural coding - RATE, WEIGHTED_SPIKE, PROPOSED')
 
 #
@@ -577,8 +577,8 @@ tf.compat.v1.app.flags.DEFINE_bool('tdbn',False,'threshold-dependent batch norma
 
 
 #
-tf.compat.v1.app.flags.DEFINE_bool('snn_training_spatial_first',True,'SNN training spatial domain first')
-#tf.compat.v1.app.flags.DEFINE_bool('snn_training_spatial_first',False,'SNN training spatial domain first') # Not implemented yet?
+#tf.compat.v1.app.flags.DEFINE_bool('snn_training_spatial_first',True,'SNN training spatial domain first')
+tf.compat.v1.app.flags.DEFINE_bool('snn_training_spatial_first',False,'SNN training spatial domain first') # Not implemented yet?
 
 
 #

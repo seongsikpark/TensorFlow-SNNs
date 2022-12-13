@@ -447,6 +447,7 @@ class Model(tf.keras.Model):
 
     #
     def call_ann(self,inputs,training=None,mask=None):
+        print('here aa')
         ret = self._run_internal_graph(inputs, training=training, mask=mask)
         return ret
 
@@ -480,34 +481,143 @@ class Model(tf.keras.Model):
 
 
 
-        # spatial first
-        if training:
-            for t in range_ts:
-            #if True:
-                layer_in = inputs
-                for layer in self.layers:
-                    layer_out = layer(layer_in)
-                    #if hasattr(layer,'act') and isinstance(layer.act, lib_snn.neurons.Neuron):
-                    #    layer_out = layer.act.spike_count
-                    layer_in = layer_out
+        #print('input shape')
+        #print(inputs.shape)
 
-                    # debug
-                    if False:
-                    #if True:
-                        if hasattr(layer,'act') and isinstance(layer.act,lib_snn.neurons.Neuron):
-                            spike_count = layer.act.spike_count
-                            spike = layer.act.out
-                            print('spike count> {}: - sum {:.3e}, mean {:.3e}'.format(layer.name,tf.reduce_sum(spike_count),tf.reduce_mean(spike_count)))
-                            print('spike - sum {:.3e}, mean {:.3e}'.format(tf.reduce_sum(spike),tf.reduce_mean(spike)))
+        self.time_axis=0
+        if self.conf.snn_training_spatial_first:
+            range_ts = range(1, 1+ 1)
+
+            # TODO: modify
+            if training:
+                for t in range_ts:
+                    layer_in = inputs
+
+                    for layer in self.layers:
+                        layer_out = layer(layer_in)
+                        layer_in = layer_out
+
+                        # debug
+                        if False:
+                            #if True:
+                            if hasattr(layer,'act') and isinstance(layer.act,lib_snn.neurons.Neuron):
+                                spike_count = layer.act.spike_count
+                                spike = layer.act.out
+                                print('spike count> {}: - sum {:.3e}, mean {:.3e}'.format(layer.name,tf.reduce_sum(spike_count),tf.reduce_mean(spike_count)))
+                                print('spike - sum {:.3e}, mean {:.3e}'.format(tf.reduce_sum(spike),tf.reduce_mean(spike)))
+                    glb_t()
+
+                ret = layer_out
+
+        else:   # temporal first
+            inputs_expand_shape = [self.conf.time_step,]+inputs.shape
+            inputs_e = tf.broadcast_to(inputs,shape=inputs_expand_shape)
+            #print('input expand - time axis: {:}'.format(self.time_axis))
+
+            range_ts = range(1, self.conf.time_step+ 1)
+
+
+            #
+            layer_in = tf.TensorArray(
+                            dtype=inputs.dtype,
+                            size=self.conf.time_step,
+                            element_shape=inputs.shape,
+                            tensor_array_name='layer_in')
+
+            for t_in_write in range_ts:
+                layer_in=layer_in.write(t_in_write-1,inputs)
+
+            #layer_in = inputs_e
+            for layer in self.layers:
+                #print(layer.name)
+                #print(layer)
+                if False:
+                    if hasattr(layer,'output_shape_fixed_batch'):
+                        layer_out = tf.zeros([self.conf.time_step,]+layer.output_shape_fixed_batch)
+                    else:
+                        #if isinstance(layer,tf.keras.layers.Input):
+                        #if not isinstance(layer,keras.engine.input_layer.InputLayer):
+                        #    assert False
+
+                        assert isinstance(layer,keras.engine.input_layer.InputLayer) \
+                               or isinstance(layer,keras.layers.regularization.dropout.Dropout) \
+                               or isinstance(layer,keras.layers.reshaping.flatten.Flatten)
+
+                        layer_out = tf.zeros(layer_in.shape)
+
+                output_shape = layer.output_shape
+                if isinstance(layer.output_shape, list):
+                    output_shape=output_shape[0]
+                #layer_out = tf.zeros((self.conf.time_step,)+output_shape)
+                #layer_out = tf.zeros_like(self.conf.time_step)
+                layer_out = []
+
+                #
+                glb_t.reset()
+
+
+                #
+                # time step 0
+                t=0
+                #_layer_in = layer_in[0]
+                _layer_in = layer_in.read(0)
+                _layer_out = layer(_layer_in)
+
+                #output_ta_size =
+                #output_ta_t = tuple(
+                output_ta_t = tf.TensorArray(
+                        dtype=_layer_out.dtype,
+                        size=self.conf.time_step,
+                        element_shape=_layer_out.shape,
+                        clear_after_read=False,
+                        tensor_array_name='output_ta_t')
+                    #for i, out in enumerate(tf.nest.flatten(_layer_out)))
+
+
+                #output_ta_t = tuple(
+                #    ta.write(t, out)
+                #    for ta, out in zip(output_ta_t, _layer_out))
+                output_ta_t = output_ta_t.write(t,_layer_out)
+
+                glb_t()
+
+                #
+                for t in range_ts[1:]:
+                    #_layer_in = layer_in[t-1]
+                    _layer_in = layer_in.read(t-1)
+                    _layer_out = layer(_layer_in)
+                    #_layer_out = tf.expand_dims(_layer_out,axis=self.time_axis)
+
+                    layer_out.append(_layer_out)
+
+                    #output_ta_t = tuple(
+                    #    ta.write(t, out)
+                    #    for ta, out in zip(output_ta_t, _layer_out))
+
+                    output_ta_t = output_ta_t.write(t-1,_layer_out)
+
+                    #indices = tf.constant([[t-1,:]])
+                    #updates = _layer_out
+                    #layer_out = tf.tensor_scatter_nd_update(layer_out,indices,updates)
+
+                    glb_t()
+
+                #layer_out = tf.stack([lo for lo in layer_out],axis=0)
+                layer_out = output_ta_t
+                layer_in = layer_out
+
 
 
                 #nan_test = [tf.reduce_any(tf.math.is_nan(grad_accum)) for grad_accum in grads_accum]
                 #zero_test = [tf.reduce_any(tf.math.is_nan(grad_accum)) for grad_accum in grads_accum]
 
                 #tf.reduce_sum
-                glb_t()
 
-            return layer_out
+            #ret = layer_out[-1]
+            ret = layer_out.read(self.conf.time_step-1)
+            #print(layer_out.read(7))
+
+        return ret
 
 
 
@@ -1530,8 +1640,6 @@ class Model(tf.keras.Model):
 
             # self.grads_and_vars = grads_accum_and_vars
             # self.optimizer.apply_gradients(grads_accum_and_vars,name=name)
-
-
         else:
             if False:
             #if True:
@@ -1563,86 +1671,104 @@ class Model(tf.keras.Model):
 
                 return self.compute_metrics(x, y, y_pred[:, -1, :], sample_weight)
             elif True:
-                tape_prev = None
-                loss_prev = None
-                var_list_prev = None
-                for t in range_ts:
-                    #with tf.GradientTape() as tape:
-                    #with tf.GradientTape(persistent=True) as tape:
+                if self.conf.snn_training_spatial_first:
+                    tape_prev = None
+                    loss_prev = None
+                    var_list_prev = None
+                    for t in range_ts:
+                        #with tf.GradientTape() as tape:
+                        #with tf.GradientTape(persistent=True) as tape:
+                        with tf.GradientTape() as tape:
+                            y_pred = self(x, training=True)
+                            loss = self.compute_loss(x, y, y_pred, sample_weight)
+
+                        self._validate_target_and_loss(y, loss)
+
+                        # drop out or skip update - p percent
+                        if False:
+                        #if True:
+                            rand = tf.random.uniform(shape=[],minval=0,maxval=1.0)
+                            drop_prop = 0.5
+                            grads = tape.gradient(loss, var_list, grad_loss)
+                            #grads = tf.cond(rand<drop_prop,
+                                            #lambda: tf.zeros(shape=grads.shape),
+                                            #lambda: grads)
+                            grads = tf.where(rand<drop_prop,[0]*len(grads),grads)
+
+                        grads = tape.gradient(loss, var_list, grad_loss)
+
+                        # spike norm - grad
+
+                        #if tape_prev is not None:
+                        #    grads_prev = tape_prev.gradient(loss, var_list_prev, grad_loss)
+                        #    grads = grads+grads_prev
+                        #grads = [grad * ((t+1) / last_ts) for grad in grads]
+                        #grads = [grad/self.conf.time_step for grad in grads]
+                        #if grads is not None:
+
+                        # gradient accum
+                        f_stochastic_gradient_accum=True
+                        if f_stochastic_gradient_accum:
+                            rand = tf.random.uniform(shape=[],minval=0,maxval=1.0)
+                            drop_prop = 0.5
+                            grads_accum = tf.cond(rand<drop_prop,lambda: grads_accum,lambda: [(grad_accum + grad) for grad_accum, grad in zip(grads_accum, grads)])
+                        else:
+                            grads_accum = [(grad_accum + grad) for grad_accum, grad in zip(grads_accum, grads)]
+
+                        #
+                        if False:
+                            print()
+                            for layer in self.layers:
+                                if hasattr(layer,'kernel'):
+                                    print('kernel> {} max {:.3e}, mean {:.3e}'.format(layer.name,tf.reduce_max(layer.kernel),tf.reduce_mean(layer.kernel)))
+
+                                if hasattr(layer,'bias'):
+                                    print('bias> {} max {:.3e}, mean {:.3e}'.format(layer.name,tf.reduce_max(layer.bias),tf.reduce_mean(layer.bias)))
+
+                        #tape_prev = tape
+                        #loss_prev = loss
+                        #var_list_prev = var_list
+
+                        if False:
+                        #if True:
+                            print('y')
+                            print(y[0])
+                            print('y_pred')
+                            print(y_pred[0])
+                            print('grads')
+                            #print(grads)
+
+                            for idx, grad in enumerate(grads):
+                                print('grad <{:}> - min - max: {:} - {:}'.format(
+                                    var_list[idx].name, tf.reduce_min(grad),
+                                    tf.reduce_max(grad)))
+                            #
+                            #print(tf.reduce_max(grads[0]))
+                            #print(tf.reduce_max(grads[-1]))
+                            print(grads[-1])
+                            print()
+
+                        #assert False
+                        glb_t()
+
+                    grads_accum_and_vars = list(zip(grads_accum, var_list))
+                else:
+                    #sample_weight = data_adapter.unpack_x_y_sample_weight(data)
+                    # Run forward pass.
                     with tf.GradientTape() as tape:
                         y_pred = self(x, training=True)
                         loss = self.compute_loss(x, y, y_pred, sample_weight)
 
                     self._validate_target_and_loss(y, loss)
+                    # Run backwards pass.
+                    # from keras.optimizers.optimizer_v2.optimizer_v2.py
+                    #self.optimizer.minimize(loss, self.trainable_variables, tape=tape)
+                    grad_loss=None
+                    name=None
 
-                    # drop out or skip update - p percent
-                    if False:
-                    #if True:
-                        rand = tf.random.uniform(shape=[],minval=0,maxval=1.0)
-                        drop_prop = 0.5
-                        grads = tape.gradient(loss, var_list, grad_loss)
-                        #grads = tf.cond(rand<drop_prop,
-                                        #lambda: tf.zeros(shape=grads.shape),
-                                        #lambda: grads)
-                        grads = tf.where(rand<drop_prop,[0]*len(grads),grads)
+                    grads_accum_and_vars = self.optimizer._compute_gradients(loss=loss, var_list=self.trainable_variables, grad_loss=grad_loss, tape=tape)
 
-                    grads = tape.gradient(loss, var_list, grad_loss)
-
-                    # spike norm - grad
-
-                    #if tape_prev is not None:
-                    #    grads_prev = tape_prev.gradient(loss, var_list_prev, grad_loss)
-                    #    grads = grads+grads_prev
-                    #grads = [grad * ((t+1) / last_ts) for grad in grads]
-                    #grads = [grad/self.conf.time_step for grad in grads]
-                    #if grads is not None:
-
-                    # gradient accum
-                    f_stochastic_gradient_accum=True
-                    if f_stochastic_gradient_accum:
-                        rand = tf.random.uniform(shape=[],minval=0,maxval=1.0)
-                        drop_prop = 0.5
-                        grads_accum = tf.cond(rand<drop_prop,lambda: grads_accum,lambda: [(grad_accum + grad) for grad_accum, grad in zip(grads_accum, grads)])
-                    else:
-                        grads_accum = [(grad_accum + grad) for grad_accum, grad in zip(grads_accum, grads)]
-
-                    #
-                    if False:
-                        print()
-                        for layer in self.layers:
-                            if hasattr(layer,'kernel'):
-                                print('kernel> {} max {:.3e}, mean {:.3e}'.format(layer.name,tf.reduce_max(layer.kernel),tf.reduce_mean(layer.kernel)))
-
-                            if hasattr(layer,'bias'):
-                                print('bias> {} max {:.3e}, mean {:.3e}'.format(layer.name,tf.reduce_max(layer.bias),tf.reduce_mean(layer.bias)))
-
-                    #tape_prev = tape
-                    #loss_prev = loss
-                    #var_list_prev = var_list
-
-                    if False:
-                    #if True:
-                        print('y')
-                        print(y[0])
-                        print('y_pred')
-                        print(y_pred[0])
-                        print('grads')
-                        #print(grads)
-
-                        for idx, grad in enumerate(grads):
-                            print('grad <{:}> - min - max: {:} - {:}'.format(
-                                var_list[idx].name, tf.reduce_min(grad),
-                                tf.reduce_max(grad)))
-                        #
-                        #print(tf.reduce_max(grads[0]))
-                        #print(tf.reduce_max(grads[-1]))
-                        print(grads[-1])
-                        print()
-
-                    #assert False
-                    glb_t()
-
-                grads_accum_and_vars = list(zip(grads_accum, var_list))
+                #
                 self.optimizer.apply_gradients(grads_accum_and_vars)
 
                 #grads_accum = [grad_accum/self.conf.time_step for grad_accum in grads_accum]
@@ -2011,13 +2137,16 @@ class Model(tf.keras.Model):
 
         self.layers_w_act = []
         for layer in self.layers:
-            if hasattr(layer, 'act'):
+            #if hasattr(layer, 'act'):
+            if isinstance(layer, lib_snn.activations.Activation):
                 #if not isinstance(layer,lib_snn.layers.InputGenLayer):
                 #if not layer.act_dnn is None:
                 #if not (layer.activation is None):
-                if not (layer.act_dnn is None):
-                    self.layers_w_act.append(layer)
-                    #print(layer.name)
+                #if not (layer.act_dnn is None):
+                #    self.layers_w_act.append(layer)
+                #    #print(layer.name)
+
+                self.layers_w_act.append(layer)
 
         #assert False
 
@@ -2129,7 +2258,10 @@ class Model(tf.keras.Model):
         # init - neuron
         for layer in self.layers_w_neuron:
             #print(layer.name)
-            layer.act_snn.init()
+            #layer.act_snn.init()
+            if hasattr(layer.act,'init'):
+                layer.act.init()
+
 
         #
         # dummy run
@@ -2339,14 +2471,19 @@ class Model(tf.keras.Model):
 
     # set layers with neuron
     def set_layers_w_neuron(self):
-        #self.layers_w_neuron = []
+        if False: #old
+            #self.layers_w_neuron = []
+            for layer in self.layers:
+                #if hasattr(layer, 'act_snn'):
+                if hasattr(layer, 'act'):
+                    #if layer.act_snn is not None:
+                    #if isinstance(layer.act,lib_snn.neurons.Neuron):
+                    if not (layer.act_dnn is None):
+                        #print(layer.name)
+                        self.layers_w_neuron.append(layer)
         for layer in self.layers:
-            #if hasattr(layer, 'act_snn'):
-            if hasattr(layer, 'act'):
-                #if layer.act_snn is not None:
-                #if isinstance(layer.act,lib_snn.neurons.Neuron):
-                if not (layer.act_dnn is None):
-                    #print(layer.name)
+            if isinstance(layer, lib_snn.activations.Activation):
+                if isinstance(layer.act, lib_snn.neurons.Neuron):
                     self.layers_w_neuron.append(layer)
 
 
