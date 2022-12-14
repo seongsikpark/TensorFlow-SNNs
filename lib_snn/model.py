@@ -554,14 +554,14 @@ class Model(tf.keras.Model):
 
                 # reset
                 glb_t.reset()
-                f_time_reduction = True    # time expand flag
+                f_time_reduction = False    # flag - time reduction
 
 
                 #
                 #print(layer)
                 if isinstance(layer,lib_snn.layers_new.batch_normalization.BatchNormalization):
                     #print('aa')
-                    f_time_reduction = False
+                    f_time_reduction = True
 
 
                 if f_time_reduction:
@@ -613,9 +613,11 @@ class Model(tf.keras.Model):
                         #_layer_in = layer_in[t-1]
                         _layer_in = layer_in.read(t-1)
 
+                        # run
+                        _layer_out = layer(_layer_in)
 
                         #
-                        print(t)
+                        #print(t)
                         if t-1==0:
                             output_ta_t = tf.TensorArray(
                                 dtype=_layer_out.dtype,
@@ -624,8 +626,6 @@ class Model(tf.keras.Model):
                                 clear_after_read=False,
                                 tensor_array_name='output_ta_t')
 
-                        # run
-                        _layer_out = layer(_layer_in)
                         #_layer_out = tf.expand_dims(_layer_out,axis=self.time_axis)
 
                         #layer_out.append(_layer_out)
