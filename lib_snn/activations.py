@@ -39,7 +39,7 @@ from config import conf
 
 from lib_snn.layers import Layer
 
-
+from lib_snn.sim import glb_t
 
 
 # abstract class for DNN / SNN
@@ -78,7 +78,7 @@ class Activation(keras.engine.base_layer.Layer):
         self.act = None
 
         #
-        #self.en_record_output = False
+        self.en_record_output = False
         #self.record_output = None
         #self.record_logit = None
 
@@ -160,6 +160,9 @@ class Activation(keras.engine.base_layer.Layer):
         else:
             ret = self.act(inputs, training)
 
+        if self.en_record_output:
+            self.record_output_func(ret)
+
         return ret
 
     #
@@ -176,4 +179,14 @@ class Activation(keras.engine.base_layer.Layer):
     def reset(self):
         if hasattr(self.act, 'reset'):
             self.act.reset()
+
+
+    #
+    def init_record_output(self):
+        self.record_output = tf.TensorArray(dtype=tf.float32,
+                            size=self.conf.time_step,element_shape=self.output_shape_fixed_batch,clear_after_read=False)
+
+    def record_output_func(self,ret):
+        self.record_output = self.record_output.write(glb_t.t-1,ret)
+
 

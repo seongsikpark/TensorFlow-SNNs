@@ -296,10 +296,14 @@ class Layer():
         #print('build layer - done')
 
     def init_record_output(self):
-        self.record_output = tf.Variable(tf.zeros(self.output_shape_fixed_batch),trainable=False,name='record_output')
+        #self.record_output = tf.Variable(tf.zeros(self.output_shape_fixed_batch),trainable=False,name='record_output')
+        self.record_output = tf.TensorArray(dtype=tf.float32,
+                                size=self.conf.time_step,element_shape=self.output_shape_fixed_batch,clear_after_read=False)
+
         #
         f_hold_temporal_tensor=True
-        if self.conf.f_hold_temporal_tensor:
+        #if self.conf.f_hold_temporal_tensor:
+        if False:
             output_shape_list = self.output_shape_fixed_batch.as_list()
             output_shape_list.insert(0,self.conf.time_step)
             output_shape = tf.TensorShape(output_shape_list)
@@ -307,8 +311,10 @@ class Layer():
             #[time, batch, width, height, channel]
             self.record_output = tf.Variable(tf.zeros(output_shape),trainable=False,name='record_output')
 
-        if self.last_layer:
-            self.record_logit= tf.Variable(tf.zeros(self.output_shape_fixed_batch),trainable=False,name='record_logit')
+        #if self.last_layer:
+        if False:
+            #self.record_logit= tf.Variable(tf.zeros(self.output_shape_fixed_batch),trainable=False,name='record_logit')
+            self.record_logit = tf.TensorArray(dtype=tf.float32, size=self.conf.time_step,element_shape=self.output_shape_fixed_batch)
 
 
     #
@@ -604,21 +610,28 @@ class Layer():
                     print(n[conf.verbose_visual_idx])
 
 
+        if False: # old
+            if self.en_record_output:
+                #self.record_output = ret
+                if self.conf.f_hold_temporal_tensor:
+                    t=glb_t.t
+                    indices = [[t]]
+                    ret_t = tf.expand_dims(ret,axis=0)
+                    tf.tensor_scatter_nd_update(self.record_output,indices,ret_t)
+                    #indices=[[:,t]]
+                    #tf.tensor_scatter_nd_update(self.record_output,[:,t,])
+                else:
+                    self.record_output.assign(ret)
+                #if self.name == 'predictions':
+                if self.last_layer:
+                    #self.record_logit = b
+                    self.record_logit.assign(b)
+
+        # new
         if self.en_record_output:
-            #self.record_output = ret
-            if self.conf.f_hold_temporal_tensor:
-                t=glb_t.t
-                indices = [[t]]
-                ret_t = tf.expand_dims(ret,axis=0)
-                tf.tensor_scatter_nd_update(self.record_output,indices,ret_t)
-                #indices=[[:,t]]
-                #tf.tensor_scatter_nd_update(self.record_output,[:,t,])
-            else:
-                self.record_output.assign(ret)
-            #if self.name == 'predictions':
-            if self.last_layer:
-                #self.record_logit = b
-                self.record_logit.assign(b)
+            self.record_output = self.record_output.write(glb_t.t-1,ret)
+            #self.record_logit.assign(b)
+
 
         # debug
         # TODO: debug mode set - glb.model_compiled and self.conf.debug_mode and ~~
@@ -1075,7 +1088,8 @@ class Identity(Layer, tf.keras.layers.Layer):
 
         if self.en_record_output:
             #self.record_output = ret
-            self.record_output.assign(ret)
+            #self.record_output.assign(ret)
+            self.record_output = self.record_output.write(glb_t.t,ret)
 
         return ret
 

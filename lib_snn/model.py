@@ -550,70 +550,103 @@ class Model(tf.keras.Model):
                     output_shape=output_shape[0]
                 #layer_out = tf.zeros((self.conf.time_step,)+output_shape)
                 #layer_out = tf.zeros_like(self.conf.time_step)
-                layer_out = []
+                #layer_out = []
 
-                #
+                # reset
                 glb_t.reset()
+                f_time_reduction = True    # time expand flag
 
 
                 #
-                # time step 0
-                t=0
-                #_layer_in = layer_in[0]
-                _layer_in = layer_in.read(0)
-                _layer_out = layer(_layer_in)
+                #print(layer)
+                if isinstance(layer,lib_snn.layers_new.batch_normalization.BatchNormalization):
+                    #print('aa')
+                    f_time_reduction = False
 
-                #output_ta_size =
-                #output_ta_t = tuple(
-                output_ta_t = tf.TensorArray(
+
+                if f_time_reduction:
+                    layer_in_mean_t = tf.reduce_mean(layer_in.stack(),axis=self.time_axis)
+                    _layer_in = layer_in_mean_t
+
+                    # run
+                    _layer_out = layer(_layer_in)
+
+                    #
+                    output_ta_t = tf.TensorArray(
                         dtype=_layer_out.dtype,
                         size=self.conf.time_step,
                         element_shape=_layer_out.shape,
                         clear_after_read=False,
                         tensor_array_name='output_ta_t')
-                    #for i, out in enumerate(tf.nest.flatten(_layer_out)))
+
+                    for t in range_ts:
+                        output_ta_t = output_ta_t.write(t-1,_layer_out)
+
+                else:
+                    if False:
+                        #
+                        # time step 0
+                        t=0
+                        #_layer_in = layer_in[0]
+                        _layer_in = layer_in.read(0)
+
+                        # run
+                        _layer_out = layer(_layer_in)
+
+                        output_ta_t = tf.TensorArray(
+                                dtype=_layer_out.dtype,
+                                size=self.conf.time_step,
+                                element_shape=_layer_out.shape,
+                                clear_after_read=False,
+                                tensor_array_name='output_ta_t')
 
 
-                #output_ta_t = tuple(
-                #    ta.write(t, out)
-                #    for ta, out in zip(output_ta_t, _layer_out))
-                output_ta_t = output_ta_t.write(t,_layer_out)
+                        #output_ta_t = tuple(
+                        #    ta.write(t, out)
+                        #    for ta, out in zip(output_ta_t, _layer_out))
+                        output_ta_t = output_ta_t.write(t,_layer_out)
 
-                glb_t()
+                        glb_t()
 
-                #
-                for t in range_ts[1:]:
-                    #_layer_in = layer_in[t-1]
-                    _layer_in = layer_in.read(t-1)
-                    _layer_out = layer(_layer_in)
-                    #_layer_out = tf.expand_dims(_layer_out,axis=self.time_axis)
+                    #
+                    for t in range_ts:
+                        #_layer_in = layer_in[t-1]
+                        _layer_in = layer_in.read(t-1)
 
-                    layer_out.append(_layer_out)
 
-                    #output_ta_t = tuple(
-                    #    ta.write(t, out)
-                    #    for ta, out in zip(output_ta_t, _layer_out))
+                        #
+                        print(t)
+                        if t-1==0:
+                            output_ta_t = tf.TensorArray(
+                                dtype=_layer_out.dtype,
+                                size=self.conf.time_step,
+                                element_shape=_layer_out.shape,
+                                clear_after_read=False,
+                                tensor_array_name='output_ta_t')
 
-                    output_ta_t = output_ta_t.write(t-1,_layer_out)
+                        # run
+                        _layer_out = layer(_layer_in)
+                        #_layer_out = tf.expand_dims(_layer_out,axis=self.time_axis)
 
-                    #indices = tf.constant([[t-1,:]])
-                    #updates = _layer_out
-                    #layer_out = tf.tensor_scatter_nd_update(layer_out,indices,updates)
+                        #layer_out.append(_layer_out)
 
-                    glb_t()
+                        #output_ta_t = tuple(
+                        #    ta.write(t, out)
+                        #    for ta, out in zip(output_ta_t, _layer_out))
 
-                #layer_out = tf.stack([lo for lo in layer_out],axis=0)
+                        output_ta_t = output_ta_t.write(t-1,_layer_out)
+
+                        #indices = tf.constant([[t-1,:]])
+                        #updates = _layer_out
+                        #layer_out = tf.tensor_scatter_nd_update(layer_out,indices,updates)
+
+                        glb_t()
+
+                    #layer_out = tf.stack([lo for lo in layer_out],axis=0)
                 layer_out = output_ta_t
                 layer_in = layer_out
 
 
-
-                #nan_test = [tf.reduce_any(tf.math.is_nan(grad_accum)) for grad_accum in grads_accum]
-                #zero_test = [tf.reduce_any(tf.math.is_nan(grad_accum)) for grad_accum in grads_accum]
-
-                #tf.reduce_sum
-
-            #ret = layer_out[-1]
             ret = layer_out.read(self.conf.time_step-1)
             #print(layer_out.read(7))
 

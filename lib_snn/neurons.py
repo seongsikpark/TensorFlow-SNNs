@@ -438,7 +438,7 @@ class Neuron(tf.keras.layers.Layer):
                 dL_du = dL_do * do_du + dL_du_t1 * temporal_2
 
                 grad_ret = dL_du
-                # grad_ret = dL_do*do_du
+                grad_ret = dL_do*do_du
                 # grad_ret = spatio*do_du
 
                 # test
