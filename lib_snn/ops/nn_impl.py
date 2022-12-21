@@ -28,7 +28,7 @@ from tensorflow.python.framework import ops
 # from tensorflow.python.ops import embedding_ops
 # from tensorflow.python.ops import gen_array_ops  # pylint: disable=unused-import
 # from tensorflow.python.ops import gen_nn_ops
-from lib_snn.ops import gen_nn_ops
+#from lib_snn.ops import gen_nn_ops
 # from tensorflow.python.ops import gen_sparse_ops
 # from tensorflow.python.ops import linalg_ops
 from tensorflow.python.ops import math_ops
@@ -45,8 +45,8 @@ import tensorflow as tf
 
 import matplotlib.pyplot as plt
 
-import lib_snn
-from lib_snn.sim import glb_plot_gradient_bn
+#import lib_snn
+#from lib_snn.sim import glb_plot_gradient_bn
 
 from config import conf
 
@@ -172,6 +172,8 @@ def batch_normalization(x,
                   .format('dx',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var)))
 
             if conf.verbose_visual:
+                import lib_snn
+                from lib_snn.sim import glb_plot_gradient_bn
                 lib_snn.util.plot_hist(glb_plot_gradient_bn,dx,1000,norm_fit=True)
 
             var = scale
@@ -381,8 +383,8 @@ def fused_batch_norm(
     min_epsilon = 1.001e-5
     epsilon = epsilon if epsilon > min_epsilon else min_epsilon
 
-    # y, running_mean, running_var, _, _, _ = gen_nn_ops.fused_batch_norm_v3(
-    y, running_mean, running_var, _, _, _ = gen_nn_ops.lib_snn_fused_batch_norm_v3(
+    y, running_mean, running_var, _, _, _ = gen_nn_ops.fused_batch_norm_v3(
+    #y, running_mean, running_var, _, _, _ = gen_nn_ops.lib_snn_fused_batch_norm_v3(
         x,
         scale,
         offset,

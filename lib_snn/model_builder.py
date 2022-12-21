@@ -18,6 +18,10 @@ def model_builder(
     print('Model Builder - {}'.format(conf.nn_mode))
     glb.model_compile_done_reset()
 
+    # temporal first - hold temporal intermediate tensors
+    #if conf.nn_mode=='SNN' and 'train' in conf.mode and (not conf.snn_training_spatial_first):
+    #    image_shape = (conf.time_step,)+image_shape
+
     # model
     model_top = model_top(batch_size=batch_size, input_shape=image_shape, conf=conf,
                           model_name=model_name, weights=load_weight,

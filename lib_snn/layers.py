@@ -292,14 +292,18 @@ class Layer():
                         self.vth_l = tf.constant(stat_max,shape=[],name=self.name+'/vth_l')
 
         #
-        self.built = True
+        #self.built = True
         #print('build layer - done')
 
     def init_record_output(self):
-        self.record_output = tf.Variable(tf.zeros(self.output_shape_fixed_batch),trainable=False,name='record_output')
+        #self.record_output = tf.Variable(tf.zeros(self.output_shape_fixed_batch),trainable=False,name='record_output')
+        self.record_output = tf.TensorArray(dtype=tf.float32,
+                                size=self.conf.time_step,element_shape=self.output_shape_fixed_batch,clear_after_read=False)
+
         #
         f_hold_temporal_tensor=True
-        if self.conf.f_hold_temporal_tensor:
+        #if self.conf.f_hold_temporal_tensor:
+        if False:
             output_shape_list = self.output_shape_fixed_batch.as_list()
             output_shape_list.insert(0,self.conf.time_step)
             output_shape = tf.TensorShape(output_shape_list)
@@ -307,8 +311,10 @@ class Layer():
             #[time, batch, width, height, channel]
             self.record_output = tf.Variable(tf.zeros(output_shape),trainable=False,name='record_output')
 
-        if self.last_layer:
-            self.record_logit= tf.Variable(tf.zeros(self.output_shape_fixed_batch),trainable=False,name='record_logit')
+        #if self.last_layer:
+        if False:
+            #self.record_logit= tf.Variable(tf.zeros(self.output_shape_fixed_batch),trainable=False,name='record_logit')
+            self.record_logit = tf.TensorArray(dtype=tf.float32, size=self.conf.time_step,element_shape=self.output_shape_fixed_batch)
 
 
     #
@@ -341,7 +347,57 @@ class Layer():
         #input = tf.where(variance_input<0.1,input_noise,input)
         #input = input_noise
 
+        #
+        # temporal first
+        if False:
+            print(self.name)
+            print(input.shape)
+            print('self.built : {:}'.format(self.built))
+            self.time_axis=0
+            if isinstance(self,lib_snn.layers.InputGenLayer):
+                if not self.conf.snn_training_spatial_first and self.built:
+                    #input_expand = tf.expand_dims(input,axis=time_axis)
+                    input_expand_shape = [self.conf.time_step,]+input.shape
+                    input = tf.broadcast_to(input,shape=input_expand_shape)
+                    print('input expand - time axis: {:}'.format(self.time_axis))
 
+                    self.output_shape_fixed_batch=[self.conf.time_step,]+self.output_shape_fixed_batch
+
+            print('output dim')
+            print(self.output_shape_fixed_batch)
+
+            # spatial or temporal_first
+            if self.conf.snn_training_spatial_first or (not self.built):
+                _input = input
+                s = super().call(_input)
+            else:
+
+                range_ts = range(1, self.conf.time_step + 1)
+
+                #s = tf.zeros([self.conf.time_step,]+self.output_shape_fixed_batch)
+                s = tf.zeros(self.output_shape_fixed_batch)
+                for t in range_ts:
+                    #_input = tf.gather(input,)
+                    #_input = input[t]
+                    #_input = input
+                    #_input = input[:,t-1,:]
+                    _input = input[t-1,:,:,:,:]       # [t,b,h,w,c] -> [b,h,w,c]
+                    _s = super().call(_input)
+                    _s = tf.expand_dims(_s,axis=self.time_axis)
+
+                    print('s')
+                    print(s.shape)
+
+                    print('_s')
+                    print(_s.shape)
+
+                    indices = tf.constant([[t-1]])
+                    index_depth=1
+
+                    s=tf.tensor_scatter_nd_update(s,indices,_s)
+                    #s=tf.tensor_scatter_nd_update(s,[[0]],_s)
+
+        #
         s = super().call(input)
 
 
@@ -554,21 +610,28 @@ class Layer():
                     print(n[conf.verbose_visual_idx])
 
 
+        if False: # old
+            if self.en_record_output:
+                #self.record_output = ret
+                if self.conf.f_hold_temporal_tensor:
+                    t=glb_t.t
+                    indices = [[t]]
+                    ret_t = tf.expand_dims(ret,axis=0)
+                    tf.tensor_scatter_nd_update(self.record_output,indices,ret_t)
+                    #indices=[[:,t]]
+                    #tf.tensor_scatter_nd_update(self.record_output,[:,t,])
+                else:
+                    self.record_output.assign(ret)
+                #if self.name == 'predictions':
+                if self.last_layer:
+                    #self.record_logit = b
+                    self.record_logit.assign(b)
+
+        # new
         if self.en_record_output:
-            #self.record_output = ret
-            if self.conf.f_hold_temporal_tensor:
-                t=glb_t.t
-                indices = [[t]]
-                ret_t = tf.expand_dims(ret,axis=0)
-                tf.tensor_scatter_nd_update(self.record_output,indices,ret_t)
-                #indices=[[:,t]]
-                #tf.tensor_scatter_nd_update(self.record_output,[:,t,])
-            else:
-                self.record_output.assign(ret)
-            #if self.name == 'predictions':
-            if self.last_layer:
-                #self.record_logit = b
-                self.record_logit.assign(b)
+            self.record_output = self.record_output.write(glb_t.t-1,ret)
+            #self.record_logit.assign(b)
+
 
         # debug
         # TODO: debug mode set - glb.model_compiled and self.conf.debug_mode and ~~
@@ -1025,7 +1088,8 @@ class Identity(Layer, tf.keras.layers.Layer):
 
         if self.en_record_output:
             #self.record_output = ret
-            self.record_output.assign(ret)
+            #self.record_output.assign(ret)
+            self.record_output = self.record_output.write(glb_t.t,ret)
 
         return ret
 
@@ -1101,6 +1165,26 @@ class MaxPool2D(Layer, tf.keras.layers.MaxPool2D):
             return ret
         else:
             return tf.keras.layers.MaxPool2D.call(self, inputs)
+
+
+class AveragePooling2D(Layer, tf.keras.layers.AveragePooling2D):
+
+    def __init__(self,
+           pool_size=(2, 2),
+           strides=None,
+           padding='valid',
+           data_format=None,
+           **kwargs):
+
+        tf.keras.layers.AveragePooling2D.__init__(self,
+                                            pool_size=pool_size,
+                                            strides=strides,
+                                            padding=padding,
+                                            data_format=data_format,
+                                            **kwargs)
+        Layer.__init__(self, use_bn=False, activation=None, last_layer=False, kwargs=kwargs)
+
+
 
 
 # GlobalAveragePooling2D
@@ -1220,6 +1304,8 @@ def spike_max_pool_2d_22(feature_map, spike_count, output_shape):
         return dy_dx, tf.stop_gradient(spike_count), tf.stop_gradient(output_shape)
 
     return p_conv, grad
+
+
 
 # def spike_max_pool_temporal(feature_map, spike_count, output_shape):
 

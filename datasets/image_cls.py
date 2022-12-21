@@ -183,14 +183,14 @@ def load(dataset_name,batch_size,input_size,input_size_pre_crop_ratio,num_class,
                 lambda image, label: resize_with_crop_aug(image, label, dataset_name, input_size, input_size_pre_crop_ratio, num_class, input_prec_mode,preprocessor_input),
                 num_parallel_calls=num_parallel)
 
-        train_ds = train_ds.batch(batch_size)
+        train_ds = train_ds.batch(batch_size,drop_remainder=True)
         train_ds = train_ds.prefetch(num_parallel)
     else:
         train_ds = train_ds.map(
             lambda image, label: resize_with_crop(image, label, dataset_name, input_size, input_size_pre_crop_ratio, num_class, input_prec_mode,preprocessor_input),
             num_parallel_calls=num_parallel)
 
-        train_ds = train_ds.batch(batch_size)
+        train_ds = train_ds.batch(batch_size,drop_remainder=True)
         train_ds = train_ds.prefetch(num_parallel)
 
     # valid_ds=valid_ds.map(resize_with_crop_cifar,num_parallel_calls=tf.data.experimental.AUTOTUNE)
@@ -199,7 +199,7 @@ def load(dataset_name,batch_size,input_size,input_size_pre_crop_ratio,num_class,
     valid_ds = valid_ds.map(
         lambda image, label: resize_with_crop(image, label, dataset_name, input_size, input_size_pre_crop_ratio, num_class, input_prec_mode,preprocessor_input),
         num_parallel_calls=num_parallel)
-    valid_ds = valid_ds.batch(batch_size)
+    valid_ds = valid_ds.batch(batch_size,drop_remainder=True)
     valid_ds = valid_ds.prefetch(num_parallel)
 
     # data-based weight normalization (DNN-to-SNN conversion)

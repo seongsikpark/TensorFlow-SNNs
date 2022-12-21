@@ -3,7 +3,11 @@
 from lib_snn import model
 from lib_snn import layers
 from lib_snn import layers_new
+
+from lib_snn import activations
+
 from lib_snn import neurons
+
 from lib_snn import util
 from lib_snn import anal
 from lib_snn import weight_norm

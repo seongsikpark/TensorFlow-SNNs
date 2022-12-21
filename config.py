@@ -314,12 +314,12 @@ tf.compat.v1.app.flags.DEFINE_bool('load_best_model', True, 'load best model (mo
 
 #
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size', 1000, '')
-tf.compat.v1.app.flags.DEFINE_integer('batch_size', 500, '')
+#tf.compat.v1.app.flags.DEFINE_integer('batch_size', 500, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size', 800, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size', 600, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size', 400, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size', 200, '')
-#tf.compat.v1.app.flags.DEFINE_integer('batch_size', 100, '')
+tf.compat.v1.app.flags.DEFINE_integer('batch_size', 100, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size', 10, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size', 2, '')
 #tf.compat.v1.app.flags.DEFINE_integer('batch_size', 1, '')
@@ -338,8 +338,8 @@ tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 400, '')
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.1, 'learning rate')
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.02, 'learning rate')
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.01, 'learning rate')
-#tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.005, 'learning rate')
-tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.001, 'learning rate')
+tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.005, 'learning rate')
+#tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.001, 'learning rate')
 # ResNet
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.2, 'learning rate')
 
@@ -354,15 +354,15 @@ tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-5, 'lambda')
 #tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-4, 'lambda')
 
 #
-#tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',None,'gradient clip norm')
+tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',None,'gradient clip norm')
 #tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',1.0,'gradient clip norm')
-tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',2.0,'gradient clip norm')
+#tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',2.0,'gradient clip norm')
 #tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',5.0,'gradient clip norm')
 
 
 # data augmentation
-tf.compat.v1.app.flags.DEFINE_enum('data_aug_mix', 'None', ['mixup', 'cutmix', 'None'], 'data augmentation - mixup')
-#tf.compat.v1.app.flags.DEFINE_enum('data_aug_mix', 'cutmix', ['mixup', 'cutmix', 'None'], 'data augmentation - mixup')
+#tf.compat.v1.app.flags.DEFINE_enum('data_aug_mix', 'None', ['mixup', 'cutmix', 'None'], 'data augmentation - mixup')
+tf.compat.v1.app.flags.DEFINE_enum('data_aug_mix', 'cutmix', ['mixup', 'cutmix', 'None'], 'data augmentation - mixup')
 
 
 
@@ -436,8 +436,8 @@ tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 400, 'number of test data
 #tf.compat.v1.app.flags.DEFINE_string('n_type', 'IF', 'LIF or IF: neuron type')
 tf.compat.v1.app.flags.DEFINE_string('n_type', 'LIF', 'LIF or IF: neuron type')
 
-#tf.compat.v1.app.flags.DEFINE_enum('n_reset_type','reset_by_sub', ['reset_by_sub', 'reset_to_zero'], 'neuron reset type')
-tf.compat.v1.app.flags.DEFINE_enum('n_reset_type','reset_to_zero', ['reset_by_sub', 'reset_to_zero'], 'neuron reset type')
+tf.compat.v1.app.flags.DEFINE_enum('n_reset_type','reset_by_sub', ['reset_by_sub', 'reset_to_zero'], 'neuron reset type')
+#tf.compat.v1.app.flags.DEFINE_enum('n_reset_type','reset_to_zero', ['reset_by_sub', 'reset_to_zero'], 'neuron reset type')
 
 
 tf.compat.v1.app.flags.DEFINE_bool('f_positive_vmem',False,'positive vmem')
@@ -446,8 +446,8 @@ tf.compat.v1.app.flags.DEFINE_bool('f_positive_vmem',False,'positive vmem')
 tf.compat.v1.app.flags.DEFINE_bool('f_neg_cap_vmem',False,'negative capped vmem')
 #tf.compat.v1.app.flags.DEFINE_bool('f_neg_cap_vmem',True,'negative capped vmem')
 
-#tf.compat.v1.app.flags.DEFINE_string('input_spike_mode','REAL','input spike mode - REAL, POISSON, WEIGHTED_SPIKE, others...')
-tf.compat.v1.app.flags.DEFINE_string('input_spike_mode','POISSON','input spike mode - REAL, POISSON, WEIGHTED_SPIKE, others...')
+tf.compat.v1.app.flags.DEFINE_string('input_spike_mode','REAL','input spike mode - REAL, POISSON, WEIGHTED_SPIKE, others...')
+#tf.compat.v1.app.flags.DEFINE_string('input_spike_mode','POISSON','input spike mode - REAL, POISSON, WEIGHTED_SPIKE, others...')
 tf.compat.v1.app.flags.DEFINE_string('neural_coding','RATE','neural coding - RATE, WEIGHTED_SPIKE, PROPOSED')
 
 #
@@ -577,8 +577,8 @@ tf.compat.v1.app.flags.DEFINE_bool('tdbn',False,'threshold-dependent batch norma
 
 
 #
-tf.compat.v1.app.flags.DEFINE_bool('snn_training_spatial_first',True,'SNN training spatial domain first')
-#tf.compat.v1.app.flags.DEFINE_bool('snn_training_spatial_first',False,'SNN training spatial domain first') # Not implemented yet?
+#tf.compat.v1.app.flags.DEFINE_bool('snn_training_spatial_first',True,'SNN training spatial domain first')
+tf.compat.v1.app.flags.DEFINE_bool('snn_training_spatial_first',False,'SNN training spatial domain first') # Not implemented yet?
 
 
 #
