@@ -21,7 +21,7 @@ os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,4,5,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,4"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0"
-os.environ["CUDA_VISIBLE_DEVICES"]="3"
+os.environ["CUDA_VISIBLE_DEVICES"]="2"
 
 
 # TF logging setup

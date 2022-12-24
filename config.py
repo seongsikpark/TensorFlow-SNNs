@@ -335,10 +335,10 @@ tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 400, '')
 
 #
 # VGG
-#tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.1, 'learning rate')
+tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.1, 'learning rate')
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.02, 'learning rate')
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.01, 'learning rate')
-tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.005, 'learning rate')
+#tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.005, 'learning rate')
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.001, 'learning rate')
 # ResNet
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.2, 'learning rate')
@@ -572,8 +572,8 @@ tf.compat.v1.app.flags.DEFINE_bool('weight_comp_proposed',False,'calibration - b
 ################
 # SNN training - supervised learning, surrogate gradient
 ################
-tf.compat.v1.app.flags.DEFINE_bool('tdbn',False,'threshold-dependent batch normalization - AAAI21')
-#tf.compat.v1.app.flags.DEFINE_bool('tdbn',True,'threshold-dependent batch normalization - AAAI21')
+#tf.compat.v1.app.flags.DEFINE_bool('tdbn',False,'threshold-dependent batch normalization - AAAI21')
+tf.compat.v1.app.flags.DEFINE_bool('tdbn',True,'threshold-dependent batch normalization - AAAI21')
 
 
 #

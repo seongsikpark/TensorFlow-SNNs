@@ -58,88 +58,7 @@ class Neuron(tf.keras.layers.Layer):
         #self.init_first_spike_time = 100000
 
         #
-        #leak_const = -0.01/16*depth+1.0
-        #leak_const = -0.001/16*depth+1.0
-        #leak_const = -0.009/16*depth+0.999
-
-        #leak_const = -0.009/16*depth+0.99
-
-        #leak_const = -0.009/16*depth+0.98
-        #leak_const = -0.001/16*depth+0.98
-        #leak_const = -0.009/16*depth+1.0
-        #leak_const = 1.0
-        #leak_const = 0.99
-        #leak_const = 0.96
-        #leak_const = 0.95
-        #leak_const = 0.94
-        #leak_const = 0.93
-        #leak_const = 0.92
-        #leak_const = 0.91
-        #leak_const = 0.9
-        #leak_const = 0.89
-        #leak_const = 0.88
-        #leak_const = 0.87
-        #leak_const = 0.86
-        #leak_const = 0.85
-        #leak_const = 0.84
-        #leak_const = 0.83
-        #leak_const = 0.82
-        #leak_const = 0.81
-        #leak_const = 1.0
-
-        #if depth > 14 :
-            #leak_const = -0.16 / 15 / 15 * (depth) * (depth) + 1.0
-        #else:
-            #leak_const = 1.0
-
-
-        #leak_const = 1.0
-        #leak_const = 0.99
-        #leak_const = 0.987
-        leak_const = 0.985
-        #leak_const = -0.006*self.depth+0.991
-        #leak_const = -0.003*self.depth+0.991
-        #leak_const = -0.0001*self.depth+0.99
-        #leak_const = 0.983
-        #leak_const = 0.98
-
-        #if depth==4:
-            #leak_const = 0.99
-
-        #if depth==15:
-        if False:
-            leak_const = 0.98
-            #leak_const = 0.97
-            #leak_const = 0.99
-
-
-
-        #if depth==16:
-        if self.loc=='OUT':
-            #leak_const = 0.8
-            leak_const = 0.85
-            #leak_const = 0.87
-            #leak_const = 0.90
-            #leak_const = 0.91
-            #leak_const = 0.94
-            #leak_const = 0.95      # VGG
-
-            #leak_const = 0.90
-            #leak_const = 0.96
-            #leak_const = 0.97
-            #leak_const = 0.98
-            #leak_const = 0.99
-            #leak_const = 0.92
-            #leak_const = 0.93
-            #leak_const = 0.97
-            #leak_const = 0.98
-            #leak_const = 0.985
-            #leak_const = 0.99
-            #leak_const = 0.1
-
-
-        #leak_const = 0.7
-        #leak_const = 0.8
+        leak_const = 0.99
         #self.leak_const = tf.constant(0.99,dtype=tf.float32,shape=self.dim)
         #self.leak_const = tf.constant(leak_const,dtype=tf.float32,shape=self.dim)
 
@@ -337,11 +256,12 @@ class Neuron(tf.keras.layers.Layer):
     #@tf.function
     #@tf.custom_gradient
     #def call(self ,inputs ,t, training):
-    def call(self, inputs, training):
+    def call(self, inputs, training=None):
         #t = tf.constant(glb_t.t)
         t = glb_t.t
-
         #print('neuron call')
+        #print(t)
+
         #if self.depth==15:
         #print('depth: {}'.format(self.depth))
         #print(inputs)

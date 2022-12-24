@@ -4,27 +4,13 @@ import tensorflow as tf
 
 # import tensorflow_probability as tfp
 
-import tensorflow.keras.initializers as initializers
-import tensorflow.keras.regularizers as regularizers
-
 #from keras.engine.base_layer import Layer
 from keras import backend
 
-import sys
-
-from tensorflow.python.ops import math_ops
-
 # custom gradient
-import lib_snn.ops.nn_grad
 
 
 #
-
-import numpy as np
-
-import matplotlib.pyplot as plt
-
-import collections
 
 #
 import lib_snn
@@ -140,7 +126,7 @@ class Activation(keras.engine.base_layer.Layer):
                 self.act = lib_snn.neurons.Neuron(self.output_shape_fixed_batch, self.conf, \
                                               self.act_type, self.conf.neural_coding, self.depth, loc=self.loc, name=self.name)
             else:
-                assert False
+                assert False, 'not supported activation type - {:}'.format(self.act_type)
 
         self.built = True
 
@@ -158,7 +144,9 @@ class Activation(keras.engine.base_layer.Layer):
         if isinstance(self.act, tf.keras.layers.Softmax):
             ret = self.act(inputs)
         else:
-            ret = self.act(inputs, training)
+            #print(self.name)
+            #ret = self.act(inputs, training)
+            ret = self.act(inputs)
 
         if self.en_record_output:
             self.record_output_func(ret)

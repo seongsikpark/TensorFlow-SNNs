@@ -2,7 +2,6 @@
 
 from lib_snn import model
 from lib_snn import layers
-from lib_snn import layers_new
 
 from lib_snn import activations
 

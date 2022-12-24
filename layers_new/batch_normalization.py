@@ -30,9 +30,8 @@ from tensorflow.python.util.tf_export import keras_export
 
 #
 from config import conf
-import lib_snn
 
-from lib_snn.ops import nn_impl as lib_snn_nn
+from ops import nn_impl as lib_snn_nn
 
 
 
@@ -408,6 +407,9 @@ class BatchNormalizationBase(Layer):
                 for idx, x in enumerate(self.axis):
                     self.axis[idx] = x + 1  # Account for added dimension
 
+        #if conf.nn_mode=='SNN' and not conf.snn_training_spatial_first:
+        #    param_shape = param_shape[1:]       # [t,b,w,h,c] -> [b,w,h,c]
+
         if self.scale:
             self.gamma = self.add_weight(
                 name='gamma',
@@ -605,7 +607,7 @@ class BatchNormalizationBase(Layer):
 
         def _fused_batch_norm_training():
             #return tf.compat.v1.nn.fused_batch_norm(
-            return lib_snn.ops.nn_impl.fused_batch_norm(
+            return ops.nn_impl.fused_batch_norm(
                 inputs,
                 gamma,
                 beta,
@@ -619,7 +621,7 @@ class BatchNormalizationBase(Layer):
 
         def _fused_batch_norm_inference():
             #return tf.compat.v1.nn.fused_batch_norm(
-            return lib_snn.ops.nn_impl.fused_batch_norm(
+            return ops.nn_impl.fused_batch_norm(
                 inputs,
                 gamma,
                 beta,

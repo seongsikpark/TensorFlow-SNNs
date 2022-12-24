@@ -1,35 +1,23 @@
-import keras.layers
 import tensorflow as tf
 # import tensorflow.contrib.eager as tfe
 
 # import tensorflow_probability as tfp
 
-import tensorflow.keras.initializers as initializers
 import tensorflow.keras.regularizers as regularizers
 
 from keras import backend
 
-import sys
-
 from tensorflow.python.ops import math_ops
 
 # custom gradient
-import lib_snn.ops.nn_grad
 
 
 #
-
-import numpy as np
-
-import matplotlib.pyplot as plt
-
-import collections
 
 #
 import lib_snn
 
 #
-from lib_snn.model import Model
 from lib_snn.sim import glb_t
 from lib_snn.sim import glb
 from lib_snn.sim import glb_plot
@@ -42,6 +30,12 @@ from lib_snn.sim import glb_plot_kernel
 #from main_hp_tune import conf
 
 from config import conf
+
+from keras.engine.input_spec import InputSpec
+
+
+import layers_new
+
 
 #
 # ~class Layer(tf.keras.layers.Layer):
@@ -126,7 +120,7 @@ class Layer():
 
             fused = self.conf.tf_fused_bn
 
-            self.bn = lib_snn.layers_new.BatchNormalization(epsilon=1.001e-5,en_tdbn=tdbn,fused=fused)
+            self.bn = layers_new.batch_normalization.BatchNormalization(epsilon=1.001e-5,en_tdbn=tdbn,fused=fused)
 
             #self.bn = lib_snn.layers_new.BatchNormalization(epsilon=1.0)
         else:
@@ -184,6 +178,14 @@ class Layer():
         else:
             self.bias_control = False
 
+        #
+        #if self.conf.nn_mode=='SNN' and not self.conf.snn_training_spatial_first:
+            #print(self.name)
+            #print(self.input_spec)
+            #if not self.input_spec is None:
+                #if not self.input_spec.ndim is None:
+                    #self.input_spec = InputSpec(ndim=self.input_spec.ndim+1)
+
     #
     def build(self, input_shapes):
         # super(Conv2D,self).build(input_shapes)
@@ -214,6 +216,11 @@ class Layer():
 
         # if not self.en_snn:
         # self.act = self.act_dnn
+
+        #
+        #self._call_full_argspec
+        #self._expects_training_arg = 'training' in self._call_full_argspec.args
+        #self._expects_mask_arg = 'mask' in self._call_full_argspec.args
 
         if self.en_snn:
             #print('---- SNN Mode ----')
@@ -291,6 +298,11 @@ class Layer():
                     else:
                         self.vth_l = tf.constant(stat_max,shape=[],name=self.name+'/vth_l')
 
+        # snn training - temporal first
+        #if not self.conf.snn_training_spatial_first:
+            #self.out = tf.TensorArray(dtype=tf.float32,
+                        #size=self.conf.time_step,element_shape=self.output_shape_fixed_batch,clear_after_read=False)
+
         #
         #self.built = True
         #print('build layer - done')
@@ -328,6 +340,7 @@ class Layer():
     #
     # def call_set_aside_for_future(self,input,training):
     def call(self, input, training):
+    #def call(self, input, **kwargs):
         #print('layer - {:}, training - {:}'.format(self.name,training))
         #print('layer call - {}'.format(self.name))
 
@@ -346,6 +359,60 @@ class Layer():
         #variance_input = tf.math.reduce_variance(input,axis=reduction_axes)
         #input = tf.where(variance_input<0.1,input_noise,input)
         #input = input_noise
+
+        # new
+        #if not self.conf.snn_training_spatial_first and self.act is None and self.bn is None:
+        #if not self.conf.snn_training_spatial_first:
+        #if True:
+        if False:
+
+            range_ts = range(1, self.conf.time_step + 1)
+
+
+            out_arr = tf.TensorArray(dtype=tf.float32,
+                                      size=self.conf.time_step,element_shape=self.output_shape_fixed_batch,clear_after_read=False)
+            out_arr = []
+            for t in range_ts:
+                #layer_in = input.read(t-1)
+                layer_in = input[t-1]
+
+                layer_out = super().call(layer_in)
+
+                out_arr.append(layer_out)
+
+                #out_arr = out_arr.write(t-1,layer_out)
+
+            out_arr=tf.convert_to_tensor(out_arr)
+
+            return out_arr
+        else:
+
+
+            #self._expects_training_arg = ('training' in method_arg_spec.args or
+            #                              method_arg_spec.varkw is not None)
+            #self._expects_mask_arg = ('mask' in method_arg_spec.args or
+            #                          method_arg_spec.varkw is not None)
+
+            #if self._expects_training_arg:
+                #print(self.name)
+                ##output = super().call(input,training)
+                ##output = super().call(input)
+                #output = super
+            #else:
+                #output = super().call(input)
+
+            #output = super().call(input,**kwargs)
+
+            # TODO: add codes to check parent's class call argument - including training or not
+            if isinstance(self, lib_snn.layers.BatchNormalization):
+                output = super().call(input,training)
+            else:
+                output = super().call(input)
+
+
+            return output
+            #assert False
+            pass
 
         #
         # temporal first
@@ -398,6 +465,7 @@ class Layer():
                     #s=tf.tensor_scatter_nd_update(s,[[0]],_s)
 
         #
+        #print(input)
         s = super().call(input)
 
 
@@ -884,6 +952,28 @@ class InputGenLayer(Layer, tf.keras.layers.Layer):
         #print(inputs)
     #    return inputs
 
+        #
+#    def call(self, inputs, training):
+#        inputs_e = tf.TensorArray(dtype=tf.float32,
+#                             size=self.conf.time_step,element_shape=inputs.shape,clear_after_read=False)
+#
+#        #for t in range(1,conf.time_step+1):
+#        #    inputs_e = inputs_e.write(t-1,inputs)
+#
+#        #ret = tf.convert_to_tensor(inputs_e)
+#
+#        #ret = tuple(inputs_e)
+#        if self.conf.nn_mode=='SNN' and not self.conf.snn_training_spatial_first:
+#            inputs = tf.expand_dims(inputs,axis=0)
+#            ret = tf.repeat(inputs,self.conf.time_step,axis=0)
+##
+#        else:
+#            ret = inputs
+#
+#        return ret
+
+
+
 
 
 
@@ -1032,10 +1122,11 @@ class Dense(Layer, tf.keras.layers.Dense):
 #
 class Add(Layer, tf.keras.layers.Add):
     def __init__(self, use_bn=False, epsilon=0.001, activation=None, **kwargs):
-        tf.keras.layers.Add.__init__(self, **kwargs)
 
         #Layer.__init__(self, use_bn=use_bn, epsilon=epsilon, activation=activation, kwargs=kwargs)
         Layer.__init__(self, use_bn=use_bn, activation=activation, kwargs=kwargs)
+
+        tf.keras.layers.Add.__init__(self, **kwargs)
 
         # self.act = activation
 
@@ -1071,9 +1162,10 @@ class Add(Layer, tf.keras.layers.Add):
 #
 class Identity(Layer, tf.keras.layers.Layer):
     def __init__(self, use_bn=False, epsilon=0.001, activation=None, **kwargs):
-        tf.keras.layers.Layer.__init__(self, **kwargs)
         #Layer.__init__(self, use_bn=use_bn, epsilon=epsilon, activation=activation, kwargs=kwargs)
         Layer.__init__(self, use_bn=use_bn, activation=activation, kwargs=kwargs)
+
+        tf.keras.layers.Layer.__init__(self, **kwargs)
 
         self.kernel = tf.constant(1.0, shape=[], name='kernel')
         self.bias = tf.zeros(shape=[],name='bias')
@@ -1116,6 +1208,8 @@ class MaxPool2D(Layer, tf.keras.layers.MaxPool2D):
         if strides!=(2,2):
             assert False, 'only support stride (2x2) in maxpooling2d'
 
+        Layer.__init__(self, False, None, kwargs=kwargs)
+
         tf.keras.layers.MaxPool2D.__init__(
             self,
             pool_size=pool_size,
@@ -1124,7 +1218,6 @@ class MaxPool2D(Layer, tf.keras.layers.MaxPool2D):
             data_format=conf.data_format,
             **kwargs)
 
-        Layer.__init__(self, False, None, kwargs=kwargs)
 
         self.prev_layer_set_done=False
 
@@ -1176,14 +1269,16 @@ class AveragePooling2D(Layer, tf.keras.layers.AveragePooling2D):
            data_format=None,
            **kwargs):
 
+        Layer.__init__(self, use_bn=False, activation=None, last_layer=False, kwargs=kwargs)
+
         tf.keras.layers.AveragePooling2D.__init__(self,
                                             pool_size=pool_size,
                                             strides=strides,
                                             padding=padding,
                                             data_format=data_format,
                                             **kwargs)
-        Layer.__init__(self, use_bn=False, activation=None, last_layer=False, kwargs=kwargs)
 
+        #self.input_spec = InputSpec(ndim=self.input_spec.ndim+1)
 
 
 
@@ -1206,6 +1301,188 @@ class ZeroPadding2D(Layer, tf.keras.layers.ZeroPadding2D):
 
         tf.keras.layers.ZeroPadding2D.__init__(self,**kwargs)
         Layer.__init__(self, use_bn=False, activation=None, last_layer=False, kwargs=kwargs)
+
+# Flatten
+class Flatten(Layer, tf.keras.layers.Flatten):
+    def __init__(self,
+                 data_format,
+                 **kwargs):
+
+        Layer.__init__(self, use_bn=False, activation=None, last_layer=False, kwargs=kwargs)
+
+        tf.keras.layers.Flatten.__init__(
+            self,
+            data_format=data_format,
+            **kwargs)
+
+#    def call(self, input, training=None):
+#
+#        if self.conf.nn_mode=='SNN' and not self.conf.snn_training_spatial_first:
+#
+#            output = []
+#
+#            range_ts = range(1, self.conf.time_step + 1)
+#            for t in range_ts:
+#                _input = input[t-1]
+#                _output = tf.keras.layers.Flatten.call(self, _input)
+#                output.append(_output)
+#
+#            output = tf.convert_to_tensor(output)
+#
+#        else:
+#            output = tf.keras.layers.Flatten.call(self, input)
+#
+#        return output
+
+
+
+class BatchNormalization(Layer, layers_new.batch_normalization.BatchNormalization):
+
+    def __init__(self,
+                 axis=-1,
+                 momentum=0.99,
+                 epsilon=1e-3,
+                 center=True,
+                 scale=True,
+                 beta_initializer='zeros',
+                 gamma_initializer='ones',
+                 moving_mean_initializer='zeros',
+                 moving_variance_initializer='ones',
+                 beta_regularizer=None,
+                 gamma_regularizer=None,
+                 beta_constraint=None,
+                 gamma_constraint=None,
+                 renorm=False,
+                 renorm_clipping=None,
+                 renorm_momentum=0.99,
+                 fused=None,
+                 trainable=True,
+                 virtual_batch_size=None,
+                 adjustment=None,
+                 name=None,
+                 **kwargs):
+
+        Layer.__init__(self, use_bn=False, activation=None, last_layer=False, kwargs=kwargs)
+
+        layers_new.batch_normalization.BatchNormalization.__init__(self,
+                 axis=axis,
+                 momentum=momentum,
+                 epsilon=epsilon,
+                 center=center,
+                 scale=scale,
+                 beta_initializer=beta_initializer,
+                 gamma_initializer=gamma_initializer,
+                 moving_mean_initializer=moving_mean_initializer,
+                 moving_variance_initializer=moving_variance_initializer,
+                 beta_regularizer=beta_regularizer,
+                 gamma_regularizer=gamma_regularizer,
+                 beta_constraint=beta_constraint,
+                 gamma_constraint=gamma_constraint,
+                 renorm=renorm,
+                 renorm_clipping=renorm_clipping,
+                 renorm_momentum=renorm_momentum,
+                 fused=fused,
+                 trainable=trainable,
+                 virtual_batch_size=virtual_batch_size,
+                 adjustment=adjustment,
+                 name=name,
+                 **kwargs)
+
+#    def build(self, input_shape):
+#
+#        if self.conf.nn_mode=='SNN' and not self.conf.snn_training_spatial_first:
+#            input_shape = input_shape[1:]       # [t,b,w,h,c] -> [b,w,h,c]
+#
+#        layers_new.batch_normalization.BatchNormalization.build(self,input_shape)
+#
+#        if self.conf.nn_mode=='SNN' and not self.conf.snn_training_spatial_first:
+#            self.input_spec = InputSpec(ndim=self.input_spec.ndim+1,axes=self.input_spec.axes)
+
+
+
+
+############################################################
+## Temporal wrapper - temporal function
+############################################################
+def tfn(layer, input):
+    if conf.nn_mode=='SNN' and not conf.snn_training_spatial_first:
+
+        range_ts = range(1, conf.time_step + 1)
+
+        f_temporal_reduction = False
+        #
+        layers_temporal_reduction = []
+        layers_temporal_reduction.append(lib_snn.layers.BatchNormalization)
+        #layers_temporal_reduction.append(lib_snn.layers.MaxPool2D)
+        #layers_temporal_reduction.append(lib_snn.layers.AveragePooling2D)
+
+        if type(layer) in layers_temporal_reduction:
+            f_temporal_reduction = True
+
+        #out_arr = []
+
+        #
+        if not isinstance(input,tf.TensorArray):
+            in_arr = tf.TensorArray(
+                dtype=tf.float32,
+                size=conf.time_step,
+                element_shape=input.shape,
+                clear_after_read=False,
+                tensor_array_name='in_arr')
+
+        else:
+            in_arr = input
+
+
+        if f_temporal_reduction:
+            layer_in = tf.reduce_mean(in_arr.stack(),axis=0)
+
+            layer_out = layer(layer_in)
+
+            #
+            out_arr = tf.TensorArray(
+                dtype=tf.float32,
+                size=conf.time_step,
+                element_shape=layer_out.shape,
+                clear_after_read=False,
+                tensor_array_name='out_arr')
+
+            for t in range_ts:
+                #out_arr.append(layer_out)
+                out_arr = out_arr.write(t-1,layer_out)
+
+        else:
+
+            for t in range_ts:
+                #layer_in = input.read(t-1)
+                #layer_in = input[t-1]
+                layer_in = in_arr.read(t-1)
+
+                layer_out = layer(layer_in)
+
+
+                #
+                if t-1==0:
+                    out_arr = tf.TensorArray(
+                        dtype=tf.float32,
+                        size=conf.time_step,
+                        element_shape=layer_out.shape,
+                        clear_after_read=False,
+                        tensor_array_name='out_arr')
+
+                #out_arr.append(layer_out)
+                out_arr = out_arr.write(t-1,layer_out)
+
+                #out_arr = out_arr.write(t-1,layer_out)
+
+        #out_arr=tf.convert_to_tensor(out_arr)
+
+        return out_arr
+    else:
+        return layer(input)
+
+
+
 
 
 
