@@ -286,8 +286,8 @@ tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR10', 'dataset')
 
 
 # models - CIFAR
-tf.compat.v1.app.flags.DEFINE_string('model', 'VGG16', 'model')
-#tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet20', 'model')
+#tf.compat.v1.app.flags.DEFINE_string('model', 'VGG16', 'model')
+tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet20', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet32', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet44', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet56', 'model')
@@ -335,9 +335,9 @@ tf.compat.v1.app.flags.DEFINE_integer('batch_size_inf', 400, '')
 
 #
 # VGG
-tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.1, 'learning rate')
+#tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.1, 'learning rate')
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.02, 'learning rate')
-#tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.01, 'learning rate')
+tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.01, 'learning rate')
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.005, 'learning rate')
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.001, 'learning rate')
 # ResNet
@@ -346,17 +346,17 @@ tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.1, 'learning rate')
 # regularizer
 tf.compat.v1.app.flags.DEFINE_string('regularizer', 'L2', 'L2 or L1 regularizer')
 # VGG
-tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-5, 'lambda')
+#tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-5, 'lambda')
 #tf.compat.v1.app.flags.DEFINE_float('lmb',5.0E-5, 'lambda')
 #tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-4, 'lambda') # SNN
 #tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-3, 'lambda') # SNN
 # ResNet
-#tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-4, 'lambda')
+tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-4, 'lambda')
 
 #
-tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',None,'gradient clip norm')
+#tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',None,'gradient clip norm')
 #tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',1.0,'gradient clip norm')
-#tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',2.0,'gradient clip norm')
+tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',2.0,'gradient clip norm')
 #tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',5.0,'gradient clip norm')
 
 

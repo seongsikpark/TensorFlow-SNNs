@@ -344,6 +344,9 @@ class Layer():
         #print('layer - {:}, training - {:}'.format(self.name,training))
         #print('layer call - {}'.format(self.name))
 
+        if self.conf.debug_mode:
+            print('layer name: {:}'.format(self.name))
+
         if training is None:
             training = backend.learning_phase()
 

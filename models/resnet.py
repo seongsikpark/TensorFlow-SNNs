@@ -66,7 +66,7 @@ def block_basic(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=No
     if conv_shortcut:
         #shortcut = lib_snn.layers.Conv2D(filters, 1, strides=stride, use_bn=True, activation=None, name=name + '_conv0')(x)
         shortcut = lib_snn.layers.Conv2D(filters, 1, strides=stride, name=name + '_conv0',kernel_initializer='zeros')(x)
-        shortcut = lib_snn.layers_new.BatchNormalization(en_tdbn=tdbn,name=name+'_conv0_bn')(shortcut)
+        shortcut = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name=name+'_conv0_bn')(shortcut)
     else:
         #shortcut = x
         shortcut = lib_snn.layers.Identity(name=name + '_conv0_i') (x)
@@ -74,16 +74,16 @@ def block_basic(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=No
 
     #x = lib_snn.layers.Conv2D(filters, kernel_size, strides=stride, padding='SAME', use_bn=True, activation='relu',name=name + '_conv1')(x)
     x = lib_snn.layers.Conv2D(filters, kernel_size, strides=stride, padding='SAME', name=name + '_conv1')(x)
-    x = lib_snn.layers_new.BatchNormalization(en_tdbn=tdbn,name=name+'_conv1_bn')(x)
+    x = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name=name+'_conv1_bn')(x)
     x = lib_snn.activations.Activation(act_type=act_type,name=name+'conv1_n')(x)
 
     #x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation='relu',name=name + '_conv2')(x)
     #x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation=None,name=name + '_conv2')(x)
     x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', name=name + '_conv2')(x)
-    x = lib_snn.layers_new.BatchNormalization(en_tdbn=tdbn,name=name+'_conv2_bn')(x)
+    x = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name=name+'_conv2_bn')(x)
 
     #x = lib_snn.layers.Add(use_bn=False, activation='relu', name=name + '_out')([shortcut, x])
-    print([shortcut, x])
+    #print([shortcut, x])
     x = lib_snn.layers.Add(name=name + '_out')([shortcut, x])
     x = lib_snn.activations.Activation(act_type=act_type,name=name+'_out_n')(x)
 
@@ -115,7 +115,7 @@ def block_bottleneck(x, filters, kernel_size=3, stride=1, conv_shortcut=True, na
         #shortcut = lib_snn.layers.Conv2D(4 * filters, 1, strides=stride, use_bn=True, activation=None, name=name + '_conv0')(x)
         #shortcut = lib_snn.layers.Conv2D(4 * filters, 1, strides=stride, use_bn=True, activation=None, name=name + '_conv0',kernel_initializer='zeros')(x)
         shortcut = lib_snn.layers.Conv2D(4 * filters, 1, strides=stride, name=name + '_conv0',kernel_initializer='zeros')(x)
-        shortcut = lib_snn.layers_new.BatchNormalization(en_tdbn=tdbn,name=name+'_conv0_bn')(shortcut)
+        shortcut = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name=name+'_conv0_bn')(shortcut)
     else:
         #shortcut = x
         shortcut = lib_snn.layers.Identity(name=name + '_conv0_i') (x)
@@ -124,7 +124,7 @@ def block_bottleneck(x, filters, kernel_size=3, stride=1, conv_shortcut=True, na
     #x = lib_snn.layers.Conv2D(filters, 1, strides=stride, use_bn=True, activation='relu', epsilon=1.001e-5, name=name + '_conv_1')(x)
     #x = lib_snn.layers.Conv2D(filters, 1, strides=stride, use_bn=True, activation='relu', name=name + '_conv1',kernel_initializer='zeros')(x)
     x = lib_snn.layers.Conv2D(filters, 1, strides=stride, name=name + '_conv1',kernel_initializer='zeros')(x)
-    x = lib_snn.layers_new.BatchNormalization(en_tdbn=tdbn,name=name+'_conv1_bn')(x)
+    x = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name=name+'_conv1_bn')(x)
     x = lib_snn.activations.Activation(act_type=act_type,name=name+'conv1_n')(x)
 
     #x = tf.keras.layers.Dropout(0.3,name=name+'_conv1_do')(x)
@@ -134,7 +134,7 @@ def block_bottleneck(x, filters, kernel_size=3, stride=1, conv_shortcut=True, na
     #x = lib_snn.layers.Conv2D(filters, kernel_size, strides=stride, padding='SAME', use_bn=True, activation='relu',epsilon=1.001e-5, name=name + '_conv_2')(x)
     #x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation='relu',name=name + '_conv2',kernel_initializer='zeros')(x)
     x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', name=name + '_conv2',kernel_initializer='zeros')(x)
-    x = lib_snn.layers_new.BatchNormalization(en_tdbn=tdbn,name=name+'_conv2_bn')(x)
+    x = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name=name+'_conv2_bn')(x)
     x = lib_snn.activations.Activation(act_type=act_type,name=name+'conv2_n')(x)
 
 
@@ -146,14 +146,14 @@ def block_bottleneck(x, filters, kernel_size=3, stride=1, conv_shortcut=True, na
     #x = lib_snn.layers.Conv2D(4*filters, 1, strides=stride, use_bn=True, activation=None,epsilon=1.001e-5, name=name + '_conv_3')(x)
     #x = lib_snn.layers.Conv2D(4*filters, 1, use_bn=True, activation=None, name=name + '_conv3',kernel_initializer='zeros')(x)
     x = lib_snn.layers.Conv2D(4*filters, 1, name=name + '_conv3',kernel_initializer='zeros')(x)
-    x = lib_snn.layers_new.BatchNormalization(en_tdbn=tdbn,name=name+'_conv3_bn')(x)
+    x = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name=name+'_conv3_bn')(x)
 
     #x = tf.keras.layers.Dropout(0.5,name=name+'_conv3_do')(x)
     # x = layers.Conv2D(4 * filters, 1, name=name + '_3_conv')(x)
     # x = layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5, name=name + '_3_bn')(x)
 
     #x = lib_snn.layers.Add(use_bn=False, activation='relu', name=name + '_out')([shortcut, x])
-    #x = lib_snn.layers.Add(name=name + '_out')([shortcut, x])
+    x = lib_snn.layers.Add(name=name + '_out')([shortcut, x])
     x = lib_snn.activations.Activation(act_type=act_type,name=name+'_out_n')(x)
 
     # x = layers.Add(name=name + '_add')([shortcut, x])
@@ -364,7 +364,7 @@ def ResNet(
         #x = lib_snn.layers.Conv2D(initial_channels, 7, strides=2, use_bn=preact_bn, activation=preact_act, name='conv1_conv')(x)
         x = lib_snn.layers.Conv2D(initial_channels, 7, strides=2, name='conv1_conv')(x)
         if preact_bn:
-            x = lib_snn.layers_new.BatchNormalization(en_tdbn=tdbn,name='conv1_conv_bn')(x)
+            x = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='conv1_conv_bn')(x)
         if not preact_act is None:
             #x = lib_snn.activations.Activation(act_type=act_type,name='conv1_conv_n')(x)
             x = lib_snn.activations.Activation(act_type=preact_act,name='conv1_conv_n')(x)
@@ -373,7 +373,7 @@ def ResNet(
         #x = lib_snn.layers.Conv2D(initial_channels, 3, strides=1, padding='same', use_bn=preact_bn, activation=preact_act, name='conv1_conv')(x)
         x = lib_snn.layers.Conv2D(initial_channels, 3, strides=1, padding='same', name='conv1_conv')(x)
         if preact_bn:
-            x = lib_snn.layers_new.BatchNormalization(en_tdbn=tdbn,name='conv1_conv_bn')(x)
+            x = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='conv1_conv_bn')(x)
         if not preact_act is None:
             x = lib_snn.activations.Activation(act_type=preact_act,name='conv1_conv_n')(x)
 

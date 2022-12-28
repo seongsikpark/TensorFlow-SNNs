@@ -3151,6 +3151,7 @@ class Model(tf.keras.Model):
 
                         args, kwargs = node.map_arguments(tensor_dict)
                         layer_in = args[0]
+                        #print(layer_in)
 
                         f_temporal_reduction = False
                         #
@@ -3185,7 +3186,12 @@ class Model(tf.keras.Model):
                         else:
                             glb_t.reset()
                             for t in range(1,self.conf.time_step+1):
-                                _layer_in = layer_in.read(t-1)
+
+                                if isinstance(layer_in,list) :
+                                    _layer_in = [_layer_in.read(t-1) for _layer_in in layer_in]
+                                else:
+                                    _layer_in = layer_in.read(t-1)
+
                                 _layer_out = node.layer(_layer_in)
 
                                 if t-1==0:
