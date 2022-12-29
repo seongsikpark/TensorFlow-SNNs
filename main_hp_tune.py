@@ -21,7 +21,7 @@ os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,4,5,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,4"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0"
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 
 # TF logging setup
@@ -100,8 +100,6 @@ from lib_snn.sim import glb_vth_search_err
 from lib_snn.sim import glb_vth_init
 from lib_snn.sim import glb_bias_comp
 
-#
-from lib_snn import config_glb
 
 # ImageNet utils
 from models import imagenet_utils
@@ -196,18 +194,21 @@ tf.config.experimental.enable_tensor_float_32_execution(conf.tf32_mode)
 
 #epoch = 20000
 #epoch = 20472
-train_epoch = 300
+#train_epoch = 300
 #train_epoch = 500
 #train_epoch = 1500
 #train_epoch = 1000
 #train_epoch = 100
 #train_epoch = 10
 #train_epoch = 1
+train_epoch = conf.train_epoch
 
 
 # learning rate schedule - step_decay
-step_decay_epoch = 100
+#step_decay_epoch = 100
 #step_decay_epoch = 200
+step_decay_epoch = conf.step_decay_epoch
+
 
 
 # TODO: move to config
@@ -238,14 +239,16 @@ dataset_name = conf.dataset
 learning_rate = conf.learning_rate
 
 #
-opt='SGD'
+opt = conf.optimizer
+#opt='SGD'
 #opt='ADAM'
 
 #
 #lr_schedule = 'COS'     # COSine
 #lr_schedule = 'COSR'    # COSine with Restart
-lr_schedule = 'STEP'    # STEP wise
+#lr_schedule = 'STEP'    # STEP wise
 #lr_schedule = 'STEP_WUP'    # STEP wise, warmup
+lr_schedule = conf.lr_schedule
 
 
 #
@@ -315,7 +318,8 @@ if gpu_mem != -1:
 # training types
 #train_type='finetuning' # not supported yet
 #train_type='transfer'
-train_type='scratch'
+#train_type='scratch'
+train_type = conf.train_type
 
 
 #
@@ -450,7 +454,7 @@ initial_channels_sel= {
 initial_channels = initial_channels_sel.get(model_name,64)
 
 
-# TODO: batch size calulation unification
+# TODO: batch size calculation unification
 #batch_size_inference = batch_size_inference_sel.get(model_name,256)
 batch_size_train = conf.batch_size
 if train:
@@ -500,22 +504,11 @@ metric_accuracy_top5.name = metric_name_acc_top5
               ## metrics=['accuracy'])
               #metrics=[metric_accuracy, metric_accuracy_top5])
 
+
+
 ################
 # name set
 ################
-
-#
-if conf.load_best_model:
-    root_model_load = conf.root_model_best
-else:
-    root_model_load = conf.root_model_load
-
-root_model_save = conf.root_model_save
-
-
-# TODO: configuration & file naming
-#exp_set_name = model_name + '_' + dataset_name
-model_dataset_name = model_name + '_' + dataset_name
 
 # path_model = './'+exp_set_name
 #path_model = os.path.join(root_model, exp_set_name)
@@ -527,7 +520,96 @@ model_dataset_name = model_name + '_' + dataset_name
 #config_glb.path_stat = conf.path_stat
 
 
+# TODO: configuration & file naming
+#exp_set_name = model_name + '_' + dataset_name
+model_dataset_name = model_name + '_' + dataset_name
+
+# hyperparameter tune name
+#hp_tune_name = exp_set_name+'_'+model_dataset_name+'_ep-'+str(train_epoch)
+hp_tune_name = exp_set_name
+
+filepath_save, filepath_load, config_name = lib_snn.util.set_file_path(batch_size)
+
+## TODO: functionalize
+## file_name='checkpoint-epoch-{}-batch-{}.h5'.format(epoch,batch_size)
+## config_name='ep-{epoch:04d}_bat-{}_lmb-{:.1E}'.format(batch_size,lmb)
+## config_name='bat-{}_lmb-{:.1E}'.format(batch_size,lmb)
 #
+##config_name = 'bat-{}_opt-{}_lr-{:.0E}_lmb-{:.0E}'.format(batch_size,opt,learning_rate,lmb)
+#config_name = 'ep-{}_bat-{}_opt-{}_lr-{}-{:.0E}_lmb-{:.0E}'.format(train_epoch,batch_size,opt,lr_schedule,learning_rate,lmb)
+#
+##config_name = 'bat-{}_lmb-{:.0E}'.format(batch_size, lmb)
+##config_name = 'bat-512_lmb-{:.1E}'.format(lmb)
+#
+#if train_type=='transfer':
+#    config_name += '_tr'
+#elif train_type=='scratch':
+#    config_name += '_sc'
+#    #if n_dim_classifier is not None:
+#        #if model_name == 'VGG16':
+#            #config_name = config_name+'-'+str(n_dim_classifier[0])+'-'+str(n_dim_classifier[1])
+#else:
+#    assert False
+#
+#if conf.data_aug_mix == 'mixup':
+#    en_mixup = True
+#    en_cutmix = False
+#elif conf.data_aug_mix == 'cutmix':
+#    en_mixup = False
+#    en_cutmix = True
+#else:
+#    en_mixup = False
+#    en_cutmix = False
+#
+#if en_mixup:
+#    config_name += '_mu'
+#elif en_cutmix:
+#    config_name += '_cm'
+#
+##
+#
+#if conf.name_model_load=='':
+#    path_model_load = os.path.join(root_model_load, model_dataset_name)
+#    if conf.load_best_model:
+#        filepath_load = path_model_load
+#    else:
+#        filepath_load = os.path.join(path_model_load, config_name)
+#else:
+#    path_model_load = conf.name_model_load
+#    filepath_load = path_model_load
+#
+#if conf.name_model_save=='':
+#    path_model_save = os.path.join(root_model_save, model_dataset_name)
+#    filepath_save = os.path.join(path_model_save, config_name)
+#else:
+#    path_model_save = conf.name_model_save
+#    filepath_save = path_model_save
+#
+#
+#####
+## glb config set
+#####
+#if conf.path_stat_root=='':
+#    path_stat_root = path_model_load
+#else:
+#    path_stat_root = conf.path_stat_root
+##config_glb.path_stat = conf.path_stat
+#config_glb.path_stat = os.path.join(path_stat_root,conf.path_stat_dir)
+#config_glb.path_model_load = path_model_load
+##config_glb.path_stat = conf.path_stat
+#config_glb.model_name = model_name
+#config_glb.dataset_name = dataset_name
+#
+##if conf.load_best_model:
+##    filepath_load = path_model_load
+##else:
+##    filepath_load = os.path.join(path_model_load, config_name)
+##filepath_save = os.path.join(path_model_save, config_name)
+
+
+
+
+##
 use_bn_dict = collections.OrderedDict()
 use_bn_dict['VGG16_ImageNet'] = False
 
@@ -536,102 +618,6 @@ try:
     conf.use_bn = use_bn_dict[model_dataset_name]
 except KeyError:
     pass
-
-
-
-# hyperparameter tune name
-#hp_tune_name = exp_set_name+'_'+model_dataset_name+'_ep-'+str(train_epoch)
-hp_tune_name = exp_set_name
-
-# TODO: functionalize
-# file_name='checkpoint-epoch-{}-batch-{}.h5'.format(epoch,batch_size)
-# config_name='ep-{epoch:04d}_bat-{}_lmb-{:.1E}'.format(batch_size,lmb)
-# config_name='bat-{}_lmb-{:.1E}'.format(batch_size,lmb)
-
-#config_name = 'bat-{}_opt-{}_lr-{:.0E}_lmb-{:.0E}'.format(batch_size,opt,learning_rate,lmb)
-config_name = 'ep-{}_bat-{}_opt-{}_lr-{}-{:.0E}_lmb-{:.0E}'.format(train_epoch,batch_size_train,opt,lr_schedule,learning_rate,lmb)
-
-#config_name = 'bat-{}_lmb-{:.0E}'.format(batch_size, lmb)
-#config_name = 'bat-512_lmb-{:.1E}'.format(lmb)
-
-if train_type=='transfer':
-    config_name += '_tr'
-elif train_type=='scratch':
-    config_name += '_sc'
-    #if n_dim_classifier is not None:
-        #if model_name == 'VGG16':
-            #config_name = config_name+'-'+str(n_dim_classifier[0])+'-'+str(n_dim_classifier[1])
-else:
-    assert False
-
-if conf.data_aug_mix == 'mixup':
-    en_mixup = True
-    en_cutmix = False
-elif conf.data_aug_mix == 'cutmix':
-    en_mixup = False
-    en_cutmix = True
-else:
-    en_mixup = False
-    en_cutmix = False
-
-if en_mixup:
-    config_name += '_mu'
-elif en_cutmix:
-    config_name += '_cm'
-
-#
-
-#if train:
-#    filepath = os.path.join(path_model, config_name)
-#else:
-#    if conf.load_best_model:
-#        filepath = path_model
-#    else:
-#        filepath = os.path.join(path_model, config_name)
-
-
-# TODO: configuration & file naming
-#exp_set_name = model_name + '_' + dataset_name
-model_dataset_name = model_name + '_' + dataset_name
-
-if conf.name_model_load=='':
-    path_model_load = os.path.join(root_model_load, model_dataset_name)
-    if conf.load_best_model:
-        filepath_load = path_model_load
-    else:
-        filepath_load = os.path.join(path_model_load, config_name)
-else:
-    path_model_load = conf.name_model_load
-    filepath_load = path_model_load
-
-if conf.name_model_save=='':
-    path_model_save = os.path.join(root_model_save, model_dataset_name)
-    filepath_save = os.path.join(path_model_save, config_name)
-else:
-    path_model_save = conf.name_model_save
-    filepath_save = path_model_save
-
-
-####
-# glb config set
-if conf.path_stat_root=='':
-    path_stat_root = path_model_load
-else:
-    path_stat_root = conf.path_stat_root
-#config_glb.path_stat = conf.path_stat
-config_glb.path_stat = os.path.join(path_stat_root,conf.path_stat_dir)
-config_glb.path_model_load = path_model_load
-#config_glb.path_stat = conf.path_stat
-config_glb.model_name = model_name
-config_glb.dataset_name = dataset_name
-
-#if conf.load_best_model:
-#    filepath_load = path_model_load
-#else:
-#    filepath_load = os.path.join(path_model_load, config_name)
-#filepath_save = os.path.join(path_model_save, config_name)
-
-
 
 ########################################
 # load dataset
@@ -891,77 +877,6 @@ with dist_strategy.scope():
         model_ann=None
 
 
-    #ann_kernel={}
-    #snn_kernel={}
-    #
-    #ann_bias={}
-    #snn_bias={}
-    #
-    #ann_bn={}
-    #snn_bn={}
-    #
-    #print('loaded kernel')
-    #for layer in model_ann.layers:
-    #    if hasattr(layer,'kernel'):
-    #        print('{} - {}'.format(layer.name,tf.reduce_sum(layer.kernel)))
-    #        ann_kernel[layer.name] = tf.reduce_sum(layer.kernel)
-    #
-    #
-    #print('loaded bias')
-    #for layer in model_ann.layers:
-    #    if hasattr(layer,'bias'):
-    #        print('{} - {}'.format(layer.name,tf.reduce_sum(layer.bias)))
-    #        ann_bias[layer.name] = tf.reduce_sum(layer.bias)
-    #
-    #print('loaded bn')
-    #for layer in model_ann.layers:
-    #    if hasattr(layer, 'bn') and layer.bn is not None:
-    #        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.beta)))
-    #        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.gamma)))
-    #        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.moving_mean)))
-    #        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.moving_variance)))
-    #        ann_bn[layer.name] = tf.reduce_sum(layer.bn.beta)
-    #
-    #
-    #print('loaded kernel')
-    #for layer in model.layers:
-    #    if hasattr(layer,'kernel'):
-    #        print('{} - {}'.format(layer.name,tf.reduce_sum(layer.kernel)))
-    #        snn_kernel[layer.name] = tf.reduce_sum(layer.kernel)
-    #
-    #
-    #print('loaded bias')
-    #for layer in model.layers:
-    #    if hasattr(layer,'bias'):
-    #        print('{} - {}'.format(layer.name,tf.reduce_sum(layer.bias)))
-    #        snn_bias[layer.name] = tf.reduce_sum(layer.bias)
-    #
-    #print('loaded bn')
-    #for layer in model.layers:
-    #    if hasattr(layer, 'bn') and layer.bn is not None:
-    #        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.beta)))
-    #        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.gamma)))
-    #        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.moving_mean)))
-    #        print('{} - {}'.format(layer.name, tf.reduce_sum(layer.bn.moving_variance)))
-    #        snn_bn[layer.name] = tf.reduce_sum(layer.bn.beta)
-    #
-    #
-    ##for layer in model.layers:
-    #for layer_name in snn_kernel.keys():
-    #    assert snn_kernel[layer_name]==ann_kernel[layer_name]
-    #
-    #for layer_name in snn_bias.keys():
-    #    assert snn_bias[layer_name]==ann_bias[layer_name]
-    #
-    #for layer_name in snn_bn.keys():
-    #    assert snn_bn[layer_name]==ann_bn[layer_name]
-
-    #assert False
-
-
-    #
-    #model.make_test_function = lib_snn.training.make_test_function(model)
-
     #
     #if train:
         #print('Train mode')
@@ -1025,8 +940,10 @@ with dist_strategy.scope():
     cb_tensorboard = tf.keras.callbacks.TensorBoard(log_dir=path_tensorboard, update_freq='epoch')
 
     #cb_dnntosnn = lib_snn.callbacks.DNNtoSNN()
-    cb_libsnn = lib_snn.callbacks.SNNLIB(conf,path_model_load,test_ds_num,model_ann)
-    cb_libsnn_ann = lib_snn.callbacks.SNNLIB(conf,path_model_load,test_ds_num)
+    #cb_libsnn = lib_snn.callbacks.SNNLIB(conf,path_model_load,test_ds_num,model_ann)
+    #cb_libsnn_ann = lib_snn.callbacks.SNNLIB(conf,path_model_load,test_ds_num)
+    cb_libsnn = lib_snn.callbacks.SNNLIB(conf,filepath_load,test_ds_num,model_ann)
+    cb_libsnn_ann = lib_snn.callbacks.SNNLIB(conf,filepath_load,test_ds_num)
 
     #
     #callbacks_train = [cb_tensorboard]

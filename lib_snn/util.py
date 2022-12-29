@@ -27,6 +27,13 @@ import numpy as np
 from scipy.stats import norm
 #import matplotlib.mlab as mlab
 
+#
+from config import conf
+
+#
+from lib_snn import config_glb
+
+
 ##############################################################
 # keras model flops
 ##############################################################
@@ -955,4 +962,133 @@ def get_total_spike_amp(self):
     return spike_amp
 
 
+##############################################################
+# set file path
+##############################################################
+def set_file_path(batch_size):
 
+    train_epoch = conf.train_epoch
+    batch_size = batch_size
+    opt = conf.optimizer
+    lr_schedule = conf.lr_schedule
+    learning_rate = conf.learning_rate
+    lmb = conf.lmb
+
+    train_type = conf.train_type
+
+    model_name = conf.model
+    dataset_name = conf.dataset
+
+
+    #
+    if conf.load_best_model:
+        root_model_load = conf.root_model_best
+    else:
+        root_model_load = conf.root_model_load
+
+    root_model_save = conf.root_model_save
+
+    if conf.nn_mode=='SNN':
+        root_model_load = os.path.join(root_model_load,'SNN')
+        root_model_save = os.path.join(root_model_save,'SNN')
+
+    # file_name='checkpoint-epoch-{}-batch-{}.h5'.format(epoch,batch_size)
+    # config_name='ep-{epoch:04d}_bat-{}_lmb-{:.1E}'.format(batch_size,lmb)
+    # config_name='bat-{}_lmb-{:.1E}'.format(batch_size,lmb)
+
+    #config_name = 'bat-{}_opt-{}_lr-{:.0E}_lmb-{:.0E}'.format(batch_size,opt,learning_rate,lmb)
+    config_name = 'ep-{}_bat-{}_opt-{}_lr-{}-{:.0E}_lmb-{:.0E}'.format(train_epoch,batch_size,opt,lr_schedule,learning_rate,lmb)
+
+    #config_name = 'bat-{}_lmb-{:.0E}'.format(batch_size, lmb)
+    #config_name = 'bat-512_lmb-{:.1E}'.format(lmb)
+
+    if train_type=='transfer':
+        config_name += '_tr'
+    elif train_type=='scratch':
+        config_name += '_sc'
+        #if n_dim_classifier is not None:
+        #if model_name == 'VGG16':
+        #config_name = config_name+'-'+str(n_dim_classifier[0])+'-'+str(n_dim_classifier[1])
+    else:
+        assert False
+
+    if conf.data_aug_mix == 'mixup':
+        en_mixup = True
+        en_cutmix = False
+    elif conf.data_aug_mix == 'cutmix':
+        en_mixup = False
+        en_cutmix = True
+    else:
+        en_mixup = False
+        en_cutmix = False
+
+    if en_mixup:
+        config_name += '_mu'
+    elif en_cutmix:
+        config_name += '_cm'
+
+    if conf.nn_mode=='SNN':
+        # neural coding, nc-{input coding}-{neural coding}
+        config_nc = '_'
+        if conf.input_spike_mode=='REAL':
+            config_nc += 'nc-R'
+        elif conf.input_spike_mode=='POISSON':
+            config_nc += 'nc-P'
+        else:
+            assert False
+
+        if conf.neural_coding=='RATE':
+            config_nc += '-R'
+        elif conf.neural_coding=='WEIGHTED_SPIKE':
+            config_nc += '-W'
+        elif conf.neural_coding=='BURST':
+            config_nc += '-B'
+        else:
+            assert False
+        config_name += config_nc
+
+    #
+    # TODO: configuration & file naming
+    #exp_set_name = model_name + '_' + dataset_name
+    model_dataset_name = model_name + '_' + dataset_name
+
+    if conf.name_model_load=='':
+        path_model_load = os.path.join(root_model_load, model_dataset_name)
+        if conf.load_best_model:
+            filepath_load = path_model_load
+        else:
+            filepath_load = os.path.join(path_model_load, config_name)
+    else:
+        path_model_load = conf.name_model_load
+        filepath_load = path_model_load
+
+    if conf.name_model_save=='':
+        path_model_save = os.path.join(root_model_save, model_dataset_name)
+        filepath_save = os.path.join(path_model_save, config_name)
+    else:
+        path_model_save = conf.name_model_save
+        filepath_save = path_model_save
+
+
+    ####
+    # glb config set
+    ####
+    if conf.path_stat_root=='':
+        path_stat_root = path_model_load
+    else:
+        path_stat_root = conf.path_stat_root
+    #config_glb.path_stat = conf.path_stat
+    config_glb.path_stat = os.path.join(path_stat_root,conf.path_stat_dir)
+    config_glb.path_model_load = path_model_load
+    #config_glb.path_stat = conf.path_stat
+    config_glb.model_name = model_name
+    config_glb.dataset_name = dataset_name
+
+    #if conf.load_best_model:
+    #    filepath_load = path_model_load
+    #else:
+    #    filepath_load = os.path.join(path_model_load, config_name)
+    #filepath_save = os.path.join(path_model_save, config_name)
+
+
+    return filepath_save, filepath_load, config_name

@@ -34,7 +34,7 @@ class ManageSavedModels(tf.keras.callbacks.Callback):
         mtime = lambda f: os.stat(os.path.join(self.filepath, f)).st_mtime
         list_dir_sorted = list(sorted(os.listdir(self.filepath), key=mtime))
 
-        for d in list_dir_sorted[:-5]:
+        for d in list_dir_sorted[:-self.max_to_keep]:
             target_d = os.path.join(self.filepath,d)
             if os.path.isfile(target_d):
                 os.remove(target_d)
