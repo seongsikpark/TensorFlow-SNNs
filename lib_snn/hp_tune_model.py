@@ -75,12 +75,12 @@ def model_builder_default(hp, args, hps):
     hp_step_decay_epoch = hp.Choice('step_decay_epoch', values=hps['step_decay_epoch'])
 
     # hp_lmb = hp.Choice('lmb', values = [5e-4, 1e-4, 5e-5])
-    hp_lmb = hp.Choice('lmb', values=[1e-4, 5e-5, 1e-5])
+    hp_lmb = hp.Choice('lmb', values=[1e-4, 1e-5])
     #hp_lmb = hp.Float('lmb', min_value=1e-5, max_value=1e-4, sampling='linear')
 
     #hp_learning_rate = hp.Choice('learning_rate', values = [0.3])
     # hp_learning_rate = hp.Choice('learning_rate', values = [0.01, 0.015, 0.02])
-    hp_learning_rate = hp.Choice('learning_rate', values=[0.1, 0.01, 0.005, 0.001])
+    hp_learning_rate = hp.Choice('learning_rate', values=[0.1, 0.01, 0.001])
     #hp_learning_rate = hp.Float('learning_rate', min_value=0.0001, max_value=0.001, sampling='linear')
 
     hp_initial_channels = hp.Choice('initial_channel', values=[64])
