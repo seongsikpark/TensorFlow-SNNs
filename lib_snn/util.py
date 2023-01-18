@@ -1050,6 +1050,15 @@ def set_file_path(batch_size):
             assert False
         config_name += config_nc
 
+        config_n_reset = '_'
+        if conf.n_reset_type=='reset_by_sub':
+            config_n_reset += 'nr-s'
+        elif conf.n_reset_type=='reset_to_zero':
+            config_n_reset += 'nr-z'
+        else:
+            assert False
+        config_name += config_n_reset
+
     #
     # TODO: configuration & file naming
     #exp_set_name = model_name + '_' + dataset_name
