@@ -1029,7 +1029,7 @@ def set_file_path(batch_size):
 
     if conf.nn_mode=='SNN':
         # time step
-        config_name += '_ts-'+conf.time_step
+        config_name += '_ts-'+str(conf.time_step)
 
         # neural coding, nc-{input coding}-{neural coding}
         config_nc = '_'
