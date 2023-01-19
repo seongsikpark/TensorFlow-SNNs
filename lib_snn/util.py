@@ -1012,6 +1012,16 @@ def set_file_path(batch_size):
     else:
         assert False
 
+    # input data preprocessing
+    if conf.data_prep != 'default':
+        if conf.data_prep == 'max_norm':
+            config_name += '_dp-m'
+        elif conf.data_prep == 'max_norm_d':
+            config_name += '_dp-md'
+        elif conf.data_prep == 'max_norm_d_c':
+            config_name += '_dp-mdd'
+
+    #
     if conf.data_aug_mix == 'mixup':
         en_mixup = True
         en_cutmix = False

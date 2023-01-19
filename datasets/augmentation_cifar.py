@@ -17,9 +17,14 @@ import tensorflow_addons as tfa
 #global num_class
 
 #from models.input_preprocessor import preprocessor_input
-
+import datasets.preprocessing
 from lib_snn.config_glb import model_name
 from lib_snn.config_glb import dataset_name
+
+
+#
+from config import conf
+from datasets.preprocessing import preprocessing_input_img
 
 #from tensorflow.python.keras.applications.imagenet_utils import preprocess_input as preprocess_input_others
 preprocess_input_others = tf.keras.applications.imagenet_utils.preprocess_input
@@ -195,49 +200,19 @@ def resize_with_crop(image, label, dataset_name, input_size, input_size_pre_crop
         else:
             assert False
 
-    try:
-        i = preprocess_input(i, mode=input_prec_mode)
-    except:
-        i=preprocess_input(i)
-
+    #
+    if conf.data_prep=='default':
+        try:
+            i = preprocess_input(i, mode=input_prec_mode)
+        except:
+            i=preprocess_input(i)
+    else:
+        i=preprocessing_input_img(i,mode=conf.data_prep)
 
     #
     label = tf.one_hot(label,num_class)
 
     return (i, label)
-
-
-
-
-##@tf.function
-#def resize_with_crop_bck_220616(image, label, input_size,input_size_pre_crop_ratio, num_class, input_prec_mode='torch'):
-#
-#    i=image
-#    i=tf.cast(i,tf.float32)
-#
-#    #[w,h,c] = tf.shape(image)
-#    #w=tf.shape(image)[0]
-#    #h=tf.shape(image)[1]
-#
-#    #print(tf.shape(image))
-#    #s = input_size_pre_crop
-#
-#    s = input_size
-#    if input_prec_mode=='torch':
-#        i = tf.image.resize_with_crop_or_pad(i, s, s)
-#    elif input_prec_mode == 'caffe':
-#        # transfer learning with pre-trained modes in Keras (ImageNet)
-#        i = tf.image.resize(i, (s, s), method='lanczos3')
-#    else:
-#        assert False
-#
-#    i=preprocess_input(i,mode=input_prec_mode)
-#
-#    #
-#    label = tf.one_hot(label,num_class)
-#
-#    return (i, label)
-
 
 
 #@tf.function
@@ -290,10 +265,14 @@ def resize_with_crop_aug(image, label, dataset_name, input_size, input_size_pre_
     i=tf.image.random_flip_left_right(i)
 
     #
-    try:
-        i = preprocess_input(i, mode=input_prec_mode)
-    except:
-        i=preprocess_input(i)
+    if conf.data_prep=='default':
+        try:
+            i = preprocess_input(i, mode=input_prec_mode)
+        except:
+            i=preprocess_input(i)
+    else:
+        i=datasets.preprocessing.preprocessing_input_img(i,mode=conf.data_prep)
+
 
     # one-hot vectorization - label
     label = tf.one_hot(label, num_class)

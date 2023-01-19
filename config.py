@@ -266,8 +266,8 @@ tf.compat.v1.app.flags.DEFINE_string('exp_set_name', '221002_train_snn_VGG16_CIF
 tf.compat.v1.app.flags.DEFINE_enum('mode', 'train', ['train', 'load_and_train', 'inference'], 'run mode')
 
 #
-#tf.compat.v1.app.flags.DEFINE_bool('hp_tune', False, 'hyperparameter tune mode')
-tf.compat.v1.app.flags.DEFINE_bool('hp_tune', True, 'hyperparameter tune mode')
+tf.compat.v1.app.flags.DEFINE_bool('hp_tune', False, 'hyperparameter tune mode')
+#tf.compat.v1.app.flags.DEFINE_bool('hp_tune', True, 'hyperparameter tune mode')
 
 
 #
@@ -286,8 +286,8 @@ tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR10', 'dataset')
 
 
 # models - CIFAR
-#tf.compat.v1.app.flags.DEFINE_string('model', 'VGG16', 'model')
-tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet20', 'model')
+tf.compat.v1.app.flags.DEFINE_string('model', 'VGG16', 'model')
+#tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet20', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet32', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet44', 'model')
 #tf.compat.v1.app.flags.DEFINE_string('model', 'ResNet56', 'model')
@@ -362,19 +362,26 @@ tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.1, 'learning rate')
 # regularizer
 tf.compat.v1.app.flags.DEFINE_string('regularizer', 'L2', 'L2 or L1 regularizer')
 # VGG
-tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-5, 'lambda')
+#tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-5, 'lambda')
 #tf.compat.v1.app.flags.DEFINE_float('lmb',5.0E-5, 'lambda')
-#tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-4, 'lambda') # SNN
+tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-4, 'lambda') # SNN
 #tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-3, 'lambda') # SNN
 # ResNet
 #tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-4, 'lambda')
 
 #
-tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',None,'gradient clip norm')
-#tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',1.0,'gradient clip norm')
+#tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',None,'gradient clip norm')
+tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',1.0,'gradient clip norm')
 #tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',2.0,'gradient clip norm')
 #tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',5.0,'gradient clip norm')
 
+# data preprocessing
+# default - default (e.g., standardization) depending on each dataset
+# max_norm - div by max value of dataset
+# max_norm_d - div by max value of batch
+# max_norm_d_c - div by max value of batch - channel-wise
+#tf.compat.v1.app.flags.DEFINE_enum('data_prep', 'default', ['default', 'max_norm', 'max_norm_d', 'max_mord_d_c'], 'data preprocessing')
+tf.compat.v1.app.flags.DEFINE_enum('data_prep', 'max_norm', ['default', 'max_norm', 'max_norm_d', 'max_mord_d_c'], 'data preprocessing')
 
 # data augmentation
 #tf.compat.v1.app.flags.DEFINE_enum('data_aug_mix', 'None', ['mixup', 'cutmix', 'None'], 'data augmentation - mixup')
