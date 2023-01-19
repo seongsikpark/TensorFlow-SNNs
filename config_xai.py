@@ -57,7 +57,6 @@ tf.compat.v1.app.flags.DEFINE_integer('size_test_batch', 1, 'size of test batch'
 
 
 
-tf.compat.v1.app.flags.DEFINE_string('pooling', 'max', 'max or avg, only for CNN')
 
 tf.compat.v1.app.flags.DEFINE_integer('save_interval', 10, 'save interval of model')
 
@@ -275,8 +274,8 @@ tf.compat.v1.app.flags.DEFINE_bool('hp_tune', False, 'hyperparameter tune mode')
 tf.compat.v1.app.flags.DEFINE_bool('dnn_to_snn', True, 'dnn-to-snn conversion')
 
 # neural network mode
-tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'ANN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
-#tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'SNN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
+#tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'ANN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
+tf.compat.v1.app.flags.DEFINE_string('nn_mode', 'SNN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
 
 # datasets
 tf.compat.v1.app.flags.DEFINE_string('dataset', 'CIFAR10', 'dataset')
@@ -378,6 +377,9 @@ tf.compat.v1.app.flags.DEFINE_boolean('use_bn', True, 'use batchnorm')
 #
 tf.compat.v1.app.flags.DEFINE_boolean('tf_fused_bn', None, 'tf fused bn operation for computation efficiency - CNN')
 #tf.compat.v1.app.flags.DEFINE_boolean('tf_fused_bn', False, 'tf fused bn operation for computation efficiency - CNN')
+
+
+tf.compat.v1.app.flags.DEFINE_string('pooling_vgg', 'max', 'max or avg, only for VGG')
 
 
 ################

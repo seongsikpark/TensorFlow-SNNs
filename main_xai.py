@@ -381,7 +381,18 @@ elif en_cutmix:
 
 # TODO: configuration & file naming
 #exp_set_name = model_name + '_' + dataset_name
-model_dataset_name = model_name + '_' + dataset_name
+#model_dataset_name = model_name + '_' + dataset_name
+
+if 'VGG' in model_name:
+    if conf.pooling_vgg=='max':
+        conf_pool = '_MP'
+    elif conf.pooling_vgg=='avg':
+        conf_pool = '_AP'
+    else:
+        assert False
+    model_dataset_name = model_name + conf_pool + '_' + dataset_name
+else:
+    model_dataset_name = model_name + '_' + dataset_name
 
 if conf.name_model_load=='':
     path_model_load = os.path.join(root_model_load, model_dataset_name)

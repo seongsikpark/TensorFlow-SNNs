@@ -77,8 +77,12 @@ def VGG16(
     #k_init = tf.keras.initializers.RandomUniform(minval=-1.0, maxval=1.0,seed=None)
 
     # pooling
-    pool = lib_snn.layers.MaxPool2D
-    #pool = lib_snn.layers.AveragePooling2D
+    if conf.pooling_vgg=='max':
+        pool = lib_snn.layers.MaxPool2D
+    elif conf.pooling_vgg=='avg':
+        pool = lib_snn.layers.AveragePooling2D
+    else:
+        assert False
 
 
     #
