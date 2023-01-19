@@ -29,15 +29,17 @@ from tqdm import tqdm
 import lib_snn
 from lib_snn.sim import glb
 from lib_snn.sim import glb_t
-from lib_snn.sim import glb_plot
-from lib_snn.sim import glb_plot_1
-from lib_snn.sim import glb_plot_2
-from lib_snn.sim import glb_plot_3
-from lib_snn.sim import glb_plot_1x2
 
-from lib_snn.sim import glb_plot_gradient_kernel
-from lib_snn.sim import glb_plot_gradient_gamma
-from lib_snn.sim import glb_plot_gradient_beta
+#
+#from lib_snn.sim import glb_plot
+#from lib_snn.sim import glb_plot_1
+#from lib_snn.sim import glb_plot_2
+#from lib_snn.sim import glb_plot_3
+#from lib_snn.sim import glb_plot_1x2
+
+#from lib_snn.sim import glb_plot_gradient_kernel
+#from lib_snn.sim import glb_plot_gradient_gamma
+#from lib_snn.sim import glb_plot_gradient_beta
 
 class Model(tf.keras.Model):
     count=0
@@ -725,6 +727,13 @@ class Model(tf.keras.Model):
             #
             #if (glb.model_compiled) and (self.conf.debug_mode and self.conf.nn_mode == 'SNN'):
             if f_plot:
+
+                from lib_snn.sim import glb_plot
+                from lib_snn.sim import glb_plot_1
+                from lib_snn.sim import glb_plot_2
+                from lib_snn.sim import glb_plot_3
+                from lib_snn.sim import glb_plot_1x2
+
                 self.plot_layer_neuron_act(glb_plot)
                 self.plot_layer_neuron_vmem(glb_plot_1)
                 self.plot_layer_neuron_out(glb_plot_2)
@@ -1598,6 +1607,11 @@ class Model(tf.keras.Model):
 
 
         if self.conf.debug_mode:
+
+            from lib_snn.sim import glb_plot_gradient_kernel
+            from lib_snn.sim import glb_plot_gradient_gamma
+            from lib_snn.sim import glb_plot_gradient_beta
+
             print('\n grads')
             for grad_accum, var in grads_and_vars:
                 print('{: <10}: - max {:.3e}, min {:.3e}, mean {:.3e}, var {:.3e}'
@@ -1850,6 +1864,11 @@ class Model(tf.keras.Model):
                                           tf.reduce_mean(grad_accum),tf.math.reduce_variance(grad_accum)))
 
                             if self.conf.verbose_visual:
+                                from lib_snn.sim import glb_plot_gradient_kernel
+                                from lib_snn.sim import glb_plot_gradient_gamma
+                                from lib_snn.sim import glb_plot_gradient_beta
+
+
                                 if 'kernel' in var.name:
                                     lib_snn.util.plot_hist(glb_plot_gradient_kernel,grad_accum,1000)
                                 elif 'gamma' in var.name:

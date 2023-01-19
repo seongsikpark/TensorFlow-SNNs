@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 import lib_snn
 
 from lib_snn.sim import glb_t
-from lib_snn.sim import glb_plot
+#from lib_snn.sim import glb_plot
 
 from lib_snn import config_glb
 
@@ -514,6 +514,7 @@ def postproc_ann(self):
 
 #
 def plot_act_dist(self,fig=None):
+    from lib_snn.sim import glb_plot
 
     if fig is None:
         fig = glb_plot
@@ -537,6 +538,7 @@ def plot_act_dist(self,fig=None):
 
 # TODO: move
 def plot_spike_time_diff_hist_dnn_ann(self, fig=None):
+    from lib_snn.sim import glb_plot
 
     diffs = collections.OrderedDict()
 
@@ -636,6 +638,7 @@ def plot_spike_time_diff_hist_dnn_ann(self, fig=None):
 
 # TODO: move
 def plot_dnn_act(self, layers=None, idx=None):
+    from lib_snn.sim import glb_plot
 
     #
     for idx_layer, layer in enumerate(glb_plot.layers):
@@ -887,11 +890,24 @@ def save_results(self):
 ########################################
 def bn_fusion(self):
     print('---- BN Fusion ----')
-    # bn fusion
+    # for integrated model v1
+    ## bn fusion
+    #if (self.model.nn_mode == 'ANN' and self.conf.f_fused_bn) or (self.model.nn_mode == 'SNN'):
+    #    for layer in self.model.layers:
+    #        if hasattr(layer, 'bn') and (layer.bn is not None):
+    #            layer.bn_fusion()
+
+    # v2
+    # TODO: parameterize, model graph traverse
+    #assert self.model.name
+    # currently only for VGG16, CIFAR10
+
     if (self.model.nn_mode == 'ANN' and self.conf.f_fused_bn) or (self.model.nn_mode == 'SNN'):
         for layer in self.model.layers:
-            if hasattr(layer, 'bn') and (layer.bn is not None):
-                layer.bn_fusion()
+            if isinstance(layer,lib_snn.layers.BatchNormalization):
+                l_name = layer.name
+
+
 
     print('---- BN Fusion Done ----')
 

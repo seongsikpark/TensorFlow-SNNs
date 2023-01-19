@@ -36,5 +36,6 @@ from lib_snn import calibration
 
 
 from lib_snn import xai
+from lib_snn import integrated_gradients
 
 from lib_snn import config_glb

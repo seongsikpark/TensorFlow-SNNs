@@ -20,12 +20,13 @@ import lib_snn
 #
 from lib_snn.sim import glb_t
 from lib_snn.sim import glb
-from lib_snn.sim import glb_plot
 
-from lib_snn.sim import glb_plot_act
-from lib_snn.sim import glb_plot_syn
-from lib_snn.sim import glb_plot_bn
-from lib_snn.sim import glb_plot_kernel
+#
+#from lib_snn.sim import glb_plot
+#from lib_snn.sim import glb_plot_act
+#from lib_snn.sim import glb_plot_syn
+#from lib_snn.sim import glb_plot_bn
+#from lib_snn.sim import glb_plot_kernel
 
 #from main_hp_tune import conf
 
@@ -344,8 +345,8 @@ class Layer():
         #print('layer - {:}, training - {:}'.format(self.name,training))
         #print('layer call - {}'.format(self.name))
 
-        if self.conf.debug_mode:
-            print('layer name: {:}'.format(self.name))
+        #if self.conf.debug_mode:
+        #    print('layer name: {:}'.format(self.name))
 
         if training is None:
             training = backend.learning_phase()
@@ -654,6 +655,11 @@ class Layer():
         # plot
         #if True and (glb.model_compiled):
         if self.conf.verbose_visual and (glb.model_compiled):
+            from lib_snn.sim import glb_plot_act
+            from lib_snn.sim import glb_plot_syn
+            from lib_snn.sim import glb_plot_bn
+            from lib_snn.sim import glb_plot_kernel
+
             lib_snn.util.plot_hist(glb_plot_syn,s,1000,norm_fit=True)
             lib_snn.util.plot_hist(glb_plot_bn,b,1000,norm_fit=True)
             lib_snn.util.plot_hist(glb_plot_act,n,100,range=[-1,2])
@@ -804,6 +810,7 @@ class Layer():
     # TODO: move
     def plot(self):
 
+        from lib_snn.sim import glb_plot
         #if self.name=='conv1':
 
         axe=glb_plot.axes.flatten()[self.depth]

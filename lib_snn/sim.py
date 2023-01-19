@@ -87,25 +87,25 @@ layers = ['conv1', 'conv1', 'conv1', 'conv1_1', 'conv1_1', 'conv1_1', 'conv2', '
 idx_neurons = [0,20,5,0,20,5,10,13,30,13,14,9,1,7,9,2,5,9,0,2,3,4,10,4,5]
 
 
-glb_plot = GLB_PLOT('plot',layers,idx_neurons)
-glb_plot_1 = GLB_PLOT('plot_1',layers,idx_neurons)
-glb_plot_2 = GLB_PLOT('plot_2',layers,idx_neurons)
-glb_plot_3 = GLB_PLOT('plot_3',layers,idx_neurons)
-glb_plot_1 = GLB_PLOT()
+if conf.verbose_visual:
+    glb_plot = GLB_PLOT('plot',layers,idx_neurons)
+    glb_plot_1 = GLB_PLOT('plot_1',layers,idx_neurons)
+    glb_plot_2 = GLB_PLOT('plot_2',layers,idx_neurons)
+    glb_plot_3 = GLB_PLOT('plot_3',layers,idx_neurons)
+    glb_plot_1 = GLB_PLOT()
 
+    # SNN training
+    glb_plot_syn = GLB_PLOT(title='syn')
+    glb_plot_bn = GLB_PLOT(title='bn')
+    glb_plot_act = GLB_PLOT(title='act')
+    glb_plot_kernel = GLB_PLOT(title='kernel')
+    glb_plot_gradient_kernel = GLB_PLOT(title='gradient_kernel')
+    glb_plot_gradient_gamma = GLB_PLOT(title='gradient_gamma')
+    glb_plot_gradient_beta = GLB_PLOT(title='gradient_beta')
+    glb_plot_gradient_bn = GLB_PLOT(title='gradient_bn')
 
-# SNN training
-glb_plot_syn = GLB_PLOT(title='syn')
-glb_plot_bn = GLB_PLOT(title='bn')
-glb_plot_act = GLB_PLOT(title='act')
-glb_plot_kernel = GLB_PLOT(title='kernel')
-glb_plot_gradient_kernel = GLB_PLOT(title='gradient_kernel')
-glb_plot_gradient_gamma = GLB_PLOT(title='gradient_gamma')
-glb_plot_gradient_beta = GLB_PLOT(title='gradient_beta')
-glb_plot_gradient_bn = GLB_PLOT(title='gradient_bn')
+    glb_plot_1x2 = GLB_PLOT([],[],1,2)
 
-
-glb_plot_1x2 = GLB_PLOT([],[],1,2)
 
 # integrated gradients
 glb_ig_attributions = collections.OrderedDict()

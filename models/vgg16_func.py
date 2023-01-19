@@ -76,7 +76,9 @@ def VGG16(
     k_init = 'glorot_uniform'
     #k_init = tf.keras.initializers.RandomUniform(minval=-1.0, maxval=1.0,seed=None)
 
-
+    # pooling
+    pool = lib_snn.layers.MaxPool2D
+    #pool = lib_snn.layers.AveragePooling2D
 
 
     #
@@ -241,7 +243,8 @@ def VGG16(
         #x = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='conv1_p')(x)
         #x = tf.keras.layers.AveragePooling2D((2, 2), (2, 2), name='conv1_p')(x)
         #x = lib_snn.layers.AveragePooling2D((2, 2), (2, 2), name='conv1_p', dynamic=True)(x)
-        x = lib_snn.layers.AveragePooling2D((2, 2), (2, 2), name='conv1_p')(x)
+        #x = lib_snn.layers.AveragePooling2D((2, 2), (2, 2), name='conv1_p')(x)
+        x = pool((2, 2), (2, 2), name='conv1_p')(x)
 
         #
         channels = channels * 2
@@ -256,7 +259,8 @@ def VGG16(
         x = lib_snn.activations.Activation(act_type=act_type,name='n_conv2_1')(x)
         #x = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='conv2_p')(x)
         #x = tf.keras.layers.AveragePooling2D((2, 2), (2, 2), name='conv2_p')(x)
-        x = lib_snn.layers.AveragePooling2D((2, 2), (2, 2), name='conv2_p')(x)
+        #x = lib_snn.layers.AveragePooling2D((2, 2), (2, 2), name='conv2_p')(x)
+        x = pool((2, 2), (2, 2), name='conv2_p')(x)
 
         #
         channels = channels * 2
@@ -276,7 +280,8 @@ def VGG16(
         x = lib_snn.activations.Activation(act_type=act_type,name='n_conv3_2')(x)
         #x = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='conv3_p')(x)
         #x = tf.keras.layers.AveragePooling2D((2, 2), (2, 2), name='conv3_p')(x)
-        x = lib_snn.layers.AveragePooling2D((2, 2), (2, 2), name='conv3_p') (x)
+        #x = lib_snn.layers.AveragePooling2D((2, 2), (2, 2), name='conv3_p') (x)
+        x = pool((2, 2), (2, 2), name='conv3_p') (x)
 
         #
         channels = channels * 2
@@ -296,7 +301,8 @@ def VGG16(
         x = lib_snn.activations.Activation(act_type=act_type,name='n_conv4_2')(x)
         #x = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='conv4_p')(x)
         #x = tf.keras.layers.AveragePooling2D((2, 2), (2, 2), name='conv4_p')(x)
-        x = lib_snn.layers.AveragePooling2D((2, 2), (2, 2), name='conv4_p') (x)
+        #x = lib_snn.layers.AveragePooling2D((2, 2), (2, 2), name='conv4_p') (x)
+        x = pool((2, 2), (2, 2), name='conv4_p') (x)
 
 
         #
@@ -316,7 +322,8 @@ def VGG16(
         x = lib_snn.activations.Activation(act_type=act_type,name='n_conv5_2')(x)
         #x = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='conv5_p')(x)
         #x = tf.keras.layers.AveragePooling2D((2, 2), (2, 2), name='conv5_p')(x)
-        x = lib_snn.layers.AveragePooling2D((2, 2), (2, 2), name='conv5_p') (x)
+        #x = lib_snn.layers.AveragePooling2D((2, 2), (2, 2), name='conv5_p') (x)
+        x = pool((2, 2), (2, 2), name='conv5_p') (x)
 
 
         #

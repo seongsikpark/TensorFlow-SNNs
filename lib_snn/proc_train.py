@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 import lib_snn
 
 from lib_snn.sim import glb_t
-from lib_snn.sim import glb_plot
+#from lib_snn.sim import glb_plot
 
 
 ########################################

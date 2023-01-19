@@ -237,6 +237,10 @@ tf.compat.v1.app.flags.DEFINE_boolean('verbose',False, 'verbose mode')
 tf.compat.v1.app.flags.DEFINE_boolean('verbose_visual',False, 'verbose visual mode')
 #tf.compat.v1.app.flags.DEFINE_boolean('verbose_visual',True, 'verbose visual mode')
 
+#
+tf.compat.v1.app.flags.DEFINE_boolean('verbose_snn_train',False, 'verbose mode')
+#tf.compat.v1.app.flags.DEFINE_boolean('verbose_snn_train',True, 'verbose mode'
+
 
 ################################
 # Common
@@ -351,8 +355,8 @@ tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',1.0,'gradient clip norm')
 # max_norm - div by max value of dataset
 # max_norm_d - div by max value of batch
 # max_norm_d_c - div by max value of batch - channel-wise
-#tf.compat.v1.app.flags.DEFINE_enum('data_prep', 'default', ['default', 'max_norm', 'max_norm_d', 'max_mord_d_c'], 'data preprocessing')
-tf.compat.v1.app.flags.DEFINE_enum('data_prep', 'max_norm_d_c', ['default', 'max_norm', 'max_norm_d', 'max_norm_d_c'], 'data preprocessing')
+tf.compat.v1.app.flags.DEFINE_enum('data_prep', 'default', ['default', 'max_norm', 'max_norm_d', 'max_mord_d_c'], 'data preprocessing')
+#tf.compat.v1.app.flags.DEFINE_enum('data_prep', 'max_norm_d_c', ['default', 'max_norm', 'max_norm_d', 'max_norm_d_c'], 'data preprocessing')
 
 # data augmentation
 #tf.compat.v1.app.flags.DEFINE_enum('data_aug_mix', 'None', ['mixup', 'cutmix', 'None'], 'data augmentation - mixup')
@@ -381,7 +385,8 @@ tf.compat.v1.app.flags.DEFINE_boolean('tf_fused_bn', None, 'tf fused bn operatio
 ################
 tf.compat.v1.app.flags.DEFINE_string('root_tensorboard', './tensorboard/', 'root - tensorboard')
 
-tf.compat.v1.app.flags.DEFINE_string('root_model_best', '/home/sspark/Models/CNN', 'root model best')
+#tf.compat.v1.app.flags.DEFINE_string('root_model_best', '/home/sspark/Models/DNN_v1/CNN', 'root model best')
+tf.compat.v1.app.flags.DEFINE_string('root_model_best', '/home/sspark/Models/DNN/CNN', 'root model best')
 tf.compat.v1.app.flags.DEFINE_string('root_model_save', './models', 'root model save')
 tf.compat.v1.app.flags.DEFINE_string('root_model_load', '/home/sspark/Projects/00_SNN/models', 'root model load')
 #tf.compat.v1.app.flags.DEFINE_string('root_model_load', '/home/sspark/Models/CNN', 'root model load')
@@ -405,8 +410,8 @@ tf.compat.v1.app.flags.DEFINE_string('root_results', './results', 'root results'
 #tf.compat.v1.app.flags.DEFINE_bool('debug_mode', False, 'debug mode')
 tf.compat.v1.app.flags.DEFINE_bool('debug_mode', True, 'debug mode')
 
-#tf.compat.v1.app.flags.DEFINE_bool('en_record_output', False, 'save intermediate layer output')
-tf.compat.v1.app.flags.DEFINE_bool('en_record_output', True, 'save intermediate layer output')
+tf.compat.v1.app.flags.DEFINE_bool('en_record_output', False, 'save intermediate layer output')
+#tf.compat.v1.app.flags.DEFINE_bool('en_record_output', True, 'save intermediate layer output')
 
 tf.compat.v1.app.flags.DEFINE_integer('idx_train_data', 0, 'start index of train data')
 tf.compat.v1.app.flags.DEFINE_integer('num_train_data', -1, 'number of train data - default: -1 (full dataset)')
@@ -504,12 +509,12 @@ tf.compat.v1.app.flags.DEFINE_bool('f_record_first_spike_time',False,'flag - rec
 
 # weight normalization
 #
-tf.compat.v1.app.flags.DEFINE_bool('f_fused_bn',True,'f_fused_bn')
-#tf.compat.v1.app.flags.DEFINE_bool('f_fused_bn',False,'f_fused_bn')
+#tf.compat.v1.app.flags.DEFINE_bool('f_fused_bn',True,'f_fused_bn')
+tf.compat.v1.app.flags.DEFINE_bool('f_fused_bn',False,'f_fused_bn')
 
 #
-tf.compat.v1.app.flags.DEFINE_bool('f_w_norm_data',True,'f_w_norm_data')
-#tf.compat.v1.app.flags.DEFINE_bool('f_w_norm_data',False,'f_w_norm_data')
+#tf.compat.v1.app.flags.DEFINE_bool('f_w_norm_data',True,'f_w_norm_data')
+tf.compat.v1.app.flags.DEFINE_bool('f_w_norm_data',False,'f_w_norm_data')
 
 #
 tf.compat.v1.app.flags.DEFINE_string('norm_stat','max_999','data-based normalization stat (max, max_999, mean, etc.)')
