@@ -1213,11 +1213,15 @@ class Neuron(tf.keras.layers.Layer):
                 #vmem=tf.where(f_fire,tf.constant(self.conf.n_init_vrest,tf.float32,vmem.shape),vmem)
                 #self.vmem.assign(tf.where(self.f_fire,tf.constant(self.conf.n_init_vrest,tf.float32,self.vmem.shape),self.vmem))
 
+                vmem = tf.where(tf.equal(spike, tf.zeros(shape=spike.shape)),
+                                vmem,
+                                tf.constant(self.conf.n_init_vrest, tf.float32,
+                                            vmem.shape))
                 #vmem = tf.where(spike==0,vmem,tf.constant(self.conf.n_init_vrest,tf.float32,vmem.shape))
                 #vmem = tf.cond(spike==0,
-                vmem = tf.cond(tf.equal(spike,tf.zeros(shape=spike.shape)),
-                               lambda: vmem,
-                               lambda: tf.constant(self.conf.n_init_vrest,tf.float32,vmem.shape))
+                #vmem = tf.cond(tf.equal(spike,tf.zeros(shape=spike.shape)),
+                #               lambda: vmem,
+                #               lambda: tf.constant(self.conf.n_init_vrest,tf.float32,vmem.shape))
             else:
                 assert False
 
