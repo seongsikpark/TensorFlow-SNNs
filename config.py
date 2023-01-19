@@ -381,7 +381,7 @@ tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',1.0,'gradient clip norm')
 # max_norm_d - div by max value of batch
 # max_norm_d_c - div by max value of batch - channel-wise
 #tf.compat.v1.app.flags.DEFINE_enum('data_prep', 'default', ['default', 'max_norm', 'max_norm_d', 'max_mord_d_c'], 'data preprocessing')
-tf.compat.v1.app.flags.DEFINE_enum('data_prep', 'max_norm', ['default', 'max_norm', 'max_norm_d', 'max_mord_d_c'], 'data preprocessing')
+tf.compat.v1.app.flags.DEFINE_enum('data_prep', 'max_norm_d_c', ['default', 'max_norm', 'max_norm_d', 'max_norm_d_c'], 'data preprocessing')
 
 # data augmentation
 #tf.compat.v1.app.flags.DEFINE_enum('data_aug_mix', 'None', ['mixup', 'cutmix', 'None'], 'data augmentation - mixup')

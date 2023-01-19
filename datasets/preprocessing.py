@@ -30,5 +30,12 @@ def preprocessing_input_img(x, data_format=None, mode='max_norm'):
     elif mode=='max_norm_d':
         m = tf.reduce_max(x)
         x /= m
+    elif mode=='max_norm_d_c':
+        if data_format == 'channels_last':
+            axis = [0,1]
+        else:
+            assert False, 'only support - channels_last'
+        m = tf.reduce_max(x,axis=axis)
+        x /= m
 
     return x
