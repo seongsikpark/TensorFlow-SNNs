@@ -460,8 +460,8 @@ tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 100, 'number of test data
 #tf.compat.v1.app.flags.DEFINE_string('n_type', 'IF', 'LIF or IF: neuron type')
 tf.compat.v1.app.flags.DEFINE_string('n_type', 'LIF', 'LIF or IF: neuron type')
 
-tf.compat.v1.app.flags.DEFINE_enum('n_reset_type','reset_by_sub', ['reset_by_sub', 'reset_to_zero'], 'neuron reset type')
-#tf.compat.v1.app.flags.DEFINE_enum('n_reset_type','reset_to_zero', ['reset_by_sub', 'reset_to_zero'], 'neuron reset type')
+#tf.compat.v1.app.flags.DEFINE_enum('n_reset_type','reset_by_sub', ['reset_by_sub', 'reset_to_zero'], 'neuron reset type')
+tf.compat.v1.app.flags.DEFINE_enum('n_reset_type','reset_to_zero', ['reset_by_sub', 'reset_to_zero'], 'neuron reset type')
 
 
 tf.compat.v1.app.flags.DEFINE_bool('f_positive_vmem',False,'positive vmem')
@@ -470,8 +470,8 @@ tf.compat.v1.app.flags.DEFINE_bool('f_positive_vmem',False,'positive vmem')
 tf.compat.v1.app.flags.DEFINE_bool('f_neg_cap_vmem',False,'negative capped vmem')
 #tf.compat.v1.app.flags.DEFINE_bool('f_neg_cap_vmem',True,'negative capped vmem')
 
-#tf.compat.v1.app.flags.DEFINE_string('input_spike_mode','REAL','input spike mode - REAL, POISSON, WEIGHTED_SPIKE, others...')
-tf.compat.v1.app.flags.DEFINE_string('input_spike_mode','POISSON','input spike mode - REAL, POISSON, WEIGHTED_SPIKE, others...')
+tf.compat.v1.app.flags.DEFINE_string('input_spike_mode','REAL','input spike mode - REAL, POISSON, WEIGHTED_SPIKE, others...')
+#tf.compat.v1.app.flags.DEFINE_string('input_spike_mode','POISSON','input spike mode - REAL, POISSON, WEIGHTED_SPIKE, others...')
 tf.compat.v1.app.flags.DEFINE_string('neural_coding','RATE','neural coding - RATE, WEIGHTED_SPIKE, PROPOSED')
 
 #
@@ -515,9 +515,9 @@ tf.compat.v1.app.flags.DEFINE_enum('snn_output_type',"VMEM", ["SPIKE", "VMEM", "
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 32, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 20, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 16, 'time steps per sample in SNN')
-tf.compat.v1.app.flags.DEFINE_integer('time_step', 8, 'time steps per sample in SNN')
+#tf.compat.v1.app.flags.DEFINE_integer('time_step', 8, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 6, 'time steps per sample in SNN')
-#tf.compat.v1.app.flags.DEFINE_integer('time_step', 4, 'time steps per sample in SNN')
+tf.compat.v1.app.flags.DEFINE_integer('time_step', 4, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 2, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 1, 'time steps per sample in SNN')
 
@@ -601,8 +601,13 @@ tf.compat.v1.app.flags.DEFINE_bool('tdbn',True,'threshold-dependent batch normal
 
 
 #
-#tf.compat.v1.app.flags.DEFINE_bool('snn_training_spatial_first',True,'SNN training spatial domain first')
-tf.compat.v1.app.flags.DEFINE_bool('snn_training_spatial_first',False,'SNN training spatial domain first') # Not implemented yet?
+tf.compat.v1.app.flags.DEFINE_bool('snn_training_spatial_first',True,'SNN training spatial domain first')
+#tf.compat.v1.app.flags.DEFINE_bool('snn_training_spatial_first',False,'SNN training spatial domain first')
+
+
+#
+#tf.compat.v1.app.flags.DEFINE_bool('sptr',False,'spatio-backprop, temporal-realtime learning')
+tf.compat.v1.app.flags.DEFINE_bool('sptr',True,'spatio-backprop, temporal-realtime learning')
 
 
 #

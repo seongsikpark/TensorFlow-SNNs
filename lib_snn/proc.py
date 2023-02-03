@@ -331,6 +331,26 @@ def preproc_batch_snn(self):
     pass
     #reset_snn_sample(self)
 
+def preproc_epoch_train(self,epoch):
+    #
+    preproc_epoch_sel={
+        'ANN': preproc_epoch_train_ann,
+        'SNN': preproc_epoch_train_snn,
+    }
+    preproc_epoch_sel[self.model.nn_mode](self,epoch)
+
+def preproc_epoch_train_ann(self, epoch):
+    pass
+
+
+def preproc_epoch_train_snn(self, epoch):
+    pass
+    # test
+    #if (epoch > 0) and (epoch % 100 ==0) :
+    #    conf.time_step = tf.cast(conf.time_step/2,tf.int32)
+
+
+
 #
 def reset_snn_sample(self):
     assert False

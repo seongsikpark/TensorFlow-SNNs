@@ -448,11 +448,23 @@ class Neuron(tf.keras.layers.Layer):
         #}[self.n_type](inputs ,t, training)
         #out_ret = self.out
 
+
         #out = run_type[self.n_type](inputs, t, training)
         #out = run_type[self.n_type](inputs, training)
         #out = run_type[self.loc](inputs, t, training)
         spike, vmem = run_type[self.loc](inputs, vmem_prev_t, t, training)
         out_ret = spike
+
+
+        # test - online, 230203
+        prev_out_ret = 0
+        if t==0:
+            out_ret = out_ret
+        else:
+            out_ret += 0.9 * prev_out_ret
+
+        prev_out_ret = out_ret
+
 
         #self.t = t
         #print(self.conf.time_step)
@@ -1085,27 +1097,32 @@ class Neuron(tf.keras.layers.Layer):
         #}.get(self.neural_coding, self.fire_rate)(t)
 
         #
-        #def grad(upstream_spike, upstream_vmem):
-        def grad(upstream):
+        def grad(upstream_spike, upstream_vmem):
+        #def grad(upstream):
             # TODO: parameterize
             a=0.5
             if True:
             #if False:
-                cond_1=tf.math.less_equal(tf.math.abs(self.vmem-self.vth),a)
-                #cond_1 = tf.math.logical_and(cond_1,tf.math.logical_not(self.f_fire))
-                #cond_2 = self.f_fire
-                #cond = tf.math.logical_or(cond_1,cond_2)
+                #cond_1=tf.math.less_equal(tf.math.abs(self.vmem.read(t)-self.vth),a)
+                ##cond_1 = tf.math.logical_and(cond_1,tf.math.logical_not(self.f_fire))
+                ##cond_2 = self.f_fire
+                ##cond = tf.math.logical_or(cond_1,cond_2)
+                #cond = cond_1
+                #do_du = tf.where(cond,tf.ones(cond.shape),tf.zeros(cond.shape))
+                #d_vmem = tf.where(spike, -self.vth, tf.zeros(upstream_vmem.shape))  # reset-by-sub
+
+                a=0.5
+                cond_1=tf.math.less_equal(tf.math.abs(vmem-self.vth),a)
                 cond = cond_1
                 do_du = tf.where(cond,tf.ones(cond.shape),tf.zeros(cond.shape))
 
-                d_vmem = tf.where(spike, -self.vth, tf.zeros(upstream.shape))  # reset-by-sub
-
-            grad_ret = upstream*do_du
+            #grad_ret = upstream*do_du
+            grad_vmem = upstream_vmem*do_du
 
             #print('here')
 
-            return grad_ret, d_vmem, tf.stop_gradient(t)
-            #return grad_ret, tf.stop_gradient(t)
+            #return grad_ret, d_vmem, tf.stop_gradient(t)
+            return tf.zeros(shape=upstream_spike.shape), grad_vmem
 
 
         #
@@ -1213,10 +1230,42 @@ class Neuron(tf.keras.layers.Layer):
                 #vmem=tf.where(f_fire,tf.constant(self.conf.n_init_vrest,tf.float32,vmem.shape),vmem)
                 #self.vmem.assign(tf.where(self.f_fire,tf.constant(self.conf.n_init_vrest,tf.float32,self.vmem.shape),self.vmem))
 
-                vmem = tf.where(tf.equal(spike, tf.zeros(shape=spike.shape)),
-                                vmem,
-                                tf.constant(self.conf.n_init_vrest, tf.float32,
-                                            vmem.shape))
+                f_reset_to_zero_custom_g = True
+
+                if f_reset_to_zero_custom_g:
+
+                    @tf.custom_gradient
+                    def func_reset_to_zero(vmem, spike):
+
+                        f_no_spike = tf.equal(spike,
+                                              tf.zeros(shape=spike.shape))
+
+                        vmem_ret = tf.where(f_no_spike,
+                                            vmem,
+                                            tf.constant(self.conf.n_init_vrest,
+                                                        tf.float32, vmem.shape))
+
+                        def grad(upstream):
+                            dvmem = tf.where(f_no_spike, tf.zeros(shape=spike.shape), -vmem)
+                            #dvmem = tf.where(f_no_spike, tf.zeros(shape=spike.shape), -self.vth)
+                            #dvmem = tf.where(f_no_spike, tf.ones(shape=spike.shape), -vmem)
+                            #dvmem = tf.where(f_no_spike, tf.ones(shape=spike.shape), -self.vth)
+                            dvmem = upstream * dvmem
+
+                            dspike = tf.zeros(shape=spike.shape)
+                            return dvmem, dspike
+
+                        return vmem_ret, grad
+                    vmem = func_reset_to_zero(vmem, spike)
+
+                else:
+                    vmem = tf.where(tf.equal(spike, tf.zeros(shape=spike.shape)),
+                                    vmem,
+                                    tf.constant(self.conf.n_init_vrest, tf.float32,
+                                                vmem.shape))
+
+
+
                 #vmem = tf.where(spike==0,vmem,tf.constant(self.conf.n_init_vrest,tf.float32,vmem.shape))
                 #vmem = tf.cond(spike==0,
                 #vmem = tf.cond(tf.equal(spike,tf.zeros(shape=spike.shape)),
