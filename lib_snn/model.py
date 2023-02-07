@@ -463,10 +463,8 @@ class Model(tf.keras.Model):
         #range_ts = range(1, 1+ 1)
 
 
-
         self.time_axis=0
         if self.conf.snn_training_spatial_first:
-
             if training:
                 if self.conf.sptr:
                     # single time step
@@ -1757,6 +1755,7 @@ class Model(tf.keras.Model):
                         else:
                             grads_accum = [(grad_accum + grad) for grad_accum, grad in zip(grads_accum, grads)]
 
+
                         #
                         if False:
                             print()
@@ -1793,6 +1792,8 @@ class Model(tf.keras.Model):
                         #assert False
                         glb_t()
 
+                    #
+                    grads_accum = [grad_accum/self.conf.time_step for grad_accum in grads_accum]
                     grads_accum_and_vars = list(zip(grads_accum, var_list))
                 else:
                     #sample_weight = data_adapter.unpack_x_y_sample_weight(data)
@@ -1813,7 +1814,6 @@ class Model(tf.keras.Model):
                 #
                 self.optimizer.apply_gradients(grads_accum_and_vars)
 
-                #grads_accum = [grad_accum/self.conf.time_step for grad_accum in grads_accum]
 
                 nan_test = [tf.reduce_any(tf.math.is_nan(grad_accum)) for grad_accum in grads_accum]
                 #if tf.reduce_any(nan_test):
@@ -2511,11 +2511,22 @@ class Model(tf.keras.Model):
             #print('reset_snn')
         self.count_accuracy_time_point=0
 
+        # sptr
+        self.reset_snn_sptr()
+
     #
     def reset_snn_neuron(self):
         #print('reset_snn_neuron')
         for layer in self.layers_w_neuron:
             layer.reset()
+
+    # sptr - only for training
+    def reset_snn_sptr(self):
+        if self.conf.sptr:
+            for layer in self.layers:
+                if hasattr(layer, 'input_accum'):
+                    layer.input_accum.assign(tf.zeros(layer.input_accum.shape))
+
 
 
     # set layers with neuron

@@ -988,7 +988,9 @@ class InputGenLayer(Layer, tf.keras.layers.Layer):
 
 
 # Conv2D
-class Conv2D(Layer, tf.keras.layers.Conv2D):
+#@tf.custom_gradient
+#class Conv2D(Layer, tf.keras.layers.Conv2D):
+class Conv2D(Layer, layers_new.conv.Conv2D):
     # class Conv2D(tf.keras.layers.Conv2D,Layer):
     def __init__(self,
                  filters,
@@ -1009,7 +1011,8 @@ class Conv2D(Layer, tf.keras.layers.Conv2D):
 
         Layer.__init__(self, use_bn, activation, kwargs=kwargs)
 
-        tf.keras.layers.Conv2D.__init__(
+        #tf.keras.layers.Conv2D.__init__(
+        layers_new.conv.Conv2D.__init__(
             self,
             filters=filters,
             kernel_size=kernel_size,
@@ -1036,7 +1039,7 @@ class Conv2D(Layer, tf.keras.layers.Conv2D):
         self.synapse=True
 
 
-# Conv2D
+# DepthwiseConv2D
 class DepthwiseConv2D(Layer, tf.keras.layers.DepthwiseConv2D):
     def __init__(self,
                  kernel_size,
@@ -1056,6 +1059,7 @@ class DepthwiseConv2D(Layer, tf.keras.layers.DepthwiseConv2D):
                  bias_constraint=None,
                  use_bn=False,  # use batch norm.
                  **kwargs):
+        assert False
         Layer.__init__(self, use_bn, activation, kwargs=kwargs)
 
         tf.keras.layers.DepthwiseConv2D.__init__(
@@ -1085,7 +1089,8 @@ class DepthwiseConv2D(Layer, tf.keras.layers.DepthwiseConv2D):
 
 
 # Dense
-class Dense(Layer, tf.keras.layers.Dense):
+#class Dense(Layer, tf.keras.layers.Dense):
+class Dense(Layer, layers_new.dense.Dense):
     def __init__(self,
                  units,
                  activation=None,
@@ -1106,7 +1111,8 @@ class Dense(Layer, tf.keras.layers.Dense):
 
         Layer.__init__(self, use_bn, activation, last_layer, kwargs=kwargs)
 
-        tf.keras.layers.Dense.__init__(
+        #tf.keras.layers.Dense.__init__(
+        layers_new.dense.Dense.__init__(
             self,
             units,
             activation=None,

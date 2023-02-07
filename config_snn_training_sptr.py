@@ -439,13 +439,13 @@ tf.compat.v1.app.flags.DEFINE_bool('debug_mode', False, 'debug mode')
 tf.compat.v1.app.flags.DEFINE_bool('en_record_output', True, 'save intermediate layer output')
 
 tf.compat.v1.app.flags.DEFINE_integer('idx_train_data', 0, 'start index of train data')
-#tf.compat.v1.app.flags.DEFINE_integer('num_train_data', -1, 'number of train data - default: -1 (full dataset)')
+tf.compat.v1.app.flags.DEFINE_integer('num_train_data', -1, 'number of train data - default: -1 (full dataset)')
 #tf.compat.v1.app.flags.DEFINE_integer('num_train_data', 100, 'number of train data - default: -1 (full dataset)')
-tf.compat.v1.app.flags.DEFINE_integer('num_train_data', 1000, 'number of train data - default: -1 (full dataset)')
+#tf.compat.v1.app.flags.DEFINE_integer('num_train_data', 1000, 'number of train data - default: -1 (full dataset)')
 #tf.compat.v1.app.flags.DEFINE_integer('num_train_data', 10000, 'number of train data - default: -1 (full dataset)')
 
-#tf.compat.v1.app.flags.DEFINE_bool('full_test', True, 'full dataset test')
-tf.compat.v1.app.flags.DEFINE_bool('full_test', False, 'full dataset test')
+tf.compat.v1.app.flags.DEFINE_bool('full_test', True, 'full dataset test')
+#tf.compat.v1.app.flags.DEFINE_bool('full_test', False, 'full dataset test')
 
 tf.compat.v1.app.flags.DEFINE_integer('idx_test_data', 0, 'start index of test data')
 
@@ -460,8 +460,8 @@ tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 100, 'number of test data
 #tf.compat.v1.app.flags.DEFINE_string('n_type', 'IF', 'LIF or IF: neuron type')
 tf.compat.v1.app.flags.DEFINE_string('n_type', 'LIF', 'LIF or IF: neuron type')
 
-#tf.compat.v1.app.flags.DEFINE_enum('n_reset_type','reset_by_sub', ['reset_by_sub', 'reset_to_zero'], 'neuron reset type')
-tf.compat.v1.app.flags.DEFINE_enum('n_reset_type','reset_to_zero', ['reset_by_sub', 'reset_to_zero'], 'neuron reset type')
+tf.compat.v1.app.flags.DEFINE_enum('n_reset_type','reset_by_sub', ['reset_by_sub', 'reset_to_zero'], 'neuron reset type')
+#tf.compat.v1.app.flags.DEFINE_enum('n_reset_type','reset_to_zero', ['reset_by_sub', 'reset_to_zero'], 'neuron reset type')
 
 
 tf.compat.v1.app.flags.DEFINE_bool('f_positive_vmem',False,'positive vmem')
@@ -604,10 +604,16 @@ tf.compat.v1.app.flags.DEFINE_bool('tdbn',True,'threshold-dependent batch normal
 tf.compat.v1.app.flags.DEFINE_bool('snn_training_spatial_first',True,'SNN training spatial domain first')
 #tf.compat.v1.app.flags.DEFINE_bool('snn_training_spatial_first',False,'SNN training spatial domain first')
 
-
-#
+####
+# sptr
+####
 #tf.compat.v1.app.flags.DEFINE_bool('sptr',False,'spatio-backprop, temporal-realtime learning')
 tf.compat.v1.app.flags.DEFINE_bool('sptr',True,'spatio-backprop, temporal-realtime learning')
+
+
+tf.compat.v1.app.flags.DEFINE_float('sptr_decay',0.9,'sptr decay const')
+
+####
 
 
 #

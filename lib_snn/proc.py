@@ -76,7 +76,6 @@ def reset_batch_ann(self):
     pass
 
 def reset_batch_snn(self):
-
     # TODO: move to model.py
     self.model.reset_snn()
     self.model.reset_snn_neuron()
@@ -305,7 +304,7 @@ def calibration_act_based_post(self):
 
 
 ########################################
-# reset (on_test_batch_begin)
+# reset (on_test_batch_begin and on_train_batch_begin)
 ########################################
 def preproc_batch(self):
     #print('on_test_batch_begin')

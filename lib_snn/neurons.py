@@ -254,8 +254,8 @@ class Neuron(tf.keras.layers.Layer):
         self.built = True
 
     #@tf.function
-    #@tf.custom_gradient
     #def call(self ,inputs ,t, training):
+    #@tf.custom_gradient
     def call(self, inputs, training=None):
         #t = tf.constant(glb_t.t)
         t = glb_t.t
@@ -348,7 +348,8 @@ class Neuron(tf.keras.layers.Layer):
                     #                    upstream - self.grad_in_prev)
                     # dL_du_t1 = (dL_du_t1 - self.grad_in_prev)*do_du
 
-                    dL_du_t1 = (dL_du_t1 + self.grad_in_prev) / 2
+                    #dL_du_t1 = (dL_du_t1 + self.grad_in_prev) / 2
+                    dL_du_t1 = dL_du_t1 + self.grad_in_prev*0.99
 
                 # temp_rand = upstream * temp_rand           # speculate next time step gradient
 
@@ -456,14 +457,14 @@ class Neuron(tf.keras.layers.Layer):
         out_ret = spike
 
 
-        # test - online, 230203
-        prev_out_ret = 0
-        if t==0:
-            out_ret = out_ret
-        else:
-            out_ret += 0.9 * prev_out_ret
-
-        prev_out_ret = out_ret
+        ## test - online, 230203
+        #prev_out_ret = 0
+        #if t==0:
+        #    out_ret = out_ret
+        #else:
+        #    out_ret += 0.9 * prev_out_ret
+        #
+        #prev_out_ret = out_ret
 
 
         #self.t = t
@@ -518,9 +519,8 @@ class Neuron(tf.keras.layers.Layer):
 
         # update vmem
 
-
-        #return out_ret, grad
         return out_ret
+        #return out_ret, grad
 
     # initialization
     def init(self):
