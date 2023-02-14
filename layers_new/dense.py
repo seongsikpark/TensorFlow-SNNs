@@ -248,6 +248,9 @@ class Dense(Layer):
                     self.input_accum.assign(self.input_accum*conf.sptr_decay+inputs)
                     outputs = mat_mul_dense(inputs,self.kernel,self.input_accum)
 
+                    #print('input_accum: '+self.name)
+                    #print(self.input_accum)
+
                     #self.input_accum.assign(self.input_accum+inputs)
 
                 else:

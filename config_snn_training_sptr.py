@@ -352,6 +352,7 @@ tf.compat.v1.app.flags.DEFINE_enum('train_type', 'scratch', ['scratch', 'transfe
 #
 # VGG
 tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.1, 'learning rate')
+#tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.05, 'learning rate')
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.02, 'learning rate')
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.01, 'learning rate')
 #tf.compat.v1.app.flags.DEFINE_float('learning_rate', 0.005, 'learning rate')
@@ -370,8 +371,8 @@ tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-4, 'lambda') # SNN
 #tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-4, 'lambda')
 
 #
-#tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',None,'gradient clip norm')
-tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',1.0,'gradient clip norm')
+tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',None,'gradient clip norm')
+#tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',1.0,'gradient clip norm')
 #tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',2.0,'gradient clip norm')
 #tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',5.0,'gradient clip norm')
 
@@ -380,8 +381,8 @@ tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',1.0,'gradient clip norm')
 # max_norm - div by max value of dataset
 # max_norm_d - div by max value of batch
 # max_norm_d_c - div by max value of batch - channel-wise
-#tf.compat.v1.app.flags.DEFINE_enum('data_prep', 'default', ['default', 'max_norm', 'max_norm_d', 'max_mord_d_c'], 'data preprocessing')
-tf.compat.v1.app.flags.DEFINE_enum('data_prep', 'max_norm', ['default', 'max_norm', 'max_norm_d', 'max_norm_d_c'], 'data preprocessing')
+tf.compat.v1.app.flags.DEFINE_enum('data_prep', 'default', ['default', 'max_norm', 'max_norm_d', 'max_mord_d_c'], 'data preprocessing')
+#tf.compat.v1.app.flags.DEFINE_enum('data_prep', 'max_norm', ['default', 'max_norm', 'max_norm_d', 'max_norm_d_c'], 'data preprocessing')
 
 # data augmentation
 #tf.compat.v1.app.flags.DEFINE_enum('data_aug_mix', 'None', ['mixup', 'cutmix', 'None'], 'data augmentation - mixup')
@@ -475,8 +476,8 @@ tf.compat.v1.app.flags.DEFINE_string('input_spike_mode','REAL','input spike mode
 tf.compat.v1.app.flags.DEFINE_string('neural_coding','RATE','neural coding - RATE, WEIGHTED_SPIKE, PROPOSED')
 
 #
-tf.compat.v1.app.flags.DEFINE_bool('binary_spike', True, 'binary spike activation, if false - vth activation')
-#tf.compat.v1.app.flags.DEFINE_bool('binary_spike', False, 'binary spike activation, if false - vth activation')
+#tf.compat.v1.app.flags.DEFINE_bool('binary_spike', True, 'binary spike activation, if false - vth activation')
+tf.compat.v1.app.flags.DEFINE_bool('binary_spike', False, 'binary spike activation, if false - vth activation')
 
 #
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 20.0, 'initial value of vth')
@@ -486,12 +487,11 @@ tf.compat.v1.app.flags.DEFINE_bool('binary_spike', True, 'binary spike activatio
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 4.0, 'initial value of vth')
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 3.0, 'initial value of vth')
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 2.0, 'initial value of vth')
-#tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 1.1, 'initial value of vth')
-#tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 1.0, 'initial value of vth')
+tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 1.0, 'initial value of vth')
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.9, 'initial value of vth')
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.7, 'initial value of vth')
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.6, 'initial value of vth')
-tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.5, 'initial value of vth')
+#tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.5, 'initial value of vth')
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.4, 'initial value of vth')
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.3, 'initial value of vth')
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.2, 'initial value of vth')
@@ -607,8 +607,8 @@ tf.compat.v1.app.flags.DEFINE_bool('snn_training_spatial_first',True,'SNN traini
 ####
 # sptr
 ####
-#tf.compat.v1.app.flags.DEFINE_bool('sptr',False,'spatio-backprop, temporal-realtime learning')
-tf.compat.v1.app.flags.DEFINE_bool('sptr',True,'spatio-backprop, temporal-realtime learning')
+tf.compat.v1.app.flags.DEFINE_bool('sptr',False,'spatio-backprop, temporal-realtime learning')
+#tf.compat.v1.app.flags.DEFINE_bool('sptr',True,'spatio-backprop, temporal-realtime learning')
 
 
 tf.compat.v1.app.flags.DEFINE_float('sptr_decay',0.9,'sptr decay const')

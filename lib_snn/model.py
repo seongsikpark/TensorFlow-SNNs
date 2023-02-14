@@ -470,7 +470,7 @@ class Model(tf.keras.Model):
                     # single time step
                     y_pred = self._run_internal_graph(inputs, training=training, mask=mask)
                 else:
-                    y_pred = self._run_internal_graph_snn_s_first(inputs, training=training, mask=mask)
+                    y_pred = self._run_internal_graph(inputs, training=training, mask=mask)
             else:
                 y_pred = self._run_internal_graph_snn_s_first(inputs, training=training, mask=mask)
 
@@ -1518,23 +1518,23 @@ class Model(tf.keras.Model):
 
     def train_step_ann(self, data):
         """The logic for one training step.
-  
+
         This method can be overridden to support custom training logic.
         For concrete examples of how to override this method see
         [Customizing what happends in fit](https://www.tensorflow.org/guide/keras/customizing_what_happens_in_fit).
         This method is called by `Model.make_train_function`.
-  
+
         This method should contain the mathematical logic for one step of training.
         This typically includes the forward pass, loss calculation, backpropagation,
         and metric updates.
-  
+
         Configuration details for *how* this logic is run (e.g. `tf.function` and
         `tf.distribute.Strategy` settings), should be left to
         `Model.make_train_function`, which can also be overridden.
-  
+
         Args:
           data: A nested structure of `Tensor`s.
-  
+
         Returns:
           A `dict` containing values that will be passed to
           `tf.keras.callbacks.CallbackList.on_train_batch_end`. Typically, the
@@ -1745,6 +1745,10 @@ class Model(tf.keras.Model):
                         #grads = [grad/self.conf.time_step for grad in grads]
                         #if grads is not None:
 
+                        #
+                        #for grad, var in zip(grads,var_list):
+                        #    print(var.name+' - ' +str(tf.reduce_mean(tf.math.abs(grad)).numpy()))
+
                         # gradient accum
                         #f_stochastic_gradient_accum=True
                         f_stochastic_gradient_accum=False
@@ -1824,109 +1828,7 @@ class Model(tf.keras.Model):
                     #if True:
                     if self.conf.verbose_snn_train:
 
-                        print('\n grads_accum')
-                        for grad_accum, var in grads_accum_and_vars:
-                            #print('{: <10}: - sum {:.3e}, mean {:.3e}'.format(var.name,tf.reduce_sum(grad_accum),tf.reduce_mean(grad_accum)))
-                            print('{: <10}: - max {:.3e}, min {:.3e}, mean {:.3e}, var {:.3e}'
-                                  .format(var.name,tf.reduce_max(grad_accum),tf.reduce_min(grad_accum),
-                                          tf.reduce_mean(grad_accum),tf.math.reduce_variance(grad_accum)))
-
-                            if self.conf.verbose_visual:
-                                from lib_snn.sim import glb_plot_gradient_kernel
-                                from lib_snn.sim import glb_plot_gradient_gamma
-                                from lib_snn.sim import glb_plot_gradient_beta
-
-
-                                if 'kernel' in var.name:
-                                    lib_snn.util.plot_hist(glb_plot_gradient_kernel,grad_accum,1000)
-                                elif 'gamma' in var.name:
-                                    lib_snn.util.plot_hist(glb_plot_gradient_gamma,grad_accum,1000)
-                                elif 'beta' in var.name:
-                                    lib_snn.util.plot_hist(glb_plot_gradient_beta,grad_accum,1000)
-
-                        print('\n spike count')
-                        for layer in self.layers:
-                            if hasattr(layer,'act') and isinstance(layer.act,lib_snn.neurons.Neuron):
-                                spike_count = layer.act.spike_count
-                                #spike = layer.act.out
-                                print('{: <10}: - sum {:.3e}, mean {:.3e}, non-zero percent {:.3e}'
-                                      .format(layer.name,tf.reduce_sum(spike_count),tf.reduce_mean(spike_count)
-                                              ,tf.math.count_nonzero(spike_count,dtype=tf.float32)/tf.cast(tf.reduce_prod(spike_count.shape),dtype=tf.float32)))
-
-                                #print(spike_count[0])
-
-                                #print('spike - sum {:.3e}, mean {:.3e}'.format(tf.reduce_sum(spike),tf.reduce_mean(spike)))
-
-                        #
-                        print('\n kernel ')
-                        for layer in self.layers:
-                            if hasattr(layer,'kernel'):
-                                print('{: <10} max {:.3e}, min {:.3e}, mean {:.3e}, sq {:.3e}'
-                                      .format(layer.name,
-                                              tf.reduce_max(layer.kernel),
-                                              tf.reduce_min(layer.kernel),
-                                              tf.reduce_mean(layer.kernel),
-                                              tf.reduce_sum(tf.math.pow(layer.kernel,2))))
-
-                        #
-                        print('\n bias ')
-                        for layer in self.layers:
-                            if hasattr(layer,'bias'):
-                                print('{: <10} max {:.3e}, min {:.3e}, mean {:.3e}, sq {:.3e}'
-                                      .format(layer.name,
-                                              tf.reduce_max(layer.bias),
-                                              tf.reduce_min(layer.bias),
-                                              tf.reduce_mean(layer.bias),
-                                              tf.reduce_sum(tf.math.pow(layer.bias,2))))
-
-                        #
-                        print('\n bn - moving mean')
-                        for layer in self.layers:
-                            if hasattr(layer,'bn') and layer.bn is not None:
-                                bn_var = layer.bn.moving_mean
-                                print('{: <10} max {:.3e}, min {:.3e}, mean {:.3e}, sq {:.3e}'
-                                      .format(layer.name,
-                                              tf.reduce_max(bn_var),
-                                              tf.reduce_min(bn_var),
-                                              tf.reduce_mean(bn_var),
-                                              tf.reduce_sum(tf.math.pow(bn_var,2))))
-
-                        #
-                        print('\n bn - moving variance')
-                        for layer in self.layers:
-                            if hasattr(layer,'bn') and layer.bn is not None:
-                                bn_var = layer.bn.moving_variance
-                                print('{: <10} max {:.3e}, min {:.3e}, mean {:.3e}, sq {:.3e}'
-                                      .format(layer.name,
-                                              tf.reduce_max(bn_var),
-                                              tf.reduce_min(bn_var),
-                                              tf.reduce_mean(bn_var),
-                                              tf.reduce_sum(tf.math.pow(bn_var,2))))
-
-                        #
-                        print('\n bn - gamma')
-                        for layer in self.layers:
-                            if hasattr(layer,'bn') and layer.bn is not None:
-                                bn_var = layer.bn.gamma
-                                print('{: <10} max {:.3e}, min {:.3e}, mean {:.3e}, sq {:.3e}'
-                                      .format(layer.name,
-                                              tf.reduce_max(bn_var),
-                                              tf.reduce_min(bn_var),
-                                              tf.reduce_mean(bn_var),
-                                              tf.reduce_sum(tf.math.pow(bn_var,2))))
-
-                        #
-                        print('\n bn - beta')
-                        for layer in self.layers:
-                            if hasattr(layer,'bn') and layer.bn is not None:
-                                bn_var = layer.bn.beta
-                                print('{: <10} max {:.3e}, min {:.3e}, mean {:.3e}, sq {:.3e}'
-                                      .format(layer.name,
-                                              tf.reduce_max(bn_var),
-                                              tf.reduce_min(bn_var),
-                                              tf.reduce_mean(bn_var),
-                                              tf.reduce_sum(tf.math.pow(bn_var,2))))
-
+                        self.print_snn_train(grads_accum_and_vars)
 
                     #if tf.reduce_any(nan_test) or (loss > 100):
                     if tf.reduce_any(nan_test) or (loss > 1000):
@@ -1934,8 +1836,6 @@ class Model(tf.keras.Model):
                         print(tf.reduce_any(nan_test))
                         #print('here')
                         assert False
-
-
 
 
                 return self.compute_metrics(x, y, y_pred, sample_weight)
@@ -3232,5 +3132,230 @@ class Model(tf.keras.Model):
 
         return ret
 
+
+
+    def print_snn_train(self,grads_accum_and_vars,path_root=None):
+        import pandas as pd
+
+        print('\n grads_accum')
+        for grad_accum, var in grads_accum_and_vars:
+            #print('{: <10}: - sum {:.3e}, mean {:.3e}'.format(var.name,tf.reduce_sum(grad_accum),tf.reduce_mean(grad_accum)))
+            print('{: <10}: - max {:.3e}, min {:.3e}, mean {:.3e}, var {:.3e}'
+                  .format(var.name,tf.reduce_max(grad_accum),tf.reduce_min(grad_accum),
+                          tf.reduce_mean(grad_accum),tf.math.reduce_std(grad_accum)))
+
+            if self.conf.verbose_visual:
+                if 'kernel' in var.name:
+                    lib_snn.util.plot_hist(glb_plot_gradient_kernel,grad_accum,1000)
+                elif 'gamma' in var.name:
+                    lib_snn.util.plot_hist(glb_plot_gradient_gamma,grad_accum,1000)
+                elif 'beta' in var.name:
+                    lib_snn.util.plot_hist(glb_plot_gradient_beta,grad_accum,1000)
+
+            try:
+                dout_ga
+            except NameError:
+                dout_ga = pd.DataFrame(columns=['max','min','mean','std'])
+            dout_ga.loc[var.name,'max'] = tf.reduce_max(grad_accum).numpy()
+            dout_ga.loc[var.name,'min'] = tf.reduce_min(grad_accum).numpy()
+            dout_ga.loc[var.name,'mean'] = tf.reduce_mean(grad_accum).numpy()
+            dout_ga.loc[var.name,'std'] = tf.math.reduce_std(grad_accum).numpy()
+
+        print('\n spike count')
+        for layer in self.layers:
+            if hasattr(layer,'act') and isinstance(layer.act,lib_snn.neurons.Neuron):
+                spike_count = layer.act.spike_count_int
+                #spike = layer.act.out
+                print('{: <10}: - max {:.3e}, mean {:.3e}, non-zero percent {:.3e}'
+                      .format(layer.name,tf.reduce_max(spike_count),tf.reduce_mean(spike_count)
+                              ,tf.math.count_nonzero(spike_count,dtype=tf.float32)/tf.cast(tf.reduce_prod(spike_count.shape),dtype=tf.float32)))
+
+                try:
+                    dout_sc
+                except NameError:
+                    dout_sc = pd.DataFrame(columns=['max','min','mean','std'])
+                dout_sc.loc[layer.name,'max'] = tf.reduce_max(spike_count).numpy()
+                dout_sc.loc[layer.name,'min'] = tf.reduce_min(spike_count).numpy()
+                dout_sc.loc[layer.name,'mean'] = tf.reduce_mean(spike_count).numpy()
+                dout_sc.loc[layer.name,'std'] = tf.math.reduce_std(spike_count).numpy()
+
+        print('\n vmem residual')
+        for layer in self.layers:
+            if hasattr(layer,'act') and isinstance(layer.act,lib_snn.neurons.Neuron):
+                vmem = layer.act.vmem.read(self.conf.time_step-1)
+                print('{: <10}: - max {:.3e}, min {:.3e}, mean {:.3e}, var {:.3e}'
+                      .format(layer.name,tf.reduce_max(vmem),tf.reduce_min(vmem),
+                              tf.reduce_mean(vmem),tf.math.reduce_variance(vmem)))
+                try:
+                    dout_vr
+                except NameError:
+                    dout_vr = pd.DataFrame(columns=['max','min','mean','std'])
+                dout_vr.loc[layer.name,'max'] = tf.reduce_max(vmem).numpy()
+                dout_vr.loc[layer.name,'min'] = tf.reduce_min(vmem).numpy()
+                dout_vr.loc[layer.name,'mean'] = tf.reduce_mean(vmem).numpy()
+                dout_vr.loc[layer.name,'std'] = tf.math.reduce_std(vmem).numpy()
+
+
+
+                #print('spike - sum {:.3e}, mean {:.3e}'.format(tf.reduce_sum(spike),tf.reduce_mean(spike)))
+
+        #
+        print('\n kernel ')
+        for layer in self.layers:
+            if hasattr(layer,'kernel'):
+                print('{: <10} max {:.3e}, min {:.3e}, mean {:.3e}, sq {:.3e}'
+                      .format(layer.name,
+                              tf.reduce_max(layer.kernel),
+                              tf.reduce_min(layer.kernel),
+                              tf.reduce_mean(layer.kernel),
+                              tf.reduce_sum(tf.math.pow(layer.kernel,2))))
+
+                try:
+                    dout_k
+                except NameError:
+                    dout_k = pd.DataFrame(columns=['max','min','mean','std'])
+                dout_k.loc[layer.name,'max'] = tf.reduce_max(layer.kernel).numpy()
+                dout_k.loc[layer.name,'min'] = tf.reduce_min(layer.kernel).numpy()
+                dout_k.loc[layer.name,'mean'] = tf.reduce_mean(layer.kernel).numpy()
+                dout_k.loc[layer.name,'std'] = tf.math.reduce_std(layer.kernel).numpy()
+
+        #
+        print('\n bias ')
+        for layer in self.layers:
+            if hasattr(layer,'bias'):
+                print('{: <10} max {:.3e}, min {:.3e}, mean {:.3e}, sq {:.3e}'
+                      .format(layer.name,
+                              tf.reduce_max(layer.bias),
+                              tf.reduce_min(layer.bias),
+                              tf.reduce_mean(layer.bias),
+                              tf.reduce_sum(tf.math.pow(layer.bias,2))))
+
+                try:
+                    dout_b
+                except NameError:
+                    dout_b = pd.DataFrame(columns=['max','min','mean','std'])
+                dout_b.loc[layer.name,'max'] = tf.reduce_max(layer.bias).numpy()
+                dout_b.loc[layer.name,'min'] = tf.reduce_min(layer.bias).numpy()
+                dout_b.loc[layer.name,'mean'] = tf.reduce_mean(layer.bias).numpy()
+                dout_b.loc[layer.name,'std'] = tf.math.reduce_std(layer.bias).numpy()
+
+
+        #
+        print('\n bn - moving mean')
+        for layer in self.layers:
+            #if hasattr(layer,'bn') and layer.bn is not None:
+            if isinstance(layer,lib_snn.layers.BatchNormalization):
+                bn_var = layer.moving_mean
+                print('{: <10} max {:.3e}, min {:.3e}, mean {:.3e}, sq {:.3e}'
+                      .format(layer.name,
+                              tf.reduce_max(bn_var),
+                              tf.reduce_min(bn_var),
+                              tf.reduce_mean(bn_var),
+                              tf.reduce_sum(tf.math.pow(bn_var,2))))
+                try:
+                    dout_bn_m
+                except NameError:
+                    dout_bn_m = pd.DataFrame(columns=['max','min','mean','std'])
+                dout_bn_m.loc[layer.name,'max'] = tf.reduce_max(bn_var).numpy()
+                dout_bn_m.loc[layer.name,'min'] = tf.reduce_min(bn_var).numpy()
+                dout_bn_m.loc[layer.name,'mean'] = tf.reduce_mean(bn_var).numpy()
+                dout_bn_m.loc[layer.name,'std'] = tf.math.reduce_std(bn_var).numpy()
+        #
+        print('\n bn - moving variance')
+        for layer in self.layers:
+            if isinstance(layer,lib_snn.layers.BatchNormalization):
+                bn_var = layer.moving_variance
+                print('{: <10} max {:.3e}, min {:.3e}, mean {:.3e}, sq {:.3e}'
+                      .format(layer.name,
+                              tf.reduce_max(bn_var),
+                              tf.reduce_min(bn_var),
+                              tf.reduce_mean(bn_var),
+                              tf.reduce_sum(tf.math.pow(bn_var,2))))
+                try:
+                    dout_bn_v
+                except NameError:
+                    dout_bn_v = pd.DataFrame(columns=['max','min','mean','std'])
+                dout_bn_v.loc[layer.name,'max'] = tf.reduce_max(bn_var).numpy()
+                dout_bn_v.loc[layer.name,'min'] = tf.reduce_min(bn_var).numpy()
+                dout_bn_v.loc[layer.name,'mean'] = tf.reduce_mean(bn_var).numpy()
+                dout_bn_v.loc[layer.name,'std'] = tf.math.reduce_std(bn_var).numpy()
+
+        #
+        print('\n bn - gamma')
+        for layer in self.layers:
+            if isinstance(layer,lib_snn.layers.BatchNormalization):
+                bn_var = layer.gamma
+                print('{: <10} max {:.3e}, min {:.3e}, mean {:.3e}, sq {:.3e}'
+                      .format(layer.name,
+                              tf.reduce_max(bn_var),
+                              tf.reduce_min(bn_var),
+                              tf.reduce_mean(bn_var),
+                              tf.reduce_sum(tf.math.pow(bn_var,2))))
+                try:
+                    dout_bn_g
+                except NameError:
+                    dout_bn_g = pd.DataFrame(columns=['max','min','mean','std'])
+                dout_bn_g.loc[layer.name,'max'] = tf.reduce_max(bn_var).numpy()
+                dout_bn_g.loc[layer.name,'min'] = tf.reduce_min(bn_var).numpy()
+                dout_bn_g.loc[layer.name,'mean'] = tf.reduce_mean(bn_var).numpy()
+                dout_bn_g.loc[layer.name,'std'] = tf.math.reduce_std(bn_var).numpy()
+
+        #
+        print('\n bn - beta')
+        for layer in self.layers:
+            if isinstance(layer,lib_snn.layers.BatchNormalization):
+                bn_var = layer.beta
+                print('{: <10} max {:.3e}, min {:.3e}, mean {:.3e}, sq {:.3e}'
+                      .format(layer.name,
+                              tf.reduce_max(bn_var),
+                              tf.reduce_min(bn_var),
+                              tf.reduce_mean(bn_var),
+                              tf.reduce_sum(tf.math.pow(bn_var,2))))
+                try:
+                    dout_bn_b
+                except NameError:
+                    dout_bn_b = pd.DataFrame(columns=['max','min','mean','std'])
+                dout_bn_b.loc[layer.name,'max'] = tf.reduce_max(bn_var).numpy()
+                dout_bn_b.loc[layer.name,'min'] = tf.reduce_min(bn_var).numpy()
+                dout_bn_b.loc[layer.name,'mean'] = tf.reduce_mean(bn_var).numpy()
+                dout_bn_b.loc[layer.name,'std'] = tf.math.reduce_std(bn_var).numpy()
+
+
+        if path_root is None:
+            path_root = 'snn_train_log'
+
+        os.makedirs(path_root,exist_ok=True)
+
+        prefix = 'tdbn_tf_ts-'+str(self.conf.time_step)
+        postfix = 'vth-'+str(self.conf.n_init_vth)+'.csv'
+
+        #
+        file_dout_ga='ga'
+        file_dout_sc='sc'
+        file_dout_vr='vr'
+        file_dout_k='k'
+        file_dout_b='b'
+        file_dout_bn_m='bn_m'
+        file_dout_bn_v='bn_v'
+        file_dout_bn_g='bn_g'
+        file_dout_bn_b='bn_b'
+
+        #
+        files = collections.OrderedDict()
+        files['dout_ga']=[dout_ga,file_dout_ga]
+        files['dout_sc']=[dout_sc,file_dout_sc]
+        files['dout_vr']=[dout_vr,file_dout_vr]
+        files['dout_k']=[dout_k,file_dout_k]
+        files['dout_b']=[dout_b,file_dout_b]
+        files['dout_bn_m']=[dout_bn_m,file_dout_bn_m]
+        files['dout_bn_v']=[dout_bn_v,file_dout_bn_v]
+        files['dout_bn_g']=[dout_bn_g,file_dout_bn_g]
+        files['dout_bn_b']=[dout_bn_b,file_dout_bn_b]
+
+        #
+        for key, [dout,file] in files.items():
+            f = prefix+'_'+file+'_'+postfix
+            f = os.path.join(path_root,f)
+            dout.to_csv(f)
 
 

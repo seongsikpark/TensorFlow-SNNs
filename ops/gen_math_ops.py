@@ -62,7 +62,13 @@ def mat_mul_dense(a, b, input_accum):
     """
     _ctx = _context._context or _context.context()
     tld = _ctx._thread_local_data
+
+    transpose_a = False
+    transpose_b = False
+    name = None
+
     if tld.is_eager:
+    #if False:
         #try:
         #    _result = pywrap_tfe.TFE_Py_FastPathExecute(
         #        _ctx, "MatMul", name, a, b, "transpose_a", transpose_a, "transpose_b",
@@ -72,46 +78,49 @@ def mat_mul_dense(a, b, input_accum):
         #    _ops.raise_from_not_ok_status(e, name)
         #except _core._FallbackException:
         #    pass
-        try:
-            return mat_mul_dense_eager_fallback(
+        #try:
+            #return mat_mul_dense_eager_fallback(
+                #a, b, input_accum=input_accum, transpose_a=False, transpose_b=False, name=None,
+                #ctx=_ctx)
+        #except _core._SymbolicException:
+            #pass  # Add nodes to the TensorFlow graph.
+
+        _result = mat_mul_dense_eager_fallback(
                 a, b, input_accum=input_accum, transpose_a=transpose_a, transpose_b=transpose_b, name=name,
                 ctx=_ctx)
-        except _core._SymbolicException:
-            pass  # Add nodes to the TensorFlow graph.
-    # Add nodes to the TensorFlow graph.
-    transpose_a=None
-    transpose_b=None
-    name=None
-    if transpose_a is None:
-        transpose_a = False
-    transpose_a = _execute.make_bool(transpose_a, "transpose_a")
-    if transpose_b is None:
-        transpose_b = False
-    transpose_b = _execute.make_bool(transpose_b, "transpose_b")
-    _, _, _op, _outputs = _op_def_library._apply_op_helper(
-        "MatMul", a=a, b=b, transpose_a=transpose_a, transpose_b=transpose_b,
-        name=name)
-    _result = _outputs[:]
+
+    else:
+        # Add nodes to the TensorFlow graph.
+
+        transpose_a = _execute.make_bool(transpose_a, "transpose_a")
+        transpose_b = _execute.make_bool(transpose_b, "transpose_b")
+        _, _, _op, _outputs = _op_def_library._apply_op_helper(
+            "MatMul", a=a, b=b, transpose_a=transpose_a, transpose_b=transpose_b,
+            name=name)
+        _result = _outputs[:]
+        _result, = _result
 
     def grad(upstream):
         '''
         from _MatMulGrad in math_grad.py
         '''
-        op = _op
+        #op = _op
         grad = upstream
-        try:
-            skip_input_indices = op.skip_input_indices
-            if skip_input_indices is not None:
-                if 1 in skip_input_indices:
-                    return math_grad._MatMulGradAgainstFirstOnly(op, grad)
-                elif 0 in skip_input_indices:
-                    return math_grad._MatMulGradAgainstSecondOnly(op, grad)
-        except AttributeError:
-            # No gradient skipping, so do the full gradient computation
-            pass
+        #try:
+        #    skip_input_indices = op.skip_input_indices
+        #    if skip_input_indices is not None:
+        #        if 1 in skip_input_indices:
+        #            return math_grad._MatMulGradAgainstFirstOnly(op, grad)
+        #        elif 0 in skip_input_indices:
+        #            return math_grad._MatMulGradAgainstSecondOnly(op, grad)
+        #except AttributeError:
+        #    # No gradient skipping, so do the full gradient computation
+        #    pass
 
-        t_a = op.get_attr("transpose_a")
-        t_b = op.get_attr("transpose_b")
+        #t_a = op.get_attr("transpose_a")
+        #t_b = op.get_attr("transpose_b")
+        t_a = transpose_a
+        t_b = transpose_b
         #a = math_ops.conj(op.inputs[0])
         #b = math_ops.conj(op.inputs[1])
         if not t_a and not t_b:
@@ -167,7 +176,6 @@ def mat_mul_dense(a, b, input_accum):
         #_execute.record_gradient("MatMul", _inputs_flat_grad, _attrs, _result)
         _execute.record_gradient("MatMulA", _inputs_flat_grad, _attrs, _result)
 
-    _result, = _result
     #return _result
     return _result, grad
 
