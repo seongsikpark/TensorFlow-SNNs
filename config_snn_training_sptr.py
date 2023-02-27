@@ -371,10 +371,10 @@ tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-4, 'lambda') # SNN
 #tf.compat.v1.app.flags.DEFINE_float('lmb',1.0E-4, 'lambda')
 
 #
-tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',None,'gradient clip norm')
+#tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',None,'gradient clip norm')
 #tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',1.0,'gradient clip norm')
 #tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',2.0,'gradient clip norm')
-#tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',5.0,'gradient clip norm')
+tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',5.0,'gradient clip norm')
 
 # data preprocessing
 # default - default (e.g., standardization) depending on each dataset
@@ -461,8 +461,8 @@ tf.compat.v1.app.flags.DEFINE_integer('num_test_data', 100, 'number of test data
 #tf.compat.v1.app.flags.DEFINE_string('n_type', 'IF', 'LIF or IF: neuron type')
 tf.compat.v1.app.flags.DEFINE_string('n_type', 'LIF', 'LIF or IF: neuron type')
 
-tf.compat.v1.app.flags.DEFINE_enum('n_reset_type','reset_by_sub', ['reset_by_sub', 'reset_to_zero'], 'neuron reset type')
-#tf.compat.v1.app.flags.DEFINE_enum('n_reset_type','reset_to_zero', ['reset_by_sub', 'reset_to_zero'], 'neuron reset type')
+#tf.compat.v1.app.flags.DEFINE_enum('n_reset_type','reset_by_sub', ['reset_by_sub', 'reset_to_zero'], 'neuron reset type')
+tf.compat.v1.app.flags.DEFINE_enum('n_reset_type','reset_to_zero', ['reset_by_sub', 'reset_to_zero'], 'neuron reset type')
 
 
 tf.compat.v1.app.flags.DEFINE_bool('f_positive_vmem',False,'positive vmem')
@@ -476,8 +476,8 @@ tf.compat.v1.app.flags.DEFINE_string('input_spike_mode','REAL','input spike mode
 tf.compat.v1.app.flags.DEFINE_string('neural_coding','RATE','neural coding - RATE, WEIGHTED_SPIKE, PROPOSED')
 
 #
-#tf.compat.v1.app.flags.DEFINE_bool('binary_spike', True, 'binary spike activation, if false - vth activation')
-tf.compat.v1.app.flags.DEFINE_bool('binary_spike', False, 'binary spike activation, if false - vth activation')
+tf.compat.v1.app.flags.DEFINE_bool('binary_spike', True, 'binary spike activation, if false - vth activation')
+#tf.compat.v1.app.flags.DEFINE_bool('binary_spike', False, 'binary spike activation, if false - vth activation')
 
 #
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 20.0, 'initial value of vth')
@@ -487,11 +487,11 @@ tf.compat.v1.app.flags.DEFINE_bool('binary_spike', False, 'binary spike activati
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 4.0, 'initial value of vth')
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 3.0, 'initial value of vth')
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 2.0, 'initial value of vth')
-tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 1.0, 'initial value of vth')
+#tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 1.0, 'initial value of vth')
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.9, 'initial value of vth')
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.7, 'initial value of vth')
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.6, 'initial value of vth')
-#tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.5, 'initial value of vth')
+tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.5, 'initial value of vth')
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.4, 'initial value of vth')
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.3, 'initial value of vth')
 #tf.compat.v1.app.flags.DEFINE_float('n_init_vth', 0.2, 'initial value of vth')
@@ -607,11 +607,11 @@ tf.compat.v1.app.flags.DEFINE_bool('snn_training_spatial_first',True,'SNN traini
 ####
 # sptr
 ####
-tf.compat.v1.app.flags.DEFINE_bool('sptr',False,'spatio-backprop, temporal-realtime learning')
-#tf.compat.v1.app.flags.DEFINE_bool('sptr',True,'spatio-backprop, temporal-realtime learning')
+#tf.compat.v1.app.flags.DEFINE_bool('sptr',False,'spatio-backprop, temporal-realtime learning')
+tf.compat.v1.app.flags.DEFINE_bool('sptr',True,'spatio-backprop, temporal-realtime learning')
 
 
-tf.compat.v1.app.flags.DEFINE_float('sptr_decay',0.9,'sptr decay const')
+tf.compat.v1.app.flags.DEFINE_float('sptr_decay',0.1,'sptr decay const')
 
 ####
 

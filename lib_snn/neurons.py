@@ -118,7 +118,14 @@ class Neuron(tf.keras.layers.Layer):
             init_vth = self.conf.n_init_vth
 
         #self.vth_init = self.add_variable("vth_init" ,shape=self.dim ,dtype=tf.float32 ,initializer=tf.constant_initializer(init_vth) ,trainable=False)
-        self.vth_init = tf.constant(init_vth,shape=self.dim,dtype=tf.float32, name='vth_init')
+        #self.vth_init = tf.constant(init_vth,shape=self.dim,dtype=tf.float32, name='vth_init')
+        #vth_rand_static=True
+        vth_rand_static=False
+        if vth_rand_static:
+            #self.vth_init = tf.random.uniform(shape=self.dim,minval=0.1,maxval=1.0,dtype=tf.float32,name='vth_init')
+            self.vth_init = tf.random.normal(shape=self.dim,mean=self.conf.n_init_vth,stddev=0.1,name='vth_init')
+        else:
+            self.vth_init = tf.constant(init_vth, shape=self.dim, dtype=tf.float32, name='vth_init')
 
         # self.vth_init = tfe.Variable(init_vth)
         self.vth = tf.Variable(initial_value=tf.constant(init_vth,dtype=tf.float32,shape=self.dim), trainable=False, name="vth")
@@ -129,6 +136,9 @@ class Neuron(tf.keras.layers.Layer):
         # old version
         #self.vmem = tf.Variable(initial_value=tf.constant(self.conf.n_init_vinit,dtype=tf.float32,shape=self.dim), trainable=False,name='vmem')
         self.vmem = None
+
+        #
+        self.vrest = tf.random.normal(shape=self.vth.shape,mean=0.0,stddev=0.1)
 
         # self.vmem = tf.Variable("vmem",shape=self.dim,dtype=tf.float32,initial_value=tf.constant(self.conf.n_init_vinit),trainable=False)
         # self.vmem = tf.Variable(shape=self.dim,dtype=tf.float32,initial_value=tf.constant(self.conf.n_init_vinit,shape=self.dim),trainable=False,name='vmem')
@@ -505,6 +515,17 @@ class Neuron(tf.keras.layers.Layer):
 
 
         # update vmem
+
+        #
+        # vth adjust - forward-forward?
+        # vmem
+        #self.vth.assign(tf.where(self.vmem.read(t-1) < self.vth*0.5,
+        #                         self.vth*0.9, self.vth*1.1))
+        # fire
+        #self.vth.assign(tf.where(self.f_fire, self.vth*1.1, self.vth*0.9))
+        #self.vth.assign(tf.where(self.f_fire, self.vth*1.1, self.vth/1.1))
+        vth_step_scale = 1.2
+        self.vth.assign(tf.where(self.f_fire, self.vth*vth_step_scale, self.vth/vth_step_scale))
 
 
         #return out_ret, grad
@@ -1232,10 +1253,41 @@ class Neuron(tf.keras.layers.Layer):
                 #vmem=tf.where(f_fire,tf.constant(self.conf.n_init_vrest,tf.float32,vmem.shape),vmem)
                 #self.vmem.assign(tf.where(self.f_fire,tf.constant(self.conf.n_init_vrest,tf.float32,self.vmem.shape),self.vmem))
 
-                vmem = tf.where(tf.equal(spike, tf.zeros(shape=spike.shape)),
-                                vmem,
-                                tf.constant(self.conf.n_init_vrest, tf.float32,
-                                            vmem.shape))
+                f_reset_to_zero_custom_g = True
+
+                if f_reset_to_zero_custom_g:
+
+                    @tf.custom_gradient
+                    def func_reset_to_zero(vmem, spike):
+
+                        f_no_spike = tf.equal(spike,
+                                              tf.zeros(shape=spike.shape))
+
+                        #vrest = -(1.0-self.vth)*0.2
+                        #vrest = tf.random.normal(shape=self.dim, mean=-0.0, stddev=0.1)
+                        #vrest = tf.constant(-0.2,shape=self.vth.shape)
+                        vrest = self.vrest
+                        vmem_ret = tf.where(f_no_spike,vmem,vrest)
+
+                        def grad(upstream):
+                            #dvmem = tf.where(f_no_spike, tf.zeros(shape=spike.shape), -vmem)
+                            dvmem = tf.where(f_no_spike, tf.zeros(shape=spike.shape), -(vmem-vrest))
+                            #dvmem = tf.where(f_no_spike, tf.zeros(shape=spike.shape), -self.vth)
+                            #dvmem = tf.where(f_no_spike, tf.ones(shape=spike.shape), -vmem)
+                            #dvmem = tf.where(f_no_spike, tf.ones(shape=spike.shape), -self.vth)
+                            dvmem = upstream * dvmem
+
+                            dspike = tf.zeros(shape=spike.shape)
+                            return dvmem, dspike
+
+                        return vmem_ret, grad
+                    vmem = func_reset_to_zero(vmem, spike)
+
+                else:
+                    vmem = tf.where(tf.equal(spike, tf.zeros(shape=spike.shape)),
+                                    vmem,
+                                    tf.constant(self.conf.n_init_vrest, tf.float32,
+                                                vmem.shape))
                 #vmem = tf.where(spike==0,vmem,tf.constant(self.conf.n_init_vrest,tf.float32,vmem.shape))
                 #vmem = tf.cond(spike==0,
                 #vmem = tf.cond(tf.equal(spike,tf.zeros(shape=spike.shape)),

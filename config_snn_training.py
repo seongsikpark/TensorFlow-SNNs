@@ -380,8 +380,8 @@ tf.compat.v1.app.flags.DEFINE_float('grad_clipnorm',1.0,'gradient clip norm')
 # max_norm - div by max value of dataset
 # max_norm_d - div by max value of batch
 # max_norm_d_c - div by max value of batch - channel-wise
-#tf.compat.v1.app.flags.DEFINE_enum('data_prep', 'default', ['default', 'max_norm', 'max_norm_d', 'max_mord_d_c'], 'data preprocessing')
-tf.compat.v1.app.flags.DEFINE_enum('data_prep', 'max_norm', ['default', 'max_norm', 'max_norm_d', 'max_norm_d_c'], 'data preprocessing')
+tf.compat.v1.app.flags.DEFINE_enum('data_prep', 'default', ['default', 'max_norm', 'max_norm_d', 'max_mord_d_c'], 'data preprocessing')
+#tf.compat.v1.app.flags.DEFINE_enum('data_prep', 'max_norm', ['default', 'max_norm', 'max_norm_d', 'max_norm_d_c'], 'data preprocessing')
 
 # data augmentation
 #tf.compat.v1.app.flags.DEFINE_enum('data_aug_mix', 'None', ['mixup', 'cutmix', 'None'], 'data augmentation - mixup')
@@ -470,8 +470,8 @@ tf.compat.v1.app.flags.DEFINE_bool('f_positive_vmem',False,'positive vmem')
 tf.compat.v1.app.flags.DEFINE_bool('f_neg_cap_vmem',False,'negative capped vmem')
 #tf.compat.v1.app.flags.DEFINE_bool('f_neg_cap_vmem',True,'negative capped vmem')
 
-#tf.compat.v1.app.flags.DEFINE_string('input_spike_mode','REAL','input spike mode - REAL, POISSON, WEIGHTED_SPIKE, others...')
-tf.compat.v1.app.flags.DEFINE_string('input_spike_mode','POISSON','input spike mode - REAL, POISSON, WEIGHTED_SPIKE, others...')
+tf.compat.v1.app.flags.DEFINE_string('input_spike_mode','REAL','input spike mode - REAL, POISSON, WEIGHTED_SPIKE, others...')
+#tf.compat.v1.app.flags.DEFINE_string('input_spike_mode','POISSON','input spike mode - REAL, POISSON, WEIGHTED_SPIKE, others...')
 tf.compat.v1.app.flags.DEFINE_string('neural_coding','RATE','neural coding - RATE, WEIGHTED_SPIKE, PROPOSED')
 
 #
@@ -515,9 +515,9 @@ tf.compat.v1.app.flags.DEFINE_enum('snn_output_type',"VMEM", ["SPIKE", "VMEM", "
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 32, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 20, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 16, 'time steps per sample in SNN')
-tf.compat.v1.app.flags.DEFINE_integer('time_step', 8, 'time steps per sample in SNN')
+#tf.compat.v1.app.flags.DEFINE_integer('time_step', 8, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 6, 'time steps per sample in SNN')
-#tf.compat.v1.app.flags.DEFINE_integer('time_step', 4, 'time steps per sample in SNN')
+tf.compat.v1.app.flags.DEFINE_integer('time_step', 4, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 2, 'time steps per sample in SNN')
 #tf.compat.v1.app.flags.DEFINE_integer('time_step', 1, 'time steps per sample in SNN')
 
