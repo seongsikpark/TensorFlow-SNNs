@@ -1,6 +1,7 @@
 
 import tensorflow as tf
 
+import lib_snn
 import datasets
 
 from models.imagenet_input_preprocessor import preprocessor_input_imagenet
@@ -8,7 +9,8 @@ from models.imagenet_input_preprocessor import preprocessor_input_imagenet
 
 preprocess_input_others = tf.keras.applications.imagenet_utils.preprocess_input
 
-def load(model_name,dataset_name,batch_size,input_size,train_type,train,conf,num_parallel_call):
+#def load(model_name,dataset_name,batch_size,input_size,train_type,train,conf,num_parallel_call):
+def load(model_name,dataset_name,batch_size,train_type,train,conf,num_parallel_call):
 
     dataset_sel = {
         #'ImageNet': datasets.imagenet,
@@ -63,9 +65,13 @@ def load(model_name,dataset_name,batch_size,input_size,train_type,train,conf,num
 
         preprocessor_input = preprocess_input_others
 
+        input_size = lib_snn.utils_vis.image_shape_vis(model_name,dataset_name)[0]
+
 
     train_ds, valid_ds, test_ds, train_ds_num, valid_ds_num, test_ds_num = dataset.load(dataset_name,
                                                batch_size,input_size, input_size_pre_crop_ratio, num_class, train,
                                                num_parallel_call, conf, input_prec_mode, preprocessor_input)
 
-    return train_ds, valid_ds, test_ds, train_ds_num, valid_ds_num, test_ds_num, num_class
+    train_steps_per_epoch = train_ds.cardinality().numpy()
+
+    return train_ds, valid_ds, test_ds, train_ds_num, valid_ds_num, test_ds_num, num_class, train_steps_per_epoch

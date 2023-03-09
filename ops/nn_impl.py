@@ -48,7 +48,10 @@ import matplotlib.pyplot as plt
 #import lib_snn
 #from lib_snn.sim import glb_plot_gradient_bn
 
-from config import conf
+#from config import conf
+#from config_common import conf
+from absl import flags
+conf = flags.FLAGS
 
 
 # @tf_export("nn.batch_normalization")

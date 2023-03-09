@@ -55,7 +55,10 @@ def VGG16(
 
     #
     initial_channels = kwargs.pop('initial_channels', None)
-    assert initial_channels is not None
+    #assert initial_channels is not None
+    if initial_channels is None:
+        initial_channels = 64
+
 
     #
     use_bn_feat = conf.use_bn
@@ -95,13 +98,14 @@ def VGG16(
 
 
     #
-    tdbn_first_layer = conf.mode=='train' and conf.nn_mode=='SNN' and conf.input_spike_mode=='POISSON' and conf.tdbn
-    tdbn = conf.mode=='train' and conf.nn_mode=='SNN' and conf.tdbn
+    tdbn_first_layer = conf.nn_mode=='SNN' and conf.input_spike_mode=='POISSON' and conf.tdbn
+    tdbn = conf.nn_mode=='SNN' and conf.tdbn
 
     #
 
     if False:
         img_input = tf.keras.layers.Input(shape=input_shape, batch_size=batch_size)
+        img_input = tf.keras.layers.Input(shape=input_shape)
 
         x = lib_snn.layers.InputGenLayer(name='in')(img_input)
         if conf.nn_mode=='SNN':

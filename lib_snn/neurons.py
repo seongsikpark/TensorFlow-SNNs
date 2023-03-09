@@ -64,7 +64,10 @@ class Neuron(tf.keras.layers.Layer):
 
         self.leak_const_init = tf.constant(leak_const,dtype=tf.float32,shape=self.dim,name='leak_const_init')
         #self.leak_const = tf.Variable(self.leak_const_init,dtype=tf.float32,shape=self.dim,name='leak_const')
-        self.leak_const = tf.Variable(self.leak_const_init,trainable=False,dtype=tf.float32,shape=self.dim,name='leak_const')
+        #self.leak_const = tf.Variable(self.leak_const_init,trainable=False,dtype=tf.float32,shape=self.dim,name='leak_const')
+        #self.leak_const = tf.Variable(tf.constant(leak_const,shape=(100,)+self.dim[1:]),trainable=False,dtype=tf.float32,name='leak_const')
+        self.leak_const = tf.Variable(tf.constant(leak_const,shape=self.dim),trainable=False,dtype=tf.float32,name='leak_const')
+        #self.leak_const = tf.constant(self.leak_const_init,dtype=tf.float32,shape=self.dim,name='leak_const')
 
 
         # vth scheduling
@@ -432,6 +435,7 @@ class Neuron(tf.keras.layers.Layer):
 
         #
         #vmem = self.vmem
+
         if t-1==0:
             vmem_prev_t = tf.zeros(shape=self.dim,dtype=tf.float32)
         else:
@@ -506,6 +510,11 @@ class Neuron(tf.keras.layers.Layer):
 
         # update vmem
 
+        #
+        # vth adjust - forward-forward?
+        self.vth.assign(tf.where(self.vmem.read(t-1) < self.vth*0.5,
+                 self.vth*0.9,
+                 self.vth*1.1))
 
         #return out_ret, grad
         return out_ret
@@ -635,6 +644,7 @@ class Neuron(tf.keras.layers.Layer):
     #
     def reset_leak_const(self):
         self.leak_const.assign(self.leak_const_init)
+        #self.leak_const= self.leak_const_init
 
     #
     def reset_snn_direct_training(self):
@@ -675,10 +685,11 @@ class Neuron(tf.keras.layers.Layer):
     #
     def set_leak_const(self,leak_const):
         self.leak_const.assign(leak_const)
+        #self.leak_const= tf.constant(leak_const,dtype=tf.float32,shape=self.dim,name='leak_const_init')
 
     #
     def set_leak_time_dep(self, t):
-
+        #assert False, 'resolve leak_const.assign'
         alpha = 0.99
         #alpha = 0.90
         #if t < 40: # 256 96.32
@@ -1155,6 +1166,29 @@ class Neuron(tf.keras.layers.Layer):
         #return spike
         return spike, grad
 
+    @tf.custom_gradient
+    def func_reset_to_zero(self, vmem, spike):
+
+        f_no_spike = tf.equal(spike,
+                              tf.zeros(shape=spike.shape))
+
+        vmem_ret = tf.where(f_no_spike,
+                            vmem,
+                            tf.constant(self.conf.n_init_vrest,
+                                        tf.float32, vmem.shape))
+
+        def grad(upstream):
+            dvmem = tf.where(f_no_spike, tf.zeros(shape=spike.shape), -vmem)
+            #dvmem = tf.where(f_no_spike, tf.zeros(shape=spike.shape), -self.vth)
+            # dvmem = tf.where(f_no_spike, tf.ones(shape=spike.shape), -vmem)
+            dvmem = upstream * dvmem
+            #dvmem = upstream
+            #dspike = tf.stop_gradient(spike)
+            dspike = tf.zeros(shape=spike.shape)
+            return dvmem, dspike
+
+        return vmem_ret, grad
+
     #
     def fire_rate(self, vmem, t):
         # self.f_fire = self.vmem >= self.vth
@@ -1205,7 +1239,11 @@ class Neuron(tf.keras.layers.Layer):
                 #self.vmem.assign(tf.where(self.f_fire, tf.subtract(self.vmem,vth),self.vmem))    # subtract by vth or others?
                 #self.vmem.assign(tf.where(self.f_fire, tf.subtract(self.vmem,self.out),self.vmem))    # subtract by vth or others?
                 #vmem = tf.where(f_fire, tf.subtract(vmem,out),vmem)    # subtract by vth or others?
-                vmem = tf.subtract(vmem,spike)
+                if self.conf.binary_spike:
+                    vmem = tf.subtract(vmem,spike*self.vth)
+                else:
+                    vmem = tf.subtract(vmem,spike)
+
 
             # reset to zero
             elif self.conf.n_reset_type=='reset_to_zero':
@@ -1213,15 +1251,7 @@ class Neuron(tf.keras.layers.Layer):
                 #vmem=tf.where(f_fire,tf.constant(self.conf.n_init_vrest,tf.float32,vmem.shape),vmem)
                 #self.vmem.assign(tf.where(self.f_fire,tf.constant(self.conf.n_init_vrest,tf.float32,self.vmem.shape),self.vmem))
 
-                vmem = tf.where(tf.equal(spike, tf.zeros(shape=spike.shape)),
-                                vmem,
-                                tf.constant(self.conf.n_init_vrest, tf.float32,
-                                            vmem.shape))
-                #vmem = tf.where(spike==0,vmem,tf.constant(self.conf.n_init_vrest,tf.float32,vmem.shape))
-                #vmem = tf.cond(spike==0,
-                #vmem = tf.cond(tf.equal(spike,tf.zeros(shape=spike.shape)),
-                #               lambda: vmem,
-                #               lambda: tf.constant(self.conf.n_init_vrest,tf.float32,vmem.shape))
+                vmem = self.func_reset_to_zero(vmem, spike)
             else:
                 assert False
 
@@ -1673,17 +1703,6 @@ class Neuron(tf.keras.layers.Layer):
         #return self.spike_count
 
     # IF / LIF
-    def run_type_hid_old(self, inputs, t, training):
-        assert False
-        self.integration(inputs, t)
-        if self.n_type=='LIF':
-            self.leak(t)
-        self.fire(t)
-
-        self.count_spike(t)
-
-        return self.out
-
     def run_type_hid(self, inputs, vmem, t, training):
 
         vmem_integ = self.integration(inputs, vmem, t)

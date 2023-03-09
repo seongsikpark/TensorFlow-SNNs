@@ -991,12 +991,12 @@ with dist_strategy.scope():
     else:
         print('Test mode')
 
-        model.evaluate(test_ds,callbacks=callbacks_test)
+        #
+        #dnn_snn_compare=True
+        #dnn_snn_compare=False
 
-        assert False
         compare_control_snn = False
         #compare_control_snn = True
-
 
         act_based_calibration = conf.calibration_bias_ICML_21 or conf.calibration_vmem_ICML_21 or conf.calibration_weight_act_based
         #if (conf.nn_mode=='SNN') and (dnn_snn_compare or conf.calibration_bias_ICML_21 or conf.calibration_vmem_ICML_21) :

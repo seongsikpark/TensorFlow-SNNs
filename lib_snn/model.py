@@ -19,8 +19,8 @@ import keras
 #
 
 #
-from absl import flags
-flags = flags.FLAGS
+#from absl import flags
+#flags = flags.FLAGS
 
 #
 from tqdm import tqdm
@@ -40,6 +40,11 @@ from lib_snn.sim import glb_t
 #from lib_snn.sim import glb_plot_gradient_kernel
 #from lib_snn.sim import glb_plot_gradient_gamma
 #from lib_snn.sim import glb_plot_gradient_beta
+
+#from config import conf
+#from config_common import conf
+from absl import flags
+conf=flags.FLAGS
 
 class Model(tf.keras.Model):
     count=0
@@ -185,7 +190,9 @@ class Model(tf.keras.Model):
 
         # training mode
         #self.en_training = self.conf.training_mode
-        self.en_train = self.conf.en_train
+        #self.en_train = self.conf.en_train
+        self.en_train = ('train' in self.conf.mode)
+
 
         # SNN mode
         #Model.en_snn = (self.conf.nn_mode == 'SNN' or self.conf.f_validation_snn)
@@ -197,7 +204,7 @@ class Model(tf.keras.Model):
         self.en_write_stat = (self.nn_mode=='ANN' and self.conf.f_write_stat)
 
         # SNN, temporal coding, time const. training after DNN-to-SNN conversion (T2FSNN + GO)
-        self.en_opt_time_const_T2FSNN = (self.nn_mode=='SNN' and not self.conf.en_train \
+        self.en_opt_time_const_T2FSNN = (self.nn_mode=='SNN' and not self.en_train \
                                          and self.conf.neural_coding=='TEMPORAL' and self.conf.f_train_tk)
 
         # comparison activation - ANN vs. SNN
@@ -217,7 +224,7 @@ class Model(tf.keras.Model):
 
         # debugging
         #if self.f_debug_visual:
-        if flags._run_for_visual_debug:
+        if conf._run_for_visual_debug:
             #self.debug_visual_threads = []
             self.debug_visual_axes = []
             self.debug_visual_list_neuron = collections.OrderedDict()
@@ -421,7 +428,7 @@ class Model(tf.keras.Model):
                 ret_val = self.call_ann_surrogate_training(inputs,False,self.conf.time_step,epoch)
 
             # validation on SNN
-            if self.conf.en_train and self.conf.f_validation_snn:
+            if self.en_train and self.conf.f_validation_snn:
                 ret_val = self.call_snn(inputs,False,1,0)
 
             #ret_val = self.run_mode_load_model[self.conf.nn_mode](inputs,training,self.conf.time_step,epoch)
@@ -507,6 +514,7 @@ class Model(tf.keras.Model):
 
                 ret = layer_out
 
+            assert False
         #else:   # temporal first - new
         #elif False:
         elif True:
@@ -523,16 +531,13 @@ class Model(tf.keras.Model):
 #                inputs_e=inputs_e.write(t_in_write-1,inputs)
 
             #
-            y_pred = self._run_internal_graph(inputs, training=training, mask=mask)
+            y_pred = self._run_internal_graph_snn_t_first(inputs, training=training, mask=mask)
 
             #ret = y_pred[-1]
             #ret = y_pred.read(self.conf.time_step-1)
             ret = y_pred
 
             #
-
-
-
 
 
         else:   # temporal first - old
@@ -685,7 +690,7 @@ class Model(tf.keras.Model):
 
         # plot control
         #f_plot = (self.conf.verbose_visual) and (not self.conf.full_test) and (glb.model_compiled) and (self.conf.debug_mode and self.conf.nn_mode == 'SNN')
-        f_plot = (flags._run_for_visual_debug) and (not self.conf.full_test) and (glb.model_compiled) and (self.conf.debug_mode and self.nn_mode == 'SNN')
+        f_plot = (conf._run_for_visual_debug) and (not self.conf.full_test) and (glb.model_compiled) and (self.conf.debug_mode and self.nn_mode == 'SNN')
         #f_plot = f_plot and (self.conf.num_test_data==1)
 
         # tf.expand_dims(self.bias_ctrl_sub,axis=(1,2))
@@ -1448,7 +1453,7 @@ class Model(tf.keras.Model):
 
     # this function is based on Model.test_step in training.py
     # TODO: override Model.test_step
-    def test_step_a(self, data):
+    def test_step(self, data):
 
         ret = {
             'ANN': self.test_step_ann,
@@ -2037,7 +2042,12 @@ class Model(tf.keras.Model):
         losses = self.loss_metrics[self.count_accuracy_time_point]
 
         losses.reset_state()
-        loss = losses(self.y, y_pred, self.sample_weight, regularization_losses=self.losses)
+
+        # TODO: modify
+        if conf.snn_training_spatial_first:
+            loss = losses(self.y, y_pred, self.sample_weight, regularization_losses=self.losses,reduction=tf.keras.losses.Reduction.NONE)
+        else:
+            loss = None
 
         #if False:
         metrics=self.accuracy_metrics[self.count_accuracy_time_point]
@@ -2056,7 +2066,7 @@ class Model(tf.keras.Model):
 
         #print(loss)
 
-        if tf.math.is_nan(loss):
+        if (loss is None) or tf.math.is_nan(loss) :
 
             #for metric in self.compiled_loss.metrics:
             #    metric.reset_state()
@@ -2083,6 +2093,7 @@ class Model(tf.keras.Model):
                 return_metrics[metric.name] = result
 
         self.accuracy_results[self.count_accuracy_time_point]=return_metrics
+
 
 
         # spike count - layer wise
@@ -2114,6 +2125,110 @@ class Model(tf.keras.Model):
                 self.total_residual_vmem[layer_name],
                 [[self.count_accuracy_time_point]],
                 [tf.reduce_sum(self.get_layer(layer_name).act_snn.vmem)])
+
+        #
+        self.count_accuracy_time_point+=1
+
+
+    def record_acc_spike_time_point_v2(self,inputs,outputs):
+        #print('record_acc_spike_time_point')
+
+        y_pred=outputs
+        # accuracy
+        # Updates stateful loss metrics.
+
+        #self.compiled_metrics.update_state(self.y, y_pred, self.sample_weight)
+        #self.compiled_metrics.update_state(self.y, y_pred, self.sample_weight)
+
+        #loss=self.compiled_loss(self.y, y_pred, self.sample_weight, regularization_losses=self.losses)
+
+        # TODO: fix code for v2
+        if False:
+            losses = self.loss_metrics[self.count_accuracy_time_point]
+
+            losses.reset_state()
+
+            # TODO: modify
+            if conf.snn_training_spatial_first:
+                loss = losses(self.y, y_pred, self.sample_weight, regularization_losses=self.losses,reduction=tf.keras.losses.Reduction.NONE)
+            else:
+                loss = None
+
+            #if False:
+            metrics=self.accuracy_metrics[self.count_accuracy_time_point]
+            metrics.update_state(self.y, y_pred, self.sample_weight)
+
+            ## update loss
+            #metrics[0](self.y, y_pred, self.sample_weight, regularization_losses=self.losses)
+            #metrics[1:].update_state(self.y, y_pred, self.sample_weight)
+            # Collect metrics to return
+
+            #print(metrics)
+
+            #print(self.compiled_loss.metrics)
+            #print(loss)
+            #assert False
+
+            #print(loss)
+
+            if (loss is None) or tf.math.is_nan(loss) :
+
+                #for metric in self.compiled_loss.metrics:
+                #    metric.reset_state()
+
+                #self.loss_metrics[self.count_accuracy_time_point].reset_state()
+                losses.reset_state()
+
+                loss_metrics = metrics.metrics
+            else:
+                loss_metrics = losses.metrics + metrics.metrics
+
+        else:
+
+            losses = self.loss_metrics[self.count_accuracy_time_point]
+            metrics=self.accuracy_metrics[self.count_accuracy_time_point]
+            metrics.update_state(self.y, y_pred, self.sample_weight)
+
+            loss_metrics = metrics.metrics
+
+
+        #assert False
+        #self.reset_metrics()
+        return_metrics = {}
+        #metrics = self.accuracy_time_point[self.count_accuracy_time_point]
+        #for metric in metrics:
+        #for metric in metrics.metrics:
+        #for metric in self.metrics:
+        for metric in loss_metrics:
+            result = metric.result()
+            if isinstance(result, dict):
+                return_metrics.update(result)
+            else:
+                return_metrics[metric.name] = result
+
+        self.accuracy_results[self.count_accuracy_time_point]=return_metrics
+
+
+
+        for layer in self.layers:
+            if isinstance(layer, lib_snn.activations.Activation):
+                #print(layer.name)
+                act = layer.act
+                if isinstance(act, lib_snn.neurons.Neuron):
+                    self.total_spike_count_int[layer.name] = tf.tensor_scatter_nd_update(
+                        self.total_spike_count_int[layer.name],
+                        [[self.count_accuracy_time_point]],
+                        [tf.reduce_sum(layer.act.spike_count_int)])
+
+                    self.total_spike_count[layer.name] = tf.tensor_scatter_nd_update(
+                        self.total_spike_count[layer.name],
+                        [[self.count_accuracy_time_point]],
+                        [tf.reduce_sum(layer.act.spike_count)])
+
+                    self.total_residual_vmem[layer.name] = tf.tensor_scatter_nd_update(
+                        self.total_residual_vmem[layer.name],
+                        [[self.count_accuracy_time_point]],
+                        [tf.reduce_sum(layer.act.vmem.read(layer.act.vmem.size()-1))])
 
 
         #
@@ -2803,7 +2918,7 @@ class Model(tf.keras.Model):
 
         # raster plot
         #if self.f_debug_visual:
-        if flags._run_for_visual_debug:
+        if conf._run_for_visual_debug:
             lib_snn.util.debug_visual_raster(self,self.t)
 
         # compare activation - DNN vs. SNN
@@ -3097,7 +3212,7 @@ class Model(tf.keras.Model):
     # override _run_internal_graph() function based on keras.engine.functional.py
     ###########################################################
 
-    def _run_internal_graph(self, inputs, training=None, mask=None):
+    def _run_internal_graph_snn_t_first(self, inputs, training=None, mask=None):
         """Computes output tensors for new inputs.
 
         # Note:
@@ -3237,8 +3352,12 @@ class Model(tf.keras.Model):
 
                 output_tensors.append(tensor_dict[x_id].pop().read(self.conf.time_step-1))
 
-            return tf.nest.pack_sequence_as(self._nested_outputs, output_tensors)
+            ret = tf.nest.pack_sequence_as(self._nested_outputs, output_tensors)
 
+            # tmp for xai
+            #self.record_acc_spike_time_point_v2(inputs,ret)
+
+            return ret
 
         else:
             for depth in depth_keys:

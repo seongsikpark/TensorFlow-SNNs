@@ -28,7 +28,10 @@ from scipy.stats import norm
 #import matplotlib.mlab as mlab
 
 #
-from config import conf
+#from config import conf
+#from config_common import conf
+from absl import flags
+conf = flags.FLAGS
 
 #
 from lib_snn import config_glb
@@ -963,6 +966,55 @@ def get_total_spike_amp(self):
 
 
 ##############################################################
+# set GPU
+#############################################################
+def set_gpu():
+    # logging - ignore warning
+    #tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+
+    # distribute strategy
+    devices = tf.config.list_physical_devices('GPU')
+    if len(devices)==1:
+        dist_strategy = tf.distribute.OneDeviceStrategy(device='/gpu:0')
+    else:
+        devices = ['/gpu:{}'.format(i) for i in range(len(devices))]
+        dist_strategy = tf.distribute.MirroredStrategy(devices=devices)
+    #dist_strategy = tf.distribute.MirroredStrategy(devices=['/gpu:0', '/gpu:1'])
+    #dist_strategy = tf.distribute.OneDeviceStrategy(device='/gpu:0')
+
+
+    #
+    GPU_PARALLEL_RUN = 1
+    #GPU_PARALLEL_RUN = 2
+    #GPU_PARALLEL_RUN = 3
+
+    #
+    if GPU_PARALLEL_RUN == 1:
+        gpu_mem = -1
+        NUM_PARALLEL_CALL = 15
+    elif GPU_PARALLEL_RUN == 2:
+        gpu_mem = 10240
+        NUM_PARALLEL_CALL = 7
+    elif GPU_PARALLEL_RUN == 3:
+        gpu_mem = 6144
+        NUM_PARALLEL_CALL = 5
+    else:
+        assert False
+
+    # GPU mem usage
+    if gpu_mem != -1:
+        gpu = tf.config.experimental.list_physical_devices('GPU')
+        if gpu:
+            try:
+                tf.config.experimental.set_virtual_device_configuration(
+                    gpu[0],
+                    [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=gpu_mem)])
+            except RuntimeError as e:
+                print(e)
+
+    return dist_strategy
+
+##############################################################
 # set file path
 ##############################################################
 def set_file_path(batch_size):
@@ -990,9 +1042,9 @@ def set_file_path(batch_size):
 
     root_model_save = conf.root_model_save
 
-    if conf.nn_mode=='SNN':
-        root_model_load = os.path.join(root_model_load,'SNN')
-        root_model_save = os.path.join(root_model_save,'SNN')
+    #if conf.nn_mode=='SNN':
+    #    root_model_load = os.path.join(root_model_load,'SNN')
+    #    root_model_save = os.path.join(root_model_save,'SNN')
 
     # file_name='checkpoint-epoch-{}-batch-{}.h5'.format(epoch,batch_size)
     # config_name='ep-{epoch:04d}_bat-{}_lmb-{:.1E}'.format(batch_size,lmb)

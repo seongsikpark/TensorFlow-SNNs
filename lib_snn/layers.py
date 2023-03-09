@@ -30,7 +30,10 @@ from lib_snn.sim import glb
 
 #from main_hp_tune import conf
 
-from config import conf
+#from config import conf
+#from config_common import conf
+from absl import flags
+conf = flags.FLAGS
 
 from keras.engine.input_spec import InputSpec
 
@@ -852,6 +855,9 @@ class Layer():
         self._bn_fusion(self.bn)
         self.f_skip_bn = True
 
+    # v2
+    def bn_fusion_v2(self,bn_layer):
+        self._bn_fusion(bn_layer)
 
     def bn_defusion(self):
 
@@ -884,6 +890,11 @@ class Layer():
         self.bias = ((self.bias - mean) * inv + beta)
         #self.bias = self.bias*2
         #assert False
+
+
+
+
+
 
 #
 def _bn_defusion(layer, bn):

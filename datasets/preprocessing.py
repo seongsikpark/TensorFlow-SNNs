@@ -7,7 +7,7 @@ from keras import backend
 
 
 #
-from config import conf
+#from config import conf
 
 #
 def preprocessing_input_img(x, data_format=None, mode='max_norm'):
