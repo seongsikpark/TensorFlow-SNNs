@@ -6,7 +6,7 @@ import os
 # GPU setting
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,4"
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="6"
 
 import tensorflow as tf
 import tensorflow_datasets as tfds
@@ -19,7 +19,7 @@ from absl import flags
 conf = flags.FLAGS
 
 import config_loss_vis
-conf.train_epoch = 10
+#conf.train_epoch = 10
 
 import datasets
 import lib_snn
@@ -132,7 +132,7 @@ callbacks_train.append(cb_libsnn)
 callbacks_train.append(collect_weights)
 
 #history = model.fit(train_ds, validation_data=valid_ds, epochs=10, callbacks=[collect_weights])
-history = model.fit(train_ds, validation_data=valid_ds, epochs=10, callbacks=callbacks_train)
+history = model.fit(train_ds, validation_data=valid_ds, epochs=conf.train_epoch, callbacks=callbacks_train)
 #history = model.fit(train_ds, validation_data=valid_ds, epochs=10)
 
 #

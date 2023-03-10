@@ -512,9 +512,9 @@ class Neuron(tf.keras.layers.Layer):
 
         #
         # vth adjust - forward-forward?
-        self.vth.assign(tf.where(self.vmem.read(t-1) < self.vth*0.5,
-                 self.vth*0.9,
-                 self.vth*1.1))
+        #self.vth.assign(tf.where(self.vmem.read(t-1) < self.vth*0.5,
+        #         self.vth*0.9,
+        #         self.vth*1.1))
 
         #return out_ret, grad
         return out_ret
