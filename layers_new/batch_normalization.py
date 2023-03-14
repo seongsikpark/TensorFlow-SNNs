@@ -185,7 +185,8 @@ class BatchNormalizationBase(Layer):
 
         #sspark
         self.en_tdbn = kwargs.pop('en_tdbn', False)
-        self.tdbn_scale = 1.0 / tf.math.sqrt(tf.cast(conf.time_step,tf.float32))
+        #self.tdbn_scale = 1.0 / tf.math.sqrt(tf.cast(conf.time_step,tf.float32))
+        self.tdbn_scale = conf.n_init_vth
 
         super(BatchNormalizationBase, self).__init__(name=name, **kwargs)
         if isinstance(axis, (list, tuple)):

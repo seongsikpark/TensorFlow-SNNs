@@ -589,12 +589,32 @@ flags.DEFINE_bool('tdbn',True,'threshold-dependent batch normalization - AAAI21'
 
 #
 #flags.DEFINE_bool('snn_training_spatial_first',True,'SNN training spatial domain first')
-flags.DEFINE_bool('snn_training_spatial_first',False,'SNN training spatial domain first') # Not implemented yet?
+flags.DEFINE_bool('snn_training_spatial_first',False,'SNN training spatial domain first')   # STBP
 
 
 #
 flags.DEFINE_bool('f_hold_temporal_tensor',False,'hold temporal tensor during SNN training')
 #flags.DEFINE_bool('f_hold_temporal_tensor',True,'hold temporal tensor during SNN training')
+
+
+#
+flags.DEFINE_bool('vth_rand_static',False,'vth random - N(vth,0.1)')
+#flags.DEFINE_bool('vth_rand_static',True,'vth random - N(vth,0.1)')
+
+#
+flags.DEFINE_float('vrest',0.0,'vrest')
+
+#
+flags.DEFINE_bool('vrest_rand_static',False,'vth random - N(vrest,0.1)')
+#flags.DEFINE_bool('vrest_rand_static',False,'vth random - N(vth,0.1)')
+
+#
+flags.DEFINE_bool('adaptive_vth',False,'adaptive vth')
+#flags.DEFINE_bool('adaptive_vth',True,'adaptive vth')
+
+flags.DEFINE_float('adaptive_vth_scale',1.1,'adaptive vth scale')
+
+
 
 
 #############

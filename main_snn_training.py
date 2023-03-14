@@ -58,6 +58,9 @@ import config_snn_training
 from absl import flags
 conf = flags.FLAGS
 
+
+from config import config
+
 # snn library
 import lib_snn
 
@@ -414,7 +417,6 @@ if False:
 
         init_epoch = 0
 
-
 if False:
     # TODO: move to parameter
     # eager mode
@@ -430,10 +432,6 @@ if False:
     if conf.debug_mode:
         # TODO: parameterize - debug mode
         eager_mode=True
-
-
-
-
 
 
 with dist_strategy.scope():
