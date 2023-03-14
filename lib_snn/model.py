@@ -676,7 +676,6 @@ class Model(tf.keras.Model):
             ret = layer_out.read(self.conf.time_step-1)
             #print(layer_out.read(7))
 
-
         return ret
 
 

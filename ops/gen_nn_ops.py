@@ -454,3 +454,5 @@ def lib_snn_fused_batch_norm_v3(x, scale, offset, mean, variance, epsilon=0.0001
 #def fused_batch_norm_kernel(op_name, name, x, scale, offset, mean, std, eps, exp_avg_factor, data_format, is_training):
     #result
     #return result
+
+

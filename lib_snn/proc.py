@@ -79,7 +79,6 @@ def reset_batch_ann(self):
     pass
 
 def reset_batch_snn(self):
-
     # TODO: move to model.py
     self.model.reset_snn()
     self.model.reset_snn_neuron()
@@ -308,7 +307,7 @@ def calibration_act_based_post(self):
 
 
 ########################################
-# reset (on_test_batch_begin)
+# reset (on_test_batch_begin and on_train_batch_begin)
 ########################################
 def preproc_batch(self):
     #print('on_test_batch_begin')
@@ -333,6 +332,26 @@ def preproc_batch_ann(self):
 def preproc_batch_snn(self):
     pass
     #reset_snn_sample(self)
+
+def preproc_epoch_train(self,epoch):
+    #
+    preproc_epoch_sel={
+        'ANN': preproc_epoch_train_ann,
+        'SNN': preproc_epoch_train_snn,
+    }
+    preproc_epoch_sel[self.model.nn_mode](self,epoch)
+
+def preproc_epoch_train_ann(self, epoch):
+    pass
+
+
+def preproc_epoch_train_snn(self, epoch):
+    pass
+    # test
+    #if (epoch > 0) and (epoch % 100 ==0) :
+    #    conf.time_step = tf.cast(conf.time_step/2,tf.int32)
+
+
 
 #
 def reset_snn_sample(self):
