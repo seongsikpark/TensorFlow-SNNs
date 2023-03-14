@@ -261,8 +261,8 @@ flags.DEFINE_bool('dnn_to_snn', False, 'dnn-to-snn conversion')
 #flags.DEFINE_bool('dnn_to_snn', True, 'dnn-to-snn conversion')
 
 # neural network mode
-flags.DEFINE_string('nn_mode', 'ANN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
-#flags.DEFINE_string('nn_mode', 'SNN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
+#flags.DEFINE_string('nn_mode', 'ANN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
+flags.DEFINE_string('nn_mode', 'SNN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
 
 # datasets
 flags.DEFINE_string('dataset', 'CIFAR10', 'dataset')
@@ -337,9 +337,9 @@ flags.DEFINE_enum('train_type', 'scratch', ['scratch', 'transfer', 'finetuing'],
 
 #
 # VGG
-#flags.DEFINE_float('learning_rate', 0.1, 'learning rate')   # SNN
+flags.DEFINE_float('learning_rate', 0.1, 'learning rate')   # SNN
 #flags.DEFINE_float('learning_rate', 0.02, 'learning rate')
-flags.DEFINE_float('learning_rate', 0.01, 'learning rate')
+#flags.DEFINE_float('learning_rate', 0.01, 'learning rate')
 #flags.DEFINE_float('learning_rate', 0.005, 'learning rate')
 #flags.DEFINE_float('learning_rate', 0.001, 'learning rate')
 # ResNet
@@ -348,9 +348,9 @@ flags.DEFINE_float('learning_rate', 0.01, 'learning rate')
 # regularizer
 flags.DEFINE_string('regularizer', 'L2', 'L2 or L1 regularizer')
 # VGG
-flags.DEFINE_float('lmb',1.0E-5, 'lambda')
+#flags.DEFINE_float('lmb',1.0E-5, 'lambda')
 #flags.DEFINE_float('lmb',5.0E-5, 'lambda')
-#flags.DEFINE_float('lmb',1.0E-4, 'lambda') # SNN
+flags.DEFINE_float('lmb',1.0E-4, 'lambda') # SNN
 #flags.DEFINE_float('lmb',1.0E-3, 'lambda') # SNN
 # ResNet
 #flags.DEFINE_float('lmb',1.0E-4, 'lambda')
