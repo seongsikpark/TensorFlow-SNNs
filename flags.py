@@ -615,6 +615,13 @@ flags.DEFINE_bool('adaptive_vth',False,'adaptive vth')
 flags.DEFINE_float('adaptive_vth_scale',1.1,'adaptive vth scale')
 
 
+# sptr
+flags.DEFINE_bool('sptr',False,'spatio-backprop, temporal-realtime learning')
+#flags.DEFINE_bool('sptr',True,'spatio-backprop, temporal-realtime learning')
+
+flags.DEFINE_float('sptr_decay',0.9,'sptr decay const')
+
+
 
 
 #############
