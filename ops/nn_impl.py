@@ -277,6 +277,7 @@ def batch_normalization(x,
 
         #x_norm = (x-mean)/dev
         x_norm = (x-sta)/(dev)
+        #x_norm = (x-sta-0.1)/(dev)
         ret = x_norm*scale+offset
 
         #return ret
