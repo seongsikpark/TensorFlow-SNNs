@@ -36,6 +36,9 @@ conf = flags.FLAGS
 #
 from lib_snn import config_glb
 
+#
+from config import config
+
 
 ##############################################################
 # keras model flops
@@ -1017,7 +1020,10 @@ def set_gpu():
 ##############################################################
 # set file path
 ##############################################################
-def set_file_path(batch_size):
+def set_file_path():
+
+
+    batch_size = config.batch_size_train
 
     train_epoch = conf.train_epoch
     batch_size = batch_size

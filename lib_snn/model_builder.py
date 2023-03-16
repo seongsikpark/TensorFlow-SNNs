@@ -16,18 +16,9 @@ from models.models import model_sel
 
 import utils
 
+import collections
 
-''' old 
-def model_builder(
-        eager_mode, model_top, batch_size, conf, include_top, load_weight, num_class, model_name, lmb, initial_channels,
-        train_epoch, train_steps_per_epoch,
-        opt, learning_rate,
-        lr_schedule, step_decay_epoch,
-        metric_accuracy, metric_accuracy_top5,
-        dataset_name,
-        dist_strategy=tf.distribute.OneDeviceStrategy
-):
-'''
+
 def model_builder(
     num_class,
     train_steps_per_epoch
@@ -138,6 +129,17 @@ def model_builder(
     # set layer nn_mode
     #model.set_layers_nn_mode()
 
+
+
+    ##
+    use_bn_dict = collections.OrderedDict()
+    use_bn_dict['VGG16_ImageNet'] = False
+
+    #
+    try:
+        config.flags.use_bn = use_bn_dict[config.model_dataset_name]
+    except KeyError:
+        pass
 
 
     # dummy

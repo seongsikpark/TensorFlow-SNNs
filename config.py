@@ -33,6 +33,8 @@ import matplotlib
 matplotlib.use('TkAgg')
 
 import re
+import shutil
+import datetime
 
 #
 import utils
@@ -40,6 +42,12 @@ import utils
 
 class Config():
     def __init__(self):
+
+        #
+        self.flags = flags.FLAGS
+
+        #self.num_parallel_cpu = -1
+
         #
         self.set_model_dataset()
 
@@ -64,6 +72,7 @@ class Config():
     def set_model_dataset(self):
         self.model_name = conf.model
         self.dataset_name = conf.dataset
+        self.model_dataset_name = self.model_name + '_' + self.dataset_name
 
     def set_train(self):
         self.train = (conf.mode=='train') or (conf.mode=='load_and_train')
@@ -126,6 +135,16 @@ class Config():
         else:
             path_stat_root = conf.path_stat_root
         self.path_stat = os.path.join(path_stat_root,conf.path_stat_dir)
+
+
+
+        root_tensorboard = self.flags.root_tensorboard
+        path_tensorboard = os.path.join(root_tensorboard, self.flags.exp_set_name)
+        path_tensorboard = os.path.join(path_tensorboard, self.model_dataset_name)
+        path_tensorboard = os.path.join(path_tensorboard, self.config_name)
+        self.path_tensorboard = path_tensorboard
+
+
 
 
     def set_hp_tune(self):
@@ -196,6 +215,24 @@ class Config():
         self.init_epoch = init_epoch
 
 
+    #
+    def set_overwrite(self):
+        #
+        # remove dir - train model
+        if not self.load_model:
+            if self.flags.overwrite_train_model:
+                if os.path.isdir(self.filepath_save):
+                    shutil.rmtree(self.filepath_save)
+
+        if not self.flags.overwrite_tensorboard:
+            if os.path.isdir(self.path_tensorboard):
+                date_cur = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M')
+                path_dest_tensorboard = self.path_tensorboard + '_' + date_cur
+                print('tensorboard data already exists')
+                print('move {} to {}'.format(self.path_tensorboard, path_dest_tensorboard))
+
+                shutil.move(self.path_tensorboard, path_dest_tensorboard)
+
     def set_metric(self):
         self.metric_name_acc='acc'
         self.metric_name_acc_top5='acc-5'
@@ -206,3 +243,16 @@ class Config():
 
 
 config = Config()
+
+tf.config.experimental.enable_tensor_float_32_execution(config.flags.tf32_mode)
+
+# TF logging setup
+#os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+#import keras_tuner
+#import tensorflow_probability as tfp
+#from tensorflow.python.keras.engine import data_adapter
+
+
+#
+assert config.flags.data_format == 'channels_last', \
+    'not support "{}", only support channels_last'.format(config.flags.data_format)

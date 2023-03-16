@@ -251,6 +251,10 @@ flags.DEFINE_string('exp_set_name', 'experiment', 'exp set name')
 #flags.DEFINE_enum('mode', 'load_and_train', ['train', 'load_and_train', 'inference'], 'run mode')
 flags.DEFINE_enum('mode', 'train', ['train', 'load_and_train', 'inference'], 'run mode')
 
+
+#
+flags.DEFINE_bool('save_model', True, 'save trained model')
+
 #
 flags.DEFINE_bool('hp_tune', False, 'hyperparameter tune mode')
 #flags.DEFINE_bool('hp_tune', True, 'hyperparameter tune mode')
@@ -411,7 +415,11 @@ flags.DEFINE_string('name_model_load','','default - root_model_load/model_datase
 
 flags.DEFINE_string('name_model_save','','default - root_model_save/model_dataset/conf')
 
+#
+flags.DEFINE_boolean('overwrite_train_model', False, 'overwrite train model')
 
+#
+flags.DEFINE_boolean('overwrite_tensorboard', True, 'overwrite tensorboard')
 
 #
 flags.DEFINE_string('root_results', './results', 'root results')
