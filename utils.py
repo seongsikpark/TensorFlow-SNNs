@@ -28,10 +28,13 @@ from scipy.stats import norm
 #import matplotlib.mlab as mlab
 
 #
-from config import conf
+#from config import conf
+#from config_common import conf
+from absl import flags
+conf = flags.FLAGS
 
 #
-from lib_snn import config_glb
+#from lib_snn import config_glb
 
 
 ##############################################################
@@ -963,6 +966,55 @@ def get_total_spike_amp(self):
 
 
 ##############################################################
+# set GPU
+#############################################################
+def set_gpu():
+    # logging - ignore warning
+    #tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+
+    # distribute strategy
+    devices = tf.config.list_physical_devices('GPU')
+    if len(devices)==1:
+        dist_strategy = tf.distribute.OneDeviceStrategy(device='/gpu:0')
+    else:
+        devices = ['/gpu:{}'.format(i) for i in range(len(devices))]
+        dist_strategy = tf.distribute.MirroredStrategy(devices=devices)
+    #dist_strategy = tf.distribute.MirroredStrategy(devices=['/gpu:0', '/gpu:1'])
+    #dist_strategy = tf.distribute.OneDeviceStrategy(device='/gpu:0')
+
+
+    #
+    GPU_PARALLEL_RUN = 1
+    #GPU_PARALLEL_RUN = 2
+    #GPU_PARALLEL_RUN = 3
+
+    #
+    if GPU_PARALLEL_RUN == 1:
+        gpu_mem = -1
+        NUM_PARALLEL_CALL = 15
+    elif GPU_PARALLEL_RUN == 2:
+        gpu_mem = 10240
+        NUM_PARALLEL_CALL = 7
+    elif GPU_PARALLEL_RUN == 3:
+        gpu_mem = 6144
+        NUM_PARALLEL_CALL = 5
+    else:
+        assert False
+
+    # GPU mem usage
+    if gpu_mem != -1:
+        gpu = tf.config.experimental.list_physical_devices('GPU')
+        if gpu:
+            try:
+                tf.config.experimental.set_virtual_device_configuration(
+                    gpu[0],
+                    [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=gpu_mem)])
+            except RuntimeError as e:
+                print(e)
+
+    return dist_strategy
+
+##############################################################
 # set file path
 ##############################################################
 def set_file_path(batch_size):
@@ -979,9 +1031,6 @@ def set_file_path(batch_size):
     model_name = conf.model
     dataset_name = conf.dataset
 
-
-
-
     #
     if conf.load_best_model:
         root_model_load = conf.root_model_best
@@ -990,9 +1039,9 @@ def set_file_path(batch_size):
 
     root_model_save = conf.root_model_save
 
-    if conf.nn_mode=='SNN':
-        root_model_load = os.path.join(root_model_load,'SNN')
-        root_model_save = os.path.join(root_model_save,'SNN')
+    #if conf.nn_mode=='SNN':
+    #    root_model_load = os.path.join(root_model_load,'SNN')
+    #    root_model_save = os.path.join(root_model_save,'SNN')
 
     # file_name='checkpoint-epoch-{}-batch-{}.h5'.format(epoch,batch_size)
     # config_name='ep-{epoch:04d}_bat-{}_lmb-{:.1E}'.format(batch_size,lmb)
@@ -1106,19 +1155,20 @@ def set_file_path(batch_size):
         filepath_save = path_model_save
 
 
-    ####
-    # glb config set
-    ####
-    if conf.path_stat_root=='':
-        path_stat_root = path_model_load
-    else:
-        path_stat_root = conf.path_stat_root
-    #config_glb.path_stat = conf.path_stat
-    config_glb.path_stat = os.path.join(path_stat_root,conf.path_stat_dir)
-    config_glb.path_model_load = path_model_load
-    #config_glb.path_stat = conf.path_stat
-    config_glb.model_name = model_name
-    config_glb.dataset_name = dataset_name
+    if False:
+        ####
+        # glb config set
+        ####
+        if conf.path_stat_root=='':
+            path_stat_root = path_model_load
+        else:
+            path_stat_root = conf.path_stat_root
+        #config_glb.path_stat = conf.path_stat
+        config_glb.path_stat = os.path.join(path_stat_root,conf.path_stat_dir)
+        config_glb.path_model_load = path_model_load
+        #config_glb.path_stat = conf.path_stat
+        config_glb.model_name = model_name
+        config_glb.dataset_name = dataset_name
 
     #if conf.load_best_model:
     #    filepath_load = path_model_load

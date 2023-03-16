@@ -11,6 +11,10 @@ from lib_snn.sim import glb
 
 from lib_snn.sim import glb_t
 
+
+from absl import flags
+conf = flags.FLAGS
+
 #
 # class Neuron(tf.layers.Layer):
 # loc: neuron location - 'IN'(input), 'HID'(hidden), 'OUT'(output)
@@ -67,10 +71,11 @@ class Neuron(tf.keras.layers.Layer):
         #self.leak_const = tf.Variable(self.leak_const_init,dtype=tf.float32,shape=self.dim,name='leak_const')
         #self.leak_const = tf.Variable(self.leak_const_init,trainable=False,dtype=tf.float32,shape=self.dim,name='leak_const')
         if loc=='HID':
-            leak_const_train=True
+            #leak_const_train=True
             leak_const_train=False
         else:
             leak_const_train=False
+        
         self.leak_const = tf.Variable(self.leak_const_init,trainable=leak_const_train,dtype=tf.float32,shape=self.dim,name='leak_const')
 
 
@@ -127,8 +132,9 @@ class Neuron(tf.keras.layers.Layer):
         #self.vth_init = self.add_variable("vth_init" ,shape=self.dim ,dtype=tf.float32 ,initializer=tf.constant_initializer(init_vth) ,trainable=False)
         #self.vth_init = tf.constant(init_vth,shape=self.dim,dtype=tf.float32, name='vth_init')
         #vth_rand_static=True
-        vth_rand_static=False
-        if vth_rand_static:
+        #vth_rand_static=False
+
+        if conf.vth_rand_static:
             #self.vth_init = tf.random.uniform(shape=self.dim,minval=0.1,maxval=1.0,dtype=tf.float32,name='vth_init')
             self.vth_init = tf.random.normal(shape=self.dim,mean=self.conf.n_init_vth,stddev=0.1,name='vth_init')
         else:
@@ -145,8 +151,13 @@ class Neuron(tf.keras.layers.Layer):
         self.vmem = None
 
         #
-        #self.vrest = tf.random.normal(shape=self.vth.shape,mean=0.0,stddev=0.1)
-        self.vrest = tf.constant(-0.1,shape=self.dim)
+        if conf.vrest_rand_static:
+            self.vrest = tf.random.normal(shape=self.vth.shape,mean=conf.vrest,stddev=0.1)
+        else:
+            self.vrest = tf.constant(conf.vrest,shape=self.dim)
+        #self.vrest = tf.random.normal(shape=self.vth.shape,mean=-0.1,stddev=0.1)
+        #self.vrest = tf.random.normal(shape=self.vth.shape,mean=-0.1,stddev=0.1)
+        #self.vrest = tf.zeros(shape=self.dim)
 
         # self.vmem = tf.Variable("vmem",shape=self.dim,dtype=tf.float32,initial_value=tf.constant(self.conf.n_init_vinit),trainable=False)
         # self.vmem = tf.Variable(shape=self.dim,dtype=tf.float32,initial_value=tf.constant(self.conf.n_init_vinit,shape=self.dim),trainable=False,name='vmem')
@@ -532,8 +543,10 @@ class Neuron(tf.keras.layers.Layer):
         # fire
         #self.vth.assign(tf.where(self.f_fire, self.vth*1.1, self.vth*0.9))
         #self.vth.assign(tf.where(self.f_fire, self.vth*1.1, self.vth/1.1))
-        #vth_step_scale = 1.2
-        #self.vth.assign(tf.where(self.f_fire, self.vth*vth_step_scale, self.vth/vth_step_scale))
+
+        if conf.adaptive_vth:
+            vth_step_scale = conf.adaptive_vth_scale
+            self.vth.assign(tf.where(self.f_fire, self.vth*vth_step_scale, self.vth/vth_step_scale))
 
 
         #return out_ret, grad

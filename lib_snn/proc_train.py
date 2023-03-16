@@ -3,7 +3,7 @@ import tensorflow as tf
 
 #from absl import flags
 #flags = flags.FLAGS
-from config import conf
+#from config import conf
 
 
 from tensorflow.python.keras.engine import compile_utils

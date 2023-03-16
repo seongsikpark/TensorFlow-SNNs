@@ -185,7 +185,8 @@ class Model(tf.keras.Model):
 
         # training mode
         #self.en_training = self.conf.training_mode
-        self.en_train = self.conf.en_train
+        #self.en_train = self.conf.en_train
+        self.en_train = ('train' in self.conf.mode)
 
         # SNN mode
         #Model.en_snn = (self.conf.nn_mode == 'SNN' or self.conf.f_validation_snn)
@@ -197,7 +198,7 @@ class Model(tf.keras.Model):
         self.en_write_stat = (self.nn_mode=='ANN' and self.conf.f_write_stat)
 
         # SNN, temporal coding, time const. training after DNN-to-SNN conversion (T2FSNN + GO)
-        self.en_opt_time_const_T2FSNN = (self.nn_mode=='SNN' and not self.conf.en_train \
+        self.en_opt_time_const_T2FSNN = (self.nn_mode=='SNN' and not self.en_train \
                                          and self.conf.neural_coding=='TEMPORAL' and self.conf.f_train_tk)
 
         # comparison activation - ANN vs. SNN
@@ -674,7 +675,6 @@ class Model(tf.keras.Model):
 
             ret = layer_out.read(self.conf.time_step-1)
             #print(layer_out.read(7))
-
 
         return ret
 
@@ -3357,5 +3357,4 @@ class Model(tf.keras.Model):
             f = prefix+'_'+file+'_'+postfix
             f = os.path.join(path_root,f)
             dout.to_csv(f)
-
 

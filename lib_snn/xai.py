@@ -14,9 +14,10 @@ def integrated_gradients(model,
                          baseline,
                          images,
                          target_class_idxs,
-                         m_steps=50,
-                         batch_size=51):
+                         m_steps=50):
 
+
+    batch_size = m_steps+1
     # 1. Generate alphas
     alphas = tf.linspace(start=0.0, stop=1.0, num=m_steps+1)
 

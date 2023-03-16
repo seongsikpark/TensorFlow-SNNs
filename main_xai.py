@@ -561,6 +561,7 @@ model = lib_snn.model_builder.model_builder(
 ########################################
 # load model
 ########################################
+model_ann=None
 if conf.nn_mode=='SNN' and conf.dnn_to_snn:
     print('DNN-to-SNN mode')
     nn_mode_ori = conf.nn_mode
@@ -588,7 +589,28 @@ if conf.nn_mode=='SNN' and conf.dnn_to_snn:
     model.load_weights_dnn_to_snn(model_ann)
     #model.load_weights_dnn_to_snn(model_ann,by_name=True)
 else:
-    model.load_weights(load_weight)
+    #model.load_weights(load_weight)
+
+    #if False:
+    import h5py
+
+    with h5py.File(load_weight,'r') as weight:
+        w = weight['model_weights']
+
+        for layer in model.layers:
+            if isinstance(layer,lib_snn.layers.Conv2D):
+                layer.kernel.assign(w[layer.name][layer.name]['kernel:0'])
+                layer.bias.assign(w[layer.name][layer.name]['bias:0'])
+
+            if isinstance(layer,lib_snn.layers.Dense):
+                layer.kernel.assign(w[layer.name][layer.name]['kernel:0'])
+                layer.bias.assign(w[layer.name][layer.name]['bias:0'])
+
+            if isinstance(layer,lib_snn.layers.BatchNormalization):
+                layer.beta.assign(w[layer.name][layer.name]['beta:0'])
+                layer.gamma.assign(w[layer.name][layer.name]['gamma:0'])
+                layer.moving_mean.assign(w[layer.name][layer.name]['moving_mean:0'])
+                layer.moving_variance.assign(w[layer.name][layer.name]['moving_variance:0'])
 
 
 if conf.nn_mode=='ANN' or (conf.nn_mode=='SNN' and train):
@@ -687,11 +709,11 @@ else:
 
 [imgs, labels], = test_ds.take(1)
 
-#sample_idx=6   # horse -> good
+sample_idx=6   # horse -> good
 sample_idx=10   # horse -> good example
-#sample_idx=30   # ? -> good
-#sample_idx=40   # -> good
-#sample_idx=50   # -> good
+sample_idx=30   # ? -> good
+sample_idx=40   # -> good
+sample_idx=50   # -> good
 
 
 img = imgs[sample_idx]
@@ -700,6 +722,7 @@ label = labels[sample_idx]
 baseline = tf.random.uniform(shape=img.shape,minval=0,maxval=1)
 
 
+#m_steps = 99
 m_steps = 50
 #label_decoded=386
 label_decoded = tf.argmax(label)

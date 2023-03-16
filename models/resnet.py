@@ -9,7 +9,11 @@ import lib_snn
 
 
 #
-from config import conf
+#from config import conf
+#from config_common import conf
+from absl import flags
+conf = flags.FLAGS
+
 tdbn = conf.mode=='train' and conf.nn_mode=='SNN' and conf.tdbn
 
 

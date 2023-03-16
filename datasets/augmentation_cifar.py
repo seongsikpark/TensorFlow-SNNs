@@ -18,12 +18,20 @@ import tensorflow_addons as tfa
 
 #from models.input_preprocessor import preprocessor_input
 import datasets.preprocessing
-from lib_snn.config_glb import model_name
-from lib_snn.config_glb import dataset_name
+#from lib_snn.config_glb import model_name
+#from lib_snn.config_glb import dataset_name
 
+from config import config
+
+model_name = config.model_name
+dataset_name = config.dataset_name
 
 #
-from config import conf
+#from config import conf
+#from config_common import conf
+from absl import flags
+conf = flags.FLAGS
+
 from datasets.preprocessing import preprocessing_input_img
 
 #from tensorflow.python.keras.applications.imagenet_utils import preprocess_input as preprocess_input_others
@@ -282,7 +290,7 @@ def resize_with_crop_aug(image, label, dataset_name, input_size, input_size_pre_
 
 
 def _resize_with_crop_imagenet(image,input_size,input_size_pre_crop_ratio):
-    from lib_snn.config_glb import model_name
+    #from lib_snn.config_glb import model_name
     #print(model_name)
 
     i=image

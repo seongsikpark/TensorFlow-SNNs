@@ -2,8 +2,9 @@
 
 import tensorflow as tf
 
-#from absl import flags
-from config import conf
+from absl import flags
+#from config_common import conf
+conf = flags.FLAGS
 
 import collections
 import matplotlib.pyplot as plt

@@ -20,7 +20,10 @@ import lib_snn
 
 #from main_hp_tune import conf
 
-from config import conf
+#from config import conf
+#from config_common import conf
+from absl import flags
+conf = flags.FLAGS
 
 
 from lib_snn.layers import Layer
