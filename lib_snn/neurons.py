@@ -71,11 +71,12 @@ class Neuron(tf.keras.layers.Layer):
         #self.leak_const = tf.Variable(self.leak_const_init,dtype=tf.float32,shape=self.dim,name='leak_const')
         #self.leak_const = tf.Variable(self.leak_const_init,trainable=False,dtype=tf.float32,shape=self.dim,name='leak_const')
         if loc=='HID':
-            leak_const_train=True
+            #leak_const_train=True
+            leak_const_train=False
         else:
             leak_const_train=False
+        
         self.leak_const = tf.Variable(self.leak_const_init,trainable=leak_const_train,dtype=tf.float32,shape=self.dim,name='leak_const')
-
 
 
         # vth scheduling
@@ -542,6 +543,7 @@ class Neuron(tf.keras.layers.Layer):
         # fire
         #self.vth.assign(tf.where(self.f_fire, self.vth*1.1, self.vth*0.9))
         #self.vth.assign(tf.where(self.f_fire, self.vth*1.1, self.vth/1.1))
+
         if conf.adaptive_vth:
             vth_step_scale = conf.adaptive_vth_scale
             self.vth.assign(tf.where(self.f_fire, self.vth*vth_step_scale, self.vth/vth_step_scale))
