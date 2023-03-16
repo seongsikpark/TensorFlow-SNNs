@@ -604,6 +604,13 @@ flags.DEFINE_bool('f_hold_temporal_tensor',False,'hold temporal tensor during SN
 
 
 #
+flags.DEFINE_bool('leak_const_train',False,'leak const train')
+
+#
+flags.DEFINE_float('leak_const_init',0.9,'leak const initial value')
+
+
+#
 flags.DEFINE_bool('vth_rand_static',False,'vth random - N(vth,0.1)')
 #flags.DEFINE_bool('vth_rand_static',True,'vth random - N(vth,0.1)')
 
