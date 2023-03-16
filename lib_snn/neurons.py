@@ -62,19 +62,20 @@ class Neuron(tf.keras.layers.Layer):
         #self.init_first_spike_time = 100000
 
         #
-        leak_const = 0.99
-        leak_const = 0.9
+        #leak_const = 0.99
+        #leak_const = 0.9
         #self.leak_const = tf.constant(0.99,dtype=tf.float32,shape=self.dim)
         #self.leak_const = tf.constant(leak_const,dtype=tf.float32,shape=self.dim)
 
-        self.leak_const_init = tf.constant(leak_const,dtype=tf.float32,shape=self.dim,name='leak_const_init')
+        self.leak_const_init = tf.constant(conf.leak_const_init,dtype=tf.float32,shape=self.dim,name='leak_const_init')
         #self.leak_const = tf.Variable(self.leak_const_init,dtype=tf.float32,shape=self.dim,name='leak_const')
         #self.leak_const = tf.Variable(self.leak_const_init,trainable=False,dtype=tf.float32,shape=self.dim,name='leak_const')
-        if loc=='HID':
+        #if loc=='HID':
             #leak_const_train=True
-            leak_const_train=False
-        else:
-            leak_const_train=False
+            #leak_const_train=False
+        #else:
+            #leak_const_train=False
+        leak_const_train = conf.leak_const_train
         
         self.leak_const = tf.Variable(self.leak_const_init,trainable=leak_const_train,dtype=tf.float32,shape=self.dim,name='leak_const')
 
