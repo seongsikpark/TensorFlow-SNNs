@@ -7,25 +7,6 @@ from tensorflow.python.keras.utils import data_utils
 import lib_snn
 
 
-
-#
-#from config import conf
-#from config_common import conf
-from absl import flags
-conf = flags.FLAGS
-
-tdbn = conf.mode=='train' and conf.nn_mode=='SNN' and conf.tdbn
-
-
-#
-if conf.nn_mode=='ANN':
-    act_type = 'relu'
-    act_type_out = 'softmax'
-else:
-    act_type = conf.n_type
-    act_type_out = conf.n_type
-
-
 BASE_WEIGHTS_PATH = (
     'https://storage.googleapis.com/tensorflow/keras-applications/resnet/')
 WEIGHTS_HASHES = {
@@ -68,28 +49,17 @@ def block_basic(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=No
     # bn_axis = 3  # 'channels_last' only
 
     if conv_shortcut:
-        #shortcut = lib_snn.layers.Conv2D(filters, 1, strides=stride, use_bn=True, activation=None, name=name + '_conv0')(x)
-        shortcut = lib_snn.layers.Conv2D(filters, 1, strides=stride, name=name + '_conv0',kernel_initializer='zeros')(x)
-        shortcut = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name=name+'_conv0_bn')(shortcut)
+        shortcut = lib_snn.layers.Conv2D(filters, 1, strides=stride, use_bn=True, activation=None, name=name + '_conv0')(x)
     else:
         #shortcut = x
         shortcut = lib_snn.layers.Identity(name=name + '_conv0_i') (x)
         #shortcut = lib_snn.layers.Conv2D(1,1,strides=1,use_bn=False,activation=None,name=name+'_conv0_i',kernel_initializer='ones',trainable=False)(x)
 
-    #x = lib_snn.layers.Conv2D(filters, kernel_size, strides=stride, padding='SAME', use_bn=True, activation='relu',name=name + '_conv1')(x)
-    x = lib_snn.layers.Conv2D(filters, kernel_size, strides=stride, padding='SAME', name=name + '_conv1')(x)
-    x = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name=name+'_conv1_bn')(x)
-    x = lib_snn.activations.Activation(act_type=act_type,name=name+'conv1_n')(x)
-
+    x = lib_snn.layers.Conv2D(filters, kernel_size, strides=stride, padding='SAME', use_bn=True, activation='relu',name=name + '_conv1')(x)
     #x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation='relu',name=name + '_conv2')(x)
-    #x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation=None,name=name + '_conv2')(x)
-    x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', name=name + '_conv2')(x)
-    x = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name=name+'_conv2_bn')(x)
+    x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation=None,name=name + '_conv2')(x)
 
-    #x = lib_snn.layers.Add(use_bn=False, activation='relu', name=name + '_out')([shortcut, x])
-    #print([shortcut, x])
-    x = lib_snn.layers.Add(name=name + '_out')([shortcut, x])
-    x = lib_snn.activations.Activation(act_type=act_type,name=name+'_out_n')(x)
+    x = lib_snn.layers.Add(use_bn=False, activation='relu', name=name + '_out')([shortcut, x])
 
     return x
 
@@ -113,52 +83,37 @@ def block_bottleneck(x, filters, kernel_size=3, stride=1, conv_shortcut=True, na
     # bn_axis = 3 if backend.image_data_format() == 'channels_last' else 1
     # bn_axis = 3  # 'channels_last' only
 
-
-
     if conv_shortcut:
         #shortcut = lib_snn.layers.Conv2D(4 * filters, 1, strides=stride, use_bn=True, activation=None, name=name + '_conv0')(x)
-        #shortcut = lib_snn.layers.Conv2D(4 * filters, 1, strides=stride, use_bn=True, activation=None, name=name + '_conv0',kernel_initializer='zeros')(x)
-        shortcut = lib_snn.layers.Conv2D(4 * filters, 1, strides=stride, name=name + '_conv0',kernel_initializer='zeros')(x)
-        shortcut = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name=name+'_conv0_bn')(shortcut)
+        shortcut = lib_snn.layers.Conv2D(4 * filters, 1, strides=stride, use_bn=True, activation=None, name=name + '_conv0',kernel_initializer='zeros')(x)
     else:
         #shortcut = x
         shortcut = lib_snn.layers.Identity(name=name + '_conv0_i') (x)
         #shortcut = lib_snn.layers.Conv2D(1,1,strides=1,use_bn=False,activation=None,name=name+'_conv0_i',kernel_initializer='ones',trainable=False) (x)
 
     #x = lib_snn.layers.Conv2D(filters, 1, strides=stride, use_bn=True, activation='relu', epsilon=1.001e-5, name=name + '_conv_1')(x)
-    #x = lib_snn.layers.Conv2D(filters, 1, strides=stride, use_bn=True, activation='relu', name=name + '_conv1',kernel_initializer='zeros')(x)
-    x = lib_snn.layers.Conv2D(filters, 1, strides=stride, name=name + '_conv1',kernel_initializer='zeros')(x)
-    x = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name=name+'_conv1_bn')(x)
-    x = lib_snn.activations.Activation(act_type=act_type,name=name+'conv1_n')(x)
-
+    x = lib_snn.layers.Conv2D(filters, 1, strides=stride, use_bn=True, activation='relu', name=name + '_conv1',kernel_initializer='zeros')(x)
     #x = tf.keras.layers.Dropout(0.3,name=name+'_conv1_do')(x)
     # x = layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5, name=name + '_1_bn')(x)
     # x = layers.Activation('relu', name=name + '_1_relu')(x)
 
     #x = lib_snn.layers.Conv2D(filters, kernel_size, strides=stride, padding='SAME', use_bn=True, activation='relu',epsilon=1.001e-5, name=name + '_conv_2')(x)
-    #x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation='relu',name=name + '_conv2',kernel_initializer='zeros')(x)
-    x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', name=name + '_conv2',kernel_initializer='zeros')(x)
-    x = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name=name+'_conv2_bn')(x)
-    x = lib_snn.activations.Activation(act_type=act_type,name=name+'conv2_n')(x)
-
-
+    x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation='relu',name=name + '_conv2',kernel_initializer='zeros')(x)
+    #x = lib_snn.layers.Conv2D(filters, kernel_size, strides=stride, use_bn=True, activation='relu',name=name + '_conv2')(x)
     #x = tf.keras.layers.Dropout(0.4,name=name+'_conv2_do')(x)
     # x = layers.Conv2D(filters, kernel_size, padding='SAME', name=name + '_2_conv')(x)
     # x = layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5, name=name + '_2_bn')(x)
     # x = layers.Activation('relu', name=name + '_2_relu')(x)
 
     #x = lib_snn.layers.Conv2D(4*filters, 1, strides=stride, use_bn=True, activation=None,epsilon=1.001e-5, name=name + '_conv_3')(x)
-    #x = lib_snn.layers.Conv2D(4*filters, 1, use_bn=True, activation=None, name=name + '_conv3',kernel_initializer='zeros')(x)
-    x = lib_snn.layers.Conv2D(4*filters, 1, name=name + '_conv3',kernel_initializer='zeros')(x)
-    x = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name=name+'_conv3_bn')(x)
-
+    x = lib_snn.layers.Conv2D(4*filters, 1, use_bn=True, activation=None, name=name + '_conv3',kernel_initializer='zeros')(x)
     #x = tf.keras.layers.Dropout(0.5,name=name+'_conv3_do')(x)
     # x = layers.Conv2D(4 * filters, 1, name=name + '_3_conv')(x)
     # x = layers.BatchNormalization(axis=bn_axis, epsilon=1.001e-5, name=name + '_3_bn')(x)
 
-    #x = lib_snn.layers.Add(use_bn=False, activation='relu', name=name + '_out')([shortcut, x])
-    x = lib_snn.layers.Add(name=name + '_out')([shortcut, x])
-    x = lib_snn.activations.Activation(act_type=act_type,name=name+'_out_n')(x)
+    #print(shortcut)
+    #print(x)
+    x = lib_snn.layers.Add(use_bn=False, activation='relu', name=name + '_out')([shortcut, x])
 
     # x = layers.Add(name=name + '_add')([shortcut, x])
     # x = layers.Activation('relu', name=name + '_out')(x)
@@ -168,48 +123,38 @@ def block_bottleneck(x, filters, kernel_size=3, stride=1, conv_shortcut=True, na
 #
 #
 #
-#def block_basic(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
-#    """A residual block.
-#
-#    Args:
-#      x: input tensor.
-#      filters: integer, filters of the bottleneck layer.
-#      kernel_size: default 3, kernel size of the bottleneck layer.
-#      stride: default 1, stride of the first layer.
-#      conv_shortcut: default True, use convolution shortcut if True,
-#          otherwise identity shortcut.
-#      name: string, block label.
-#
-#    Returns:
-#      Output tensor for the residual block.
-#    """
-#    # bn_axis = 3 if backend.image_data_format() == 'channels_last' else 1
-#    # bn_axis = 3  # 'channels_last' only
-#
-#    if conv_shortcut:
-#        shortcut = lib_snn.layers.Conv2D(filters, 1, strides=stride, name=name + '_conv0',kernel_initializer='zeros')(x)
-#        shortcut = lib_snn.layers_new.BatchNormalization(en_tdbn=tdbn,name=name+'_conv0_bn')(shortcut)
-#    else:
-#        #shortcut = x
-#        shortcut = lib_snn.layers.Identity(name=name + '_conv0_i') (x)
-#        #shortcut = lib_snn.layers.Conv2D(1,1,strides=1,use_bn=False,activation=None,name=name+'_conv0_i',kernel_initializer='ones',trainable=False)(x)
-#
-#    #x = lib_snn.layers.Conv2D(filters, kernel_size, strides=stride, padding='SAME', use_bn=True, activation='relu',name=name + '_conv1')(x)
-#    x = lib_snn.layers.Conv2D(filters, kernel_size, strides=stride, padding='SAME', name=name + '_conv1')(x)
-#    x = lib_snn.layers_new.BatchNormalization(en_tdbn=tdbn,name=name+'_conv1_bn')(x)
-#    x = lib_snn.activations.Activation(act_type=act_type,name=name+'conv1_n')(x)
-#
-#
-#    #x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation=None,name=name + '_conv2')(x)
-#    x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', name=name + '_conv2')(x)
-#    x = lib_snn.layers_new.BatchNormalization(en_tdbn=tdbn,name=name+'_conv2_bn')(x)
-#
-#
-#    #x = lib_snn.layers.Add(use_bn=False, activation='relu', name=name + '_out')([shortcut, x])
-#    #x = lib_snn.layers.Add(name=name + '_out')([shortcut, x])
-#    x = lib_snn.activations.Activation(act_type=act_type,name=name+'_out_n')(x)
-#
-#    return x
+def block_basic(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
+    """A residual block.
+
+    Args:
+      x: input tensor.
+      filters: integer, filters of the bottleneck layer.
+      kernel_size: default 3, kernel size of the bottleneck layer.
+      stride: default 1, stride of the first layer.
+      conv_shortcut: default True, use convolution shortcut if True,
+          otherwise identity shortcut.
+      name: string, block label.
+
+    Returns:
+      Output tensor for the residual block.
+    """
+    # bn_axis = 3 if backend.image_data_format() == 'channels_last' else 1
+    # bn_axis = 3  # 'channels_last' only
+
+    if conv_shortcut:
+        shortcut = lib_snn.layers.Conv2D(filters, 1, strides=stride, use_bn=True, activation=None, name=name + '_conv0')(x)
+    else:
+        #shortcut = x
+        shortcut = lib_snn.layers.Identity(name=name + '_conv0_i') (x)
+        #shortcut = lib_snn.layers.Conv2D(1,1,strides=1,use_bn=False,activation=None,name=name+'_conv0_i',kernel_initializer='ones',trainable=False)(x)
+
+    x = lib_snn.layers.Conv2D(filters, kernel_size, strides=stride, padding='SAME', use_bn=True, activation='relu',name=name + '_conv1')(x)
+    #x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation='relu',name=name + '_conv2')(x)
+    x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation=None,name=name + '_conv2')(x)
+
+    x = lib_snn.layers.Add(use_bn=False, activation='relu', name=name + '_out')([shortcut, x])
+
+    return x
 
 
 
@@ -341,11 +286,7 @@ def ResNet(
 
     img_input = tf.keras.layers.Input(shape=input_shape, batch_size=batch_size)
     #img_input = tf.keras.layers.InputLayer(shape=input_shape, batch_size=batch_size)
-    x = lib_snn.layers.InputGenLayer(name='in')(img_input)
-
-    if conf.nn_mode=='SNN':
-        x = lib_snn.activations.Activation(act_type=act_type,loc='IN',name='n_in')(x)
-
+    x = lib_snn.layers.InputGenLayer()(img_input)
     #img_input = lib_snn.layers.InputLayer(input_shape=input_shape,batch_size=conf.batch_size,name='in')
 
     if imagenet_pretrain:
@@ -358,28 +299,15 @@ def ResNet(
 
     if not preact:
         preact_bn = True
-        #preact_act = 'relu'
-        preact_act = act_type
+        preact_act = 'relu'
     else:
         preact_bn = False
         preact_act = None
 
     if imagenet_pretrain:
-        #x = lib_snn.layers.Conv2D(initial_channels, 7, strides=2, use_bn=preact_bn, activation=preact_act, name='conv1_conv')(x)
-        x = lib_snn.layers.Conv2D(initial_channels, 7, strides=2, name='conv1_conv')(x)
-        if preact_bn:
-            x = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='conv1_conv_bn')(x)
-        if not preact_act is None:
-            #x = lib_snn.activations.Activation(act_type=act_type,name='conv1_conv_n')(x)
-            x = lib_snn.activations.Activation(act_type=preact_act,name='conv1_conv_n')(x)
-
+        x = lib_snn.layers.Conv2D(initial_channels, 7, strides=2, use_bn=preact_bn, activation=preact_act, name='conv1_conv')(x)
     else:
-        #x = lib_snn.layers.Conv2D(initial_channels, 3, strides=1, padding='same', use_bn=preact_bn, activation=preact_act, name='conv1_conv')(x)
-        x = lib_snn.layers.Conv2D(initial_channels, 3, strides=1, padding='same', name='conv1_conv')(x)
-        if preact_bn:
-            x = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='conv1_conv_bn')(x)
-        if not preact_act is None:
-            x = lib_snn.activations.Activation(act_type=preact_act,name='conv1_conv_n')(x)
+        x = lib_snn.layers.Conv2D(initial_channels, 3, strides=1, padding='same', use_bn=preact_bn, activation=preact_act, name='conv1_conv')(x)
 
     if imagenet_pretrain:
         x = tf.keras.layers.ZeroPadding2D(padding=((1, 1), (1, 1)), name='pool1_pad')(x)
@@ -407,12 +335,7 @@ def ResNet(
         #x = tf.keras.layers.GlobalAveragePooling2D(name='avg_pool')(x)
         x = lib_snn.layers.GlobalAveragePooling2D(name='avg_pool')(x)
         #x = tf.keras.layers.Dense(classes, activation=classifier_activation, name='predictions')(x)
-        #x = lib_snn.layers.Dense(classes, activation=classifier_activation, use_bn=False, last_layer=True, name='predictions')(x)
-        x = lib_snn.layers.Dense(classes, last_layer=True, name='predictions')(x)
-        x = lib_snn.activations.Activation(act_type=act_type_out,loc='OUT',name='predictions_n')(x)
-        if conf.nn_mode=='SNN':
-            x = lib_snn.activations.Activation(act_type='softmax',name='predictions_a')(x)
-
+        x = lib_snn.layers.Dense(classes, activation=classifier_activation, use_bn=False, last_layer=True, name='predictions')(x)
     else:
         assert False
         if pooling == 'avg':

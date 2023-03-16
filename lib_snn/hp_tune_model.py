@@ -55,7 +55,7 @@ def model_builder_default(hp, args, hps):
     # args
     model_top = args['model_top']
     batch_size = args['batch_size']
-    image_shape = args['image_shape']
+    #image_shape = args['image_shape']
     conf = args['conf']
     include_top = args['include_top']
     load_weight = args['load_weight']
@@ -63,6 +63,8 @@ def model_builder_default(hp, args, hps):
     train_steps_per_epoch = args['train_steps_per_epoch']
     metric_accuracy = args['metric_accuracy']
     metric_accuracy_top5 = args['metric_accuracy_top_5']
+
+    dist_strategy = args['dist_strategy']
 
     #
     hp_dataset = hp.Choice('dataset', values=hps['dataset'])
@@ -73,23 +75,24 @@ def model_builder_default(hp, args, hps):
     hp_step_decay_epoch = hp.Choice('step_decay_epoch', values=hps['step_decay_epoch'])
 
     # hp_lmb = hp.Choice('lmb', values = [5e-4, 1e-4, 5e-5])
-    #hp_lmb = hp.Choice('lmb', values=[1e-4, 7e-5, 5e-5, 3e-5, 1e-5])
-    hp_lmb = hp.Float('lmb', min_value=1e-5, max_value=1e-4, sampling='linear')
+    hp_lmb = hp.Choice('lmb', values=[1e-4, 1e-5])
+    #hp_lmb = hp.Float('lmb', min_value=1e-5, max_value=1e-4, sampling='linear')
 
     #hp_learning_rate = hp.Choice('learning_rate', values = [0.3])
     # hp_learning_rate = hp.Choice('learning_rate', values = [0.01, 0.015, 0.02])
-    #hp_learning_rate = hp.Choice('learning_rate', values=[0.005])
-    hp_learning_rate = hp.Float('learning_rate', min_value=0.2, max_value=0.2, sampling='linear')
+    hp_learning_rate = hp.Choice('learning_rate', values=[0.1, 0.01, 0.001])
+    #hp_learning_rate = hp.Float('learning_rate', min_value=0.0001, max_value=0.001, sampling='linear')
 
     hp_initial_channels = hp.Choice('initial_channel', values=[64])
 
     conf.lmb=hp_lmb
     model = lib_snn.model_builder.model_builder(
-        False, model_top, batch_size,  image_shape, conf, include_top, load_weight, num_class, hp_model, hp_lmb, hp_initial_channels,
+        #False, model_top, batch_size,  image_shape, conf, include_top, load_weight, num_class, hp_model, hp_lmb, hp_initial_channels,
+        False, model_top, batch_size,  conf, include_top, load_weight, num_class, hp_model, hp_lmb, hp_initial_channels,
         hp_train_epoch, train_steps_per_epoch,
         hp_optimizer, hp_learning_rate,
         hp_lr_schedule, hp_step_decay_epoch,
-        metric_accuracy, metric_accuracy_top5)
+        metric_accuracy, metric_accuracy_top5, hp_dataset, dist_strategy)
 
     if not load_weight is None:
         model.load_weights(load_weight)

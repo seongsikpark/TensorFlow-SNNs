@@ -29,7 +29,13 @@ from tensorflow.python.platform import tf_logging as logging
 from tensorflow.python.util.tf_export import keras_export
 
 #
-from config import conf
+#from config import conf
+#from config_common import conf
+from absl import flags
+conf = flags.FLAGS
+
+from ops import nn_impl as lib_snn_nn
+
 
 
 class BatchNormalizationBase(Layer):
@@ -175,6 +181,13 @@ class BatchNormalizationBase(Layer):
                  adjustment=None,
                  name=None,
                  **kwargs):
+
+
+        #sspark
+        self.en_tdbn = kwargs.pop('en_tdbn', False)
+        #self.tdbn_scale = 1.0 / tf.math.sqrt(tf.cast(conf.time_step,tf.float32))
+        self.tdbn_scale = conf.n_init_vth
+
         super(BatchNormalizationBase, self).__init__(name=name, **kwargs)
         if isinstance(axis, (list, tuple)):
             self.axis = axis[:]
@@ -199,6 +212,8 @@ class BatchNormalizationBase(Layer):
         self.renorm = renorm
         self.virtual_batch_size = virtual_batch_size
         self.adjustment = adjustment
+
+
         if self._USE_V2_BEHAVIOR:
             if fused:
                 self._raise_if_fused_cannot_be_used()
@@ -210,7 +225,13 @@ class BatchNormalizationBase(Layer):
             fused = True
         self.supports_masking = True
 
-        self.fused = fused
+        if self.en_tdbn:
+            self.fused = False
+        else:
+            self.fused = fused
+        #self.fused = fused
+        self.fused=False
+
         self._bessels_correction_test_only = True
         self.trainable = trainable
 
@@ -390,6 +411,9 @@ class BatchNormalizationBase(Layer):
                 for idx, x in enumerate(self.axis):
                     self.axis[idx] = x + 1  # Account for added dimension
 
+        #if conf.nn_mode=='SNN' and not conf.snn_training_spatial_first:
+        #    param_shape = param_shape[1:]       # [t,b,w,h,c] -> [b,w,h,c]
+
         if self.scale:
             self.gamma = self.add_weight(
                 name='gamma',
@@ -541,6 +565,10 @@ class BatchNormalizationBase(Layer):
         beta = self.beta if self.center else self._beta_const
         gamma = self.gamma if self.scale else self._gamma_const
 
+        # sspark
+        if self.en_tdbn:
+            gamma=gamma*self.tdbn_scale
+
         # TODO(b/129279393): Support zero batch input in non DistributionStrategy
         # code as well.
         if self._support_zero_size_input():
@@ -582,7 +610,8 @@ class BatchNormalizationBase(Layer):
             return variance * factor
 
         def _fused_batch_norm_training():
-            return tf.compat.v1.nn.fused_batch_norm(
+            #return tf.compat.v1.nn.fused_batch_norm(
+            return ops.nn_impl.fused_batch_norm(
                 inputs,
                 gamma,
                 beta,
@@ -595,7 +624,8 @@ class BatchNormalizationBase(Layer):
                 exponential_avg_factor=exponential_avg_factor)
 
         def _fused_batch_norm_inference():
-            return tf.compat.v1.nn.fused_batch_norm(
+            #return tf.compat.v1.nn.fused_batch_norm(
+            return ops.nn_impl.fused_batch_norm(
                 inputs,
                 gamma,
                 beta,
@@ -919,16 +949,49 @@ class BatchNormalizationBase(Layer):
             self.add_update(mean_update)
             self.add_update(variance_update)
 
+
+        #
+        #variance = tf.reduce_mean(tf.math.abs(inputs-mean),axis=reduction_axes)
+
+
+        #
         mean = tf.cast(mean, inputs.dtype)
         variance = tf.cast(variance, inputs.dtype)
+
+
+
+
+        if False:
+        #if True:
+            print('inputs')
+            #print(inputs)
+            print(tf.reduce_mean(inputs))
+            print('mean')
+            print(mean)
+            print(self.moving_mean)
+            print('variance')
+            print(variance)
+            print(self.moving_variance)
+
+            # test - sspark, 221205
+            #mean = self.moving_mean
+            #variance = self.moving_variance
+
         if offset is not None:
             offset = tf.cast(offset, inputs.dtype)
         if scale is not None:
             scale = tf.cast(scale, inputs.dtype)
-        # sspark - tdBN
-        #scale = scale*0.5
-        #scale = scale*conf.n_init_vth
-        outputs = tf.nn.batch_normalization(inputs, _broadcast(mean),
+        # TODO: parameterize
+        #if conf.nn_mode=='SNN' and conf.tdbn:
+        if self.en_tdbn:
+            # sspark - tdBN
+            #scale = scale*0.5
+            #scale = scale*conf.n_init_vth
+            #scale = scale/conf.time_step
+            #scale = scale / tf.math.sqrt(tf.cast(conf.time_step,tf.float32))
+            scale = scale * self.tdbn_scale
+        #outputs = tf.nn.batch_normalization(inputs, _broadcast(mean),
+        outputs = lib_snn_nn.batch_normalization(inputs, _broadcast(mean),
                                             _broadcast(variance), offset, scale,
                                             self.epsilon)
         if inputs_dtype in (tf.float16, tf.bfloat16):

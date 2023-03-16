@@ -25,10 +25,13 @@ from lib_snn import config_glb
 import math
 
 
+from config import config
+
 #
 def vth_calibration_stat(self):
     #
-    path_stat = os.path.join(self.path_model_load,self.conf.path_stat)
+    #path_stat = os.path.join(self.path_model_load,self.conf.path_stat)
+    path_stat=config.path_stat
     #stat = 'max'
     stat = 'max_999'
     #stat = 'max_99'
@@ -159,16 +162,18 @@ def vth_calibration_manual(self):
 # TODO: move
 def read_stat(self,layer,stat):
 
-    if self is None:
-        path_model_load = config_glb.path_model_load
-        path_stat_r = config_glb.path_stat
-    else:
-        path_model_load = self.path_model_load
-        path_stat_r = self.conf.path_stat
+    if False:
+        if self is None:
+            path_model_load = config_glb.path_model_load
+            path_stat_r = config_glb.path_stat
+        else:
+            path_model_load = self.path_model_load
+            path_stat_r = self.conf.path_stat
 
-        #path_stat = os.path.join(self.path_model_load,self.conf.path_stat)
+            #path_stat = os.path.join(self.path_model_load,self.conf.path_stat)
 
-    path_stat = os.path.join(path_model_load,path_stat_r)
+    #path_stat = os.path.join(path_model_load,path_stat_r)
+    path_stat=config.path_stat
 
     #path_stat = os.path.join(config_glb.path_model,config_glb.path_stat)
 
@@ -269,7 +274,8 @@ def vth_toggle(self):
 def vth_calibration_old(self,f_norm, stat):
 
     #
-    path_stat = os.path.join(self.path_model_load,self.conf.path_stat)
+    #path_stat = os.path.join(self.path_model_load,self.conf.path_stat)
+    path_stat=config.path_stat
     stat = 'max'
     stat = 'max_999'
     #stat = 'max_99'
@@ -488,7 +494,8 @@ def weight_calibration(self):
         #if True:
         if False:
 
-            path_stat = os.path.join(self.path_model_load,self.conf.path_stat)
+            #path_stat = os.path.join(self.path_model_load,self.conf.path_stat)
+            path_stat=config.path_stat
             #stat = 'median'
             stat = 'mean'
             for idx_l, l in enumerate(self.model.layers_w_kernel):
@@ -560,7 +567,8 @@ def weight_calibration(self):
 
     else:
         #
-        path_stat = os.path.join(self.path_model_load,self.conf.path_stat)
+        #path_stat = os.path.join(self.path_model_load,self.conf.path_stat)
+        path_stat=config.path_stat
         #stat = 'max_999'
         #stat = 'max'
         #stat = 'max_75'
@@ -2076,7 +2084,8 @@ def weight_calibration_inv_vth(self):
 def vmem_calibration(self):
 
     #
-    path_stat = os.path.join(self.path_model_load,self.conf.path_stat)
+    #path_stat = os.path.join(self.path_model_load,self.conf.path_stat)
+    path_stat=config.path_stat
     #stat = 'max_999'
     stat = 'max'
     #stat = 'max_90'

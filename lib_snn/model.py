@@ -1,10 +1,6 @@
 
 import tensorflow as tf
 
-import tensorflow.keras.initializers as initializers
-import tensorflow.keras.regularizers as regularizers
-
-
 #
 import os
 import csv
@@ -17,9 +13,10 @@ import collections
 from tensorflow.python.keras.engine import data_adapter
 from tensorflow.python.keras.engine import compile_utils
 
+#
+import keras
 
 #
-import matplotlib
 
 #
 from absl import flags
@@ -32,12 +29,17 @@ from tqdm import tqdm
 import lib_snn
 from lib_snn.sim import glb
 from lib_snn.sim import glb_t
-from lib_snn.sim import glb_plot
-from lib_snn.sim import glb_plot_1
-from lib_snn.sim import glb_plot_2
-from lib_snn.sim import glb_plot_3
-from lib_snn.sim import glb_plot_1x2
 
+#
+#from lib_snn.sim import glb_plot
+#from lib_snn.sim import glb_plot_1
+#from lib_snn.sim import glb_plot_2
+#from lib_snn.sim import glb_plot_3
+#from lib_snn.sim import glb_plot_1x2
+
+#from lib_snn.sim import glb_plot_gradient_kernel
+#from lib_snn.sim import glb_plot_gradient_gamma
+#from lib_snn.sim import glb_plot_gradient_beta
 
 class Model(tf.keras.Model):
     count=0
@@ -88,6 +90,9 @@ class Model(tf.keras.Model):
 
         # init done
         self.init_done = False
+
+        # multi-gpu strategy
+        self.dist_strategy = None
 
         #
         self.ts=conf.time_step
@@ -180,7 +185,8 @@ class Model(tf.keras.Model):
 
         # training mode
         #self.en_training = self.conf.training_mode
-        self.en_train = self.conf.en_train
+        #self.en_train = self.conf.en_train
+        self.en_train = ('train' in self.conf.mode)
 
         # SNN mode
         #Model.en_snn = (self.conf.nn_mode == 'SNN' or self.conf.f_validation_snn)
@@ -192,7 +198,7 @@ class Model(tf.keras.Model):
         self.en_write_stat = (self.nn_mode=='ANN' and self.conf.f_write_stat)
 
         # SNN, temporal coding, time const. training after DNN-to-SNN conversion (T2FSNN + GO)
-        self.en_opt_time_const_T2FSNN = (self.nn_mode=='SNN' and not self.conf.en_train \
+        self.en_opt_time_const_T2FSNN = (self.nn_mode=='SNN' and not self.en_train \
                                          and self.conf.neural_coding=='TEMPORAL' and self.conf.f_train_tk)
 
         # comparison activation - ANN vs. SNN
@@ -370,7 +376,8 @@ class Model(tf.keras.Model):
         ret_val = {
             #'ANN': self.call_ann if not self.conf.f_surrogate_training_model else self.call_ann_surrogate_training,
             'ANN': self.call_ann if not self.conf.f_surrogate_training_model else self.call_ann_surrogate_training,
-            'SNN': self.call_snn if not training else self.call_snn_one_time_step
+            #'SNN': self.call_snn if not training else self.call_snn_one_time_step
+            'SNN': self.call_snn
         }[self.nn_mode] (inputs,training,mask)
 
 
@@ -445,19 +452,232 @@ class Model(tf.keras.Model):
     #@tf.function
     #def call_snn(self,inputs,training, tw, epoch):
     def call_snn(self,inputs,training=None, mask=None):
-        #assert False
 
-        #for t in range(500):
-            #self.bias_control(t)
-            #glb_t()
-            #ret = self.call_ann(inputs,training)
-
-        #print(self.accuracy_time_point)
-        #assert False
 
         # return tensor - [batch, time, output]
-        ret_tensor = None
-        f_create_output_tensor = False
+
+        #range_ts = range(1, self.conf.time_step + 1)
+        #range_ts = range(1, int(self.conf.time_step/2.0) + 1)
+
+        #range_ts = range(1, self.conf.time_step + 1)
+        #range_ts = range(1, int(self.conf.time_step/2) + 1)
+        #range_ts = range(1, 1+ 1)
+
+
+        self.time_axis=0
+        if self.conf.snn_training_spatial_first:
+            if training:
+                if self.conf.sptr:
+                    # single time step
+                    y_pred = self._run_internal_graph(inputs, training=training, mask=mask)
+                else:
+                    y_pred = self._run_internal_graph(inputs, training=training, mask=mask)
+            else:
+                y_pred = self._run_internal_graph_snn_s_first(inputs, training=training, mask=mask)
+
+            ret = y_pred
+
+            if False:
+                #range_ts = range(1, 1+ 1)
+                #range_ts = range(1, 1+ 1)
+                range_ts = range(1, self.conf.time_step + 1)
+
+                glb_t.reset()
+                # TODO: modify
+                if training:
+                    for t in range_ts:
+                        layer_in = inputs
+
+                        for layer in self.layers:
+                            layer_out = layer(layer_in)
+                            layer_in = layer_out
+
+                            # debug
+                            if False:
+                                #if True:
+                                if hasattr(layer,'act') and isinstance(layer.act,lib_snn.neurons.Neuron):
+                                    spike_count = layer.act.spike_count
+                                    spike = layer.act.out
+                                    print('spike count> {}: - sum {:.3e}, mean {:.3e}'.format(layer.name,tf.reduce_sum(spike_count),tf.reduce_mean(spike_count)))
+                                    print('spike - sum {:.3e}, mean {:.3e}'.format(tf.reduce_sum(spike),tf.reduce_mean(spike)))
+                        glb_t()
+
+                    ret = layer_out
+
+        #else:   # temporal first - new
+        #elif False:
+        elif True:
+
+
+            #
+            #inputs_e = tf.TensorArray(
+            #                dtype=inputs.dtype,
+            #                size=self.conf.time_step,
+            #                element_shape=inputs.shape,
+            #                tensor_array_name='layer_in')
+#
+#            for t_in_write in range_ts:
+#                inputs_e=inputs_e.write(t_in_write-1,inputs)
+
+            #
+            y_pred = self._run_internal_graph_snn_t_first(inputs, training=training, mask=mask)
+
+            #ret = y_pred[-1]
+            #ret = y_pred.read(self.conf.time_step-1)
+            ret = y_pred
+
+            #
+
+
+
+
+
+        else:   # temporal first - old
+            #inputs_expand_shape = [self.conf.time_step,]+inputs.shape
+            #inputs_e = tf.broadcast_to(inputs,shape=inputs_expand_shape)
+            #print('input expand - time axis: {:}'.format(self.time_axis))
+
+            range_ts = range(1, self.conf.time_step+ 1)
+
+
+            #
+            layer_in = tf.TensorArray(
+                            dtype=inputs.dtype,
+                            size=self.conf.time_step,
+                            element_shape=inputs.shape,
+                            tensor_array_name='layer_in')
+
+            for t_in_write in range_ts:
+                layer_in=layer_in.write(t_in_write-1,inputs)
+
+            #out = self._run_internal_graph(inputs, training=training, mask=mask)
+
+            #layer_in = inputs_e
+            for layer in self.layers:
+                #print(layer.name)
+                #print(layer)
+                if False:
+                    if hasattr(layer,'output_shape_fixed_batch'):
+                        layer_out = tf.zeros([self.conf.time_step,]+layer.output_shape_fixed_batch)
+                    else:
+                        #if isinstance(layer,tf.keras.layers.Input):
+                        #if not isinstance(layer,keras.engine.input_layer.InputLayer):
+                        #    assert False
+
+                        assert isinstance(layer,keras.engine.input_layer.InputLayer) \
+                               or isinstance(layer,keras.layers.regularization.dropout.Dropout) \
+                               or isinstance(layer,keras.layers.reshaping.flatten.Flatten)
+
+                        layer_out = tf.zeros(layer_in.shape)
+
+                output_shape = layer.output_shape
+                if isinstance(layer.output_shape, list):
+                    output_shape=output_shape[0]
+                #layer_out = tf.zeros((self.conf.time_step,)+output_shape)
+                #layer_out = tf.zeros_like(self.conf.time_step)
+                #layer_out = []
+
+                # reset
+                glb_t.reset()
+                f_time_reduction = False    # flag - time reduction
+
+
+                #
+                #print(layer)
+                if isinstance(layer,
+                              layers_new.batch_normalization.BatchNormalization):
+                    #print('aa')
+                    f_time_reduction = True
+
+
+                if f_time_reduction:
+                    layer_in_mean_t = tf.reduce_mean(layer_in.stack(),axis=self.time_axis)
+                    _layer_in = layer_in_mean_t
+
+                    # run
+                    _layer_out = layer(_layer_in)
+
+                    #
+                    output_ta_t = tf.TensorArray(
+                        dtype=_layer_out.dtype,
+                        size=self.conf.time_step,
+                        element_shape=_layer_out.shape,
+                        clear_after_read=false,
+                        tensor_array_name='output_ta_t')
+
+                    for t in range_ts:
+                        output_ta_t = output_ta_t.write(t-1,_layer_out)
+
+                else:
+                    if False:
+                        #
+                        # time step 0
+                        t=0
+                        #_layer_in = layer_in[0]
+                        _layer_in = layer_in.read(0)
+
+                        # run
+                        _layer_out = layer(_layer_in)
+
+                        output_ta_t = tf.TensorArray(
+                                dtype=_layer_out.dtype,
+                                size=self.conf.time_step,
+                                element_shape=_layer_out.shape,
+                                clear_after_read=False,
+                                tensor_array_name='output_ta_t')
+
+
+                        #output_ta_t = tuple(
+                        #    ta.write(t, out)
+                        #    for ta, out in zip(output_ta_t, _layer_out))
+                        output_ta_t = output_ta_t.write(t,_layer_out)
+
+                        glb_t()
+
+                    #
+                    for t in range_ts:
+                        #_layer_in = layer_in[t-1]
+                        _layer_in = layer_in.read(t-1)
+
+                        # run
+                        _layer_out = layer(_layer_in)
+
+                        #
+                        #print(t)
+                        if t-1==0:
+                            output_ta_t = tf.TensorArray(
+                                dtype=_layer_out.dtype,
+                                size=self.conf.time_step,
+                                element_shape=_layer_out.shape,
+                                clear_after_read=False,
+                                tensor_array_name='output_ta_t')
+
+                        #_layer_out = tf.expand_dims(_layer_out,axis=self.time_axis)
+
+                        #layer_out.append(_layer_out)
+
+                        #output_ta_t = tuple(
+                        #    ta.write(t, out)
+                        #    for ta, out in zip(output_ta_t, _layer_out))
+
+                        output_ta_t = output_ta_t.write(t-1,_layer_out)
+
+                        #indices = tf.constant([[t-1,:]])
+                        #updates = _layer_out
+                        #layer_out = tf.tensor_scatter_nd_update(layer_out,indices,updates)
+
+                        glb_t()
+
+                    #layer_out = tf.stack([lo for lo in layer_out],axis=0)
+                layer_out = output_ta_t
+                layer_in = layer_out
+
+
+            ret = layer_out.read(self.conf.time_step-1)
+            #print(layer_out.read(7))
+
+        return ret
+
 
 
         # plot control
@@ -492,10 +712,10 @@ class Model(tf.keras.Model):
             #print(t)
             #print(self.count_accuracy_time_point)
             # TODO:
-            if self.conf.nn_mode=='inference' and \
+            if self.conf.mode=='inference' and \
                 self.init_done and (t == self.accuracy_time_point[self.count_accuracy_time_point]):
             #if (t == self.accuracy_time_point[self.count_accuracy_time_point]):
-                self.record_acc_spike_time_point(inputs,ret)
+                self.record_acc_spike_time_point(inputs,y_pred)
 
 
             # plot output
@@ -504,6 +724,13 @@ class Model(tf.keras.Model):
             #
             #if (glb.model_compiled) and (self.conf.debug_mode and self.conf.nn_mode == 'SNN'):
             if f_plot:
+
+                from lib_snn.sim import glb_plot
+                from lib_snn.sim import glb_plot_1
+                from lib_snn.sim import glb_plot_2
+                from lib_snn.sim import glb_plot_3
+                from lib_snn.sim import glb_plot_1x2
+
                 self.plot_layer_neuron_act(glb_plot)
                 self.plot_layer_neuron_vmem(glb_plot_1)
                 self.plot_layer_neuron_out(glb_plot_2)
@@ -532,40 +759,7 @@ class Model(tf.keras.Model):
             # end of time step - increase global time
             glb_t()
 
-            #print(ret.numpy())
-
-            #
-            #self.postproc_snn_time_step()
-
-            #
-            if not f_create_output_tensor:
-                # return tensor - [batch, time, output]
-                ret_tensor = tf.expand_dims(y_pred,axis=1)
-
-                #print(ret_tensor)
-                #print(y_pred)
-
-                f_create_output_tensor = True
-
-            else:
-                y_pred = tf.expand_dims(y_pred,axis=1)
-
-                #print(ret_tensor)
-                #print(y_pred)
-
-                ret_tensor = tf.concat([ret_tensor,y_pred],axis=1)
-
-
-
-
-        #if (glb.model_compiled):
-        #    print(ret)
-
-        #return self.snn_output
-
-        #print(ret)
-        #return ret
-        return ret_tensor
+        return ret
 
 
     #
@@ -1218,7 +1412,7 @@ class Model(tf.keras.Model):
 
     # this function is based on Model.test_step in training.py
     # TODO: override Model.test_step
-    def test_step(self, data):
+    def test_step_a(self, data):
 
         ret = {
             'ANN': self.test_step_ann,
@@ -1288,7 +1482,7 @@ class Model(tf.keras.Model):
         self.y = y
         self.sample_weight=sample_weight
         y_pred = self(x, training=False)
-        y_pred = y_pred[:,-1,:]
+        #y_pred = y_pred[:,-1,:]
         # Updates stateful loss metrics.
         self.compiled_loss(
             y, y_pred, sample_weight, regularization_losses=self.losses)
@@ -1314,27 +1508,33 @@ class Model(tf.keras.Model):
             #'SNN': self.train_step_ann,
         }[self.nn_mode](data)
 
+
+        #
+        if self.conf.verbose_visual:
+            import matplotlib.pyplot as plt
+            plt.show()
+
         return ret
 
     def train_step_ann(self, data):
         """The logic for one training step.
-  
+
         This method can be overridden to support custom training logic.
         For concrete examples of how to override this method see
         [Customizing what happends in fit](https://www.tensorflow.org/guide/keras/customizing_what_happens_in_fit).
         This method is called by `Model.make_train_function`.
-  
+
         This method should contain the mathematical logic for one step of training.
         This typically includes the forward pass, loss calculation, backpropagation,
         and metric updates.
-  
+
         Configuration details for *how* this logic is run (e.g. `tf.function` and
         `tf.distribute.Strategy` settings), should be left to
         `Model.make_train_function`, which can also be overridden.
-  
+
         Args:
           data: A nested structure of `Tensor`s.
-  
+
         Returns:
           A `dict` containing values that will be passed to
           `tf.keras.callbacks.CallbackList.on_train_batch_end`. Typically, the
@@ -1360,7 +1560,38 @@ class Model(tf.keras.Model):
 
         self._validate_target_and_loss(y, loss)
         # Run backwards pass.
-        self.optimizer.minimize(loss, self.trainable_variables, tape=tape)
+        # from keras.optimizers.optimizer_v2.optimizer_v2.py
+        #self.optimizer.minimize(loss, self.trainable_variables, tape=tape)
+        grad_loss=None
+        name=None
+
+        grads_and_vars = self.optimizer._compute_gradients(loss=loss, var_list=self.trainable_variables, grad_loss=grad_loss, tape=tape)
+        #optimizer = keras.optimizers.optimizer_v2.optimizer_v2.OptimizerV2
+        self.optimizer.apply_gradients(grads_and_vars, name=name)
+
+
+        if self.conf.debug_mode:
+
+            from lib_snn.sim import glb_plot_gradient_kernel
+            from lib_snn.sim import glb_plot_gradient_gamma
+            from lib_snn.sim import glb_plot_gradient_beta
+
+            print('\n grads')
+            for grad_accum, var in grads_and_vars:
+                print('{: <10}: - max {:.3e}, min {:.3e}, mean {:.3e}, var {:.3e}'
+                      .format(var.name,tf.reduce_max(grad_accum),tf.reduce_min(grad_accum),
+                              tf.reduce_mean(grad_accum),tf.math.reduce_variance(grad_accum)))
+
+                if True:
+                    if 'kernel' in var.name:
+                        lib_snn.util.plot_hist(glb_plot_gradient_kernel,grad_accum,1000,norm_fit=True)
+                    elif 'gamma' in var.name:
+                        lib_snn.util.plot_hist(glb_plot_gradient_gamma,grad_accum,1000,norm_fit=True)
+                    elif 'beta' in var.name:
+                        lib_snn.util.plot_hist(glb_plot_gradient_beta,grad_accum,1000,norm_fit=True)
+
+
+
         return self.compute_metrics(x, y, y_pred, sample_weight)
 
     def train_step_snn(self, data):
@@ -1372,6 +1603,8 @@ class Model(tf.keras.Model):
         # Run forward pass.
         last_ts = self.conf.time_step
         range_ts = range(1,last_ts+1)
+        #range_ts = range(1,2+1)
+        #range_ts = range(1,1+1)
         grad_loss = None
         name = None
 
@@ -1445,8 +1678,6 @@ class Model(tf.keras.Model):
 
             # self.grads_and_vars = grads_accum_and_vars
             # self.optimizer.apply_gradients(grads_accum_and_vars,name=name)
-
-
         else:
             if False:
             #if True:
@@ -1478,45 +1709,134 @@ class Model(tf.keras.Model):
 
                 return self.compute_metrics(x, y, y_pred[:, -1, :], sample_weight)
             elif True:
-                for t in range_ts:
+                if self.conf.snn_training_spatial_first:
+                    tape_prev = None
+                    loss_prev = None
+                    var_list_prev = None
+                    glb_t.reset()
+                    for t in range_ts:
+                        #with tf.GradientTape() as tape:
+                        #with tf.GradientTape(persistent=True) as tape:
+                        with tf.GradientTape() as tape:
+                            y_pred = self(x, training=True)
+                            loss = self.compute_loss(x, y, y_pred, sample_weight)
+
+                        self._validate_target_and_loss(y, loss)
+
+                        # drop out or skip update - p percent
+                        if False:
+                        #if True:
+                            rand = tf.random.uniform(shape=[],minval=0,maxval=1.0)
+                            drop_prop = 0.5
+                            grads = tape.gradient(loss, var_list, grad_loss)
+                            #grads = tf.cond(rand<drop_prop,
+                                            #lambda: tf.zeros(shape=grads.shape),
+                                            #lambda: grads)
+                            grads = tf.where(rand<drop_prop,[0]*len(grads),grads)
+
+                        grads = tape.gradient(loss, var_list, grad_loss)
+
+                        # spike norm - grad
+
+                        #if tape_prev is not None:
+                        #    grads_prev = tape_prev.gradient(loss, var_list_prev, grad_loss)
+                        #    grads = grads+grads_prev
+                        #grads = [grad * ((t+1) / last_ts) for grad in grads]
+                        #grads = [grad/self.conf.time_step for grad in grads]
+                        #if grads is not None:
+
+                        #
+                        #for grad, var in zip(grads,var_list):
+                        #    print(var.name+' - ' +str(tf.reduce_mean(tf.math.abs(grad)).numpy()))
+
+                        # gradient accum
+                        #f_stochastic_gradient_accum=True
+                        f_stochastic_gradient_accum=False
+                        if f_stochastic_gradient_accum:
+                            rand = tf.random.uniform(shape=[],minval=0,maxval=1.0)
+                            drop_prop = 0.5
+                            grads_accum = tf.cond(rand<drop_prop,lambda: grads_accum,lambda: [(grad_accum + grad) for grad_accum, grad in zip(grads_accum, grads)])
+                        else:
+                            grads_accum = [(grad_accum + grad) for grad_accum, grad in zip(grads_accum, grads)]
+
+
+                        #
+                        if False:
+                            print()
+                            for layer in self.layers:
+                                if hasattr(layer,'kernel'):
+                                    print('kernel> {} max {:.3e}, mean {:.3e}'.format(layer.name,tf.reduce_max(layer.kernel),tf.reduce_mean(layer.kernel)))
+
+                                if hasattr(layer,'bias'):
+                                    print('bias> {} max {:.3e}, mean {:.3e}'.format(layer.name,tf.reduce_max(layer.bias),tf.reduce_mean(layer.bias)))
+
+                        #tape_prev = tape
+                        #loss_prev = loss
+                        #var_list_prev = var_list
+
+                        if False:
+                        #if True:
+                            print('y')
+                            print(y[0])
+                            print('y_pred')
+                            print(y_pred[0])
+                            print('grads')
+                            #print(grads)
+
+                            for idx, grad in enumerate(grads):
+                                print('grad <{:}> - min - max: {:} - {:}'.format(
+                                    var_list[idx].name, tf.reduce_min(grad),
+                                    tf.reduce_max(grad)))
+                            #
+                            #print(tf.reduce_max(grads[0]))
+                            #print(tf.reduce_max(grads[-1]))
+                            print(grads[-1])
+                            print()
+
+                        #assert False
+                        glb_t()
+
+                    #
+                    grads_accum = [grad_accum/self.conf.time_step for grad_accum in grads_accum]
+                    grads_accum_and_vars = list(zip(grads_accum, var_list))
+                else:
+                    #sample_weight = data_adapter.unpack_x_y_sample_weight(data)
+                    # Run forward pass.
                     with tf.GradientTape() as tape:
                         y_pred = self(x, training=True)
                         loss = self.compute_loss(x, y, y_pred, sample_weight)
 
                     self._validate_target_and_loss(y, loss)
+                    # Run backwards pass.
+                    # from keras.optimizers.optimizer_v2.optimizer_v2.py
+                    #self.optimizer.minimize(loss, self.trainable_variables, tape=tape)
+                    grad_loss=None
+                    name=None
 
+                    grads_accum_and_vars = self.optimizer._compute_gradients(loss=loss, var_list=self.trainable_variables, grad_loss=grad_loss, tape=tape)
 
-                    grads = tape.gradient(loss, var_list, grad_loss)
-                    grads = [grad/self.conf.time_step for grad in grads]
-                    grads_accum = [(grad_accum + grad) for grad_accum, grad in zip(grads_accum, grads)]
-
-                    if False:
-                    #if True:
-                        print('y')
-                        print(y[0])
-                        print('y_pred')
-                        print(y_pred[0])
-                        print('grads')
-                        #print(grads)
-
-                        for idx, grad in enumerate(grads):
-                            print('grad <{:}> - min - max: {:} - {:}'.format(
-                                var_list[idx].name, tf.reduce_min(grad),
-                                tf.reduce_max(grad)))
-                        #
-                        #print(tf.reduce_max(grads[0]))
-                        #print(tf.reduce_max(grads[-1]))
-                        print(grads[-1])
-                        print()
-
-
-                    #assert False
-                    glb_t()
-
-                #grads_accum = [grad_accum/self.conf.time_step for grad_accum in grads_accum]
-
-                grads_accum_and_vars = list(zip(grads_accum, var_list))
+                #
                 self.optimizer.apply_gradients(grads_accum_and_vars)
+
+
+                nan_test = [tf.reduce_any(tf.math.is_nan(grad_accum)) for grad_accum in grads_accum]
+                #if tf.reduce_any(nan_test):
+                #if tf.executing_eagerly() and tf.reduce_any(nan_test):
+                if tf.executing_eagerly():
+                    #
+                    #if False:
+                    #if True:
+                    if self.conf.verbose_snn_train:
+
+                        self.print_snn_train(grads_accum_and_vars)
+
+                    #if tf.reduce_any(nan_test) or (loss > 100):
+                    if tf.reduce_any(nan_test) or (loss > 1000):
+                        print(loss)
+                        print(tf.reduce_any(nan_test))
+                        #print('here')
+                        assert False
+
 
                 return self.compute_metrics(x, y, y_pred, sample_weight)
 
@@ -1764,13 +2084,16 @@ class Model(tf.keras.Model):
 
         self.layers_w_act = []
         for layer in self.layers:
-            if hasattr(layer, 'act'):
+            #if hasattr(layer, 'act'):
+            if isinstance(layer, lib_snn.activations.Activation):
                 #if not isinstance(layer,lib_snn.layers.InputGenLayer):
                 #if not layer.act_dnn is None:
                 #if not (layer.activation is None):
-                if not (layer.act_dnn is None):
-                    self.layers_w_act.append(layer)
-                    #print(layer.name)
+                #if not (layer.act_dnn is None):
+                #    self.layers_w_act.append(layer)
+                #    #print(layer.name)
+
+                self.layers_w_act.append(layer)
 
         #assert False
 
@@ -1850,7 +2173,9 @@ class Model(tf.keras.Model):
         # TODO: add condition
         #if self.conf.f_w_norm_data or self.bias_control:
         #if (self.en_snn) and ('ResNet' in self.name):
-        if 'ResNet' in self.name:
+        #if 'ResNet' in self.name:
+        f_dnn_to_snn = False
+        if 'ResNet' in self.name and f_dnn_to_snn:
             self.block_norm_set_resnet()
 
 
@@ -1882,7 +2207,10 @@ class Model(tf.keras.Model):
         # init - neuron
         for layer in self.layers_w_neuron:
             #print(layer.name)
-            layer.act_snn.init()
+            #layer.act_snn.init()
+            if hasattr(layer.act,'init'):
+                layer.act.init()
+
 
         #
         # dummy run
@@ -2083,23 +2411,39 @@ class Model(tf.keras.Model):
             #print('reset_snn')
         self.count_accuracy_time_point=0
 
+        # sptr
+        self.reset_snn_sptr()
+
     #
     def reset_snn_neuron(self):
         #print('reset_snn_neuron')
         for layer in self.layers_w_neuron:
             layer.reset()
 
+    # sptr - only for training
+    def reset_snn_sptr(self):
+        if self.conf.sptr:
+            for layer in self.layers:
+                if hasattr(layer, 'input_accum'):
+                    layer.input_accum.assign(tf.zeros(layer.input_accum.shape))
+
+
 
     # set layers with neuron
     def set_layers_w_neuron(self):
-        #self.layers_w_neuron = []
+        if False: #old
+            #self.layers_w_neuron = []
+            for layer in self.layers:
+                #if hasattr(layer, 'act_snn'):
+                if hasattr(layer, 'act'):
+                    #if layer.act_snn is not None:
+                    #if isinstance(layer.act,lib_snn.neurons.Neuron):
+                    if not (layer.act_dnn is None):
+                        #print(layer.name)
+                        self.layers_w_neuron.append(layer)
         for layer in self.layers:
-            #if hasattr(layer, 'act_snn'):
-            if hasattr(layer, 'act'):
-                #if layer.act_snn is not None:
-                #if isinstance(layer.act,lib_snn.neurons.Neuron):
-                if not (layer.act_dnn is None):
-                    #print(layer.name)
+            if isinstance(layer, lib_snn.activations.Activation):
+                if isinstance(layer.act, lib_snn.neurons.Neuron):
                     self.layers_w_neuron.append(layer)
 
 
@@ -2624,3 +2968,393 @@ class Model(tf.keras.Model):
             #self.bn = tf.keras.layers.BatchNormalization(name=name_bn)
 
         #self.model.get_layer('conv1').set_weights(pre_model.get_layer('vgg16').get_layer('block1_conv1').get_weights())
+
+
+
+    ###########################################################
+    # run internal graph - SNN, temporal first
+    # based on _run_internal_graph() function in keras.engine.functional.py
+    ###########################################################
+    def _run_internal_graph_snn_t_first(self, inputs, training=None, mask=None):
+        """ run internal graph - SNN, temporal first
+            Computes output tensors for new inputs.
+
+        # Note:
+            - Can be run on non-Keras tensors.
+
+        Args:
+            inputs: Tensor or nested structure of Tensors.
+            training: Boolean learning phase.
+            mask: (Optional) Tensor or nested structure of Tensors.
+
+        Returns:
+            output_tensors
+        """
+        inputs = self._flatten_to_reference_inputs(inputs)
+        if mask is None:
+            masks = [None] * len(inputs)
+        else:
+            masks = self._flatten_to_reference_inputs(mask)
+        for input_t, mask in zip(inputs, masks):
+            input_t._keras_mask = mask
+
+        # Dictionary mapping reference tensors to computed tensors.
+        tensor_dict = {}
+        tensor_usage_count = self._tensor_usage_count
+        for x, y in zip(self.inputs, inputs):
+            y = self._conform_to_reference_input(y, ref_input=x)
+            x_id = str(id(x))
+            tensor_dict[x_id] = [y] * tensor_usage_count[x_id]
+
+        nodes_by_depth = self._nodes_by_depth
+        depth_keys = list(nodes_by_depth.keys())
+        depth_keys.sort(reverse=True)
+
+        # sspark
+        # SNN training, temporal first
+        #if self.conf.nn_mode=='SNN' and not self.conf.snn_training_spatial_first:
+        #if False:
+        #if True:
+        for depth in depth_keys:
+            nodes = nodes_by_depth[depth]
+            for node in nodes:
+                if node.is_input:
+
+                    _input = tensor_dict[x_id][0]
+                    #args, kwargs = node.map_arguments(tensor_dict)
+                    layer_out = tf.TensorArray(
+                        dtype=tf.float32,
+                        size=self.conf.time_step,
+                        element_shape=_input.shape,
+                        clear_after_read=False,
+                        tensor_array_name='out_arr')
+
+                    glb_t.reset()
+                    for t in range(1,self.conf.time_step+1):
+                        layer_out = layer_out.write(t-1,_input)
+                        glb_t()
+
+                    #continue  # Input tensors already exist.
+
+                else:
+
+                    #
+                    #print(node.layer)
+
+                    if any(t_id not in tensor_dict for t_id in node.flat_input_ids):
+                        assert False
+                        continue  # Node is not computable, try skipping.
+
+                    #layer_in = layer_out
+
+                    args, kwargs = node.map_arguments(tensor_dict)
+                    layer_in = args[0]
+                    #print(layer_in)
+
+                    f_temporal_reduction = False
+                    #
+                    layers_temporal_reduction = []
+                    layers_temporal_reduction.append(lib_snn.layers.BatchNormalization)
+                    #layers_temporal_reduction.append(lib_snn.layers.MaxPool2D)
+                    #layers_temporal_reduction.append(lib_snn.layers.AveragePooling2D)
+
+                    if type(node.layer) in layers_temporal_reduction:
+                        f_temporal_reduction = True
+
+                    if f_temporal_reduction:
+
+                        _layer_in = tf.reduce_mean(layer_in.stack(),axis=0)
+
+                        _layer_out = node.layer(_layer_in)
+
+                        #
+                        layer_out = tf.TensorArray(
+                            dtype=tf.float32,
+                            size=self.conf.time_step,
+                            element_shape=_layer_out.shape,
+                            clear_after_read=False,
+                            tensor_array_name='out_arr')
+
+                        glb_t.reset()
+                        for t in range(1,self.conf.time_step+1):
+                            layer_out= layer_out.write(t-1,_layer_out)
+
+                            glb_t()
+
+                    else:
+                        glb_t.reset()
+                        for t in range(1,self.conf.time_step+1):
+
+                            if isinstance(layer_in,list) :
+                                _layer_in = [_layer_in.read(t-1) for _layer_in in layer_in]
+                            else:
+                                _layer_in = layer_in.read(t-1)
+
+                            _layer_out = node.layer(_layer_in)
+
+                            if t-1==0:
+                                layer_out = tf.TensorArray(
+                                    dtype=tf.float32,
+                                    size=self.conf.time_step,
+                                    element_shape=_layer_out.shape,
+                                    clear_after_read=False,
+                                    tensor_array_name='out_arr')
+
+                            layer_out = layer_out.write(t-1,_layer_out)
+
+                            glb_t()
+
+                #for x_id, y in zip(node.flat_output_ids, tf.nest.flatten(layer_out.read(self.conf.time_step-1))):
+                for x_id, y in zip(node.flat_output_ids, tf.nest.flatten(layer_out)):
+                    tensor_dict[x_id] = [y] * tensor_usage_count[x_id]
+
+        output_tensors = []
+        for x in self.outputs:
+            x_id = str(id(x))
+            assert x_id in tensor_dict, 'Could not compute output ' + str(x)
+            #output_tensors.append(tensor_dict[x_id].pop())
+
+            output_tensors.append(tensor_dict[x_id].pop().read(self.conf.time_step-1))
+
+        return tf.nest.pack_sequence_as(self._nested_outputs, output_tensors)
+
+    ###########################################################
+    # run internal graph - SNN, spatial first
+    # based on _run_internal_graph() function in keras.engine.functional.py
+    ###########################################################
+    def _run_internal_graph_snn_s_first(self, inputs, training=None, mask=None):
+        range_ts = range(1, self.conf.time_step + 1)
+
+        glb_t.reset()
+        for t in range_ts:
+            ret = self._run_internal_graph(inputs, training=training, mask=mask)
+            glb_t()
+
+        return ret
+
+
+
+    def print_snn_train(self,grads_accum_and_vars,path_root=None):
+        import pandas as pd
+
+        print('\n grads_accum')
+        for grad_accum, var in grads_accum_and_vars:
+            #print('{: <10}: - sum {:.3e}, mean {:.3e}'.format(var.name,tf.reduce_sum(grad_accum),tf.reduce_mean(grad_accum)))
+            print('{: <10}: - max {:.3e}, min {:.3e}, mean {:.3e}, var {:.3e}'
+                  .format(var.name,tf.reduce_max(grad_accum),tf.reduce_min(grad_accum),
+                          tf.reduce_mean(grad_accum),tf.math.reduce_std(grad_accum)))
+
+            if self.conf.verbose_visual:
+                if 'kernel' in var.name:
+                    lib_snn.util.plot_hist(glb_plot_gradient_kernel,grad_accum,1000)
+                elif 'gamma' in var.name:
+                    lib_snn.util.plot_hist(glb_plot_gradient_gamma,grad_accum,1000)
+                elif 'beta' in var.name:
+                    lib_snn.util.plot_hist(glb_plot_gradient_beta,grad_accum,1000)
+
+            try:
+                dout_ga
+            except NameError:
+                dout_ga = pd.DataFrame(columns=['max','min','mean','std'])
+            dout_ga.loc[var.name,'max'] = tf.reduce_max(grad_accum).numpy()
+            dout_ga.loc[var.name,'min'] = tf.reduce_min(grad_accum).numpy()
+            dout_ga.loc[var.name,'mean'] = tf.reduce_mean(grad_accum).numpy()
+            dout_ga.loc[var.name,'std'] = tf.math.reduce_std(grad_accum).numpy()
+
+        print('\n spike count')
+        for layer in self.layers:
+            if hasattr(layer,'act') and isinstance(layer.act,lib_snn.neurons.Neuron):
+                spike_count = layer.act.spike_count_int
+                #spike = layer.act.out
+                print('{: <10}: - max {:.3e}, mean {:.3e}, non-zero percent {:.3e}'
+                      .format(layer.name,tf.reduce_max(spike_count),tf.reduce_mean(spike_count)
+                              ,tf.math.count_nonzero(spike_count,dtype=tf.float32)/tf.cast(tf.reduce_prod(spike_count.shape),dtype=tf.float32)))
+
+                try:
+                    dout_sc
+                except NameError:
+                    dout_sc = pd.DataFrame(columns=['max','min','mean','std'])
+                dout_sc.loc[layer.name,'max'] = tf.reduce_max(spike_count).numpy()
+                dout_sc.loc[layer.name,'min'] = tf.reduce_min(spike_count).numpy()
+                dout_sc.loc[layer.name,'mean'] = tf.reduce_mean(spike_count).numpy()
+                dout_sc.loc[layer.name,'std'] = tf.math.reduce_std(spike_count).numpy()
+
+        print('\n vmem residual')
+        for layer in self.layers:
+            if hasattr(layer,'act') and isinstance(layer.act,lib_snn.neurons.Neuron):
+                vmem = layer.act.vmem.read(self.conf.time_step-1)
+                print('{: <10}: - max {:.3e}, min {:.3e}, mean {:.3e}, var {:.3e}'
+                      .format(layer.name,tf.reduce_max(vmem),tf.reduce_min(vmem),
+                              tf.reduce_mean(vmem),tf.math.reduce_variance(vmem)))
+                try:
+                    dout_vr
+                except NameError:
+                    dout_vr = pd.DataFrame(columns=['max','min','mean','std'])
+                dout_vr.loc[layer.name,'max'] = tf.reduce_max(vmem).numpy()
+                dout_vr.loc[layer.name,'min'] = tf.reduce_min(vmem).numpy()
+                dout_vr.loc[layer.name,'mean'] = tf.reduce_mean(vmem).numpy()
+                dout_vr.loc[layer.name,'std'] = tf.math.reduce_std(vmem).numpy()
+
+
+
+                #print('spike - sum {:.3e}, mean {:.3e}'.format(tf.reduce_sum(spike),tf.reduce_mean(spike)))
+
+        #
+        print('\n kernel ')
+        for layer in self.layers:
+            if hasattr(layer,'kernel'):
+                print('{: <10} max {:.3e}, min {:.3e}, mean {:.3e}, sq {:.3e}'
+                      .format(layer.name,
+                              tf.reduce_max(layer.kernel),
+                              tf.reduce_min(layer.kernel),
+                              tf.reduce_mean(layer.kernel),
+                              tf.reduce_sum(tf.math.pow(layer.kernel,2))))
+
+                try:
+                    dout_k
+                except NameError:
+                    dout_k = pd.DataFrame(columns=['max','min','mean','std'])
+                dout_k.loc[layer.name,'max'] = tf.reduce_max(layer.kernel).numpy()
+                dout_k.loc[layer.name,'min'] = tf.reduce_min(layer.kernel).numpy()
+                dout_k.loc[layer.name,'mean'] = tf.reduce_mean(layer.kernel).numpy()
+                dout_k.loc[layer.name,'std'] = tf.math.reduce_std(layer.kernel).numpy()
+
+        #
+        print('\n bias ')
+        for layer in self.layers:
+            if hasattr(layer,'bias'):
+                print('{: <10} max {:.3e}, min {:.3e}, mean {:.3e}, sq {:.3e}'
+                      .format(layer.name,
+                              tf.reduce_max(layer.bias),
+                              tf.reduce_min(layer.bias),
+                              tf.reduce_mean(layer.bias),
+                              tf.reduce_sum(tf.math.pow(layer.bias,2))))
+
+                try:
+                    dout_b
+                except NameError:
+                    dout_b = pd.DataFrame(columns=['max','min','mean','std'])
+                dout_b.loc[layer.name,'max'] = tf.reduce_max(layer.bias).numpy()
+                dout_b.loc[layer.name,'min'] = tf.reduce_min(layer.bias).numpy()
+                dout_b.loc[layer.name,'mean'] = tf.reduce_mean(layer.bias).numpy()
+                dout_b.loc[layer.name,'std'] = tf.math.reduce_std(layer.bias).numpy()
+
+
+        #
+        print('\n bn - moving mean')
+        for layer in self.layers:
+            #if hasattr(layer,'bn') and layer.bn is not None:
+            if isinstance(layer,lib_snn.layers.BatchNormalization):
+                bn_var = layer.moving_mean
+                print('{: <10} max {:.3e}, min {:.3e}, mean {:.3e}, sq {:.3e}'
+                      .format(layer.name,
+                              tf.reduce_max(bn_var),
+                              tf.reduce_min(bn_var),
+                              tf.reduce_mean(bn_var),
+                              tf.reduce_sum(tf.math.pow(bn_var,2))))
+                try:
+                    dout_bn_m
+                except NameError:
+                    dout_bn_m = pd.DataFrame(columns=['max','min','mean','std'])
+                dout_bn_m.loc[layer.name,'max'] = tf.reduce_max(bn_var).numpy()
+                dout_bn_m.loc[layer.name,'min'] = tf.reduce_min(bn_var).numpy()
+                dout_bn_m.loc[layer.name,'mean'] = tf.reduce_mean(bn_var).numpy()
+                dout_bn_m.loc[layer.name,'std'] = tf.math.reduce_std(bn_var).numpy()
+        #
+        print('\n bn - moving variance')
+        for layer in self.layers:
+            if isinstance(layer,lib_snn.layers.BatchNormalization):
+                bn_var = layer.moving_variance
+                print('{: <10} max {:.3e}, min {:.3e}, mean {:.3e}, sq {:.3e}'
+                      .format(layer.name,
+                              tf.reduce_max(bn_var),
+                              tf.reduce_min(bn_var),
+                              tf.reduce_mean(bn_var),
+                              tf.reduce_sum(tf.math.pow(bn_var,2))))
+                try:
+                    dout_bn_v
+                except NameError:
+                    dout_bn_v = pd.DataFrame(columns=['max','min','mean','std'])
+                dout_bn_v.loc[layer.name,'max'] = tf.reduce_max(bn_var).numpy()
+                dout_bn_v.loc[layer.name,'min'] = tf.reduce_min(bn_var).numpy()
+                dout_bn_v.loc[layer.name,'mean'] = tf.reduce_mean(bn_var).numpy()
+                dout_bn_v.loc[layer.name,'std'] = tf.math.reduce_std(bn_var).numpy()
+
+        #
+        print('\n bn - gamma')
+        for layer in self.layers:
+            if isinstance(layer,lib_snn.layers.BatchNormalization):
+                bn_var = layer.gamma
+                print('{: <10} max {:.3e}, min {:.3e}, mean {:.3e}, sq {:.3e}'
+                      .format(layer.name,
+                              tf.reduce_max(bn_var),
+                              tf.reduce_min(bn_var),
+                              tf.reduce_mean(bn_var),
+                              tf.reduce_sum(tf.math.pow(bn_var,2))))
+                try:
+                    dout_bn_g
+                except NameError:
+                    dout_bn_g = pd.DataFrame(columns=['max','min','mean','std'])
+                dout_bn_g.loc[layer.name,'max'] = tf.reduce_max(bn_var).numpy()
+                dout_bn_g.loc[layer.name,'min'] = tf.reduce_min(bn_var).numpy()
+                dout_bn_g.loc[layer.name,'mean'] = tf.reduce_mean(bn_var).numpy()
+                dout_bn_g.loc[layer.name,'std'] = tf.math.reduce_std(bn_var).numpy()
+
+        #
+        print('\n bn - beta')
+        for layer in self.layers:
+            if isinstance(layer,lib_snn.layers.BatchNormalization):
+                bn_var = layer.beta
+                print('{: <10} max {:.3e}, min {:.3e}, mean {:.3e}, sq {:.3e}'
+                      .format(layer.name,
+                              tf.reduce_max(bn_var),
+                              tf.reduce_min(bn_var),
+                              tf.reduce_mean(bn_var),
+                              tf.reduce_sum(tf.math.pow(bn_var,2))))
+                try:
+                    dout_bn_b
+                except NameError:
+                    dout_bn_b = pd.DataFrame(columns=['max','min','mean','std'])
+                dout_bn_b.loc[layer.name,'max'] = tf.reduce_max(bn_var).numpy()
+                dout_bn_b.loc[layer.name,'min'] = tf.reduce_min(bn_var).numpy()
+                dout_bn_b.loc[layer.name,'mean'] = tf.reduce_mean(bn_var).numpy()
+                dout_bn_b.loc[layer.name,'std'] = tf.math.reduce_std(bn_var).numpy()
+
+
+        if path_root is None:
+            path_root = 'snn_train_log'
+
+        os.makedirs(path_root,exist_ok=True)
+
+        prefix = 'tdbn_tf_ts-'+str(self.conf.time_step)
+        postfix = 'vth-'+str(self.conf.n_init_vth)+'.csv'
+
+        #
+        file_dout_ga='ga'
+        file_dout_sc='sc'
+        file_dout_vr='vr'
+        file_dout_k='k'
+        file_dout_b='b'
+        file_dout_bn_m='bn_m'
+        file_dout_bn_v='bn_v'
+        file_dout_bn_g='bn_g'
+        file_dout_bn_b='bn_b'
+
+        #
+        files = collections.OrderedDict()
+        files['dout_ga']=[dout_ga,file_dout_ga]
+        files['dout_sc']=[dout_sc,file_dout_sc]
+        files['dout_vr']=[dout_vr,file_dout_vr]
+        files['dout_k']=[dout_k,file_dout_k]
+        files['dout_b']=[dout_b,file_dout_b]
+        files['dout_bn_m']=[dout_bn_m,file_dout_bn_m]
+        files['dout_bn_v']=[dout_bn_v,file_dout_bn_v]
+        files['dout_bn_g']=[dout_bn_g,file_dout_bn_g]
+        files['dout_bn_b']=[dout_bn_b,file_dout_bn_b]
+
+        #
+        for key, [dout,file] in files.items():
+            f = prefix+'_'+file+'_'+postfix
+            f = os.path.join(path_root,f)
+            dout.to_csv(f)
+

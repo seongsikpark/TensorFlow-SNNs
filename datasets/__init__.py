@@ -9,3 +9,5 @@ from . import cifar10
 from . import cifar
 
 from . import image_cls
+
+from . import preprocessing

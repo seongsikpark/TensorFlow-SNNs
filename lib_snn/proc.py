@@ -4,7 +4,10 @@ import tensorflow as tf
 
 #from absl import flags
 #flags = flags.FLAGS
-from config import conf
+#from config import conf
+#from config_common import conf
+from absl import flags
+conf = flags.FLAGS
 
 
 from tensorflow.python.keras.engine import compile_utils
@@ -23,7 +26,7 @@ import matplotlib.pyplot as plt
 import lib_snn
 
 from lib_snn.sim import glb_t
-from lib_snn.sim import glb_plot
+#from lib_snn.sim import glb_plot
 
 from lib_snn import config_glb
 
@@ -76,7 +79,6 @@ def reset_batch_ann(self):
     pass
 
 def reset_batch_snn(self):
-
     # TODO: move to model.py
     self.model.reset_snn()
     self.model.reset_snn_neuron()
@@ -305,7 +307,7 @@ def calibration_act_based_post(self):
 
 
 ########################################
-# reset (on_test_batch_begin)
+# reset (on_test_batch_begin and on_train_batch_begin)
 ########################################
 def preproc_batch(self):
     #print('on_test_batch_begin')
@@ -330,6 +332,26 @@ def preproc_batch_ann(self):
 def preproc_batch_snn(self):
     pass
     #reset_snn_sample(self)
+
+def preproc_epoch_train(self,epoch):
+    #
+    preproc_epoch_sel={
+        'ANN': preproc_epoch_train_ann,
+        'SNN': preproc_epoch_train_snn,
+    }
+    preproc_epoch_sel[self.model.nn_mode](self,epoch)
+
+def preproc_epoch_train_ann(self, epoch):
+    pass
+
+
+def preproc_epoch_train_snn(self, epoch):
+    pass
+    # test
+    #if (epoch > 0) and (epoch % 100 ==0) :
+    #    conf.time_step = tf.cast(conf.time_step/2,tf.int32)
+
+
 
 #
 def reset_snn_sample(self):
@@ -514,6 +536,7 @@ def postproc_ann(self):
 
 #
 def plot_act_dist(self,fig=None):
+    from lib_snn.sim import glb_plot
 
     if fig is None:
         fig = glb_plot
@@ -537,6 +560,7 @@ def plot_act_dist(self,fig=None):
 
 # TODO: move
 def plot_spike_time_diff_hist_dnn_ann(self, fig=None):
+    from lib_snn.sim import glb_plot
 
     diffs = collections.OrderedDict()
 
@@ -636,6 +660,7 @@ def plot_spike_time_diff_hist_dnn_ann(self, fig=None):
 
 # TODO: move
 def plot_dnn_act(self, layers=None, idx=None):
+    from lib_snn.sim import glb_plot
 
     #
     for idx_layer, layer in enumerate(glb_plot.layers):
@@ -767,24 +792,40 @@ def dnn_snn_compare_func(self):
 
 #
 def cal_results(self):
-    self.results_acc = np.zeros(self.model.num_accuracy_time_point)
-    self.results_spike = np.zeros(self.model.num_accuracy_time_point)
-    self.results_loss = np.zeros(self.model.num_accuracy_time_point)
 
-    for idx in range(self.model.num_accuracy_time_point):
-        self.results_acc[idx] = self.model.accuracy_results[idx]['acc'].numpy()
-        if 'loss' in self.model.accuracy_results[idx].keys():
-            self.results_loss[idx] = self.model.accuracy_results[idx]['loss'].numpy()
-        else:
-            self.results_loss[idx] = np.NaN
+    #if conf.snn_training_spatial_first:
+    if True:
+        self.results_acc = np.zeros(self.model.num_accuracy_time_point)
+        self.results_spike_int = np.zeros(self.model.num_accuracy_time_point)
+        self.results_spike = np.zeros(self.model.num_accuracy_time_point)
+        self.results_loss = np.zeros(self.model.num_accuracy_time_point)
+
+        for idx in range(self.model.num_accuracy_time_point):
+            self.results_acc[idx] = self.model.accuracy_results[idx]['acc'].numpy()
+            if 'loss' in self.model.accuracy_results[idx].keys():
+                self.results_loss[idx] = self.model.accuracy_results[idx]['loss'].numpy()
+            else:
+                self.results_loss[idx] = np.NaN
 
 
-    for layer_spike in self.model.total_spike_count_int.values():
-        self.results_spike += layer_spike
+        for layer_spike in self.model.total_spike_count_int.values():
+            self.results_spike_int += layer_spike
 
-    self.results_df = pd.DataFrame({'time step': self.model.accuracy_time_point, 'accuracy': self.results_acc,
-                                    'spike count': self.results_spike / self.test_ds_num, 'loss': self.results_loss})
-    self.results_df.set_index('time step', inplace=True)
+        for layer_spike in self.model.total_spike_count.values():
+            self.results_spike += layer_spike
+
+        self.results_df = pd.DataFrame({'time step': self.model.accuracy_time_point, 'accuracy': self.results_acc,
+                                        'spike count': self.results_spike / self.test_ds_num, 'loss': self.results_loss})
+        self.results_df.set_index('time step', inplace=True)
+    else:
+        self.results_spike = 0
+        self.results_spike_layer = collections.OrderedDict()
+        for layer in self.model.layers:
+            if isinstance(layer, lib_snn.activations.Activation):
+                print(layer.name)
+                act = layer.act
+                if isinstance(act, lib_snn.neurons.Neuron):
+                    self.results_spike += tf.reduce_sum(layer.act.spike_count)
 
 
 def print_results(self):
@@ -887,11 +928,25 @@ def save_results(self):
 ########################################
 def bn_fusion(self):
     print('---- BN Fusion ----')
-    # bn fusion
+    # for integrated model v1
+    ## bn fusion
+    #if (self.model.nn_mode == 'ANN' and self.conf.f_fused_bn) or (self.model.nn_mode == 'SNN'):
+    #    for layer in self.model.layers:
+    #        if hasattr(layer, 'bn') and (layer.bn is not None):
+    #            layer.bn_fusion()
+
+    # v2
+    # TODO: parameterize, model graph traverse
+    #assert self.model.name
+    # currently only for VGG16, CIFAR10
+
     if (self.model.nn_mode == 'ANN' and self.conf.f_fused_bn) or (self.model.nn_mode == 'SNN'):
         for layer in self.model.layers:
-            if hasattr(layer, 'bn') and (layer.bn is not None):
-                layer.bn_fusion()
+            if isinstance(layer,lib_snn.layers.BatchNormalization):
+                l_name = layer.name.split('bn_')[-1]
+                self.model.get_layer(l_name).bn_fusion_v2(layer)
+
+
 
     print('---- BN Fusion Done ----')
 
@@ -944,7 +999,11 @@ def w_norm_data(self):
 
     #for idx_l, l in enumerate(self.list_layer_name):
     #for idx_l, l in enumerate(self.list_layer):
-    for idx_l, l in enumerate(self.model.layers_w_act):
+    #for idx_l, l in enumerate(self.model.layers_w_act):
+    for idx_l, l in enumerate(self.model.layers_w_neuron):
+        if l.act.loc == 'IN':
+            continue
+
         key=l.name+'_'+stat
 
         #f_name_stat = f_name_stat_pre+'_'+key

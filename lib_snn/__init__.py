@@ -2,9 +2,14 @@
 
 from lib_snn import model
 from lib_snn import layers
-from lib_snn import layers_new
+
+from lib_snn import activations
+
 from lib_snn import neurons
-from lib_snn import util
+
+from lib_snn import utils
+from lib_snn import utils_vis
+
 from lib_snn import anal
 from lib_snn import weight_norm
 from lib_snn import ttfs_temporal_kernel
@@ -33,5 +38,6 @@ from lib_snn import calibration
 
 
 from lib_snn import xai
+from lib_snn import integrated_gradients
 
-from lib_snn import config_glb
+#from lib_snn import config_glb

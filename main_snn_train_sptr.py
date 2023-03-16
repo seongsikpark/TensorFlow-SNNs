@@ -20,8 +20,7 @@ os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"]="1,3,5,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,4,5,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,4"
-#os.environ["CUDA_VISIBLE_DEVICES"]="0"
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="7"
 
 
 # TF logging setup
@@ -528,8 +527,7 @@ model_dataset_name = model_name + '_' + dataset_name
 #hp_tune_name = exp_set_name+'_'+model_dataset_name+'_ep-'+str(train_epoch)
 hp_tune_name = exp_set_name
 
-#filepath_save, filepath_load, config_name = lib_snn.util.set_file_path(batch_size)
-filepath_save, filepath_load, config_name = lib_snn.util.set_file_path(batch_size_train)
+filepath_save, filepath_load, config_name = lib_snn.util.set_file_path(batch_size)
 
 ## TODO: functionalize
 ## file_name='checkpoint-epoch-{}-batch-{}.h5'.format(epoch,batch_size)
@@ -811,7 +809,6 @@ with dist_strategy.scope():
     ########################################
     # load model
     ########################################
-    model_ann=None
     if conf.nn_mode=='SNN' and conf.dnn_to_snn:
         print('DNN-to-SNN mode')
         nn_mode_ori = conf.nn_mode
@@ -875,8 +872,8 @@ with dist_strategy.scope():
             #model.load_weights_custom(load_weight)
             #model.load_weights(load_weight, by_name=True)
 
-    #if conf.nn_mode=='ANN' or (conf.nn_mode=='SNN' and train):
-    #    model_ann=None
+    if conf.nn_mode=='ANN' or (conf.nn_mode=='SNN' and train):
+        model_ann=None
 
 
     #
@@ -991,12 +988,12 @@ with dist_strategy.scope():
     else:
         print('Test mode')
 
-        model.evaluate(test_ds,callbacks=callbacks_test)
+        #
+        #dnn_snn_compare=True
+        #dnn_snn_compare=False
 
-        assert False
         compare_control_snn = False
         #compare_control_snn = True
-
 
         act_based_calibration = conf.calibration_bias_ICML_21 or conf.calibration_vmem_ICML_21 or conf.calibration_weight_act_based
         #if (conf.nn_mode=='SNN') and (dnn_snn_compare or conf.calibration_bias_ICML_21 or conf.calibration_vmem_ICML_21) :
@@ -1980,8 +1977,8 @@ with dist_strategy.scope():
                 calibration_batch_idx.append(conf.calibration_idx)
 
 
-            calibration_num_batch = len(calibration_batch_idx)
-            count_cal_batch=0
+        calibration_num_batch = len(calibration_batch_idx)
+        count_cal_batch=0
 
 
         #layers_record = []
@@ -2155,6 +2152,7 @@ with dist_strategy.scope():
 
         if exp_act_dist and conf.nn_mode=='ANN':
             from lib_snn.sim import glb_plot
+
             fig = glb_plot
 
             for layer in model.layers_w_kernel:

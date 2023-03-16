@@ -3,7 +3,7 @@ import tensorflow as tf
 
 #from absl import flags
 #flags = flags.FLAGS
-from config import conf
+#from config import conf
 
 
 from tensorflow.python.keras.engine import compile_utils
@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 import lib_snn
 
 from lib_snn.sim import glb_t
-from lib_snn.sim import glb_plot
+#from lib_snn.sim import glb_plot
 
 
 ########################################

@@ -17,9 +17,22 @@ import tensorflow_addons as tfa
 #global num_class
 
 #from models.input_preprocessor import preprocessor_input
+import datasets.preprocessing
+#from lib_snn.config_glb import model_name
+#from lib_snn.config_glb import dataset_name
 
-from lib_snn.config_glb import model_name
-from lib_snn.config_glb import dataset_name
+from config import config
+
+model_name = config.model_name
+dataset_name = config.dataset_name
+
+#
+#from config import conf
+#from config_common import conf
+from absl import flags
+conf = flags.FLAGS
+
+from datasets.preprocessing import preprocessing_input_img
 
 #from tensorflow.python.keras.applications.imagenet_utils import preprocess_input as preprocess_input_others
 preprocess_input_others = tf.keras.applications.imagenet_utils.preprocess_input
@@ -63,7 +76,7 @@ def eager_cutmix(ds_one, ds_two, alpha=1.0):
 
 #
 @tf.function
-def cutmix(train_ds_one, train_ds_two, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input):
+def cutmix(train_ds_one, train_ds_two, dataset_name, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input):
     (images_one, labels_one), (images_two, labels_two) = train_ds_one, train_ds_two
 
     # Get a sample from the Beta distribution
@@ -75,8 +88,8 @@ def cutmix(train_ds_one, train_ds_two, input_size, input_size_pre_crop_ratio, nu
     # Get the bounding box offsets, heights and widths
     boundaryx1, boundaryy1, target_w, target_h = get_box(lambda_value,input_size)
 
-    images_one, labels_one = resize_with_crop_aug(images_one,labels_one,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input)
-    images_two, labels_two = resize_with_crop_aug(images_two,labels_two,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input)
+    images_one, labels_one = resize_with_crop_aug(images_one,labels_one,dataset_name,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input)
+    images_two, labels_two = resize_with_crop_aug(images_two,labels_two,dataset_name,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input)
 
     # Get a patch from the second image
     crop2 = tf.image.crop_to_bounding_box(images_two, boundaryy1, boundaryx1, target_h, target_w)
@@ -116,7 +129,7 @@ def eager_mixup(ds_one, ds_two, alpha=1.0):
     #return tf.py_function(mixup, [ds_one, ds_two, alpha],[tf.uint8,tf.uint8,tf.int64),tf.float32])
     #return tf.py_function(mixup, [ds_one, ds_two, alpha],[(tf.uint8,tf.int64),(tf.uint8,tf.int64),tf.float32])
 
-def mixup(ds_one, ds_two, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input):
+def mixup(ds_one, ds_two, dataset_name, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input):
 
     # unpack two datasets
     images_one, labels_one = ds_one
@@ -127,8 +140,8 @@ def mixup(ds_one, ds_two, input_size, input_size_pre_crop_ratio, num_class, alph
     #assert False
 
     #
-    images_one, labels_one = resize_with_crop_aug(images_one,labels_one,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input)
-    images_two, labels_two = resize_with_crop_aug(images_two,labels_two,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input)
+    images_one, labels_one = resize_with_crop_aug(images_one,labels_one,dataset_name,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input)
+    images_two, labels_two = resize_with_crop_aug(images_two,labels_two,dataset_name,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input)
 
     labels_one = tf.cast(labels_one,tf.float32)
     labels_two = tf.cast(labels_two,tf.float32)
@@ -195,49 +208,19 @@ def resize_with_crop(image, label, dataset_name, input_size, input_size_pre_crop
         else:
             assert False
 
-    try:
-        i = preprocess_input(i, mode=input_prec_mode)
-    except:
-        i=preprocess_input(i)
-
+    #
+    if conf.data_prep=='default':
+        try:
+            i = preprocess_input(i, mode=input_prec_mode)
+        except:
+            i=preprocess_input(i)
+    else:
+        i=preprocessing_input_img(i,mode=conf.data_prep)
 
     #
     label = tf.one_hot(label,num_class)
 
     return (i, label)
-
-
-
-
-##@tf.function
-#def resize_with_crop_bck_220616(image, label, input_size,input_size_pre_crop_ratio, num_class, input_prec_mode='torch'):
-#
-#    i=image
-#    i=tf.cast(i,tf.float32)
-#
-#    #[w,h,c] = tf.shape(image)
-#    #w=tf.shape(image)[0]
-#    #h=tf.shape(image)[1]
-#
-#    #print(tf.shape(image))
-#    #s = input_size_pre_crop
-#
-#    s = input_size
-#    if input_prec_mode=='torch':
-#        i = tf.image.resize_with_crop_or_pad(i, s, s)
-#    elif input_prec_mode == 'caffe':
-#        # transfer learning with pre-trained modes in Keras (ImageNet)
-#        i = tf.image.resize(i, (s, s), method='lanczos3')
-#    else:
-#        assert False
-#
-#    i=preprocess_input(i,mode=input_prec_mode)
-#
-#    #
-#    label = tf.one_hot(label,num_class)
-#
-#    return (i, label)
-
 
 
 #@tf.function
@@ -290,10 +273,14 @@ def resize_with_crop_aug(image, label, dataset_name, input_size, input_size_pre_
     i=tf.image.random_flip_left_right(i)
 
     #
-    try:
-        i = preprocess_input(i, mode=input_prec_mode)
-    except:
-        i=preprocess_input(i)
+    if conf.data_prep=='default':
+        try:
+            i = preprocess_input(i, mode=input_prec_mode)
+        except:
+            i=preprocess_input(i)
+    else:
+        i=datasets.preprocessing.preprocessing_input_img(i,mode=conf.data_prep)
+
 
     # one-hot vectorization - label
     label = tf.one_hot(label, num_class)
@@ -303,7 +290,7 @@ def resize_with_crop_aug(image, label, dataset_name, input_size, input_size_pre_
 
 
 def _resize_with_crop_imagenet(image,input_size,input_size_pre_crop_ratio):
-    from lib_snn.config_glb import model_name
+    #from lib_snn.config_glb import model_name
     #print(model_name)
 
     i=image

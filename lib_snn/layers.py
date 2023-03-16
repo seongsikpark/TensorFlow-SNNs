@@ -3,33 +3,43 @@ import tensorflow as tf
 
 # import tensorflow_probability as tfp
 
-import tensorflow.keras.initializers as initializers
 import tensorflow.keras.regularizers as regularizers
 
 from keras import backend
 
-import sys
-
 from tensorflow.python.ops import math_ops
 
-import numpy as np
+# custom gradient
 
-import matplotlib.pyplot as plt
 
-import collections
+#
 
 #
 import lib_snn
 
 #
-from lib_snn.model import Model
 from lib_snn.sim import glb_t
 from lib_snn.sim import glb
-from lib_snn.sim import glb_plot
+
+#
+#from lib_snn.sim import glb_plot
+#from lib_snn.sim import glb_plot_act
+#from lib_snn.sim import glb_plot_syn
+#from lib_snn.sim import glb_plot_bn
+#from lib_snn.sim import glb_plot_kernel
 
 #from main_hp_tune import conf
 
-from config import conf
+#from config import conf
+#from config_common import conf
+from absl import flags
+conf = flags.FLAGS
+
+from keras.engine.input_spec import InputSpec
+
+
+import layers_new
+
 
 #
 # ~class Layer(tf.keras.layers.Layer):
@@ -96,14 +106,27 @@ class Layer():
         # ReLU-6
         relu_max_value = kwargs.pop('relu_max_value',None)
 
+        # tdbn
+        tdbn_arg = kwargs.pop('tdbn',None)
+
+
         # batch norm.
         if self.use_bn:
+            if tdbn_arg is None:
+                tdbn = conf.mode=='train' and conf.nn_mode=='SNN' and conf.tdbn
+            else:
+                tdbn = tdbn_arg
+
             #self.bn = tf.keras.layers.BatchNormalization(name=name_bn)
             #self.bn = tf.keras.layers.BatchNormalization()
             #self.bn = tf.keras.layers.BatchNormalization(epsilon=1.001e-5,name=name_bn)
             #self.bn = tf.keras.layers.BatchNormalization(epsilon=1.001e-5)
 
-            self.bn = lib_snn.layers_new.BatchNormalization(epsilon=1.001e-5)
+            fused = self.conf.tf_fused_bn
+
+            self.bn = layers_new.batch_normalization.BatchNormalization(epsilon=1.001e-5,en_tdbn=tdbn,fused=fused)
+
+            #self.bn = lib_snn.layers_new.BatchNormalization(epsilon=1.0)
         else:
             self.bn = None
 
@@ -159,6 +182,14 @@ class Layer():
         else:
             self.bias_control = False
 
+        #
+        #if self.conf.nn_mode=='SNN' and not self.conf.snn_training_spatial_first:
+            #print(self.name)
+            #print(self.input_spec)
+            #if not self.input_spec is None:
+                #if not self.input_spec.ndim is None:
+                    #self.input_spec = InputSpec(ndim=self.input_spec.ndim+1)
+
     #
     def build(self, input_shapes):
         # super(Conv2D,self).build(input_shapes)
@@ -189,6 +220,11 @@ class Layer():
 
         # if not self.en_snn:
         # self.act = self.act_dnn
+
+        #
+        #self._call_full_argspec
+        #self._expects_training_arg = 'training' in self._call_full_argspec.args
+        #self._expects_mask_arg = 'mask' in self._call_full_argspec.args
 
         if self.en_snn:
             #print('---- SNN Mode ----')
@@ -266,14 +302,35 @@ class Layer():
                     else:
                         self.vth_l = tf.constant(stat_max,shape=[],name=self.name+'/vth_l')
 
+        # snn training - temporal first
+        #if not self.conf.snn_training_spatial_first:
+            #self.out = tf.TensorArray(dtype=tf.float32,
+                        #size=self.conf.time_step,element_shape=self.output_shape_fixed_batch,clear_after_read=False)
+
         #
-        self.built = True
+        #self.built = True
         #print('build layer - done')
 
     def init_record_output(self):
-        self.record_output = tf.Variable(tf.zeros(self.output_shape_fixed_batch),trainable=False,name='record_output')
-        if self.last_layer:
-            self.record_logit= tf.Variable(tf.zeros(self.output_shape_fixed_batch),trainable=False,name='record_logit')
+        #self.record_output = tf.Variable(tf.zeros(self.output_shape_fixed_batch),trainable=False,name='record_output')
+        self.record_output = tf.TensorArray(dtype=tf.float32,
+                                size=self.conf.time_step,element_shape=self.output_shape_fixed_batch,clear_after_read=False)
+
+        #
+        f_hold_temporal_tensor=True
+        #if self.conf.f_hold_temporal_tensor:
+        if False:
+            output_shape_list = self.output_shape_fixed_batch.as_list()
+            output_shape_list.insert(0,self.conf.time_step)
+            output_shape = tf.TensorShape(output_shape_list)
+
+            #[time, batch, width, height, channel]
+            self.record_output = tf.Variable(tf.zeros(output_shape),trainable=False,name='record_output')
+
+        #if self.last_layer:
+        if False:
+            #self.record_logit= tf.Variable(tf.zeros(self.output_shape_fixed_batch),trainable=False,name='record_logit')
+            self.record_logit = tf.TensorArray(dtype=tf.float32, size=self.conf.time_step,element_shape=self.output_shape_fixed_batch)
 
 
     #
@@ -287,13 +344,135 @@ class Layer():
     #
     # def call_set_aside_for_future(self,input,training):
     def call(self, input, training):
+    #def call(self, input, **kwargs):
         #print('layer - {:}, training - {:}'.format(self.name,training))
         #print('layer call - {}'.format(self.name))
+
+        #if self.conf.debug_mode:
+        #    print('layer name: {:}'.format(self.name))
 
         if training is None:
             training = backend.learning_phase()
 
+        # test - add noise to input
+        #noise_input_layer = keras.layers.GaussianNoise(0.7)
+        #noise_input_layer = keras.layers.GaussianNoise(0.1)
+        #noise_input_layer = keras.layers.GaussianNoise(1.0)
+        #input_noise = noise_input_layer(input,training)
+        #input = tf.where(input==0,input_noise,input)
 
+        #n_dim = len(input.shape)
+        #reduction_axes = [i for i in range(n_dim-1)]
+        #variance_input = tf.math.reduce_variance(input,axis=reduction_axes)
+        #input = tf.where(variance_input<0.1,input_noise,input)
+        #input = input_noise
+
+        # new
+        #if not self.conf.snn_training_spatial_first and self.act is None and self.bn is None:
+        #if not self.conf.snn_training_spatial_first:
+        #if True:
+        if False:
+
+            range_ts = range(1, self.conf.time_step + 1)
+
+
+            out_arr = tf.TensorArray(dtype=tf.float32,
+                                      size=self.conf.time_step,element_shape=self.output_shape_fixed_batch,clear_after_read=False)
+            out_arr = []
+            for t in range_ts:
+                #layer_in = input.read(t-1)
+                layer_in = input[t-1]
+
+                layer_out = super().call(layer_in)
+
+                out_arr.append(layer_out)
+
+                #out_arr = out_arr.write(t-1,layer_out)
+
+            out_arr=tf.convert_to_tensor(out_arr)
+
+            return out_arr
+        else:
+
+
+            #self._expects_training_arg = ('training' in method_arg_spec.args or
+            #                              method_arg_spec.varkw is not None)
+            #self._expects_mask_arg = ('mask' in method_arg_spec.args or
+            #                          method_arg_spec.varkw is not None)
+
+            #if self._expects_training_arg:
+                #print(self.name)
+                ##output = super().call(input,training)
+                ##output = super().call(input)
+                #output = super
+            #else:
+                #output = super().call(input)
+
+            #output = super().call(input,**kwargs)
+
+            # TODO: add codes to check parent's class call argument - including training or not
+            if isinstance(self, lib_snn.layers.BatchNormalization):
+                output = super().call(input,training)
+            else:
+                output = super().call(input)
+
+
+            return output
+            #assert False
+            pass
+
+        #
+        # temporal first
+        if False:
+            print(self.name)
+            print(input.shape)
+            print('self.built : {:}'.format(self.built))
+            self.time_axis=0
+            if isinstance(self,lib_snn.layers.InputGenLayer):
+                if not self.conf.snn_training_spatial_first and self.built:
+                    #input_expand = tf.expand_dims(input,axis=time_axis)
+                    input_expand_shape = [self.conf.time_step,]+input.shape
+                    input = tf.broadcast_to(input,shape=input_expand_shape)
+                    print('input expand - time axis: {:}'.format(self.time_axis))
+
+                    self.output_shape_fixed_batch=[self.conf.time_step,]+self.output_shape_fixed_batch
+
+            print('output dim')
+            print(self.output_shape_fixed_batch)
+
+            # spatial or temporal_first
+            if self.conf.snn_training_spatial_first or (not self.built):
+                _input = input
+                s = super().call(_input)
+            else:
+
+                range_ts = range(1, self.conf.time_step + 1)
+
+                #s = tf.zeros([self.conf.time_step,]+self.output_shape_fixed_batch)
+                s = tf.zeros(self.output_shape_fixed_batch)
+                for t in range_ts:
+                    #_input = tf.gather(input,)
+                    #_input = input[t]
+                    #_input = input
+                    #_input = input[:,t-1,:]
+                    _input = input[t-1,:,:,:,:]       # [t,b,h,w,c] -> [b,h,w,c]
+                    _s = super().call(_input)
+                    _s = tf.expand_dims(_s,axis=self.time_axis)
+
+                    print('s')
+                    print(s.shape)
+
+                    print('_s')
+                    print(_s.shape)
+
+                    indices = tf.constant([[t-1]])
+                    index_depth=1
+
+                    s=tf.tensor_scatter_nd_update(s,indices,_s)
+                    #s=tf.tensor_scatter_nd_update(s,[[0]],_s)
+
+        #
+        #print(input)
         s = super().call(input)
 
 
@@ -322,29 +501,83 @@ class Layer():
         if self.en_snn and self.bias_control:
             s = self.bias_control_run(s)
 
-
         if (self.use_bn) and (not self.f_skip_bn):
+
+            # add noise test - sspark, 221206
+            if False:
+                n_dim = len(s.shape)
+                reduction_axes = [i for i in range(n_dim-1)]
+                variance = tf.math.reduce_variance(s,axis=reduction_axes)
+                reduced_dim = variance.shape
+                #if variance < tf.constant(0.3,shape=reduced_dim):
+                #n=tf.cond(variance < tf.constant(0.3,shape=reduced_dim), lambda: add_noise(n), lambda: n)
+
+                #noise_layer = keras.layers.GaussianNoise(1.0-variance)
+                #noise_layer = keras.layers.GaussianNoise(variance)
+                #noise_layer = keras.layers.GaussianNoise(0.1)
+                #noise_layer = keras.layers.GaussianNoise(0.5)
+                #noise_layer = keras.layers.GaussianNoise(0.7)
+                #noise_layer = keras.layers.GaussianNoise(1.0)
+                #s_noise = noise_layer(s,training)
+
+            #print(s)
+            if False:
+                print('layer - '+self.name)
+                print('before - variance')
+                print(variance)
+                print(tf.reduce_min(variance))
+
+            #target_variance = 0.3
+            #s=tf.where(variance<tf.constant(target_variance,shape=reduced_dim),s_noise,s)
+
+            if False:
+                print(variance<tf.constant(target_variance,shape=reduced_dim))
+                variance_after = tf.math.reduce_variance(s,axis=reduction_axes)
+                print('after - variance')
+                print(variance_after)
+                print(tf.reduce_min(variance_after))
+
+
             b = self.bn(s, training=training)
             #if glb.model_compiled:
             #    assert False
+
+
         else:
             b = s
             #print('here')
             #print(self.name)
+
+        # for debug
+        #if self.last_layer:
+        #    print(s)
+
 
         if self.act is None:
             n = b
         else:
             if self.en_snn:
                 n = self.act(b, glb_t.t, training)
-                if self.last_layer:
+
+                # test - sspark, 221205
+                # act + noise
+
+
+                if self.last_layer and (not (self.act_dnn is None)):
                     # softmax
                     n = self.act_dnn(n)
+
+                else:
+                    pass
+
+
             else:
                 if self.conf.fine_tune_quant and not self.last_layer:
                     n = lib_snn.calibration.clip_floor_act(b, self.vth_l, 64.0)
                 else:
                     n = self.act(b)
+
+
 
                 #
                 #num_bits=np.log2(self.conf.time_step)
@@ -386,11 +619,55 @@ class Layer():
         #        ret = ret / time
         #        #ret = ret
 
+        #
+
+        #if self.name=='fc1' or self.name=='fc2':
+            #print(s)
+            #print(b)
+            #print()
+
         #print(self.name)
         #print(n[0])
 
         #if (self.name == 'predictions') and (glb.model_compiled) and (not conf.full_test):
         #    print(n)
+
+        if self.conf.debug_mode and self.conf.verbose_snn_train:
+            if glb.model_compiled:
+                if (self.use_bn) and (not self.f_skip_bn):
+                    #print('{:.3e}'.format(tf.reduce_max(b)))
+                    #print('after bn> {} - max: {}, mean: {}'.format(self.name,tf.reduce_max(b),tf.reduce_mean(b)))
+                    print('before bn> {} - max: {:.3g}, mean: {:.3g}, var: {:.3g}'
+                          .format(self.name,tf.reduce_max(s),tf.reduce_mean(s),tf.math.reduce_variance(s)))
+                    print('after bn> {} - max: {:.3g}, mean: {:.3g}, var: {:.3g}, moving_mean: {:.3g}, moving_var: {:.3g}'
+                          .format(self.name,tf.reduce_max(b),tf.reduce_mean(b),tf.math.reduce_variance(b), tf.reduce_mean(self.bn.moving_mean),tf.reduce_mean(self.bn.moving_variance)))
+                    #print('after bn> {} - max: {:.3e}, mean: {:.3e}'.format(self.name))
+
+                    #if self.name=='conv1':
+                    #    print(self.bn.moving_variance)
+
+                #
+                if hasattr(self,'act') and isinstance(self.act,lib_snn.neurons.Neuron):
+                    print('\n spike count - layer')
+                    spike_count = self.act.spike_count
+                    print('{: <10}: - sum {:.3e}, mean {:.3e}, non-zero percent {:.3e}'
+                          .format(self.name,tf.reduce_sum(spike_count),tf.reduce_mean(spike_count)
+                                  ,tf.math.count_nonzero(spike_count,dtype=tf.float32)/tf.cast(tf.reduce_prod(spike_count.shape),dtype=tf.float32)))
+
+
+        # plot
+        #if True and (glb.model_compiled):
+        if self.conf.verbose_visual and (glb.model_compiled):
+            from lib_snn.sim import glb_plot_act
+            from lib_snn.sim import glb_plot_syn
+            from lib_snn.sim import glb_plot_bn
+            from lib_snn.sim import glb_plot_kernel
+
+            lib_snn.util.plot_hist(glb_plot_syn,s,1000,norm_fit=True)
+            lib_snn.util.plot_hist(glb_plot_bn,b,1000,norm_fit=True)
+            lib_snn.util.plot_hist(glb_plot_act,n,100,range=[-1,2])
+            if hasattr(self,'kernel'):
+                lib_snn.util.plot_hist(glb_plot_kernel,self.kernel,1000)
 
         if False:
             if (self.name == 'predictions') and (glb.model_compiled) and (not conf.full_test):
@@ -413,13 +690,28 @@ class Layer():
                     print(n[conf.verbose_visual_idx])
 
 
+        if False: # old
+            if self.en_record_output:
+                #self.record_output = ret
+                if self.conf.f_hold_temporal_tensor:
+                    t=glb_t.t
+                    indices = [[t]]
+                    ret_t = tf.expand_dims(ret,axis=0)
+                    tf.tensor_scatter_nd_update(self.record_output,indices,ret_t)
+                    #indices=[[:,t]]
+                    #tf.tensor_scatter_nd_update(self.record_output,[:,t,])
+                else:
+                    self.record_output.assign(ret)
+                #if self.name == 'predictions':
+                if self.last_layer:
+                    #self.record_logit = b
+                    self.record_logit.assign(b)
+
+        # new
         if self.en_record_output:
-            #self.record_output = ret
-            self.record_output.assign(ret)
-            #if self.name == 'predictions':
-            if self.last_layer:
-                #self.record_logit = b
-                self.record_logit.assign(b)
+            self.record_output = self.record_output.write(glb_t.t-1,ret)
+            #self.record_logit.assign(b)
+
 
         # debug
         # TODO: debug mode set - glb.model_compiled and self.conf.debug_mode and ~~
@@ -521,6 +813,7 @@ class Layer():
     # TODO: move
     def plot(self):
 
+        from lib_snn.sim import glb_plot
         #if self.name=='conv1':
 
         axe=glb_plot.axes.flatten()[self.depth]
@@ -548,6 +841,8 @@ class Layer():
             out = self.act.get_spike_count_int().numpy().flatten()[idx]  # spike
             lib_snn.util.plot(glb_t.t, out / glb_t.t, axe=axe)
 
+
+
     #
     def reset(self):
         if self.en_snn:
@@ -560,6 +855,9 @@ class Layer():
         self._bn_fusion(self.bn)
         self.f_skip_bn = True
 
+    # v2
+    def bn_fusion_v2(self,bn_layer):
+        self._bn_fusion(bn_layer)
 
     def bn_defusion(self):
 
@@ -592,6 +890,11 @@ class Layer():
         self.bias = ((self.bias - mean) * inv + beta)
         #self.bias = self.bias*2
         #assert False
+
+
+
+
+
 
 #
 def _bn_defusion(layer, bn):
@@ -670,11 +973,35 @@ class InputGenLayer(Layer, tf.keras.layers.Layer):
         #print(inputs)
     #    return inputs
 
+        #
+#    def call(self, inputs, training):
+#        inputs_e = tf.TensorArray(dtype=tf.float32,
+#                             size=self.conf.time_step,element_shape=inputs.shape,clear_after_read=False)
+#
+#        #for t in range(1,conf.time_step+1):
+#        #    inputs_e = inputs_e.write(t-1,inputs)
+#
+#        #ret = tf.convert_to_tensor(inputs_e)
+#
+#        #ret = tuple(inputs_e)
+#        if self.conf.nn_mode=='SNN' and not self.conf.snn_training_spatial_first:
+#            inputs = tf.expand_dims(inputs,axis=0)
+#            ret = tf.repeat(inputs,self.conf.time_step,axis=0)
+##
+#        else:
+#            ret = inputs
+#
+#        return ret
+
+
+
 
 
 
 # Conv2D
-class Conv2D(Layer, tf.keras.layers.Conv2D):
+#@tf.custom_gradient
+#class Conv2D(Layer, tf.keras.layers.Conv2D):
+class Conv2D(Layer, layers_new.conv.Conv2D):
     # class Conv2D(tf.keras.layers.Conv2D,Layer):
     def __init__(self,
                  filters,
@@ -685,6 +1012,8 @@ class Conv2D(Layer, tf.keras.layers.Conv2D):
                  activation=None,
                  activity_regularizer=None,
                  kernel_initializer='glorot_uniform',
+                 #kernel_initializer='glorot_normal',
+                 #kernel_initializer='he_normal',
                  kernel_constraint=None,
                  bias_constraint=None,
                  bias_regularizer=None,
@@ -693,7 +1022,8 @@ class Conv2D(Layer, tf.keras.layers.Conv2D):
 
         Layer.__init__(self, use_bn, activation, kwargs=kwargs)
 
-        tf.keras.layers.Conv2D.__init__(
+        #tf.keras.layers.Conv2D.__init__(
+        layers_new.conv.Conv2D.__init__(
             self,
             filters=filters,
             kernel_size=kernel_size,
@@ -720,7 +1050,7 @@ class Conv2D(Layer, tf.keras.layers.Conv2D):
         self.synapse=True
 
 
-# Conv2D
+# DepthwiseConv2D
 class DepthwiseConv2D(Layer, tf.keras.layers.DepthwiseConv2D):
     def __init__(self,
                  kernel_size,
@@ -740,6 +1070,7 @@ class DepthwiseConv2D(Layer, tf.keras.layers.DepthwiseConv2D):
                  bias_constraint=None,
                  use_bn=False,  # use batch norm.
                  **kwargs):
+        assert False
         Layer.__init__(self, use_bn, activation, kwargs=kwargs)
 
         tf.keras.layers.DepthwiseConv2D.__init__(
@@ -769,12 +1100,15 @@ class DepthwiseConv2D(Layer, tf.keras.layers.DepthwiseConv2D):
 
 
 # Dense
-class Dense(Layer, tf.keras.layers.Dense):
+#class Dense(Layer, tf.keras.layers.Dense):
+class Dense(Layer, layers_new.dense.Dense):
     def __init__(self,
                  units,
                  activation=None,
                  # use_bias=True
                  kernel_initializer='glorot_uniform',
+                 #kernel_initializer='glorot_normal',
+                 #kernel_initializer='he_normal',
                  bias_initializer='zeros',
                  #bias_initializer='glorot_uniform',
                  # kernel_regularizer=None,
@@ -788,7 +1122,8 @@ class Dense(Layer, tf.keras.layers.Dense):
 
         Layer.__init__(self, use_bn, activation, last_layer, kwargs=kwargs)
 
-        tf.keras.layers.Dense.__init__(
+        #tf.keras.layers.Dense.__init__(
+        layers_new.dense.Dense.__init__(
             self,
             units,
             activation=None,
@@ -814,10 +1149,11 @@ class Dense(Layer, tf.keras.layers.Dense):
 #
 class Add(Layer, tf.keras.layers.Add):
     def __init__(self, use_bn=False, epsilon=0.001, activation=None, **kwargs):
-        tf.keras.layers.Add.__init__(self, **kwargs)
 
         #Layer.__init__(self, use_bn=use_bn, epsilon=epsilon, activation=activation, kwargs=kwargs)
         Layer.__init__(self, use_bn=use_bn, activation=activation, kwargs=kwargs)
+
+        tf.keras.layers.Add.__init__(self, **kwargs)
 
         # self.act = activation
 
@@ -853,9 +1189,10 @@ class Add(Layer, tf.keras.layers.Add):
 #
 class Identity(Layer, tf.keras.layers.Layer):
     def __init__(self, use_bn=False, epsilon=0.001, activation=None, **kwargs):
-        tf.keras.layers.Layer.__init__(self, **kwargs)
         #Layer.__init__(self, use_bn=use_bn, epsilon=epsilon, activation=activation, kwargs=kwargs)
         Layer.__init__(self, use_bn=use_bn, activation=activation, kwargs=kwargs)
+
+        tf.keras.layers.Layer.__init__(self, **kwargs)
 
         self.kernel = tf.constant(1.0, shape=[], name='kernel')
         self.bias = tf.zeros(shape=[],name='bias')
@@ -870,7 +1207,8 @@ class Identity(Layer, tf.keras.layers.Layer):
 
         if self.en_record_output:
             #self.record_output = ret
-            self.record_output.assign(ret)
+            #self.record_output.assign(ret)
+            self.record_output = self.record_output.write(glb_t.t,ret)
 
         return ret
 
@@ -897,6 +1235,8 @@ class MaxPool2D(Layer, tf.keras.layers.MaxPool2D):
         if strides!=(2,2):
             assert False, 'only support stride (2x2) in maxpooling2d'
 
+        Layer.__init__(self, False, None, kwargs=kwargs)
+
         tf.keras.layers.MaxPool2D.__init__(
             self,
             pool_size=pool_size,
@@ -905,7 +1245,6 @@ class MaxPool2D(Layer, tf.keras.layers.MaxPool2D):
             data_format=conf.data_format,
             **kwargs)
 
-        Layer.__init__(self, False, None, kwargs=kwargs)
 
         self.prev_layer_set_done=False
 
@@ -948,6 +1287,28 @@ class MaxPool2D(Layer, tf.keras.layers.MaxPool2D):
             return tf.keras.layers.MaxPool2D.call(self, inputs)
 
 
+class AveragePooling2D(Layer, tf.keras.layers.AveragePooling2D):
+
+    def __init__(self,
+           pool_size=(2, 2),
+           strides=None,
+           padding='valid',
+           data_format=None,
+           **kwargs):
+
+        Layer.__init__(self, use_bn=False, activation=None, last_layer=False, kwargs=kwargs)
+
+        tf.keras.layers.AveragePooling2D.__init__(self,
+                                            pool_size=pool_size,
+                                            strides=strides,
+                                            padding=padding,
+                                            data_format=data_format,
+                                            **kwargs)
+
+        #self.input_spec = InputSpec(ndim=self.input_spec.ndim+1)
+
+
+
 # GlobalAveragePooling2D
 class GlobalAveragePooling2D(Layer, tf.keras.layers.GlobalAveragePooling2D):
     def __init__(self,
@@ -967,6 +1328,188 @@ class ZeroPadding2D(Layer, tf.keras.layers.ZeroPadding2D):
 
         tf.keras.layers.ZeroPadding2D.__init__(self,**kwargs)
         Layer.__init__(self, use_bn=False, activation=None, last_layer=False, kwargs=kwargs)
+
+# Flatten
+class Flatten(Layer, tf.keras.layers.Flatten):
+    def __init__(self,
+                 data_format,
+                 **kwargs):
+
+        Layer.__init__(self, use_bn=False, activation=None, last_layer=False, kwargs=kwargs)
+
+        tf.keras.layers.Flatten.__init__(
+            self,
+            data_format=data_format,
+            **kwargs)
+
+#    def call(self, input, training=None):
+#
+#        if self.conf.nn_mode=='SNN' and not self.conf.snn_training_spatial_first:
+#
+#            output = []
+#
+#            range_ts = range(1, self.conf.time_step + 1)
+#            for t in range_ts:
+#                _input = input[t-1]
+#                _output = tf.keras.layers.Flatten.call(self, _input)
+#                output.append(_output)
+#
+#            output = tf.convert_to_tensor(output)
+#
+#        else:
+#            output = tf.keras.layers.Flatten.call(self, input)
+#
+#        return output
+
+
+
+class BatchNormalization(Layer, layers_new.batch_normalization.BatchNormalization):
+
+    def __init__(self,
+                 axis=-1,
+                 momentum=0.99,
+                 epsilon=1e-3,
+                 center=True,
+                 scale=True,
+                 beta_initializer='zeros',
+                 gamma_initializer='ones',
+                 moving_mean_initializer='zeros',
+                 moving_variance_initializer='ones',
+                 beta_regularizer=None,
+                 gamma_regularizer=None,
+                 beta_constraint=None,
+                 gamma_constraint=None,
+                 renorm=False,
+                 renorm_clipping=None,
+                 renorm_momentum=0.99,
+                 fused=None,
+                 trainable=True,
+                 virtual_batch_size=None,
+                 adjustment=None,
+                 name=None,
+                 **kwargs):
+
+        Layer.__init__(self, use_bn=False, activation=None, last_layer=False, kwargs=kwargs)
+
+        layers_new.batch_normalization.BatchNormalization.__init__(self,
+                 axis=axis,
+                 momentum=momentum,
+                 epsilon=epsilon,
+                 center=center,
+                 scale=scale,
+                 beta_initializer=beta_initializer,
+                 gamma_initializer=gamma_initializer,
+                 moving_mean_initializer=moving_mean_initializer,
+                 moving_variance_initializer=moving_variance_initializer,
+                 beta_regularizer=beta_regularizer,
+                 gamma_regularizer=gamma_regularizer,
+                 beta_constraint=beta_constraint,
+                 gamma_constraint=gamma_constraint,
+                 renorm=renorm,
+                 renorm_clipping=renorm_clipping,
+                 renorm_momentum=renorm_momentum,
+                 fused=fused,
+                 trainable=trainable,
+                 virtual_batch_size=virtual_batch_size,
+                 adjustment=adjustment,
+                 name=name,
+                 **kwargs)
+
+#    def build(self, input_shape):
+#
+#        if self.conf.nn_mode=='SNN' and not self.conf.snn_training_spatial_first:
+#            input_shape = input_shape[1:]       # [t,b,w,h,c] -> [b,w,h,c]
+#
+#        layers_new.batch_normalization.BatchNormalization.build(self,input_shape)
+#
+#        if self.conf.nn_mode=='SNN' and not self.conf.snn_training_spatial_first:
+#            self.input_spec = InputSpec(ndim=self.input_spec.ndim+1,axes=self.input_spec.axes)
+
+
+
+
+############################################################
+## Temporal wrapper - temporal function
+############################################################
+def tfn(layer, input):
+    if conf.nn_mode=='SNN' and not conf.snn_training_spatial_first:
+
+        range_ts = range(1, conf.time_step + 1)
+
+        f_temporal_reduction = False
+        #
+        layers_temporal_reduction = []
+        layers_temporal_reduction.append(lib_snn.layers.BatchNormalization)
+        #layers_temporal_reduction.append(lib_snn.layers.MaxPool2D)
+        #layers_temporal_reduction.append(lib_snn.layers.AveragePooling2D)
+
+        if type(layer) in layers_temporal_reduction:
+            f_temporal_reduction = True
+
+        #out_arr = []
+
+        #
+        if not isinstance(input,tf.TensorArray):
+            in_arr = tf.TensorArray(
+                dtype=tf.float32,
+                size=conf.time_step,
+                element_shape=input.shape,
+                clear_after_read=False,
+                tensor_array_name='in_arr')
+
+        else:
+            in_arr = input
+
+
+        if f_temporal_reduction:
+            layer_in = tf.reduce_mean(in_arr.stack(),axis=0)
+
+            layer_out = layer(layer_in)
+
+            #
+            out_arr = tf.TensorArray(
+                dtype=tf.float32,
+                size=conf.time_step,
+                element_shape=layer_out.shape,
+                clear_after_read=False,
+                tensor_array_name='out_arr')
+
+            for t in range_ts:
+                #out_arr.append(layer_out)
+                out_arr = out_arr.write(t-1,layer_out)
+
+        else:
+
+            for t in range_ts:
+                #layer_in = input.read(t-1)
+                #layer_in = input[t-1]
+                layer_in = in_arr.read(t-1)
+
+                layer_out = layer(layer_in)
+
+
+                #
+                if t-1==0:
+                    out_arr = tf.TensorArray(
+                        dtype=tf.float32,
+                        size=conf.time_step,
+                        element_shape=layer_out.shape,
+                        clear_after_read=False,
+                        tensor_array_name='out_arr')
+
+                #out_arr.append(layer_out)
+                out_arr = out_arr.write(t-1,layer_out)
+
+                #out_arr = out_arr.write(t-1,layer_out)
+
+        #out_arr=tf.convert_to_tensor(out_arr)
+
+        return out_arr
+    else:
+        return layer(input)
+
+
+
 
 
 
@@ -1065,6 +1608,8 @@ def spike_max_pool_2d_22(feature_map, spike_count, output_shape):
         return dy_dx, tf.stop_gradient(spike_count), tf.stop_gradient(output_shape)
 
     return p_conv, grad
+
+
 
 # def spike_max_pool_temporal(feature_map, spike_count, output_shape):
 
