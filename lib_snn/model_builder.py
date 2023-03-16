@@ -1,7 +1,6 @@
 
 import tensorflow as tf
 
-import config_common
 import lib_snn
 
 from lib_snn.sim import glb

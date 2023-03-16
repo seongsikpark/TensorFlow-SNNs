@@ -16,13 +16,13 @@ conf = flags.FLAGS
 
 import os
 
-# GPU setting
-os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-#os.environ["CUDA_VISIBLE_DEVICES"]="0,4"
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
-
 #
 import tensorflow as tf
+
+#
+import tensorflow_datasets as tfds
+tfds.disable_progress_bar()
+
 
 #
 import ssl
@@ -38,6 +38,8 @@ import datetime
 
 #
 import utils
+
+
 
 
 class Config():
@@ -256,3 +258,12 @@ tf.config.experimental.enable_tensor_float_32_execution(config.flags.tf32_mode)
 #
 assert config.flags.data_format == 'channels_last', \
     'not support "{}", only support channels_last'.format(config.flags.data_format)
+
+
+#
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
+
+
+import matplotlib
+matplotlib.use('TkAgg')

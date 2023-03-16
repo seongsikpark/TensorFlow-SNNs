@@ -1,7 +1,5 @@
 
 
-#import tensorflow as tf
-#flags = flags
 import sys
 from absl import flags
 

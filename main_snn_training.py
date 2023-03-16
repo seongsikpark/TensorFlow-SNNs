@@ -1,14 +1,7 @@
 
-
 #
-import tensorflow as tf
-
-#
-import tensorflow_datasets as tfds
-tfds.disable_progress_bar()
-
 # configuration
-from config import config
+from config_snn_training import config
 
 
 # snn library
@@ -21,7 +14,6 @@ import callbacks
 ########################################
 # configuration
 ########################################
-
 dist_strategy = lib_snn.utils.set_gpu()
 
 
@@ -36,7 +28,6 @@ filepath_save, filepath_load, config_name = lib_snn.utils.set_file_path()
 ########################################
 train_ds, valid_ds, test_ds, train_ds_num, valid_ds_num, test_ds_num, num_class, train_steps_per_epoch = \
     datasets.datasets.load()
-
 
 #
 with dist_strategy.scope():
