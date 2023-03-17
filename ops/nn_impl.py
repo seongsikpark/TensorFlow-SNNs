@@ -147,6 +147,9 @@ def batch_normalization(x,
         dx = scale * inv * (y_backprop-tf.reduce_mean(y_backprop,axis=axis)-(x-mm)*tf.reduce_mean(y_backprop*(x-mm),axis=axis)/(mv+epsilon))
         #dx = scale * tf.math.rsqrt(mv+epsilon) * (y_backprop-tf.reduce_mean(y_backprop,axis=axis)-(x-mm)*tf.reduce_mean(y_backprop*(x-mm),axis=axis)/(mv+epsilon))
 
+        #dx = tf.multiply(dx,2*(x+epsilon))
+        #dx = tf.multiply(dx,0.5*tf.math.rsqrt(x+epsilon))
+
         # gradient - scale
         # moving variance = 1/reserve_space_2
         # due to numerical precision? rsqrt(mv*mv+eps)->sqrt(1/mv*1/mv+eps)
@@ -278,6 +281,8 @@ def batch_normalization(x,
         #sta = mean
         #dev = variance
 
+
+        #if False:   # original
         #x_norm = (x-mean)/dev
         x_norm = (x-sta)/(dev)
         #x_norm = (x-sta-0.1)/(dev)

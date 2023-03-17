@@ -780,6 +780,11 @@ class BatchNormalizationBase(Layer):
     def call(self, inputs, training=None):
         inputs = tf.cast(inputs, self.compute_dtype)
 
+        # if test
+        #inputs = tf.square(inputs)
+        #inputs = tf.multiply(inputs,inputs)
+        #inputs = tf.sqrt(inputs)
+
         # sspark
         # inputs = inputs / conf.time_step
         training = self._get_training_value(training)
