@@ -44,11 +44,11 @@ import utils
 
 class Config():
     def __init__(self):
-
         #
         self.flags = flags.FLAGS
-
         #self.num_parallel_cpu = -1
+
+    def set(self):
 
         #
         self.set_model_dataset()
@@ -97,6 +97,9 @@ class Config():
             eager_mode=True
 
         self.eager_mode = eager_mode
+
+        if self.eager_mode:
+            tf.executing_eagerly()
 
     def set_batch_size(self):
 

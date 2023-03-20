@@ -5,7 +5,7 @@ from config import config
 import tensorflow as tf
 
 
-def callbacks_snn_train(model,valid_ds,test_ds_num):
+def callbacks_snn_train(model,train_ds_num,valid_ds,test_ds_num):
 
     monitor_cri = config.monitor_cri
     train = config.train
@@ -13,6 +13,7 @@ def callbacks_snn_train(model,valid_ds,test_ds_num):
 
     filepath_save = config.filepath_save
     path_tensorboard = config.path_tensorboard
+
 
 
     #if train and load_model and (not f_hp_tune_train):
@@ -40,7 +41,7 @@ def callbacks_snn_train(model,valid_ds,test_ds_num):
     cb_manage_saved_model = lib_snn.callbacks.ManageSavedModels(filepath=filepath_save)
     cb_tensorboard = tf.keras.callbacks.TensorBoard(log_dir=path_tensorboard, update_freq='epoch')
 
-    cb_libsnn = lib_snn.callbacks.SNNLIB(config.flags,config.filepath_load,test_ds_num)
+    cb_libsnn = lib_snn.callbacks.SNNLIB(config.flags,config.filepath_load,train_ds_num,test_ds_num)
     #cb_libsnn = lib_snn.callbacks.SNNLIB(config.flags,config.filepath_load,test_ds_num,model_ann)
     #cb_libsnn_ann = lib_snn.callbacks.SNNLIB(config.flags,config.filepath_load,test_ds_num)
 

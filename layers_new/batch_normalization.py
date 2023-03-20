@@ -997,6 +997,7 @@ class BatchNormalizationBase(Layer):
             scale = scale * self.tdbn_scale
         #outputs = tf.nn.batch_normalization(inputs, _broadcast(mean),
         outputs = lib_snn_nn.batch_normalization(inputs, _broadcast(mean),
+        #outputs = lib_snn_nn.batch_normalization_new(inputs, _broadcast(mean),
                                             _broadcast(variance), offset, scale,
                                             self.epsilon)
         if inputs_dtype in (tf.float16, tf.bfloat16):

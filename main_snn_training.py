@@ -46,7 +46,8 @@ with dist_strategy.scope():
     ################
     # Callbacks
     ################
-    callbacks_train, callbacks_test = callbacks.callbacks_snn_train(model,valid_ds,test_ds_num)
+    callbacks_train, callbacks_test = \
+        callbacks.callbacks_snn_train(model,train_ds_num,valid_ds,test_ds_num)
 
     #
     if config.train:
