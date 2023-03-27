@@ -36,7 +36,7 @@ conf = flags.FLAGS
 #def mat_mul_dense(a=0, b=0, input_accum=None, transpose_a=False, transpose_b=False, name=None):
 #def mat_mul_dense(a, b, input_accum, transpose_a, transpose_b, name):
 #def mat_mul_dense(a, b, input_accum, transpose_a=False, transpose_b=False, name=None):
-def mat_mul_dense(a, b, input_accum):
+def mat_mul_dense(a, b, input_accum, decay):
 
     r"""Multiply the matrix "a" by the matrix "b".
 
@@ -66,6 +66,8 @@ def mat_mul_dense(a, b, input_accum):
     transpose_a = False
     transpose_b = False
     name = None
+
+    input_accum = input_accum * decay + a
 
     if tld.is_eager:
     #if False:
@@ -132,7 +134,9 @@ def mat_mul_dense(a, b, input_accum):
         else:
             assert False
 
-        return grad_a, grad_b, tf.zeros(input_accum.shape)
+        #return grad_a, grad_b, tf.zeros(input_accum.shape)
+        #return grad_a, grad_b, grad_a
+        return grad_a, grad_b, tf.zeros(input_accum.shape), grad_a
 
 
     #if _execute.must_record_gradient():

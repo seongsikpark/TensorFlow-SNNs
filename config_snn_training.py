@@ -7,7 +7,7 @@
 import os
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,4"
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 
 #
 from config import config
@@ -25,22 +25,27 @@ conf.nn_mode = 'SNN'
 conf.n_reset_type = 'reset_to_zero'
 
 
-conf.vth_rand_static = False
+conf.vth_rand_static = True
 
 conf.vrest = 0.0
-conf.vrest_rand_static = False
+conf.vrest = -0.1
+#conf.vrest_rand_static = False
+conf.vrest_rand_static = True
 
-#conf.adaptive_vth = True
-#conf.adaptive_vth_scale = 1.3
+#conf.adaptive_vth = False
+conf.adaptive_vth = True
+conf.adaptive_vth_scale = 1.2
 
-#conf.use_bn=False
+#
+conf.sptr = True
+conf.sptr_decay = 0.1
+conf.snn_training_spatial_first=True
 
-#conf.n_init_vth = 0.3
+#
+conf.grad_clipnorm = 1.0
 
-
-#conf.debug_mode = True
-#conf.num_train_data = 200
-
+#
+#conf.debug_mode=True
 
 #
 config.set()

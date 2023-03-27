@@ -229,11 +229,14 @@ class Conv(Layer):
         #
         if conf.sptr and conf.nn_mode == 'SNN':
             self.input_accum = tf.Variable(tf.zeros(input_shape),trainable=False,name='input_accum')
+            self.sptr_decay = tf.Variable(tf.constant(conf.sptr_decay,shape=input_shape[3]),name='sptr_decay')
 
         self.built = True
 
     @tf.custom_gradient
-    def convolution_2d_op(self, inputs, kernel):
+    #def convolution_2d_op(self, inputs, kernel):
+    def convolution_2d_op(self, inputs, kernel, decay):
+
         if self.padding == 'causal':
             tf_padding = 'VALID'  # Causal padding handled in `call`.
         elif isinstance(self.padding, str):
@@ -251,7 +254,9 @@ class Conv(Layer):
             name=self.__class__.__name__)
 
         if conf.sptr and conf.nn_mode == 'SNN':
-            self.input_accum.assign(self.input_accum*conf.sptr_decay+inputs)
+            #self.input_accum.assign(self.input_accum*conf.sptr_decay+inputs)
+            self.input_accum.assign(self.input_accum*decay+inputs)
+            #self.input_accum = self.input_accum*decay+inputs
 
         def grad(upstream):
             '''
@@ -324,7 +329,8 @@ class Conv(Layer):
                         use_cudnn_on_gpu=use_cudnn_on_gpu,
                         data_format=data_format)
 
-            return grad_in, grad_kernel
+            #return grad_in, grad_kernel
+            return grad_in, grad_kernel, tf.reduce_mean(grad_in,axis=[0,1,2])
 
         return ret, grad
 
@@ -363,7 +369,8 @@ class Conv(Layer):
             outputs = self._jit_compiled_convolution_op(inputs, self.kernel)
         else:
             if self.rank==2:
-                outputs = self.convolution_2d_op(inputs, self.kernel)
+                #outputs = self.convolution_2d_op(inputs, self.kernel)  # original
+                outputs = self.convolution_2d_op(inputs, self.kernel, self.sptr_decay)   # stbp
             else:
                 outputs = self.convolution_op(inputs, self.kernel)
 
