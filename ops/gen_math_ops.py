@@ -67,7 +67,7 @@ def mat_mul_dense(a, b, input_accum, decay):
     transpose_b = False
     name = None
 
-    input_accum = input_accum * decay + a
+    #input_accum = input_accum * decay + a
 
     if tld.is_eager:
     #if False:

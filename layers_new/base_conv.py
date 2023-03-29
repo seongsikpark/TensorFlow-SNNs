@@ -255,9 +255,9 @@ class Conv(Layer):
 
         if conf.sptr and conf.nn_mode == 'SNN':
             #self.input_accum.assign(self.input_accum*conf.sptr_decay+inputs)
-            #self.input_accum.assign(self.input_accum*decay+inputs)
+            self.input_accum.assign(self.input_accum*decay+inputs)
             #self.input_accum = self.input_accum*decay+inputs
-            inputs_accum = inputs_accum*decay + inputs
+            #inputs_accum = inputs_accum*decay + inputs
 
 
         def grad(upstream):
@@ -299,7 +299,7 @@ class Conv(Layer):
                     data_format=data_format)
 
                 grad_kernel = gen_nn_ops.conv2d_backprop_filter(
-                    inputs_accum,
+                    self.input_accum,
                     shape_1,
                     upstream,
                     dilations=dilations,
@@ -332,7 +332,9 @@ class Conv(Layer):
                         data_format=data_format)
 
             #return grad_in, grad_kernel
-            return grad_in, grad_kernel, tf.zeros(inputs_accum.shape), tf.reduce_mean(grad_in,axis=[0,1,2])
+            return grad_in, grad_kernel, tf.zeros(inputs_accum.shape), tf.reduce_sum(grad_in,axis=[0,1,2])
+            #return grad_in, grad_kernel, tf.zeros(inputs_accum.shape), tf.reduce_mean(tf.zeros(shape=grad_in.shape),axis=[0,1,2])
+            #return grad_in, grad_kernel, tf.zeros(inputs_accum.shape), tf.reduce_mean(tf.ones(shape=grad_in.shape),axis=[0,1,2])
 
         return ret, grad
 
