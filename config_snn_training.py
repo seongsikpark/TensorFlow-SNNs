@@ -25,15 +25,16 @@ conf.nn_mode = 'SNN'
 conf.n_reset_type = 'reset_to_zero'
 
 
-conf.vth_rand_static = True
+conf.vth_rand_static = False
+#conf.vth_rand_static = True
 
 conf.vrest = 0.0
-conf.vrest = -0.1
-#conf.vrest_rand_static = False
-conf.vrest_rand_static = True
+#conf.vrest = -0.1
+conf.vrest_rand_static = False
+#conf.vrest_rand_static = True
 
-#conf.adaptive_vth = False
-conf.adaptive_vth = True
+conf.adaptive_vth = False
+#conf.adaptive_vth = True
 conf.adaptive_vth_scale = 1.2
 
 #
@@ -42,7 +43,8 @@ conf.sptr_decay = 0.1
 conf.snn_training_spatial_first=True
 
 #
-conf.grad_clipnorm = 1.0
+#conf.grad_clipnorm = 1.0
+conf.grad_clipnorm = 3.0
 
 #
 #conf.debug_mode=True

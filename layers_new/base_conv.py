@@ -235,7 +235,7 @@ class Conv(Layer):
 
     @tf.custom_gradient
     #def convolution_2d_op(self, inputs, kernel):
-    def convolution_2d_op(self, inputs, kernel, decay):
+    def convolution_2d_op(self, inputs, kernel, inputs_accum, decay):
 
         if self.padding == 'causal':
             tf_padding = 'VALID'  # Causal padding handled in `call`.
@@ -255,8 +255,10 @@ class Conv(Layer):
 
         if conf.sptr and conf.nn_mode == 'SNN':
             #self.input_accum.assign(self.input_accum*conf.sptr_decay+inputs)
-            self.input_accum.assign(self.input_accum*decay+inputs)
+            #self.input_accum.assign(self.input_accum*decay+inputs)
             #self.input_accum = self.input_accum*decay+inputs
+            inputs_accum = inputs_accum*decay + inputs
+
 
         def grad(upstream):
             '''
@@ -297,7 +299,7 @@ class Conv(Layer):
                     data_format=data_format)
 
                 grad_kernel = gen_nn_ops.conv2d_backprop_filter(
-                    self.input_accum,
+                    inputs_accum,
                     shape_1,
                     upstream,
                     dilations=dilations,
@@ -330,7 +332,7 @@ class Conv(Layer):
                         data_format=data_format)
 
             #return grad_in, grad_kernel
-            return grad_in, grad_kernel, tf.reduce_mean(grad_in,axis=[0,1,2])
+            return grad_in, grad_kernel, tf.zeros(inputs_accum.shape), tf.reduce_mean(grad_in,axis=[0,1,2])
 
         return ret, grad
 
@@ -370,7 +372,7 @@ class Conv(Layer):
         else:
             if self.rank==2:
                 #outputs = self.convolution_2d_op(inputs, self.kernel)  # original
-                outputs = self.convolution_2d_op(inputs, self.kernel, self.sptr_decay)   # stbp
+                outputs = self.convolution_2d_op(inputs, self.kernel, self.input_accum, self.sptr_decay)   # stbp
             else:
                 outputs = self.convolution_op(inputs, self.kernel)
 
