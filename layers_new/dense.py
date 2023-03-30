@@ -176,7 +176,7 @@ class Dense(Layer):
             #self.input_accum = tf.Variable(tf.zeros(input_shape),trainable=False)
             self.input_accum = tf.Variable(tf.zeros(input_shape),trainable=False,name='input_accum')
             #self.sptr_decay = tf.Variable(tf.constant(conf.sptr_decay,shape=input_shape),trainable=False,name='sptr_decay')
-            self.sptr_decay = tf.Variable(tf.constant(conf.sptr_decay,shape=input_shape),name='sptr_decay')
+            self.sptr_decay = tf.Variable(tf.constant(conf.sptr_decay,shape=input_shape[1]),name='sptr_decay')
 
         self.built = True
 

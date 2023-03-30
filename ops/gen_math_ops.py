@@ -136,7 +136,8 @@ def mat_mul_dense(a, b, input_accum, decay):
 
         #return grad_a, grad_b, tf.zeros(input_accum.shape)
         #return grad_a, grad_b, grad_a
-        return grad_a, grad_b, tf.zeros(input_accum.shape), grad_a
+        #return grad_a, grad_b, tf.zeros(input_accum.shape), grad_a
+        return grad_a, grad_b, tf.zeros(input_accum.shape), tf.reduce_sum(grad_a,axis=[0])
 
 
     #if _execute.must_record_gradient():
