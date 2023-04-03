@@ -550,6 +550,93 @@ class Neuron(tf.keras.layers.Layer):
             self.vth.assign(tf.where(self.f_fire, self.vth*vth_step_scale, self.vth/vth_step_scale))
 
 
+        if True:
+        #if False:
+            #if self.loc != 'IN':
+            if self.loc == 'HID':
+
+                #self.add_loss(tf.reduce_mean(self.spike_count_int))
+                self.add_loss(0.0001*tf.reduce_mean(self.out))
+                #print(self.name)
+                #print(tf.reduce_mean(self.out))
+
+                #import tensorflow_probability as tfp
+
+                if False:
+                #if True:
+                    h_min = -1.0
+                    h_max = 1.0
+
+                    #hist = tf.histogram_fixed_width(inputs,[tf.reduce_min(inputs),tf.reduce_max(inputs)])
+                    hist = tf.histogram_fixed_width(inputs,[h_min,h_max])
+                    num_inputs = tf.reduce_sum(hist)
+                    #hist = tf.where(hist==0,tf.constant(1.0e-5,shape=hist.shape),hist)
+                    p = tf.cast(hist / num_inputs,dtype=tf.float32)
+                    #e = tf.math.multiply_no_nan(tf.math.log(p)/tf.math.log(tf.cast(2.0,dtype=tf.float64)),p)
+                    e = tf.math.multiply_no_nan(tf.math.log(p)/tf.math.log(2.0),p)
+                    #e = tf.where(p==0,tf.zeros(e.shape),e)
+                    e = -tf.reduce_sum(e)
+                    #e = tf.clip_by_value(e, 1,10)
+                    #print(e)
+                    self.add_loss(0.001*e)
+                    #self.add_loss(0.01*tf.reduce_mean(inputs))
+
+                    #print(e)
+                    #if tf.reduce_any(tf.math.is_nan(e)):
+                        #print(p)
+                        ##print(e)
+
+
+
+        #if True:
+        if False:
+            #if self.loc != 'IN':
+            if self.loc == 'HID' and backend.ndim(inputs)==4:
+
+                #self.add_loss(tf.reduce_mean(self.spike_count_int))
+                #self.add_loss(0.001*tf.reduce_mean(self.out))
+                #print(self.name)
+                #print(tf.reduce_mean(self.out))
+
+                #import tensorflow_probability as tfp
+
+                #if False:
+                if True:
+                    h_min = -1.0
+                    h_max = 2.0
+
+                    n_channel = inputs.shape[-1]
+                    hist_arr = []
+                    neurons_in_channel = tf.reduce_prod(inputs.shape[0,1,2])
+                    for i_channel in range(n_channel):
+                        hist = tf.histogram_fixed_width(inputs[:,:,:,i_channel],[h_min,h_max])
+                        num = tf.reduce_sum(hist)
+                        p = tf.cast(hist / num,dtype=tf.float32)
+                        e = tf.math.multiply_no_nan(tf.math.log(p)/tf.math.log(2.0),p)
+                        hist_arr.append(hist)
+
+
+
+                    #hist = tf.histogram_fixed_width(inputs,[tf.reduce_min(inputs),tf.reduce_max(inputs)])
+                    hist = tf.histogram_fixed_width(inputs,[h_min,h_max])
+                    num_inputs = tf.reduce_sum(hist)
+                    #hist = tf.where(hist==0,tf.constant(1.0e-5,shape=hist.shape),hist)
+                    p = tf.cast(hist / num_inputs,dtype=tf.float32)
+                    #e = tf.math.multiply_no_nan(tf.math.log(p)/tf.math.log(tf.cast(2.0,dtype=tf.float64)),p)
+                    e = tf.math.multiply_no_nan(tf.math.log(p)/tf.math.log(2.0),p)
+                    #e = tf.where(p==0,tf.zeros(e.shape),e)
+                    e = -tf.reduce_sum(e)
+                    #e = tf.clip_by_value(e, 1,10)
+                    #print(e)
+                    self.add_loss(0.01*e)
+                    #self.add_loss(0.01*tf.reduce_mean(inputs))
+
+                    #print(e)
+                    #if tf.reduce_any(tf.math.is_nan(e)):
+                    #print(p)
+                    ##print(e)
+
+
         #return out_ret, grad
         return out_ret
 

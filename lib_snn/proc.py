@@ -18,6 +18,7 @@ import os
 import csv
 import numpy as np
 import pandas as pd
+import functools
 
 #
 import matplotlib.pyplot as plt
@@ -63,6 +64,41 @@ def preproc(self):
         'SNN': preproc_snn,
     }
     preproc_sel[self.model.nn_mode](self)
+
+    # spike loss
+    if False:
+    #if True:
+        for idx_n, neuron in enumerate(self.model.layers_w_neuron):
+        #    #neuron.act.add_loss(lambda: tf.reduce_mean(neuron.act.spike_count_int))
+        #    #neuron.act.add_loss(lambda: tf.reduce_sum(neuron.act.spike_count_int))
+            if neuron.act.loc=='HID':
+                print(neuron.name)
+                print(neuron)
+                print(idx_n)
+                #spike = neuron.act.out
+                spike = neuron.act.spike_count_int
+                spike = 0.001 * spike
+                #self.model.add_loss(lambda spike: tf.reduce_mean(0.01*spike))
+                #self.model.add_loss(functools.partial(tf.reduce_mean,spike))
+                neuron.act.add_loss(functools.partial(tf.reduce_mean,spike))
+                #neuron.act.add_loss(lambda: tf.reduce_mean(0.001*neuron.act.out))
+
+
+    #self.model.add_loss(lambda: tf.reduce_mean(0.01*self.model.layers_w_neuron[1].act.out))
+    #self.model.add_loss(lambda: tf.reduce_mean(0.0*self.model.layers_w_neuron[-2].act.out))
+    #self.model.add_loss(lambda: tf.reduce_mean(0.01*self.model.layers_w_neuron[-1].act.out))
+
+    #
+    if False:
+        for layer in self.model.layers_w_kernel:
+        #    #self.model.add_loss(functools.partial(tf.reduce_mean,layer.kernel))
+        #    output = layer.output
+            #histogram = tf.histogram_fixed_width(output,[tf.reduce_min(output),tf.reduce_min(output)])
+            #self.model.add_loss(functools.partial()
+            self.model.add_loss(functools.partial(tf.reduce_mean,layer.input))
+
+
+
 
 
     self.init_done = True

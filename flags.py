@@ -636,7 +636,6 @@ flags.DEFINE_float('sptr_decay',0.9,'sptr decay const')
 
 
 
-
 #############
 #### old ####
 #############

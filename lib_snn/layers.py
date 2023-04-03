@@ -417,6 +417,27 @@ class Layer():
                 output = super().call(input)
 
 
+            # regularization
+            #if False:
+            if True and self.depth > 1:
+                h_min = -1.0
+                h_max = 1.0
+
+                #hist = tf.histogram_fixed_width(inputs,[tf.reduce_min(inputs),tf.reduce_max(inputs)])
+                hist = tf.histogram_fixed_width(output,[h_min,h_max])
+                num_inputs = tf.reduce_sum(hist)
+                #hist = tf.where(hist==0,tf.constant(1.0e-5,shape=hist.shape),hist)
+                p = tf.cast(hist / num_inputs,dtype=tf.float32)
+                #e = tf.math.multiply_no_nan(tf.math.log(p)/tf.math.log(tf.cast(2.0,dtype=tf.float64)),p)
+                e = tf.math.multiply_no_nan(tf.math.log(p)/tf.math.log(2.0),p)
+                #e = tf.where(p==0,tf.zeros(e.shape),e)
+                e = -tf.reduce_sum(e)
+                #e = tf.clip_by_value(e, 1,10)
+                #print(e)
+                self.add_loss(0.001*e)
+
+
+
             return output
             #assert False
             pass
@@ -795,6 +816,8 @@ class Layer():
                         print('{}: {} - {}'.format(glb_t.t, self.depth, b))
 
             #print('{}: {} - {}'.format(glb_t.t,self.depth,tf.reduce_mean(self.act_snn.out)))
+
+
 
         return ret
 

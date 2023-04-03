@@ -120,6 +120,8 @@ class Model(tf.keras.Model):
         self.layers_w_kernel = []
         self.layers_w_neuron = []
 
+        self.total_num_neurons = None
+
         self.en_record_output = None
 
         # input
@@ -3358,3 +3360,33 @@ class Model(tf.keras.Model):
             f = os.path.join(path_root,f)
             dout.to_csv(f)
 
+
+    #
+    def summary(self,
+                line_length=None,
+                positions=None,
+                print_fn=None,
+                expand_nested=False,
+                show_trainable=False):
+        super(Model, self).summary(line_length=line_length, positions=positions,
+                           print_fn=print_fn, expand_nested=expand_nested, show_trainable=show_trainable)
+
+        if self.total_num_neurons == None:
+            self.cal_total_num_neurons()
+
+        self.print_total_num_neurons()
+
+
+    #
+    def cal_total_num_neurons(self):
+        total_num_neurons = 0
+        #for l in self.layers_w_neuron:
+        for l in self.layers:
+            if hasattr(l, 'act'):
+                if isinstance(l.act, lib_snn.neurons.Neuron):
+                    total_num_neurons += l.act.num_neurons
+
+        self.total_num_neurons = total_num_neurons
+
+    def print_total_num_neurons(self):
+        print('total num neurons: {:}'.format(self.total_num_neurons))

@@ -30,8 +30,8 @@ conf.vth_rand_static = False
 conf.vrest = 0.0
 conf.vrest_rand_static = False
 
-#conf.adaptive_vth = True
-#conf.adaptive_vth_scale = 1.3
+conf.adaptive_vth = True
+conf.adaptive_vth_scale = 1.1
 
 #conf.use_bn=False
 
@@ -41,6 +41,8 @@ conf.vrest_rand_static = False
 #conf.debug_mode = True
 #conf.num_train_data = 200
 
+#
+conf.grad_clipnorm = 3.0
 
 #
 config.set()
