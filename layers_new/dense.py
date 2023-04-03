@@ -175,6 +175,8 @@ class Dense(Layer):
             #self.input_accum = tf.zeros(input_shape)
             #self.input_accum = tf.Variable(tf.zeros(input_shape),trainable=False)
             self.input_accum = tf.Variable(tf.zeros(input_shape),trainable=False,name='input_accum')
+            #self.sptr_decay = tf.Variable(tf.constant(conf.sptr_decay,shape=input_shape),trainable=False,name='sptr_decay')
+            self.sptr_decay = tf.Variable(tf.constant(conf.sptr_decay,shape=input_shape[1]),name='sptr_decay')
 
         self.built = True
 
@@ -245,8 +247,9 @@ class Dense(Layer):
                     #outputs = mat_mul_dense(a=inputs, b=self.kernel, input_accum=self.input_accum,
                     #                        transpose_a=False,transpose_b=False,name=None)
 
-                    self.input_accum.assign(self.input_accum*conf.sptr_decay+inputs)
-                    outputs = mat_mul_dense(inputs,self.kernel,self.input_accum)
+                    #self.input_accum.assign(self.input_accum*conf.sptr_decay+inputs)
+                    self.input_accum.assign(self.input_accum*self.sptr_decay+inputs)
+                    outputs = mat_mul_dense(inputs,self.kernel,self.input_accum, self.sptr_decay)
 
                     #print('input_accum: '+self.name)
                     #print(self.input_accum)
