@@ -234,8 +234,7 @@ class Conv(Layer):
         self.built = True
 
     @tf.custom_gradient
-    #def convolution_2d_op(self, inputs, kernel):
-    def convolution_2d_op(self, inputs, kernel, inputs_accum, decay):
+    def convolution_2d_op(self, inputs, kernel):
 
         if self.padding == 'causal':
             tf_padding = 'VALID'  # Causal padding handled in `call`.
@@ -253,29 +252,12 @@ class Conv(Layer):
             data_format=self._tf_data_format,
             name=self.__class__.__name__)
 
-        if conf.sptr and conf.nn_mode == 'SNN':
-            #self.input_accum.assign(self.input_accum*conf.sptr_decay+inputs)
-            self.input_accum.assign(self.input_accum*decay+inputs)
-            #self.input_accum = self.input_accum*decay+inputs
-            #inputs_accum = inputs_accum*decay + inputs
-
-
         def grad(upstream):
             '''
              _Conv2DGrad in nn_grad.py
             '''
             """Gradient function for Conv2D."""
-            #dilations = op.get_attr("dilations")
-            #strides = op.get_attr("strides")
-            #padding = op.get_attr("padding")
-            #explicit_paddings = op.get_attr("explicit_paddings")
-            #use_cudnn_on_gpu = op.get_attr("use_cudnn_on_gpu")
-            #data_format = op.get_attr("data_format")
-            #shape_0, shape_1 = array_ops.shape_n([op.inputs[0], op.inputs[1]])
 
-
-            #filter = deprecation.deprecated_argument_lookup(
-            #    "filters", filters, "filter", filter)
             padding, explicit_paddings = nn_ops.convert_padding(tf_padding)
             data_format = "NHWC"
             channel_index = 1 if data_format.startswith("NC") else 3
@@ -286,20 +268,19 @@ class Conv(Layer):
             use_cudnn_on_gpu = True
             shape_0, shape_1 = array_ops.shape_n([inputs, kernel])
 
-            if conf.sptr and conf.nn_mode == 'SNN':
-                grad_in = gen_nn_ops.conv2d_backprop_input(
-                    shape_0,
-                    kernel,
-                    upstream,
-                    dilations=dilations,
-                    strides=strides,
-                    padding=padding,
-                    explicit_paddings=explicit_paddings,
-                    use_cudnn_on_gpu=use_cudnn_on_gpu,
-                    data_format=data_format)
+            grad_in = gen_nn_ops.conv2d_backprop_input(
+                shape_0,
+                kernel,
+                upstream,
+                dilations=dilations,
+                strides=strides,
+                padding=padding,
+                explicit_paddings=explicit_paddings,
+                use_cudnn_on_gpu=use_cudnn_on_gpu,
+                data_format=data_format)
 
-                grad_kernel = gen_nn_ops.conv2d_backprop_filter(
-                    self.input_accum,
+            grad_kernel = gen_nn_ops.conv2d_backprop_filter(
+                    inputs,
                     shape_1,
                     upstream,
                     dilations=dilations,
@@ -308,33 +289,72 @@ class Conv(Layer):
                     explicit_paddings=explicit_paddings,
                     use_cudnn_on_gpu=use_cudnn_on_gpu,
                     data_format=data_format)
-            else:
-                grad_in = gen_nn_ops.conv2d_backprop_input(
-                    shape_0,
-                    kernel,
-                    upstream,
-                    dilations=dilations,
-                    strides=strides,
-                    padding=padding,
-                    explicit_paddings=explicit_paddings,
-                    use_cudnn_on_gpu=use_cudnn_on_gpu,
-                    data_format=data_format)
 
-                grad_kernel = gen_nn_ops.conv2d_backprop_filter(
-                        inputs,
-                        shape_1,
-                        upstream,
-                        dilations=dilations,
-                        strides=strides,
-                        padding=padding,
-                        explicit_paddings=explicit_paddings,
-                        use_cudnn_on_gpu=use_cudnn_on_gpu,
-                        data_format=data_format)
+            return grad_in, grad_kernel
 
-            #return grad_in, grad_kernel
-            return grad_in, grad_kernel, tf.zeros(inputs_accum.shape), tf.reduce_sum(grad_in,axis=[0,1,2])
-            #return grad_in, grad_kernel, tf.zeros(inputs_accum.shape), tf.reduce_mean(tf.zeros(shape=grad_in.shape),axis=[0,1,2])
-            #return grad_in, grad_kernel, tf.zeros(inputs_accum.shape), tf.reduce_mean(tf.ones(shape=grad_in.shape),axis=[0,1,2])
+        return ret, grad
+
+
+    @tf.custom_gradient
+    def convolution_2d_op_sptr(self, inputs, kernel, decay):
+
+        if self.padding == 'causal':
+            tf_padding = 'VALID'  # Causal padding handled in `call`.
+        elif isinstance(self.padding, str):
+            tf_padding = self.padding.upper()
+        else:
+            tf_padding = self.padding
+
+        ret = tf.nn.convolution(
+            inputs,
+            kernel,
+            strides=list(self.strides),
+            padding=tf_padding,
+            dilations=list(self.dilation_rate),
+            data_format=self._tf_data_format,
+            name=self.__class__.__name__)
+
+        #self.input_accum.assign(self.input_accum*conf.sptr_decay+inputs)
+        self.input_accum.assign(self.input_accum*decay+inputs)
+        #self.input_accum = self.input_accum*decay+inputs
+        #inputs_accum = inputs_accum*decay + inputs
+
+
+        def grad(upstream):
+
+            padding, explicit_paddings = nn_ops.convert_padding(tf_padding)
+            data_format = "NHWC"
+            channel_index = 1 if data_format.startswith("NC") else 3
+
+            strides = nn_ops._get_sequence(self.strides, 2, channel_index, "strides")
+            dilations = nn_ops._get_sequence(self.dilation_rate, 2, channel_index, "dilations")
+
+            use_cudnn_on_gpu = True
+            shape_0, shape_1 = array_ops.shape_n([inputs, kernel])
+
+            grad_in = gen_nn_ops.conv2d_backprop_input(
+                shape_0,
+                kernel,
+                upstream,
+                dilations=dilations,
+                strides=strides,
+                padding=padding,
+                explicit_paddings=explicit_paddings,
+                use_cudnn_on_gpu=use_cudnn_on_gpu,
+                data_format=data_format)
+
+            grad_kernel = gen_nn_ops.conv2d_backprop_filter(
+                self.input_accum,
+                shape_1,
+                upstream,
+                dilations=dilations,
+                strides=strides,
+                padding=padding,
+                explicit_paddings=explicit_paddings,
+                use_cudnn_on_gpu=use_cudnn_on_gpu,
+                data_format=data_format)
+
+            return grad_in, grad_kernel, tf.zeros(grad_in.shape), tf.reduce_sum(grad_in,axis=[0,1,2])
 
         return ret, grad
 
@@ -374,7 +394,11 @@ class Conv(Layer):
         else:
             if self.rank==2:
                 #outputs = self.convolution_2d_op(inputs, self.kernel)  # original
-                outputs = self.convolution_2d_op(inputs, self.kernel, self.input_accum, self.sptr_decay)   # stbp
+                if conf.sptr and conf.nn_mode == 'SNN':
+                    #outputs = self.convolution_2d_op(inputs, self.kernel, self.input_accum, self.sptr_decay)   # stbp
+                    outputs = self.convolution_2d_op_sptr(inputs, self.kernel, self.sptr_decay)   # stbp
+                else:
+                    outputs = self.convolution_2d_op(inputs, self.kernel)  # original
             else:
                 outputs = self.convolution_op(inputs, self.kernel)
 

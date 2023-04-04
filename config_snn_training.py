@@ -31,7 +31,7 @@ conf.vrest = 0.0
 conf.vrest_rand_static = False
 
 conf.adaptive_vth = True
-conf.adaptive_vth_scale = 1.1
+conf.adaptive_vth_scale = 1.2
 
 #conf.use_bn=False
 
