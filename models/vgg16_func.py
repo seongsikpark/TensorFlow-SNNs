@@ -378,7 +378,7 @@ def VGG16(
         #
         a_p_c5_2_f = tf.keras.layers.Flatten(data_format=data_format)(a_p_c5_2)
         a_d_c5_2_f = tf.keras.layers.Dropout(dropout_conv_r[2], name='flatten_do')(a_p_c5_2_f)
-        #x = lib_snn.layers.Dense(n_dim_cls, activation=act_relu, use_bn=use_bn_cls, kernel_initializer=k_init, name='fc1')(x)
+        #x = lib_snn.layers.Dense(n_dim_cls, activation=act_relu, use_bn=use_bn_cls, kernel_initializer=k_init, naimg_input, a_p, batch_size, input_shape,  classes, conf, name=model_nameme='fc1')(x)
         syn_fc1 = lib_snn.layers.Dense(n_dim_cls, kernel_initializer=k_init, name='fc1')(a_d_c5_2_f)
         if use_bn_cls:
             norm_fc1 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='bn_fc1')(syn_fc1)

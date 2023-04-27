@@ -28,6 +28,7 @@ class Neuron(tf.keras.layers.Layer):
         self.init_done = False
 
         self.dim = dim
+        self.dim_wo_batch = self.dim[1:]
         #self.dim_one_batch = [1 , ] +dim[1:]
 
         self.n_type = n_type
@@ -77,7 +78,8 @@ class Neuron(tf.keras.layers.Layer):
             #leak_const_train=False
         leak_const_train = conf.leak_const_train
         
-        self.leak_const = tf.Variable(self.leak_const_init,trainable=leak_const_train,dtype=tf.float32,shape=self.dim,name='leak_const')
+        #self.leak_const = tf.Variable(self.leak_const_init,trainable=leak_const_train,dtype=tf.float32,shape=self.dim,name='leak_const')
+        self.leak_const = tf.Variable(self.leak_const_init,trainable=leak_const_train,dtype=tf.float32,shape=self.dim_wo_batch,name='leak_const')
 
 
         # vth scheduling
@@ -113,12 +115,14 @@ class Neuron(tf.keras.layers.Layer):
         #
         # self.vmem = tf.Variable(shape=self.dim,dtype=tf.float32,initial_value=tf.constant(self.conf.n_init_vinit,shape=self.dim),trainable=False,name='vmem')
 
-        # SNN training
-        self.grad_in_prev = tf.Variable(initial_value=tf.zeros(self.dim), trainable=False, name='grad_in_prev')
+        # SNN training - legacy
+        self.snn_training_legacy = False
+        if self.snn_training_legacy:
+            self.grad_in_prev = tf.Variable(initial_value=tf.zeros(self.dim), trainable=False, name='grad_in_prev')
 
-        # TODO: conditional - SNN direct training, test method
-        self.dL_du_t1_prev = tf.Variable(initial_value=tf.zeros(self.dim),trainable=False,name='dL_du_t1_prev')
-        #self.dL_du_t1_prev = None
+            # TODO: conditional - SNN direct training, test method
+            self.dL_du_t1_prev = tf.Variable(initial_value=tf.zeros(self.dim),trainable=False,name='dL_du_t1_prev')
+            #self.dL_du_t1_prev = None
 
     def build(self, input_shapes):
         #print('neuron build - {}'.format(self.name))
@@ -142,7 +146,8 @@ class Neuron(tf.keras.layers.Layer):
             self.vth_init = tf.constant(init_vth, shape=self.dim, dtype=tf.float32, name='vth_init')
 
         # self.vth_init = tfe.Variable(init_vth)
-        self.vth = tf.Variable(initial_value=tf.constant(init_vth,dtype=tf.float32,shape=self.dim), trainable=False, name="vth")
+        #self.vth = tf.Variable(initial_value=tf.constant(init_vth,dtype=tf.float32,shape=self.dim), trainable=False, name="vth")
+        self.vth = tf.Variable(initial_value=tf.constant(init_vth,dtype=tf.float32,shape=self.dim_wo_batch), trainable=False, name="vth")
         #self.vth = tf.constant(init_vth,dtype=tf.float32,shape=self.dim, name="vth")
 
         #self.vmem_init = tf.Variable(initial_value=tf.constant(self.conf.n_init_vinit,dtype=tf.float32,shape=self.dim), trainable=False,name='vmem_init')
@@ -556,7 +561,7 @@ class Neuron(tf.keras.layers.Layer):
             if self.loc == 'HID':
 
                 #self.add_loss(tf.reduce_mean(self.spike_count_int))
-                self.add_loss(0.0001*tf.reduce_mean(self.out))
+                self.add_loss(0.001*tf.reduce_mean(self.out))
                 #print(self.name)
                 #print(tf.reduce_mean(self.out))
 
@@ -578,7 +583,7 @@ class Neuron(tf.keras.layers.Layer):
                     e = -tf.reduce_sum(e)
                     #e = tf.clip_by_value(e, 1,10)
                     #print(e)
-                    self.add_loss(0.001*e)
+                    self.add_loss(0.0001*e)
                     #self.add_loss(0.01*tf.reduce_mean(inputs))
 
                     #print(e)
@@ -677,7 +682,8 @@ class Neuron(tf.keras.layers.Layer):
             self.reset_first_spike_time()
 
         # TODO: add condition
-        self.reset_snn_direct_training()
+        if self.snn_training_legacy:
+            self.reset_snn_direct_training()
 
     def reset_spike_count(self):
         # self.spike_count = tf.zeros(self.dim)
