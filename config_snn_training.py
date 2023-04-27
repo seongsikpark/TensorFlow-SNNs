@@ -40,7 +40,7 @@ conf.adaptive_vth_scale = 1.2
 #conf.n_init_vth = 0.3
 
 conf.leak_const_init = 0.9
-#conf.leak_const_train = True
+conf.leak_const_train = True
 
 
 #conf.debug_mode = True

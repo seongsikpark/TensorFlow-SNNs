@@ -68,7 +68,8 @@ class Neuron(tf.keras.layers.Layer):
         #self.leak_const = tf.constant(0.99,dtype=tf.float32,shape=self.dim)
         #self.leak_const = tf.constant(leak_const,dtype=tf.float32,shape=self.dim)
 
-        self.leak_const_init = tf.constant(conf.leak_const_init,dtype=tf.float32,shape=self.dim,name='leak_const_init')
+        #self.leak_const_init = tf.constant(conf.leak_const_init,dtype=tf.float32,shape=self.dim,name='leak_const_init')
+        self.leak_const_init = tf.constant(conf.leak_const_init,dtype=tf.float32,shape=self.dim_wo_batch,name='leak_const_init')
         #self.leak_const = tf.Variable(self.leak_const_init,dtype=tf.float32,shape=self.dim,name='leak_const')
         #self.leak_const = tf.Variable(self.leak_const_init,trainable=False,dtype=tf.float32,shape=self.dim,name='leak_const')
         #if loc=='HID':
@@ -146,8 +147,7 @@ class Neuron(tf.keras.layers.Layer):
             self.vth_init = tf.constant(init_vth, shape=self.dim, dtype=tf.float32, name='vth_init')
 
         # self.vth_init = tfe.Variable(init_vth)
-        #self.vth = tf.Variable(initial_value=tf.constant(init_vth,dtype=tf.float32,shape=self.dim), trainable=False, name="vth")
-        self.vth = tf.Variable(initial_value=tf.constant(init_vth,dtype=tf.float32,shape=self.dim_wo_batch), trainable=False, name="vth")
+        self.vth = tf.Variable(initial_value=tf.constant(init_vth,dtype=tf.float32,shape=self.dim), trainable=False, name="vth")
         #self.vth = tf.constant(init_vth,dtype=tf.float32,shape=self.dim, name="vth")
 
         #self.vmem_init = tf.Variable(initial_value=tf.constant(self.conf.n_init_vinit,dtype=tf.float32,shape=self.dim), trainable=False,name='vmem_init')
