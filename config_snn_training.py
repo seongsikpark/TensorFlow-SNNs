@@ -18,6 +18,8 @@ conf = config.flags
 #conf.train_epoch = 100
 #conf.num_train_data = 10000
 
+conf.model='ResNet20'
+
 conf.nn_mode = 'SNN'
 #conf.nn_mode = 'ANN'
 
@@ -32,7 +34,7 @@ conf.vrest = 0.0
 #conf.vrest_rand_static = True
 
 #conf.adaptive_vth = False
-conf.adaptive_vth = True
+#conf.adaptive_vth = True
 conf.adaptive_vth_scale = 1.2
 
 #conf.use_bn=False
@@ -40,7 +42,7 @@ conf.adaptive_vth_scale = 1.2
 #conf.n_init_vth = 0.3
 
 conf.leak_const_init = 0.9
-conf.leak_const_train = True
+#conf.leak_const_train = True
 
 
 #conf.debug_mode = True
@@ -48,7 +50,7 @@ conf.leak_const_train = True
 
 #
 #conf.grad_clipnorm = 3.0
-conf.grad_clipnorm = 1.0
+#conf.grad_clipnorm = 1.0
 
 #
 config.set()

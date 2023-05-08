@@ -555,8 +555,8 @@ class Neuron(tf.keras.layers.Layer):
             self.vth.assign(tf.where(self.f_fire, self.vth*vth_step_scale, self.vth/vth_step_scale))
 
 
-        if True:
-        #if False:
+        #if True:
+        if False:
             #if self.loc != 'IN':
             if self.loc == 'HID':
 

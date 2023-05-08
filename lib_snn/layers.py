@@ -418,8 +418,8 @@ class Layer():
 
 
             # regularization
-            #if False:
-            if True and self.depth > 1:
+            if False:
+            #if True and self.depth > 1:
                 h_min = -1.0
                 h_max = 1.0
 
