@@ -756,6 +756,11 @@ flags.DEFINE_bool('fine_tune_quant',False,'fine tuning - quantization')
 #flags.DEFINE_bool('fine_tune_quant',True,'fine tuning - quantization')
 
 
+# stdp - pathway
+flags.DEFINE_bool('en_stdp_pathway',False,'enable - stdp pathway')
+flags.DEFINE_float('stdp_pathway_weight',0.5,'stdp pathway weight - weight = (1-alpha)+alpha*spike_trace')
+
+
 
 #
 conf=flags.FLAGS

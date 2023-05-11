@@ -279,16 +279,46 @@ class Conv(Layer):
                 use_cudnn_on_gpu=use_cudnn_on_gpu,
                 data_format=data_format)
 
+            if conf.en_stdp_pathway:
+                grad_out = upstream
+            else:
+                # normal
+                grad_out = upstream
+
+
             grad_kernel = gen_nn_ops.conv2d_backprop_filter(
-                    inputs,
+                inputs,
+                shape_1,
+                upstream,
+                dilations=dilations,
+                strides=strides,
+                padding=padding,
+                explicit_paddings=explicit_paddings,
+                use_cudnn_on_gpu=use_cudnn_on_gpu,
+                data_format=data_format)
+
+
+            if conf.en_stdp_pathway and hasattr(self,'n_pre'):
+                spike_trace = gen_nn_ops.conv2d_backprop_filter(
+                    self.n_pre.act.spike_trace,
                     shape_1,
-                    upstream,
+                    self.n_post.act.spike_trace,
                     dilations=dilations,
                     strides=strides,
                     padding=padding,
                     explicit_paddings=explicit_paddings,
                     use_cudnn_on_gpu=use_cudnn_on_gpu,
                     data_format=data_format)
+
+
+                norm_spike_trace = spike_trace
+                norm_spike_trace = norm_spike_trace/tf.reduce_max(norm_spike_trace)
+                #alpha = 0.5
+                alpha = conf.stdp_pathway_weight
+                grad_kernel_weight = (1-alpha)+alpha*(norm_spike_trace)
+
+                grad_kernel = grad_kernel*grad_kernel_weight
+
 
             return grad_in, grad_kernel
 

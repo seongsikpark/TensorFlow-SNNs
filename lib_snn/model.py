@@ -41,6 +41,10 @@ from lib_snn.sim import glb_t
 #from lib_snn.sim import glb_plot_gradient_gamma
 #from lib_snn.sim import glb_plot_gradient_beta
 
+
+from config import config
+conf = config.flags
+
 class Model(tf.keras.Model):
     count=0
     def __init__(self, inputs, outputs, batch_size, input_shape, num_class, conf, **kwargs):
@@ -226,6 +230,63 @@ class Model(tf.keras.Model):
             self.debug_visual_list_neuron = collections.OrderedDict()
 
 
+        # stdp-pathway
+        #self.en_stdp_pathway = False
+        #self.en_stdp_pathway = True
+
+        #
+        #if self.en_stdp_pathway:
+        if conf.en_stdp_pathway:
+            if conf.model!='VGG16':
+                assert False
+
+            '''
+            self.get_layer('conv1_1').set_n_pre_post('n_conv1','n_conv1_1')
+            self.get_layer('conv2').set_n_pre_post('n_conv1_1','n_conv2')
+            self.get_layer('conv2_1').set_n_pre_post('n_conv2','n_conv2_1')
+            self.get_layer('conv3').set_n_pre_post('n_conv2_1','n_conv3')
+            self.get_layer('conv3_1').set_n_pre_post('n_conv3','n_conv3_1')
+            self.get_layer('conv3_2').set_n_pre_post('n_conv3_1','n_conv3_2')
+            self.get_layer('conv4').set_n_pre_post('n_conv3_2','n_conv4')
+            self.get_layer('conv4_1').set_n_pre_post('n_conv4','n_conv4_1')
+            self.get_layer('conv4_2').set_n_pre_post('n_conv4_1','n_conv4_2')
+            self.get_layer('conv5').set_n_pre_post('n_conv4_2','n_conv5')
+            self.get_layer('conv5_1').set_n_pre_post('n_conv5','n_conv5_1')
+            self.get_layer('conv5_2').set_n_pre_post('n_conv5_1','n_conv5_2')
+            self.get_layer('fc1').set_n_pre_post('n_conv5_2','n_fc1')
+            self.get_layer('fc2').set_n_pre_post('n_fc1','n_fc2')
+            '''
+
+            n_conv1 = self.get_layer('n_conv1')
+            n_conv1_1 = self.get_layer('n_conv1_1')
+            n_conv2 = self.get_layer('n_conv2')
+            n_conv2_1 = self.get_layer('n_conv2_1')
+            n_conv3 = self.get_layer('n_conv3')
+            n_conv3_1 = self.get_layer('n_conv3_1')
+            n_conv3_2 = self.get_layer('n_conv3_2')
+            n_conv4 = self.get_layer('n_conv4')
+            n_conv4_1 = self.get_layer('n_conv4_1')
+            n_conv4_2 = self.get_layer('n_conv4_2')
+            n_conv5 = self.get_layer('n_conv5')
+            n_conv5_1 = self.get_layer('n_conv5_1')
+            n_conv5_2 = self.get_layer('n_conv5_2')
+            n_fc1 = self.get_layer('n_fc1')
+            n_fc2 = self.get_layer('n_fc2')
+
+            self.get_layer('conv1_1').set_n_pre_post(n_conv1,n_conv1_1)
+            #self.get_layer('conv2').set_n_pre_post(n_conv1_1,n_conv2)
+            self.get_layer('conv2_1').set_n_pre_post(n_conv2,n_conv2_1)
+            #self.get_layer('conv3').set_n_pre_post(n_conv2_1,n_conv3)
+            self.get_layer('conv3_1').set_n_pre_post(n_conv3,n_conv3_1)
+            self.get_layer('conv3_2').set_n_pre_post(n_conv3_1,n_conv3_2)
+            #self.get_layer('conv4').set_n_pre_post(n_conv3_2,n_conv4)
+            self.get_layer('conv4_1').set_n_pre_post(n_conv4,n_conv4_1)
+            self.get_layer('conv4_2').set_n_pre_post(n_conv4_1,n_conv4_2)
+            #self.get_layer('conv5').set_n_pre_post(n_conv4_2,n_conv5)
+            self.get_layer('conv5_1').set_n_pre_post(n_conv5,n_conv5_1)
+            self.get_layer('conv5_2').set_n_pre_post(n_conv5_1,n_conv5_2)
+            #self.get_layer('fc1').set_n_pre_post(n_conv5_2,n_fc1)
+            self.get_layer('fc2').set_n_pre_post(n_fc1,n_fc2)
 
 
     #def init_graph(self, inputs, outputs,**kwargs):
@@ -240,13 +301,6 @@ class Model(tf.keras.Model):
         #self._is_graph_network = True
         #self._init_graph_network(inputs=img_input,outputs=out)
 
-#    # build new
-#    def build(self, input_shapes):
-#        assert False
-#        super(Model, self).build(input_shapes)
-#
-#        if self.en_snn:
-#            self.spike_max_pool_setup()
 
     # TODO: move this function
     def spike_max_pool_setup(self):
@@ -1817,6 +1871,7 @@ class Model(tf.keras.Model):
 
                     grads_accum_and_vars = self.optimizer._compute_gradients(loss=loss, var_list=self.trainable_variables, grad_loss=grad_loss, tape=tape)
 
+
                 #
                 self.optimizer.apply_gradients(grads_accum_and_vars)
 
@@ -2413,8 +2468,12 @@ class Model(tf.keras.Model):
             #print('reset_snn')
         self.count_accuracy_time_point=0
 
+        #
+        self.reset_snn_neuron()
+
         # sptr
         self.reset_snn_sptr()
+
 
     #
     def reset_snn_neuron(self):
@@ -3390,3 +3449,11 @@ class Model(tf.keras.Model):
 
     def print_total_num_neurons(self):
         print('total num neurons: {:}'.format(self.total_num_neurons))
+
+
+    # stdp - pathway
+    #def stdp_pathway(self):
+    #    for layer_name, (pre_name, post_name) in self.syn_pre_post.items():
+            #pre = self.get_layer(pre_name).act.spike_trace
+            #post = self.get_layer(post_name).act.spike_trace
+

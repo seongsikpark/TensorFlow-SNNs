@@ -18,7 +18,7 @@ conf = config.flags
 #conf.train_epoch = 100
 #conf.num_train_data = 10000
 
-conf.model='ResNet20'
+#conf.model='ResNet20'
 
 conf.nn_mode = 'SNN'
 #conf.nn_mode = 'ANN'
@@ -51,6 +51,10 @@ conf.leak_const_init = 0.9
 #
 #conf.grad_clipnorm = 3.0
 #conf.grad_clipnorm = 1.0
+
+#
+#conf.en_stdp_pathway = True
+#conf.stdp_pathway_weight = 0.5
 
 #
 config.set()

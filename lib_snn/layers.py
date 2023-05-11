@@ -434,7 +434,7 @@ class Layer():
                 e = -tf.reduce_sum(e)
                 #e = tf.clip_by_value(e, 1,10)
                 #print(e)
-                self.add_loss(0.001*e)
+                self.add_loss(0.01*e)
 
 
 
@@ -916,7 +916,10 @@ class Layer():
 
 
 
-
+    # set pre and post neuron
+    def set_n_pre_post(self,n_pre, n_post):
+        self.n_pre = n_pre
+        self.n_post = n_post
 
 
 #

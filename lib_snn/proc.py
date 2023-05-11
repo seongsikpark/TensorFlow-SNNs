@@ -117,7 +117,7 @@ def reset_batch_ann(self):
 def reset_batch_snn(self):
     # TODO: move to model.py
     self.model.reset_snn()
-    self.model.reset_snn_neuron()
+    #self.model.reset_snn_neuron()
     reset_snn_time_step(self)
 
     if self.conf.calibration_vmem:

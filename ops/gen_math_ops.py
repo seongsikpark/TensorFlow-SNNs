@@ -36,7 +36,7 @@ conf = flags.FLAGS
 #def mat_mul_dense(a=0, b=0, input_accum=None, transpose_a=False, transpose_b=False, name=None):
 #def mat_mul_dense(a, b, input_accum, transpose_a, transpose_b, name):
 #def mat_mul_dense(a, b, input_accum, transpose_a=False, transpose_b=False, name=None):
-def mat_mul_dense(a, b, input_accum, decay):
+def mat_mul_dense(a, b, input_accum=None, decay=None):
 
     r"""Multiply the matrix "a" by the matrix "b".
 
@@ -127,8 +127,13 @@ def mat_mul_dense(a, b, input_accum, decay):
         #b = math_ops.conj(op.inputs[1])
         if not t_a and not t_b:
             grad_a = gen_math_ops.mat_mul(grad, b, transpose_b=True)
-            #grad_b = gen_math_ops.mat_mul(a, grad, transpose_a=True)
-            grad_b = gen_math_ops.mat_mul(input_accum, grad, transpose_a=True)
+            if conf.sptr and conf.nn_mode == 'SNN':
+                grad_b = gen_math_ops.mat_mul(input_accum, grad, transpose_a=True)
+            else:
+                grad_b = gen_math_ops.mat_mul(a, grad, transpose_a=True)
+
+            if conf.en_stdp_pathway:
+                print('a')
 
 
         else:
@@ -137,7 +142,8 @@ def mat_mul_dense(a, b, input_accum, decay):
         #return grad_a, grad_b, tf.zeros(input_accum.shape)
         #return grad_a, grad_b, grad_a
         #return grad_a, grad_b, tf.zeros(input_accum.shape), grad_a
-        return grad_a, grad_b, tf.zeros(input_accum.shape), tf.reduce_sum(grad_a,axis=[0])
+        #return grad_a, grad_b, tf.zeros(input_accum.shape), tf.reduce_sum(grad_a,axis=[0])
+        return grad_a, grad_b, tf.zeros(a.shape), tf.zeros(a[0].shape)
 
 
     #if _execute.must_record_gradient():
