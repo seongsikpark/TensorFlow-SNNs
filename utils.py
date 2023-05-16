@@ -1120,6 +1120,17 @@ def set_file_path(batch_size):
             assert False
         config_name += config_n_reset
 
+        # regularization
+        if conf.reg_spike_out:
+            config_name += '_r-so-'+str(conf.reg_spike_out_const)
+
+        if conf.reg_syn_in:
+            config_name += '_r-si-'+str(conf.reg_syn_in_const)
+
+        if conf.en_stdp_pathway:
+            config_name += '_sp-'+str(conf.stdp_pathway_weight)
+
+
     #
     # TODO: configuration & file naming
     #exp_set_name = model_name + '_' + dataset_name

@@ -418,8 +418,9 @@ class Layer():
 
 
             # regularization
-            if False:
+            #if False:
             #if True and self.depth > 1:
+            if conf.reg_syn_in and self.depth > 1:
                 h_min = -1.0
                 h_max = 1.0
 
@@ -434,7 +435,8 @@ class Layer():
                 e = -tf.reduce_sum(e)
                 #e = tf.clip_by_value(e, 1,10)
                 #print(e)
-                self.add_loss(0.01*e)
+                #self.add_loss(0.01*e)
+                self.add_loss(conf.reg_syn_in_const*e)
 
 
 

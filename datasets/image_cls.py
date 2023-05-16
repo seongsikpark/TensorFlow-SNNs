@@ -108,6 +108,8 @@ def load(dataset_name,batch_size,input_size,input_size_pre_crop_ratio,num_class,
             train_ds_num = train_ds_1_num
         else:
             train_ds, train_ds_num = default_load_train()
+    else:
+        train_ds, train_ds_num = default_load_train()
 
     valid_ds, valid_ds_num = default_load_test()
 

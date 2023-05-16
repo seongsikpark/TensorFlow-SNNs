@@ -297,8 +297,8 @@ flags.DEFINE_string('model', 'VGG16', 'model')
 
 
 #
-flags.DEFINE_bool('load_best_model', True, 'load best model (model, dataset)')
-#flags.DEFINE_bool('load_best_model', False, 'load best model (model, dataset)')
+#flags.DEFINE_bool('load_best_model', True, 'load best model (model, dataset)')
+flags.DEFINE_bool('load_best_model', False, 'load best model (model, dataset)')
 
 #
 #flags.DEFINE_integer('batch_size', 1000, '')
@@ -402,7 +402,8 @@ flags.DEFINE_string('root_tensorboard', './tensorboard/', 'root - tensorboard')
 
 flags.DEFINE_string('root_model_best', '/home/sspark/Models/CNN', 'root model best')
 flags.DEFINE_string('root_model_save', './models', 'root model save')
-flags.DEFINE_string('root_model_load', '/home/sspark/Projects/00_SNN/models', 'root model load')
+#flags.DEFINE_string('root_model_load', '/home/sspark/Projects/00_SNN/models', 'root model load')
+flags.DEFINE_string('root_model_load', './models', 'root model load')
 #flags.DEFINE_string('root_model_load', '/home/sspark/Models/CNN', 'root model load')
 
 #
@@ -754,6 +755,15 @@ flags.DEFINE_bool('ds_err_act_check',False,'dynamic/static activation check')
 # finetune - quantization
 flags.DEFINE_bool('fine_tune_quant',False,'fine tuning - quantization')
 #flags.DEFINE_bool('fine_tune_quant',True,'fine tuning - quantization')
+
+
+# regularization - spike
+flags.DEFINE_bool('reg_spike_out',False,'regularization - spike output in neuron')
+flags.DEFINE_float('reg_spike_out_const',1E-3,'regularization - spike coutput const')
+
+# regularization - synaptic input
+flags.DEFINE_bool('reg_syn_in',False,'regularization - synaptic input - entropy')
+flags.DEFINE_float('reg_syn_in_const',1E-2,'regularization - synaptic input const - entropy')
 
 
 # stdp - pathway

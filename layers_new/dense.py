@@ -419,8 +419,13 @@ class Dense(Layer):
                 grad_b = gen_math_ops.mat_mul(a, grad, transpose_a=True)    # b.shape: (dim_in,dim_out)
 
                 if conf.en_stdp_pathway and hasattr(self,'n_pre'):
-                    pre = self.n_pre.act.spike_trace
-                    post = self.n_post.act.spike_trace
+
+                    #pre = self.n_pre.act.spike_trace
+                    #post = self.n_post.act.spike_trace
+
+                    pre = self.n_pre.act.spike_trace.read(conf.time_step-1)
+                    post = self.n_pre.act.spike_trace.read(conf.time_step-1)
+
                     spike_trace = gen_math_ops.mat_mul(pre,post,transpose_a=True)
 
                     norm_spike_trace = spike_trace / tf.reduce_max(spike_trace)

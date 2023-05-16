@@ -299,10 +299,12 @@ class Conv(Layer):
 
 
             if conf.en_stdp_pathway and hasattr(self,'n_pre'):
+                n_pre_spike_trace = self.n_pre.act.spike_trace.read(conf.time_step-1)
+                n_post_spike_trace = self.n_pre.act.spike_trace.read(conf.time_step-1)
                 spike_trace = gen_nn_ops.conv2d_backprop_filter(
-                    self.n_pre.act.spike_trace,
+                    n_pre_spike_trace,
                     shape_1,
-                    self.n_post.act.spike_trace,
+                    n_post_spike_trace,
                     dilations=dilations,
                     strides=strides,
                     padding=padding,

@@ -13,12 +13,25 @@ os.environ["CUDA_VISIBLE_DEVICES"]="0"
 from config import config
 conf = config.flags
 
+#
+#conf.debug_mode = True
+
 
 #
-#conf.train_epoch = 100
+#conf.mode='inference'
+##conf.batch_size_inf=100
+#conf.time_step=2
+#conf.name_model_load='./models/VGG16_AP_CIFAR100/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-z'
+
+#
+#conf.train_epoch = 3
 #conf.num_train_data = 10000
 
 #conf.model='ResNet20'
+
+#conf.dataset='CIFAR100'
+
+conf.pooling_vgg = 'avg'
 
 conf.nn_mode = 'SNN'
 #conf.nn_mode = 'ANN'
@@ -45,8 +58,6 @@ conf.leak_const_init = 0.9
 #conf.leak_const_train = True
 
 
-#conf.debug_mode = True
-#conf.num_train_data = 200
 
 #
 #conf.grad_clipnorm = 3.0
@@ -54,7 +65,7 @@ conf.leak_const_init = 0.9
 
 #
 #conf.en_stdp_pathway = True
-#conf.stdp_pathway_weight = 0.5
+conf.stdp_pathway_weight = 0.1
 
 #
 config.set()

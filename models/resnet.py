@@ -79,7 +79,7 @@ def block_basic(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=No
     #x = lib_snn.layers.Conv2D(filters, kernel_size, strides=stride, padding='SAME', use_bn=True, activation='relu',name=name + '_conv1')(x)
     x = lib_snn.layers.Conv2D(filters, kernel_size, strides=stride, padding='SAME', name=name + '_conv1')(x)
     x = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name=name+'_conv1_bn')(x)
-    x = lib_snn.activations.Activation(act_type=act_type,name=name+'conv1_n')(x)
+    x = lib_snn.activations.Activation(act_type=act_type,name=name+'_conv1_n')(x)
 
     #x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation='relu',name=name + '_conv2')(x)
     #x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation=None,name=name + '_conv2')(x)
