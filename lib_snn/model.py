@@ -334,6 +334,90 @@ class Model(tf.keras.Model):
 
                 self.get_layer('conv4_block3_conv1').set_n_pre_post(n_conv4_block2_out,n_conv4_block3_conv1)
                 self.get_layer('conv4_block3_conv2').set_n_pre_post(n_conv4_block3_conv1,n_conv4_block3_out)
+
+            elif conf.model=='ResNet32':
+                n_conv1_conv = self.get_layer('conv1_conv_n')
+
+                n_conv2_block1_conv1 = self.get_layer('conv2_block1_conv1_n')
+                n_conv2_block1_out = self.get_layer('conv2_block1_out_n')
+                n_conv2_block2_conv1 = self.get_layer('conv2_block2_conv1_n')
+                n_conv2_block2_out = self.get_layer('conv2_block2_out_n')
+                n_conv2_block3_conv1 = self.get_layer('conv2_block3_conv1_n')
+                n_conv2_block3_out = self.get_layer('conv2_block3_out_n')
+                n_conv2_block4_conv1 = self.get_layer('conv2_block4_conv1_n')
+                n_conv2_block4_out = self.get_layer('conv2_block4_out_n')
+                n_conv2_block5_conv1 = self.get_layer('conv2_block5_conv1_n')
+                n_conv2_block5_out = self.get_layer('conv2_block5_out_n')
+
+                n_conv3_block1_conv1 = self.get_layer('conv3_block1_conv1_n')
+                n_conv3_block1_out = self.get_layer('conv3_block1_out_n')
+                n_conv3_block2_conv1 = self.get_layer('conv3_block2_conv1_n')
+                n_conv3_block2_out = self.get_layer('conv3_block2_out_n')
+                n_conv3_block3_conv1 = self.get_layer('conv3_block3_conv1_n')
+                n_conv3_block3_out = self.get_layer('conv3_block3_out_n')
+                n_conv3_block4_conv1 = self.get_layer('conv3_block4_conv1_n')
+                n_conv3_block4_out = self.get_layer('conv3_block4_out_n')
+                n_conv3_block5_conv1 = self.get_layer('conv3_block5_conv1_n')
+                n_conv3_block5_out = self.get_layer('conv3_block5_out_n')
+
+                n_conv4_block1_conv1 = self.get_layer('conv4_block1_conv1_n')
+                n_conv4_block1_out = self.get_layer('conv4_block1_out_n')
+                n_conv4_block2_conv1 = self.get_layer('conv4_block2_conv1_n')
+                n_conv4_block2_out = self.get_layer('conv4_block2_out_n')
+                n_conv4_block3_conv1 = self.get_layer('conv4_block3_conv1_n')
+                n_conv4_block3_out = self.get_layer('conv4_block3_out_n')
+                n_conv4_block4_conv1 = self.get_layer('conv4_block4_conv1_n')
+                n_conv4_block4_out = self.get_layer('conv4_block4_out_n')
+                n_conv4_block5_conv1 = self.get_layer('conv4_block5_conv1_n')
+                n_conv4_block5_out = self.get_layer('conv4_block5_out_n')
+
+                self.get_layer('conv2_block1_conv1').set_n_pre_post(n_conv1_conv,n_conv2_block1_conv1)
+                self.get_layer('conv2_block1_conv2').set_n_pre_post(n_conv2_block1_conv1,n_conv2_block1_out)
+
+                self.get_layer('conv2_block2_conv1').set_n_pre_post(n_conv2_block1_out,n_conv2_block2_conv1)
+                self.get_layer('conv2_block2_conv2').set_n_pre_post(n_conv2_block2_conv1,n_conv2_block2_out)
+
+                self.get_layer('conv2_block3_conv1').set_n_pre_post(n_conv2_block2_out,n_conv2_block3_conv1)
+                self.get_layer('conv2_block3_conv2').set_n_pre_post(n_conv2_block3_conv1,n_conv2_block3_out)
+
+                self.get_layer('conv2_block4_conv1').set_n_pre_post(n_conv2_block3_out,n_conv2_block4_conv1)
+                self.get_layer('conv2_block4_conv2').set_n_pre_post(n_conv2_block4_conv1,n_conv2_block4_out)
+
+                self.get_layer('conv2_block5_conv1').set_n_pre_post(n_conv2_block4_out,n_conv2_block5_conv1)
+                self.get_layer('conv2_block5_conv2').set_n_pre_post(n_conv2_block5_conv1,n_conv2_block5_out)
+
+
+                #self.get_layer('conv3_block1_conv1').set_n_pre_post(n_conv2_block3_out,n_conv3_block1_conv1)
+                self.get_layer('conv3_block1_conv2').set_n_pre_post(n_conv3_block1_conv1,n_conv3_block1_out)
+
+                self.get_layer('conv3_block2_conv1').set_n_pre_post(n_conv3_block1_out,n_conv3_block2_conv1)
+                self.get_layer('conv3_block2_conv2').set_n_pre_post(n_conv3_block2_conv1,n_conv3_block2_out)
+
+                self.get_layer('conv3_block3_conv1').set_n_pre_post(n_conv3_block2_out,n_conv3_block3_conv1)
+                self.get_layer('conv3_block3_conv2').set_n_pre_post(n_conv3_block3_conv1,n_conv3_block3_out)
+
+                self.get_layer('conv3_block4_conv1').set_n_pre_post(n_conv3_block3_out,n_conv3_block4_conv1)
+                self.get_layer('conv3_block4_conv2').set_n_pre_post(n_conv3_block4_conv1,n_conv3_block4_out)
+
+                self.get_layer('conv3_block5_conv1').set_n_pre_post(n_conv3_block4_out,n_conv3_block5_conv1)
+                self.get_layer('conv3_block5_conv2').set_n_pre_post(n_conv3_block5_conv1,n_conv3_block5_out)
+
+
+                #self.get_layer('conv4_block1_conv1').set_n_pre_post(n_conv3_block3_out,n_conv4_block1_conv1)
+                self.get_layer('conv4_block1_conv2').set_n_pre_post(n_conv4_block1_conv1,n_conv4_block1_out)
+
+                self.get_layer('conv4_block2_conv1').set_n_pre_post(n_conv4_block1_out,n_conv4_block2_conv1)
+                self.get_layer('conv4_block2_conv2').set_n_pre_post(n_conv4_block2_conv1,n_conv4_block2_out)
+
+                self.get_layer('conv4_block3_conv1').set_n_pre_post(n_conv4_block2_out,n_conv4_block3_conv1)
+                self.get_layer('conv4_block3_conv2').set_n_pre_post(n_conv4_block3_conv1,n_conv4_block3_out)
+
+                self.get_layer('conv4_block4_conv1').set_n_pre_post(n_conv4_block3_out,n_conv4_block4_conv1)
+                self.get_layer('conv4_block4_conv2').set_n_pre_post(n_conv4_block4_conv1,n_conv4_block4_out)
+
+                self.get_layer('conv4_block5_conv1').set_n_pre_post(n_conv4_block4_out,n_conv4_block5_conv1)
+                self.get_layer('conv4_block5_conv2').set_n_pre_post(n_conv4_block5_conv1,n_conv4_block5_out)
+
             else:
                 assert False
 

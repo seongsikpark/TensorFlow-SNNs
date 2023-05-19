@@ -28,6 +28,7 @@ conf = config.flags
 #conf.num_train_data = 10000
 
 #conf.model='ResNet20'
+#conf.model='ResNet32'
 
 #conf.dataset='CIFAR100'
 
@@ -36,8 +37,8 @@ conf.pooling_vgg = 'avg'
 conf.nn_mode = 'SNN'
 #conf.nn_mode = 'ANN'
 
-#conf.n_reset_type = 'reset_by_sub'
-conf.n_reset_type = 'reset_to_zero'
+conf.n_reset_type = 'reset_by_sub'
+#conf.n_reset_type = 'reset_to_zero'
 
 
 conf.vth_rand_static = False
