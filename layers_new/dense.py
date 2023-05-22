@@ -44,6 +44,7 @@ from tensorflow.python.util.tf_export import keras_export
 from absl import flags
 conf = flags.FLAGS
 
+from lib_snn.sim import glb_t
 
 #@keras_export('layers_new.Dense')
 class Dense(Layer):
@@ -423,8 +424,20 @@ class Dense(Layer):
                     #pre = self.n_pre.act.spike_trace
                     #post = self.n_post.act.spike_trace
 
-                    pre = self.n_pre.act.spike_trace.read(conf.time_step-1)
-                    post = self.n_pre.act.spike_trace.read(conf.time_step-1)
+                    #pre = self.n_pre.act.spike_trace.read(conf.time_step-1)
+                    #post = self.n_pre.act.spike_trace.read(conf.time_step-1)
+
+                    t = glb_t.t
+                    #t=4
+                    #print(t)
+
+                    #t = t%4
+                    #t = self.n_pre.act.spike_trace.size()
+                    pre = self.n_pre.act.spike_trace.read(t)
+                    post = self.n_pre.act.spike_trace.read(t)
+
+                    #pre = self.n_pre.act.spike_trace.read(3)
+                    #post = self.n_pre.act.spike_trace.read(3)
 
                     spike_trace = gen_math_ops.mat_mul(pre,post,transpose_a=True)
 
@@ -432,6 +445,14 @@ class Dense(Layer):
                     alpha = conf.stdp_pathway_weight
                     grad_b_weight = (1-alpha)+alpha*norm_spike_trace
                     grad_b = grad_b * grad_b_weight
+
+                    glb_t.dec()
+                    if t<2:
+                        glb_t.set(conf.time_step)
+
+                    #glb_t.t -= 1
+                    #if t<2:
+                    #    glb_t.t=conf.time_step
 
             else:
                 assert False

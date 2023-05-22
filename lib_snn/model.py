@@ -2002,6 +2002,10 @@ class Model(tf.keras.Model):
                     grad_loss=None
                     name=None
 
+                    glb_t.reset()
+                    #glb_t.t=conf.time_step
+                    glb_t.set(conf.time_step)
+
                     grads_accum_and_vars = self.optimizer._compute_gradients(loss=loss, var_list=self.trainable_variables, grad_loss=grad_loss, tape=tape)
 
 

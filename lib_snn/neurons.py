@@ -139,7 +139,7 @@ class Neuron(tf.keras.layers.Layer):
 
             self.spike_trace = tf.TensorArray(
                 dtype=tf.float32,
-                size=conf.time_step,
+                size=conf.time_step+1,
                 #size=1,
                 element_shape=self.dim,
                 clear_after_read=False,
@@ -2406,10 +2406,20 @@ class Neuron(tf.keras.layers.Layer):
         #self.spike_trace = self.spike_trace+spike
 
         #
+        #if t==1:
+            #spike_trace_update = spike
+        #else:
+            #spike_trace_pre = self.spike_trace.read(t-1)
+            ##spike_trace_update = spike_trace_pre*spike_trace_decay+self.out
+            #spike_trace_update = spike_trace_pre*spike_trace_decay+spike
+
         spike_trace_pre = self.spike_trace.read(t-1)
-        #spike_trace_update = spike_trace_pre*spike_trace_decay+self.out
+        #spike_trace_update = tf.where(t==1,tf.zeros(spike_trace_pre.shape),spike_trace_pre)
+        #spike_trace_update = spike_trace_update*spike_trace_decay+spike
         spike_trace_update = spike_trace_pre*spike_trace_decay+spike
-        if t < conf.time_step:
+
+
+        if t < conf.time_step+1:
             self.spike_trace = self.spike_trace.write(t,spike_trace_update)
 
 

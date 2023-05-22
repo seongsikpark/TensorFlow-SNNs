@@ -20,6 +20,13 @@ class GLB_CLK():
     def reset(self):
         GLB_CLK.t = 1
 
+    def set(self, time):
+        GLB_CLK.t = time
+
+    def dec(self):
+        GLB_CLK.t -= 1
+
+
 
 # global configurations
 class GLB():

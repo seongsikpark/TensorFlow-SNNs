@@ -37,6 +37,8 @@ from tensorflow.python.ops import gen_nn_ops
 from absl import flags
 conf = flags.FLAGS
 
+from lib_snn.sim import glb_t
+
 
 class Conv(Layer):
     """Abstract N-D convolution layer (private, used as implementation base).
@@ -299,8 +301,13 @@ class Conv(Layer):
 
 
             if conf.en_stdp_pathway and hasattr(self,'n_pre'):
-                n_pre_spike_trace = self.n_pre.act.spike_trace.read(conf.time_step-1)
-                n_post_spike_trace = self.n_pre.act.spike_trace.read(conf.time_step-1)
+                #n_pre_spike_trace = self.n_pre.act.spike_trace.read(conf.time_step-1)
+                #n_post_spike_trace = self.n_pre.act.spike_trace.read(conf.time_step-1)
+
+                t=glb_t.t
+                n_pre_spike_trace = self.n_pre.act.spike_trace.read(t)
+                n_post_spike_trace = self.n_pre.act.spike_trace.read(t)
+
                 spike_trace = gen_nn_ops.conv2d_backprop_filter(
                     n_pre_spike_trace,
                     shape_1,
@@ -321,6 +328,12 @@ class Conv(Layer):
 
                 grad_kernel = grad_kernel*grad_kernel_weight
 
+                glb_t.dec()
+                if t < 2:
+                    glb_t.set(conf.time_step)
+                #glb_t.t -= 1
+                #if t < 2:
+                #    glb_t.t = conf.time_step
 
             return grad_in, grad_kernel
 
