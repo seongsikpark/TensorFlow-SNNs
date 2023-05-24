@@ -129,7 +129,7 @@ class Neuron(tf.keras.layers.Layer):
             #self.dL_du_t1_prev = None
 
         # stdp
-        self.en_stdp = conf.en_stdp_pathway
+        self.en_stdp = conf.en_stdp_pathway or conf.spike_trace_debug
 
         if self.en_stdp:
             #spike_trace_shape = self.dim_wo_batch

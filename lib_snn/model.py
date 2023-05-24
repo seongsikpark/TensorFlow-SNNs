@@ -231,7 +231,7 @@ class Model(tf.keras.Model):
 
 
         # stdp-pathway
-        if conf.en_stdp_pathway:
+        if conf.en_stdp_pathway or conf.spike_trace_debug:
             if conf.model=='VGG16':
                 #assert False
 

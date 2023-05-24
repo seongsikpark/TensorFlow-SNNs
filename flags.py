@@ -769,7 +769,7 @@ flags.DEFINE_float('reg_syn_in_const',1E-2,'regularization - synaptic input cons
 # stdp - pathway
 flags.DEFINE_bool('en_stdp_pathway',False,'enable - stdp pathway')
 flags.DEFINE_float('stdp_pathway_weight',0.5,'stdp pathway weight - weight = (1-alpha)+alpha*spike_trace')
-
+flags.DEFINE_bool('spike_trace_debug',False,'debug spike trace - record')
 
 
 #
