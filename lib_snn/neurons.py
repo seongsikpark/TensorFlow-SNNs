@@ -607,7 +607,7 @@ class Neuron(tf.keras.layers.Layer):
             #vth_update = vth*0.1
             #self.vth = self.vth.write(0,vth_update)
             if t < conf.time_step:
-                self.vth = self.vth.write(t,vth*0.1)
+                self.vth = self.vth.write(t,vth*vth_step_scale)
 
         #if True:
         #if False:
@@ -617,7 +617,7 @@ class Neuron(tf.keras.layers.Layer):
 
                 #self.add_loss(tf.reduce_mean(self.spike_count_int))
                 #self.add_loss(0.001*tf.reduce_mean(self.out))
-                self.add_loss(conf.reg_spike_cout_const*tf.reduce_mean(self.out))
+                self.add_loss(conf.reg_spike_out_const*tf.reduce_mean(self.out))
                 #print(self.name)
                 #print(tf.reduce_mean(self.out))
 
@@ -1336,6 +1336,7 @@ class Neuron(tf.keras.layers.Layer):
         #
         #def grad(upstream_spike, upstream_vmem):
         def grad(upstream):
+            assert False
             # TODO: parameterize
             a=0.5
             if True:
@@ -1389,8 +1390,9 @@ class Neuron(tf.keras.layers.Layer):
 
     @tf.custom_gradient
     def fire_func(self,vmem):
-
-        vth = self.vth.read(0)
+        t=glb_t.t
+        #vth = self.vth.read(0)
+        vth = self.vth.read(t-1)
         f_fire = tf.math.greater_equal(vmem, vth)
 
         if conf.binary_spike:

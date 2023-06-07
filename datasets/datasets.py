@@ -73,7 +73,8 @@ def load():
 
         preprocessor_input = preprocess_input_others
 
-        input_size = lib_snn.utils_vis.image_shape_vis(model_name,dataset_name)[0]
+        #input_size = lib_snn.utils_vis.image_shape_vis(model_name,dataset_name)[0]
+    input_size = lib_snn.utils_vis.image_shape_vis(model_name,dataset_name)[0]
 
 
     train_ds, valid_ds, test_ds, train_ds_num, valid_ds_num, test_ds_num = dataset.load(dataset_name,
