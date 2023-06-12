@@ -608,6 +608,10 @@ class Neuron(tf.keras.layers.Layer):
             #self.vth = self.vth.write(0,vth_update)
             if t < conf.time_step:
                 self.vth = self.vth.write(t,vth*vth_step_scale)
+        else:
+            vth = self.vth.read(t-1)
+            if t < conf.time_step:
+                self.vth = self.vth.write(t,vth)
 
         #if True:
         #if False:

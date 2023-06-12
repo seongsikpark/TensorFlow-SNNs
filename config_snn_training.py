@@ -7,7 +7,7 @@
 import os
 os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-#os.environ["CUDA_VISIBLE_DEVICES"]="0,1"
+#os.environ["CUDA_VISIBLE_DEVICES"]="0,2"
 #os.environ["CUDA_VISIBLE_DEVICES"]="4,7"
 os.environ["CUDA_VISIBLE_DEVICES"]="0"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3,4,5,6,7"
@@ -50,8 +50,8 @@ conf = config.flags
 conf.nn_mode = 'SNN'
 #conf.nn_mode = 'ANN'
 
-#conf.n_reset_type = 'reset_by_sub'
-conf.n_reset_type = 'reset_to_zero'
+conf.n_reset_type = 'reset_by_sub'
+#conf.n_reset_type = 'reset_to_zero'
 
 
 conf.vth_rand_static = False
@@ -61,7 +61,7 @@ conf.vrest = 0.0
 #conf.vrest_rand_static = True
 
 #conf.adaptive_vth = False
-conf.adaptive_vth = True
+#conf.adaptive_vth = True
 conf.adaptive_vth_scale = 1.2
 
 #conf.use_bn=False
@@ -78,7 +78,7 @@ conf.reg_spike_out_const=0.001
 
 #
 conf.reg_syn_in=True
-conf.reg_syn_in_const=0.01
+conf.reg_syn_in_const=0.001
 
 
 
