@@ -439,7 +439,6 @@ class Layer():
                 self.add_loss(conf.reg_syn_in_const*e)
 
 
-
             return output
             #assert False
             pass
