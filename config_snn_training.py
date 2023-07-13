@@ -42,10 +42,12 @@ conf = config.flags
 #conf.model='ResNet20'
 #conf.model='ResNet32'
 
-#conf.dataset='CIFAR100'
+conf.dataset='CIFAR100'
 #conf.dataset='ImageNet'
+#conf.dataset='CIFAR10_DVS'
 
-#conf.pooling_vgg = 'avg'
+
+conf.pooling_vgg = 'avg'
 
 conf.nn_mode = 'SNN'
 #conf.nn_mode = 'ANN'
@@ -55,7 +57,6 @@ conf.n_reset_type = 'reset_by_sub'
 
 
 conf.vth_rand_static = False
-
 conf.vrest = 0.0
 #conf.vrest_rand_static = False
 #conf.vrest_rand_static = True
@@ -69,16 +70,16 @@ conf.adaptive_vth_scale = 1.2
 #conf.n_init_vth = 0.3
 
 conf.leak_const_init = 0.9
-conf.leak_const_train = True
+#conf.leak_const_train = True
 
 
 #
-conf.reg_spike_out=True
+#conf.reg_spike_out=True
 conf.reg_spike_out_const=0.001
 
 #
-conf.reg_syn_in=True
-conf.reg_syn_in_const=0.001
+#conf.reg_syn_in=True
+conf.reg_syn_in_const=0.01
 
 
 
