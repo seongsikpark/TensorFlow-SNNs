@@ -5,6 +5,10 @@ import tensorflow as tf
 Xception = tf.keras.applications.Xception
 VGG16 = tf.keras.applications.VGG16
 VGG19 = tf.keras.applications.VGG19
+
+#here
+# ResNet56V2 = tf.keras.applications.ResNet56V2
+
 ResNet50 = tf.keras.applications.ResNet50
 ResNet101 = tf.keras.applications.ResNet101
 ResNet152 = tf.keras.applications.ResNet152
@@ -77,6 +81,8 @@ models = {
     'ResNet50': ResNet50,
     'ResNet101': ResNet101,
     'ResNet152': ResNet152,
+    #here
+    # 'ResNet56V2': ResNet56V2,
     'ResNet50V2': ResNet50V2,
     'ResNet101V2': ResNet101V2,
     'ResNet152V2': ResNet152V2,

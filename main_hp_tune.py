@@ -239,9 +239,9 @@ dataset_name = conf.dataset
 learning_rate = conf.learning_rate
 
 #
-opt = conf.optimizer
-#opt='SGD'
-#opt='ADAM'
+# opt = conf.optimizer
+# opt='SGD'
+opt='ADAM'
 
 #
 #lr_schedule = 'COS'     # COSine

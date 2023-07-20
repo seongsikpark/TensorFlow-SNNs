@@ -50,8 +50,10 @@ def load(conf):
     (img_train, label_train), (img_test, label_test) = tf.keras.datasets.mnist.load_data()
 
     #
-    img_train = img_train.reshape(60000,784).astype('float32') / 255
-    img_test = img_test.reshape(10000,784).astype('float32') / 255
+    # img_train = img_train.reshape(60000,784).astype('float32') / 255
+    # img_test = img_test.reshape(10000,784).astype('float32') / 255
+    img_train = img_train.reshape(60000,28,28).astype('float32') / 255
+    img_test = img_test.reshape(10000,28,28).astype('float32') / 255
 
     label_train = tf.one_hot(label_train.astype('float32'),10)
     label_test = tf.one_hot(label_test.astype('float32'),10)
@@ -59,7 +61,8 @@ def load(conf):
     #
     num_val_dataset = 5000
     num_train_dataset = 60000-num_val_dataset
-    num_test_dataset = conf.num_test_dataset
+    # num_test_dataset = conf.num_test_dataset
+    num_test_dataset = conf.num_test_data
 
     #
     img_val = img_train[-num_val_dataset:]
@@ -74,14 +77,16 @@ def load(conf):
 
     #val_dataset = tf.data.Dataset.from_tensor_slices((data.validation.images,tf.cast(data.validation.labels,tf.float32)))
     val_dataset = tf.data.Dataset.from_tensor_slices((img_val,label_val))
-    test_dataset = tf.data.Dataset.from_tensor_slices((img_test[:conf.num_test_dataset], label_test[:conf.num_test_dataset]))
+    # test_dataset = tf.data.Dataset.from_tensor_slices((img_test[:conf.num_test_dataset], label_test[:conf.num_test_dataset]))
+    test_dataset = tf.data.Dataset.from_tensor_slices((img_test[:conf.num_test_data], label_test[:conf.num_test_data]))
 
     print(train_dataset)
     print('# of dataset: train ({}), val ({}), test ({})'.format(num_train_dataset,num_val_dataset,num_test_dataset))
 
 
     if conf.f_train_tk:
-        test_dataset = tf.data.Dataset.from_tensor_slices((img_train[conf.idx_test_dataset_s:conf.idx_test_dataset_s+conf.num_test_dataset], label_train[conf.idx_test_dataset_s:conf.idx_test_dataset_s+conf.num_test_dataset],tf.float32))
+        # test_dataset = tf.data.Dataset.from_tensor_slices((img_train[conf.idx_test_dataset_s:conf.idx_test_dataset_s+conf.num_test_dataset], label_train[conf.idx_test_dataset_s:conf.idx_test_dataset_s+conf.num_test_dataset],tf.float32))
+        test_dataset = tf.data.Dataset.from_tensor_slices((img_train[conf.idx_test_dataset_s:conf.idx_test_dataset_s+conf.num_test_data], label_train[conf.idx_test_dataset_s:conf.idx_test_dataset_s+conf.num_test_dataset],tf.float32))
 
 
     val_dataset = val_dataset.batch(conf.batch_size)
