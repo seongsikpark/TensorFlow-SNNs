@@ -100,3 +100,4 @@ ImageNet
 VGG     - ep-1000_bat-100_opt-SGD_lr-STEP-5E-03_lmb-1E-05_sc_cm
 ResNet  - ep-300_bat-100
 
+# SNN_AutoKeras
