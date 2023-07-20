@@ -32,6 +32,10 @@ from lib_snn.sim import glb
 
 #from config import conf
 #from config_common import conf
+
+# Ryu
+# from config import config
+# conf = config.flags
 from absl import flags
 conf = flags.FLAGS
 
@@ -51,7 +55,7 @@ import layers_new
 class Layer():
     index = None    # layer index count starts from InputGenLayer
 
-    def __init__(self, use_bn, activation, last_layer=False, kwargs=None):
+    def __init__(self, use_bn=False, activation=None, last_layer=False, kwargs=None):
         #
         self.depth = -1
 
@@ -135,7 +139,7 @@ class Layer():
         #self.f_skip_bn = self.conf.f_fused_bn
 
         # activation, neuron
-        #self.activation = activation
+        self.activation = activation
         #self.act = activation
         self.act = None
 
@@ -411,31 +415,10 @@ class Layer():
             #output = super().call(input,**kwargs)
 
             # TODO: add codes to check parent's class call argument - including training or not
-            if isinstance(self, lib_snn.layers.BatchNormalization):
+            if isinstance(self, lib_snn.layers.BatchNormalizations):
                 output = super().call(input,training)
             else:
                 output = super().call(input)
-
-
-            # regularization
-            #if False:
-            if True and self.depth > 1:
-                h_min = -1.0
-                h_max = 1.0
-
-                #hist = tf.histogram_fixed_width(inputs,[tf.reduce_min(inputs),tf.reduce_max(inputs)])
-                hist = tf.histogram_fixed_width(output,[h_min,h_max])
-                num_inputs = tf.reduce_sum(hist)
-                #hist = tf.where(hist==0,tf.constant(1.0e-5,shape=hist.shape),hist)
-                p = tf.cast(hist / num_inputs,dtype=tf.float32)
-                #e = tf.math.multiply_no_nan(tf.math.log(p)/tf.math.log(tf.cast(2.0,dtype=tf.float64)),p)
-                e = tf.math.multiply_no_nan(tf.math.log(p)/tf.math.log(2.0),p)
-                #e = tf.where(p==0,tf.zeros(e.shape),e)
-                e = -tf.reduce_sum(e)
-                #e = tf.clip_by_value(e, 1,10)
-                #print(e)
-                self.add_loss(0.001*e)
-
 
 
             return output
@@ -817,8 +800,6 @@ class Layer():
 
             #print('{}: {} - {}'.format(glb_t.t,self.depth,tf.reduce_mean(self.act_snn.out)))
 
-
-
         return ret
 
     #
@@ -915,9 +896,13 @@ class Layer():
         #assert False
 
 
-
-
-
+    #def get_config(self):
+        #config = super().get_config().copy()
+        #config.update({
+            #'use_bn': self.use_bn,
+            #'activation': self.activation,
+        #})
+        #return config
 
 #
 def _bn_defusion(layer, bn):
@@ -1023,8 +1008,8 @@ class InputGenLayer(Layer, tf.keras.layers.Layer):
 
 # Conv2D
 #@tf.custom_gradient
-#class Conv2D(Layer, tf.keras.layers.Conv2D):
-class Conv2D(Layer, layers_new.conv.Conv2D):
+class Conv2D(Layer, tf.keras.layers.Conv2D):
+#class Conv2Ds(Layer, layers_new.conv.Conv2D):
     # class Conv2D(tf.keras.layers.Conv2D,Layer):
     def __init__(self,
                  filters,
@@ -1045,8 +1030,8 @@ class Conv2D(Layer, layers_new.conv.Conv2D):
 
         Layer.__init__(self, use_bn, activation, kwargs=kwargs)
 
-        #tf.keras.layers.Conv2D.__init__(
-        layers_new.conv.Conv2D.__init__(
+        tf.keras.layers.Conv2D.__init__(
+        #layers_new.conv.Conv2D.__init__(
             self,
             filters=filters,
             kernel_size=kernel_size,
@@ -1072,6 +1057,13 @@ class Conv2D(Layer, layers_new.conv.Conv2D):
         self.depth = Layer.index
         self.synapse=True
 
+    #def get_config(self):
+        #config = super().get_config().copy()
+        #config.update({
+            #'use_bn': self.use_bn,
+            #'activation': self.activation,
+        #})
+        #return config
 
 # DepthwiseConv2D
 class DepthwiseConv2D(Layer, tf.keras.layers.DepthwiseConv2D):
@@ -1123,8 +1115,8 @@ class DepthwiseConv2D(Layer, tf.keras.layers.DepthwiseConv2D):
 
 
 # Dense
-#class Dense(Layer, tf.keras.layers.Dense):
-class Dense(Layer, layers_new.dense.Dense):
+class Dense(Layer, tf.keras.layers.Dense):
+#class Denses(Layer, layers_new.dense.Dense):
     def __init__(self,
                  units,
                  activation=None,
@@ -1145,8 +1137,8 @@ class Dense(Layer, layers_new.dense.Dense):
 
         Layer.__init__(self, use_bn, activation, last_layer, kwargs=kwargs)
 
-        #tf.keras.layers.Dense.__init__(
-        layers_new.dense.Dense.__init__(
+        tf.keras.layers.Dense.__init__(
+        #layers_new.dense.Dense.__init__(
             self,
             units,
             activation=None,
@@ -1386,7 +1378,8 @@ class Flatten(Layer, tf.keras.layers.Flatten):
 
 
 
-class BatchNormalization(Layer, layers_new.batch_normalization.BatchNormalization):
+# class BatchNormalization(Layer, layers_new.batch_normalization.BatchNormalization):
+class BatchNormalizations(Layer, layers_new.batch_normalization.BatchNormalization):
 
     def __init__(self,
                  axis=-1,
@@ -1462,7 +1455,7 @@ def tfn(layer, input):
         f_temporal_reduction = False
         #
         layers_temporal_reduction = []
-        layers_temporal_reduction.append(lib_snn.layers.BatchNormalization)
+        layers_temporal_reduction.append(lib_snn.layers.BatchNormalizations)
         #layers_temporal_reduction.append(lib_snn.layers.MaxPool2D)
         #layers_temporal_reduction.append(lib_snn.layers.AveragePooling2D)
 

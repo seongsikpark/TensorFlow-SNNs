@@ -31,7 +31,7 @@ from lib_snn.sim import glb
 from lib_snn.sim import glb_t
 
 #
-#from lib_snn.sim import glb_plot
+# from lib_snn.sim import glb_plot
 #from lib_snn.sim import glb_plot_1
 #from lib_snn.sim import glb_plot_2
 #from lib_snn.sim import glb_plot_3
@@ -41,9 +41,13 @@ from lib_snn.sim import glb_t
 #from lib_snn.sim import glb_plot_gradient_gamma
 #from lib_snn.sim import glb_plot_gradient_beta
 
+from config import config
+conf = config.flags
+
+
 class Model(tf.keras.Model):
     count=0
-    def __init__(self, inputs, outputs, batch_size, input_shape, num_class, conf, **kwargs):
+    def __init__(self, inputs, outputs, batch_size, input_shape, num_class, conf_legacy, **kwargs):
     #def __init__(self, batch_size, input_shape, data_format, num_class, conf, **kwargs):
 
         #print("lib_SNN - Layer - init")
@@ -61,8 +65,8 @@ class Model(tf.keras.Model):
         #assert Model.count==1, 'We have only one Model instance'
 
         #
-        self.batch_size = batch_size
-        self.in_shape = input_shape
+        #self.batch_size = batch_size
+        #self.in_shape = input_shape
 
         #
         self.verbose = conf.verbose
@@ -120,15 +124,13 @@ class Model(tf.keras.Model):
         self.layers_w_kernel = []
         self.layers_w_neuron = []
 
-        self.total_num_neurons = None
-
         self.en_record_output = None
 
         # input
-        #self._input_shape = [-1]+input_shape.as_list()
-        self._input_shape = [-1]+list(input_shape)
-        #self.in_shape = [self.conf.batch_size]+self._input_shape[1:]
-        self.in_shape_snn = [self.conf.batch_size] + self._input_shape[1:]
+        ##self._input_shape = [-1]+input_shape.as_list()
+        #self._input_shape = [-1]+list(input_shape)
+        ##self.in_shape = [self.conf.batch_size]+self._input_shape[1:]
+        #self.in_shape_snn = [self.conf.batch_size] + self._input_shape[1:]
 
 
         # output
@@ -1414,7 +1416,8 @@ class Model(tf.keras.Model):
 
     # this function is based on Model.test_step in training.py
     # TODO: override Model.test_step
-    def test_step_a(self, data):
+    #def test_step_a(self, data):
+    def test_step(self, data):
 
         ret = {
             'ANN': self.test_step_ann,
@@ -2087,7 +2090,7 @@ class Model(tf.keras.Model):
         self.layers_w_act = []
         for layer in self.layers:
             #if hasattr(layer, 'act'):
-            if isinstance(layer, lib_snn.activations.Activation):
+            if isinstance(layer, lib_snn.activations.Activations):
                 #if not isinstance(layer,lib_snn.layers.InputGenLayer):
                 #if not layer.act_dnn is None:
                 #if not (layer.activation is None):
@@ -2186,6 +2189,7 @@ class Model(tf.keras.Model):
         elif self.nn_mode == 'SNN':
             self.init_snn(model_ann)
         else:
+            print(self.nn_mode, "mode @@@@@@@@@@@@@")
             assert False
 
 
@@ -2444,7 +2448,7 @@ class Model(tf.keras.Model):
                         #print(layer.name)
                         self.layers_w_neuron.append(layer)
         for layer in self.layers:
-            if isinstance(layer, lib_snn.activations.Activation):
+            if isinstance(layer, lib_snn.activations.Activations):
                 if isinstance(layer.act, lib_snn.neurons.Neuron):
                     self.layers_w_neuron.append(layer)
 
@@ -3056,7 +3060,7 @@ class Model(tf.keras.Model):
                     f_temporal_reduction = False
                     #
                     layers_temporal_reduction = []
-                    layers_temporal_reduction.append(lib_snn.layers.BatchNormalization)
+                    layers_temporal_reduction.append(lib_snn.layers.BatchNormalizations)
                     #layers_temporal_reduction.append(lib_snn.layers.MaxPool2D)
                     #layers_temporal_reduction.append(lib_snn.layers.AveragePooling2D)
 
@@ -3246,7 +3250,7 @@ class Model(tf.keras.Model):
         print('\n bn - moving mean')
         for layer in self.layers:
             #if hasattr(layer,'bn') and layer.bn is not None:
-            if isinstance(layer,lib_snn.layers.BatchNormalization):
+            if isinstance(layer,lib_snn.layers.BatchNormalizations):
                 bn_var = layer.moving_mean
                 print('{: <10} max {:.3e}, min {:.3e}, mean {:.3e}, sq {:.3e}'
                       .format(layer.name,
@@ -3265,7 +3269,7 @@ class Model(tf.keras.Model):
         #
         print('\n bn - moving variance')
         for layer in self.layers:
-            if isinstance(layer,lib_snn.layers.BatchNormalization):
+            if isinstance(layer,lib_snn.layers.BatchNormalizations):
                 bn_var = layer.moving_variance
                 print('{: <10} max {:.3e}, min {:.3e}, mean {:.3e}, sq {:.3e}'
                       .format(layer.name,
@@ -3285,7 +3289,7 @@ class Model(tf.keras.Model):
         #
         print('\n bn - gamma')
         for layer in self.layers:
-            if isinstance(layer,lib_snn.layers.BatchNormalization):
+            if isinstance(layer,lib_snn.layers.BatchNormalizations):
                 bn_var = layer.gamma
                 print('{: <10} max {:.3e}, min {:.3e}, mean {:.3e}, sq {:.3e}'
                       .format(layer.name,
@@ -3305,7 +3309,7 @@ class Model(tf.keras.Model):
         #
         print('\n bn - beta')
         for layer in self.layers:
-            if isinstance(layer,lib_snn.layers.BatchNormalization):
+            if isinstance(layer,lib_snn.layers.BatchNormalizations):
                 bn_var = layer.beta
                 print('{: <10} max {:.3e}, min {:.3e}, mean {:.3e}, sq {:.3e}'
                       .format(layer.name,
@@ -3360,33 +3364,3 @@ class Model(tf.keras.Model):
             f = os.path.join(path_root,f)
             dout.to_csv(f)
 
-
-    #
-    def summary(self,
-                line_length=None,
-                positions=None,
-                print_fn=None,
-                expand_nested=False,
-                show_trainable=False):
-        super(Model, self).summary(line_length=line_length, positions=positions,
-                           print_fn=print_fn, expand_nested=expand_nested, show_trainable=show_trainable)
-
-        if self.total_num_neurons == None:
-            self.cal_total_num_neurons()
-
-        self.print_total_num_neurons()
-
-
-    #
-    def cal_total_num_neurons(self):
-        total_num_neurons = 0
-        #for l in self.layers_w_neuron:
-        for l in self.layers:
-            if hasattr(l, 'act'):
-                if isinstance(l.act, lib_snn.neurons.Neuron):
-                    total_num_neurons += l.act.num_neurons
-
-        self.total_num_neurons = total_num_neurons
-
-    def print_total_num_neurons(self):
-        print('total num neurons: {:}'.format(self.total_num_neurons))

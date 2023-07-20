@@ -100,8 +100,8 @@ class ModelCheckpointResume(tf.keras.callbacks.ModelCheckpoint):
         super(ModelCheckpointResume, self).on_epoch_end(epoch=epoch,logs=logs)
 
         #print(self.best)
-        tf.summary.scalar('best_val_acc', data=self.best, step=epoch)
-        logs['best_val_acc'] = self.best
+        tf.summary.scalar('best_acc_val', data=self.best, step=epoch)
+        logs['best_acc_val'] = self.best
 
 
 #
@@ -123,7 +123,7 @@ class TensorboardBestValAcc(tf.keras.callbacks.Callback):
         print(self.best_val_acc)
         print(logs)
 
-#
+
 class SNNLIB(tf.keras.callbacks.Callback):
     def __init__(self, conf, path_model_load, train_ds_num, test_ds_num, model_ann=None, **kwargs):
         super(SNNLIB, self).__init__(**kwargs)
@@ -284,15 +284,11 @@ class SNNLIB(tf.keras.callbacks.Callback):
         self.spike_count_total/=self.train_ds_num
 
 
-        tf.summary.scalar('s_count', data=self.spike_count_total, step=epoch)
-        logs['s_count'] = self.spike_count_total
+        tf.summary.scalar('spike_count_tot', data=self.spike_count_total, step=epoch)
+        logs['spike_count_tot'] = self.spike_count_total
+        #pass
 
-        if 'best_val_acc' in logs.keys():
-            if logs['val_acc'] == logs['best_val_acc']:
-                self.spike_count_total_best = self.spike_count_total
 
-            tf.summary.scalar('bset_s_count', data=self.spike_count_total_best, step=epoch)
-            logs['best_s_count'] = self.spike_count_total_best
 #
 class DNNtoSNN(tf.keras.callbacks.Callback):
     def __init__(self, conf, **kwargs):

@@ -97,6 +97,22 @@ def resnet50(x, is_training=False, classes=1000,
     return resnet(x, False, stack_fn, is_training, classes, stem, scope, reuse)
 
 
+# here
+# @var_scope('resnet56v2')
+# @set_args(__args__)
+# def resnet56v2(x, is_training=False, classes=1000,
+#                stem=False, scope=None, reuse=None):
+#     def stack_fn(x):
+#         x = _stacks(x, 64, 3, scope='conv2')
+#         x = _stacks(x, 128, 4, scope='conv3')
+#         x = _stacks(x, 256, 6, scope='conv4')
+#         x = _stacks(x, 512, 3, stride1=1, scope='conv5')
+#         x = batch_norm(x, scope='postnorm')
+#         x = relu(x)
+#         return x
+#     return resnet(x, True, stack_fn, is_training, classes, stem, scope, reuse)
+
+
 @var_scope('resnet50v2')
 @set_args(__args__)
 def resnet50v2(x, is_training=False, classes=1000,
@@ -359,6 +375,8 @@ def _blockw(x, filters, kernel_size=3, stride=1,
 ResNet50 = resnet50
 ResNet101 = resnet101
 ResNet152 = resnet152
+#here
+# ResNet56v2 = resnet56v2
 ResNet50v2 = resnet50v2
 ResNet101v2 = resnet101v2
 ResNet152v2 = resnet152v2

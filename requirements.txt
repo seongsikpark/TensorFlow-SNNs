@@ -86,3 +86,6 @@ wcwidth==0.2.5
 Werkzeug==2.1.2
 wrapt==1.12.1
 zipp==3.5.0
+pandas==1.5.3
+sklearn==0.0.post5
+lightgbm==3.3.2

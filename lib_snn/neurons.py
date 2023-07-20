@@ -28,7 +28,6 @@ class Neuron(tf.keras.layers.Layer):
         self.init_done = False
 
         self.dim = dim
-        self.dim_wo_batch = self.dim[1:]
         #self.dim_one_batch = [1 , ] +dim[1:]
 
         self.n_type = n_type
@@ -68,8 +67,7 @@ class Neuron(tf.keras.layers.Layer):
         #self.leak_const = tf.constant(0.99,dtype=tf.float32,shape=self.dim)
         #self.leak_const = tf.constant(leak_const,dtype=tf.float32,shape=self.dim)
 
-        #self.leak_const_init = tf.constant(conf.leak_const_init,dtype=tf.float32,shape=self.dim,name='leak_const_init')
-        self.leak_const_init = tf.constant(conf.leak_const_init,dtype=tf.float32,shape=self.dim_wo_batch,name='leak_const_init')
+        self.leak_const_init = tf.constant(conf.leak_const_init,dtype=tf.float32,shape=self.dim,name='leak_const_init')
         #self.leak_const = tf.Variable(self.leak_const_init,dtype=tf.float32,shape=self.dim,name='leak_const')
         #self.leak_const = tf.Variable(self.leak_const_init,trainable=False,dtype=tf.float32,shape=self.dim,name='leak_const')
         #if loc=='HID':
@@ -79,8 +77,7 @@ class Neuron(tf.keras.layers.Layer):
             #leak_const_train=False
         leak_const_train = conf.leak_const_train
         
-        #self.leak_const = tf.Variable(self.leak_const_init,trainable=leak_const_train,dtype=tf.float32,shape=self.dim,name='leak_const')
-        self.leak_const = tf.Variable(self.leak_const_init,trainable=leak_const_train,dtype=tf.float32,shape=self.dim_wo_batch,name='leak_const')
+        self.leak_const = tf.Variable(self.leak_const_init,trainable=leak_const_train,dtype=tf.float32,shape=self.dim,name='leak_const')
 
 
         # vth scheduling
@@ -116,14 +113,12 @@ class Neuron(tf.keras.layers.Layer):
         #
         # self.vmem = tf.Variable(shape=self.dim,dtype=tf.float32,initial_value=tf.constant(self.conf.n_init_vinit,shape=self.dim),trainable=False,name='vmem')
 
-        # SNN training - legacy
-        self.snn_training_legacy = False
-        if self.snn_training_legacy:
-            self.grad_in_prev = tf.Variable(initial_value=tf.zeros(self.dim), trainable=False, name='grad_in_prev')
+        # SNN training
+        self.grad_in_prev = tf.Variable(initial_value=tf.zeros(self.dim), trainable=False, name='grad_in_prev')
 
-            # TODO: conditional - SNN direct training, test method
-            self.dL_du_t1_prev = tf.Variable(initial_value=tf.zeros(self.dim),trainable=False,name='dL_du_t1_prev')
-            #self.dL_du_t1_prev = None
+        # TODO: conditional - SNN direct training, test method
+        self.dL_du_t1_prev = tf.Variable(initial_value=tf.zeros(self.dim),trainable=False,name='dL_du_t1_prev')
+        #self.dL_du_t1_prev = None
 
     def build(self, input_shapes):
         #print('neuron build - {}'.format(self.name))
@@ -293,9 +288,11 @@ class Neuron(tf.keras.layers.Layer):
     #def call(self ,inputs ,t, training):
     def call(self, inputs, training=None):
         #t = tf.constant(glb_t.t)
+        # check neuron call, activation, t
         t = glb_t.t
-        #print('neuron call')
-        #print(t)
+        # print(t)
+        # print('neuron call')
+        # print(self.name)
 
         #if self.depth==15:
         #print('depth: {}'.format(self.depth))
@@ -303,7 +300,7 @@ class Neuron(tf.keras.layers.Layer):
         #assert self.init_done, 'should call init() before start simulation'
 
         #self.vmem_pre = self.vmem
-        self.vmem_pre = self.vmem.read(t-1)
+        #self.vmem_pre = self.vmem.read(t-1)
 
         #
         #def grad(upstream, variables=None):
@@ -526,12 +523,25 @@ class Neuron(tf.keras.layers.Layer):
         #self.vmem = vmem
         #print(self.name)
         #print(self.vmem)
-        self.vmem = self.vmem.write(t-1,vmem)
 
+        # TODO:
+        #t = t%conf.time_step
+        #t=tf.math.floormod(t,conf.time_step).numpy()
+        #t=tf.math.floormod(t,conf.time_step)
+        #t=(t%4)+1
+        #t=t+1
+        #t0 = t-1
+        #self.vmem = self.vmem.write(t0%conf.time_step,vmem)
+        #self.count_spike((t0+1)%conf.time_step)
+
+        #t0 = tf.math.floormod(t-1,conf.time_step).numpy()
+        self.vmem = self.vmem.write(t-1,vmem)
+        # print(t, "vmem_t @@")
         self.count_spike(t)
 
         #
         if self.conf.f_record_first_spike_time:
+            #self.record_first_spike_time((t0+1)%conf.time_step)
             self.record_first_spike_time(t)
 
         #if self.depth==1:
@@ -553,93 +563,6 @@ class Neuron(tf.keras.layers.Layer):
         if conf.adaptive_vth:
             vth_step_scale = conf.adaptive_vth_scale
             self.vth.assign(tf.where(self.f_fire, self.vth*vth_step_scale, self.vth/vth_step_scale))
-
-
-        if True:
-        #if False:
-            #if self.loc != 'IN':
-            if self.loc == 'HID':
-
-                #self.add_loss(tf.reduce_mean(self.spike_count_int))
-                self.add_loss(0.001*tf.reduce_mean(self.out))
-                #print(self.name)
-                #print(tf.reduce_mean(self.out))
-
-                #import tensorflow_probability as tfp
-
-                if False:
-                #if True:
-                    h_min = -1.0
-                    h_max = 1.0
-
-                    #hist = tf.histogram_fixed_width(inputs,[tf.reduce_min(inputs),tf.reduce_max(inputs)])
-                    hist = tf.histogram_fixed_width(inputs,[h_min,h_max])
-                    num_inputs = tf.reduce_sum(hist)
-                    #hist = tf.where(hist==0,tf.constant(1.0e-5,shape=hist.shape),hist)
-                    p = tf.cast(hist / num_inputs,dtype=tf.float32)
-                    #e = tf.math.multiply_no_nan(tf.math.log(p)/tf.math.log(tf.cast(2.0,dtype=tf.float64)),p)
-                    e = tf.math.multiply_no_nan(tf.math.log(p)/tf.math.log(2.0),p)
-                    #e = tf.where(p==0,tf.zeros(e.shape),e)
-                    e = -tf.reduce_sum(e)
-                    #e = tf.clip_by_value(e, 1,10)
-                    #print(e)
-                    self.add_loss(0.0001*e)
-                    #self.add_loss(0.01*tf.reduce_mean(inputs))
-
-                    #print(e)
-                    #if tf.reduce_any(tf.math.is_nan(e)):
-                        #print(p)
-                        ##print(e)
-
-
-
-        #if True:
-        if False:
-            #if self.loc != 'IN':
-            if self.loc == 'HID' and backend.ndim(inputs)==4:
-
-                #self.add_loss(tf.reduce_mean(self.spike_count_int))
-                #self.add_loss(0.001*tf.reduce_mean(self.out))
-                #print(self.name)
-                #print(tf.reduce_mean(self.out))
-
-                #import tensorflow_probability as tfp
-
-                #if False:
-                if True:
-                    h_min = -1.0
-                    h_max = 2.0
-
-                    n_channel = inputs.shape[-1]
-                    hist_arr = []
-                    neurons_in_channel = tf.reduce_prod(inputs.shape[0,1,2])
-                    for i_channel in range(n_channel):
-                        hist = tf.histogram_fixed_width(inputs[:,:,:,i_channel],[h_min,h_max])
-                        num = tf.reduce_sum(hist)
-                        p = tf.cast(hist / num,dtype=tf.float32)
-                        e = tf.math.multiply_no_nan(tf.math.log(p)/tf.math.log(2.0),p)
-                        hist_arr.append(hist)
-
-
-
-                    #hist = tf.histogram_fixed_width(inputs,[tf.reduce_min(inputs),tf.reduce_max(inputs)])
-                    hist = tf.histogram_fixed_width(inputs,[h_min,h_max])
-                    num_inputs = tf.reduce_sum(hist)
-                    #hist = tf.where(hist==0,tf.constant(1.0e-5,shape=hist.shape),hist)
-                    p = tf.cast(hist / num_inputs,dtype=tf.float32)
-                    #e = tf.math.multiply_no_nan(tf.math.log(p)/tf.math.log(tf.cast(2.0,dtype=tf.float64)),p)
-                    e = tf.math.multiply_no_nan(tf.math.log(p)/tf.math.log(2.0),p)
-                    #e = tf.where(p==0,tf.zeros(e.shape),e)
-                    e = -tf.reduce_sum(e)
-                    #e = tf.clip_by_value(e, 1,10)
-                    #print(e)
-                    self.add_loss(0.01*e)
-                    #self.add_loss(0.01*tf.reduce_mean(inputs))
-
-                    #print(e)
-                    #if tf.reduce_any(tf.math.is_nan(e)):
-                    #print(p)
-                    ##print(e)
 
 
         #return out_ret, grad
@@ -682,8 +605,7 @@ class Neuron(tf.keras.layers.Layer):
             self.reset_first_spike_time()
 
         # TODO: add condition
-        if self.snn_training_legacy:
-            self.reset_snn_direct_training()
+        self.reset_snn_direct_training()
 
     def reset_spike_count(self):
         # self.spike_count = tf.zeros(self.dim)
