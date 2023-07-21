@@ -300,7 +300,7 @@ class Conv(Layer):
                 data_format=data_format)
 
 
-            if conf.en_stdp_pathway and hasattr(self,'n_pre'):
+            if conf.nn_mode=='SNN' and conf.en_stdp_pathway and hasattr(self,'n_pre'):
                 #n_pre_spike_trace = self.n_pre.act.spike_trace.read(conf.time_step-1)
                 #n_post_spike_trace = self.n_pre.act.spike_trace.read(conf.time_step-1)
 

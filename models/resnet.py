@@ -383,7 +383,8 @@ def ResNet(
 
     if imagenet_pretrain:
         x = tf.keras.layers.ZeroPadding2D(padding=((1, 1), (1, 1)), name='pool1_pad')(x)
-        x = lib_snn.layers.MaxPool2D(3, strides=2, name='pool1_pool')(x)
+        #x = lib_snn.layers.MaxPool2D(3, strides=2, name='pool1_pool')(x)
+        x = lib_snn.layers.AveragePooling2D(3, strides=2, name='pool1_pool')(x)
     else:
         pass
 

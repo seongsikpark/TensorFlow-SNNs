@@ -28,6 +28,7 @@ preprocessor_input_imagenet = {
     'Xception': Xception_preprocess_input,
     'VGG16': VGG16_preprocess_input,
     'VGG19': VGG19_preprocess_input,
+    'ResNet20': ResNet_preprocess_input,
     'ResNet50': ResNet_preprocess_input,
     'ResNet101': ResNet_preprocess_input,
     'ResNet152': ResNet_preprocess_input,

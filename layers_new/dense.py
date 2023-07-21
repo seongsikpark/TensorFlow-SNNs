@@ -419,7 +419,7 @@ class Dense(Layer):
                 grad_a = gen_math_ops.mat_mul(grad, b, transpose_b=True)
                 grad_b = gen_math_ops.mat_mul(a, grad, transpose_a=True)    # b.shape: (dim_in,dim_out)
 
-                if conf.en_stdp_pathway and hasattr(self,'n_pre'):
+                if conf.nn_mode=='SNN' and conf.en_stdp_pathway and hasattr(self,'n_pre'):
 
                     #pre = self.n_pre.act.spike_trace
                     #post = self.n_post.act.spike_trace
