@@ -394,6 +394,7 @@ flags.DEFINE_boolean('tf_fused_bn', None, 'tf fused bn operation for computation
 
 
 flags.DEFINE_string('pooling_vgg', 'max', 'max or avg, only for VGG')
+flags.DEFINE_string('pooling_resnet_imagenet_pre', 'max', 'max or avg, for ResNet imagenet pre')
 
 ################
 # Directories
