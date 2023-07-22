@@ -5,13 +5,15 @@
 
 # GPU setting
 import os
-os.environ['NCCL_P2P_DISABLE']='1'
+#os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,2"
 #os.environ["CUDA_VISIBLE_DEVICES"]="4,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3,4,5,6,7"
-os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
+#os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
+#os.environ["CUDA_VISIBLE_DEVICES"]="0,4"
+os.environ["CUDA_VISIBLE_DEVICES"]="0,4"
 #os.environ["CUDA_VISIBLE_DEVICES"]="2,3,4,5,6,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="2,3,6,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="4,5,6,7"
@@ -29,13 +31,16 @@ conf = config.flags
 #conf.mode='inference'
 ##conf.batch_size_inf=100
 #conf.batch_size=400
-#conf.batch_size=300
+conf.batch_size=300
 #conf.batch_size=180
 #conf.batch_size=120
 #conf.time_step=2
 #conf.name_model_load='./models/VGG16_AP_CIFAR100/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-z'
 
 #
+conf.train_epoch = 90
+conf.step_decay_epoch = 30
+#conf.train_epoch = 10
 #conf.train_epoch = 10
 #conf.num_train_data = 10000
 
@@ -49,8 +54,8 @@ conf.dataset='ImageNet'
 
 #conf.pooling_vgg = 'avg'
 
-#conf.nn_mode = 'SNN'
-conf.nn_mode = 'ANN'
+conf.nn_mode = 'SNN'
+#conf.nn_mode = 'ANN'
 
 conf.n_reset_type = 'reset_by_sub'
 #conf.n_reset_type = 'reset_to_zero'
@@ -79,7 +84,7 @@ conf.reg_spike_out_const=0.001
 
 #
 conf.reg_syn_in=True
-conf.reg_syn_in_const=0.0001
+conf.reg_syn_in_const=0.01
 
 
 
