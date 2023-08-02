@@ -10,9 +10,10 @@ os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3,4,5,6,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="4,5,6,7"
-#os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1"
-os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
+#os.environ["CUDA_VISIBLE_DEVICES"]="0,4"
+#os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3,4,5,6,7"
 
 #
@@ -21,8 +22,8 @@ conf = config.flags
 
 
 #
-conf.train_epoch = 90
-conf.step_decay_epoch = 30
+#conf.train_epoch = 90
+#conf.step_decay_epoch = 30
 #conf.train_epoch = 30
 #conf.step_decay_epoch = 10
 #conf.num_train_data = 10000
@@ -36,24 +37,27 @@ conf.step_decay_epoch = 30
 #conf.batch_size=40
 #conf.batch_size=60
 #conf.batch_size=80
-#conf.batch_size=100
+conf.batch_size=100
 #conf.batch_size=120
 #conf.batch_size=160
 #conf.batch_size=200
 #conf.batch_size=240
-conf.batch_size=400
+#conf.batch_size=400
 
 #
-#conf.pooling_vgg='avg'
+#conf.learning_rate = 0.05
+
+#
+conf.pooling_vgg='avg'
 #conf.pooling_resnet_imagenet_pre='avg'
 
 #
-conf.model='ResNet20'
+#conf.model='ResNet20'
 #conf.model='ResNet32'
 
 #
 #conf.dataset='CIFAR100'
-conf.dataset='ImageNet'
+#conf.dataset='ImageNet'
 
 conf.nn_mode = 'SNN'
 #conf.nn_mode = 'ANN'
@@ -96,11 +100,11 @@ conf.adaptive_vth_scale = 1.2
 #conf.debug_mode=True
 
 
-#conf.reg_spike_out=True
+conf.reg_spike_out=True
 conf.reg_spike_out_const=0.001
 
-#conf.reg_syn_in=True
-conf.reg_syn_in_const=0.00001
+conf.reg_syn_in=True
+conf.reg_syn_in_const=0.01
 
 #conf.en_stdp_pathway=True
 conf.stdp_pathway_weight=1.0

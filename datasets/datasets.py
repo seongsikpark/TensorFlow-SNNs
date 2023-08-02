@@ -24,23 +24,20 @@ def load():
         #'ImageNet': datasets.imagenet,
         #'CIFAR10': datasets.cifar,
         #'CIFAR100': datasets.cifar,
-        'ImageNet': datasets.image_cls.ImageClass,
-        'CIFAR10': datasets.image_cls.ImageClass,
-        'CIFAR100': datasets.image_cls.ImageClass,
-        'CIFAR10_DVS': datasets.cifar10_dvs.CIFAR10DVS,
+        'ImageNet': datasets.image_cls,
+        'CIFAR10': datasets.image_cls,
+        'CIFAR100': datasets.image_cls,
     }
-    dataset = dataset_sel[dataset_name]()
+    dataset = dataset_sel[dataset_name]
 
     # num_class
     num_class_sel = {
         'ImageNet': 1000,
         'CIFAR10': 10,
         'CIFAR100': 100,
-        'CIFAR10_DVS': 10,
     }
     num_class = num_class_sel[dataset_name]
 
-    '''
     #
     # input shape
     if dataset_name == 'ImageNet':
@@ -83,8 +80,6 @@ def load():
     train_ds, valid_ds, test_ds, train_ds_num, valid_ds_num, test_ds_num = dataset.load(dataset_name,
                                                batch_size,input_size, input_size_pre_crop_ratio, num_class, train,
                                                input_prec_mode, preprocessor_input)
-    '''
-    train_ds, valid_ds, test_ds, train_ds_num, valid_ds_num, test_ds_num = dataset.load()
 
     train_steps_per_epoch = train_ds.cardinality().numpy()
 

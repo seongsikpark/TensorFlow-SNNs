@@ -421,8 +421,10 @@ class Layer():
             #if False:
             #if True and self.depth > 1:
             if conf.reg_syn_in and self.depth > 1:
-                h_min = -1.0
-                h_max = 1.0
+                #h_min = -1.0
+                #h_max = 1.0
+                h_min = tf.reduce_min(output)
+                h_max = tf.reduce_max(output)
 
                 #hist = tf.histogram_fixed_width(inputs,[tf.reduce_min(inputs),tf.reduce_max(inputs)])
                 hist = tf.histogram_fixed_width(output,[h_min,h_max])
