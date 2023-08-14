@@ -11,6 +11,7 @@ from lib_snn.sim import glb
 
 from lib_snn.sim import glb_t
 
+import functools
 
 #from absl import flags
 #conf = flags.FLAGS
@@ -621,37 +622,29 @@ class Neuron(tf.keras.layers.Layer):
 
                 #self.add_loss(tf.reduce_mean(self.spike_count_int))
                 #self.add_loss(0.001*tf.reduce_mean(self.out))
-                self.add_loss(conf.reg_spike_out_const*tf.reduce_mean(self.out))
                 #print(self.name)
                 #print(tf.reduce_mean(self.out))
 
-                #import tensorflow_probability as tfp
 
-                if False:
-                #if True:
-                    h_min = -1.0
-                    h_max = 1.0
+                # new - 230814
+                #print(self.out)
+                #print(tf.size(tf.shape(self.out)))
+                #dim = tf.size(tf.shape(self.out))
 
-                    #hist = tf.histogram_fixed_width(inputs,[tf.reduce_min(inputs),tf.reduce_max(inputs)])
-                    hist = tf.histogram_fixed_width(inputs,[h_min,h_max])
-                    num_inputs = tf.reduce_sum(hist)
-                    #hist = tf.where(hist==0,tf.constant(1.0e-5,shape=hist.shape),hist)
-                    p = tf.cast(hist / num_inputs,dtype=tf.float32)
-                    #e = tf.math.multiply_no_nan(tf.math.log(p)/tf.math.log(tf.cast(2.0,dtype=tf.float64)),p)
-                    e = tf.math.multiply_no_nan(tf.math.log(p)/tf.math.log(2.0),p)
-                    #e = tf.where(p==0,tf.zeros(e.shape),e)
-                    e = -tf.reduce_sum(e)
-                    #e = tf.clip_by_value(e, 1,10)
-                    #print(e)
-                    self.add_loss(0.0001*e)
-                    #self.add_loss(0.01*tf.reduce_mean(inputs))
+                if conf.reg_spike_out_sc:
+                    n_dim = len(self.dim)
+                    reduce_axis= [i for i in range(1,n_dim)]
 
-                    #print(e)
-                    #if tf.reduce_any(tf.math.is_nan(e)):
-                        #print(p)
-                        ##print(e)
+                    #self.add_loss(conf.reg_spike_out_const * tf.reduce_mean(self.out * self.spike_count / tf.reduce_max(self.spike_count)))
+                    self.add_loss(conf.reg_spike_out_const
+                                  * tf.reduce_mean(self.out * tf.math.divide_no_nan(self.spike_count,tf.reduce_max(self.spike_count,axis=reduce_axis,keepdims=True))))
+                    #self.add_loss(conf.reg_spike_out_const * tf.reduce_mean(self.out * self.spike_count))
 
-
+                    #out_ret = self.reg_spike_out_fn(out_ret)
+                    #pass
+                else:
+                    # old
+                    self.add_loss(conf.reg_spike_out_const*tf.reduce_mean(self.out))
 
         #if True:
         if False:
@@ -2429,6 +2422,23 @@ class Neuron(tf.keras.layers.Layer):
             self.spike_trace = self.spike_trace.write(t,spike_trace_update)
 
 
+
+    @tf.custom_gradient
+    def reg_spike_out_fn(self, out_ret):
+
+        def grad(upstream):
+            grad_ret = upstream
+            #self.add_loss(conf.reg_spike_out_const*tf.reduce_mean(self.out))
+            #self.add_loss(functools.partial(tf.reduce_mean, self.out))
+            return grad_ret
+
+        self.add_loss(conf.reg_spike_out_const*tf.reduce_mean(self.out*self.spike_count/tf.reduce_max(self.spike_count)))
+        #self.add_loss(functools.partial(tf.reduce_mean, out_ret))
+        ret = out_ret
+
+        return ret, grad
+
+
 ###############################################################################
 ## Temporal kernel for surrogate model training
 ## enc(t)=ta*exp(-(t-td)/tc)
@@ -2684,6 +2694,3 @@ class Temporal_kernel(tf.keras.layers.Layer):
 
         td = tf.multiply(self.tc, tf.math.log(act_target_range))
         self.td.assign(tf.constant(td, dtype=tf.float32, shape=self.td.shape))
-
-
-
