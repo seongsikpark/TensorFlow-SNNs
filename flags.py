@@ -761,6 +761,7 @@ flags.DEFINE_bool('fine_tune_quant',False,'fine tuning - quantization')
 # regularization - spike
 flags.DEFINE_bool('reg_spike_out',False,'regularization - spike output in neuron')
 flags.DEFINE_float('reg_spike_out_const',1E-3,'regularization - spike coutput const')
+flags.DEFINE_bool('reg_spike_out_sc',True,'regularization - spike out * spike_count (norm)')
 
 # regularization - synaptic input
 flags.DEFINE_bool('reg_syn_in',False,'regularization - synaptic input - entropy')

@@ -48,7 +48,7 @@ conf.batch_size=100
 #conf.learning_rate = 0.05
 
 #
-conf.pooling_vgg='avg'
+#conf.pooling_vgg='avg'
 #conf.pooling_resnet_imagenet_pre='avg'
 
 #
@@ -62,8 +62,6 @@ conf.pooling_vgg='avg'
 conf.nn_mode = 'SNN'
 #conf.nn_mode = 'ANN'
 
-#
-#conf.time_step = 2
 
 conf.n_reset_type = 'reset_by_sub'
 #conf.n_reset_type = 'reset_to_zero'
@@ -99,11 +97,12 @@ conf.adaptive_vth_scale = 1.2
 #
 #conf.debug_mode=True
 
+conf.reg_spike_out_sc=True
 
 conf.reg_spike_out=True
-conf.reg_spike_out_const=0.001
+conf.reg_spike_out_const=0.0001
 
-conf.reg_syn_in=True
+#conf.reg_syn_in=True
 conf.reg_syn_in_const=0.01
 
 #conf.en_stdp_pathway=True
