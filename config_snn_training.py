@@ -24,6 +24,7 @@ conf = config.flags
 
 #
 #conf.debug_mode = True
+#conf.verbose_snn_train = True
 
 
 #
@@ -88,8 +89,8 @@ conf.reg_spike_out=True
 conf.reg_spike_out_const=0.01
 
 #
-conf.reg_syn_in=True
-conf.reg_syn_in_const=0.01
+conf.reg_psp=True
+conf.reg_psp_const=0.0000001
 
 
 

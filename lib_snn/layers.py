@@ -9,6 +9,8 @@ from keras import backend
 
 from tensorflow.python.ops import math_ops
 
+import tensorflow_probability as tfp
+
 # custom gradient
 
 
@@ -420,31 +422,59 @@ class Layer():
             # regularization
             #if False:
             #if True and self.depth > 1:
-            if conf.reg_syn_in and self.depth > 1:
-                #h_min = -1.0
-                #h_max = 1.0
-                h_min = tf.reduce_min(output)
-                h_max = tf.reduce_max(output)
+            if conf.reg_psp and self.depth > 1:
+                #print('reg_psp: {:}'.format(self.name))
+                lib_snn.layers.reg_psp(self,output)
 
-                #hist = tf.histogram_fixed_width(inputs,[tf.reduce_min(inputs),tf.reduce_max(inputs)])
-                hist = tf.histogram_fixed_width(output,[h_min,h_max])
-                num_inputs = tf.reduce_sum(hist)
-                #hist = tf.where(hist==0,tf.constant(1.0e-5,shape=hist.shape),hist)
-                p = tf.cast(hist / num_inputs,dtype=tf.float32)
-                #e = tf.math.multiply_no_nan(tf.math.log(p)/tf.math.log(tf.cast(2.0,dtype=tf.float64)),p)
-                e = tf.math.multiply_no_nan(tf.math.log(p)/tf.math.log(2.0),p)
-                #e = tf.where(p==0,tf.zeros(e.shape),e)
-                e = -tf.reduce_sum(e)
-                #e = tf.clip_by_value(e, 1,10)
-                #print(e)
-                #self.add_loss(0.01*e)
-                self.add_loss(conf.reg_syn_in_const*e)
+                if False:
+                    #h_min = -1.0
+                    #h_max = 1.0
+                    h_min = tf.reduce_min(output)
+                    h_max = tf.reduce_max(output)
+
+
+                    if False: # histogram
+                        #hist = tf.histogram_fixed_width(inputs,[tf.reduce_min(inputs),tf.reduce_max(inputs)])
+                        hist = tf.histogram_fixed_width(output,[h_min,h_max])
+                        num_inputs = tf.reduce_sum(hist)
+                        #hist = tf.where(hist==0,tf.constant(1.0e-5,shape=hist.shape),hist)
+                        p = tf.cast(hist / num_inputs,dtype=tf.float32)
+                    else:   # fitting to normal dist.
+                        mean = tf.reduce_mean(output)
+                        std = tf.math.reduce_std(output)
+                        pdf = tfp.distributions.Normal(mean,std)
+                        p = pdf.prob(output)
+
+                        print("before")
+                        print(output)
+                        print("mean out: {:}, std out: {:}".format(mean,std))
+                        print("min p: {:}, max p: {:}".format(tf.reduce_min(p),tf.reduce_max(p)))
+
+
+                    #e = tf.math.multiply_no_nan(tf.math.log(p)/tf.math.log(tf.cast(2.0,dtype=tf.float64)),p)
+                    e = tf.math.multiply_no_nan(tf.math.log(p)/tf.math.log(2.0),p)
+                    #e = tf.where(p==0,tf.zeros(e.shape),e)
+                    e = -tf.reduce_mean(e)
+
+                    print(self.name)
+                    print(e)
+                    print("min p: {:}, max p: {:}".format(tf.reduce_min(p),tf.reduce_max(p)))
+
+                    if tf.reduce_any(tf.math.is_nan(e)):
+                        print(self.name)
+                        print(e)
+                        #print(output)
+                        #assert False
+
+
+                    #e = tf.clip_by_value(e, 1,10)
+                    #print(e)
+                    #self.add_loss(0.01*e)
+                    self.add_loss(conf.reg_syn_in_const*e)
 
 
 
             return output
-            #assert False
-            pass
 
         #
         # temporal first
@@ -1653,3 +1683,111 @@ def spike_max_pool_2d_22(feature_map, spike_count, output_shape):
 #    p_conv = max_pool(feature_map, spike_count, output_shape)
 #
 ##    return p_conv
+
+
+
+############################################################
+## regularization (psp, entropy min.)
+############################################################
+
+def reg_psp(layer,psp):
+    output = psp
+
+    h_min = tf.reduce_min(output)
+    h_max = tf.reduce_max(output)
+
+
+    if False:  # histogram
+        # hist = tf.histogram_fixed_width(inputs,[tf.reduce_min(inputs),tf.reduce_max(inputs)])
+        hist = tf.histogram_fixed_width(output, [h_min, h_max])
+        num_inputs = tf.reduce_sum(hist)
+        # hist = tf.where(hist==0,tf.constant(1.0e-5,shape=hist.shape),hist)
+        p = tf.cast(hist / num_inputs, dtype=tf.float32)
+    else:  # fitting to normal dist.
+
+        if False:
+            mean = tf.reduce_mean(output)
+            std = tf.math.reduce_std(output)
+            pdf = tfp.distributions.Normal(mean, std)
+            p = pdf.prob(output)
+
+            print("before")
+            print(output)
+            print("mean out: {:}, std out: {:}".format(mean, std))
+            print("min p: {:}, max p: {:}".format(tf.reduce_min(p),
+                                                  tf.reduce_max(p)))
+
+        #
+        #p = lib_snn.layers.prob_fit_norm_dist(output)
+        e = lib_snn.layers.prob_fit_norm_dist(output)
+
+
+    if False:
+        # e = tf.math.multiply_no_nan(tf.math.log(p)/tf.math.log(tf.cast(2.0,dtype=tf.float64)),p)
+        #e = tf.math.divide_no_nan(tf.math.log(p),tf.math.log(2.0))
+        e = tf.math.log(p)
+        e = tf.math.multiply_no_nan(e, p)
+        # e = tf.where(p==0,tf.zeros(e.shape),e)
+        e = -tf.reduce_mean(e)
+
+        print(layer.name)
+        print(e)
+        print("min p: {:}, max p: {:}".format(tf.reduce_min(p), tf.reduce_max(p)))
+
+        if tf.reduce_any(tf.math.is_nan(e)):
+            print(layer.name)
+            print(e)
+            # print(output)
+            # assert False
+
+    # e = tf.clip_by_value(e, 1,10)
+    # print(e)
+    # self.add_loss(0.01*e)
+    #self.add_loss(conf.reg_syn_in_const * e)
+    layer.add_loss(conf.reg_psp_const * e)
+
+
+
+@tf.custom_gradient
+def prob_fit_norm_dist(x):
+    mean = tf.reduce_mean(x)
+    std = tf.math.reduce_std(x)
+    pdf = tfp.distributions.Normal(mean, std)
+    p = pdf.prob(x)
+
+    #
+    eps=0.01
+    log_pi = tf.math.log(p+eps)
+    h = tf.math.multiply_no_nan(log_pi, p)
+    # e = tf.where(p==0,tf.zeros(e.shape),e)
+    h = -tf.reduce_mean(h)
+    #h = tf.reduce_mean(h)
+
+    #print(h)
+    #print("min p: {:}, max p: {:}".format(tf.reduce_min(p), tf.reduce_max(p)))
+
+    def grad(upstream):
+        d = -tf.math.divide(tf.math.subtract(x,mean), tf.math.square(std))
+        ret = d*p
+        #de_dp = tf.math.divide_no_nan(ret,p)
+        dh_dp = -(log_pi+tf.ones(shape=log_pi.shape))
+        #dh_dp = (log_pi+tf.ones(shape=log_pi.shape))
+        ret = ret*dh_dp
+        ret = ret*upstream
+        #ret = ret * 0.0
+        #ret = tf.zeros(shape=ret.shape)
+
+        if False:
+            print('')
+            print('upstream: min {:}, max {:}'.format(tf.reduce_min(upstream),tf.reduce_max(upstream)))
+            print('std: min {:}, max {:}'.format(tf.reduce_min(std),tf.reduce_max(std)))
+            print('d: min {:}, max {:}'.format(tf.reduce_min(d),tf.reduce_max(d)))
+            print('dh_dp: min {:}, max {:}'.format(tf.reduce_min(dh_dp),tf.reduce_max(dh_dp)))
+            print('grad: min {:}, max {:}'.format(tf.reduce_min(ret),tf.reduce_max(ret)))
+            print('')
+
+        return ret
+
+
+    #return p, grad
+    return h, grad
