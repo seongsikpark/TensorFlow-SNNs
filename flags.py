@@ -760,7 +760,8 @@ flags.DEFINE_bool('fine_tune_quant',False,'fine tuning - quantization')
 
 # regularization - spike
 flags.DEFINE_bool('reg_spike_out',False,'regularization - spike output in neuron')
-flags.DEFINE_float('reg_spike_out_const',1E-3,'regularization - spike coutput const')
+flags.DEFINE_float('reg_spike_out_const',1E-3,'regularization - spike count const')
+flags.DEFINE_float('reg_spike_out_alpha',1E-3,'regularization - spike count alpha')
 flags.DEFINE_bool('reg_spike_out_sc',True,'regularization - spike out * spike_count (norm)')
 
 # regularization - postsynaptic potential (PSP)

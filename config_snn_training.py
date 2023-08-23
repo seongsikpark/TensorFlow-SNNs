@@ -87,6 +87,7 @@ conf.leak_const_init = 0.9
 conf.reg_spike_out_sc=True
 conf.reg_spike_out=True
 conf.reg_spike_out_const=0.01
+conf.reg_spike_out_alpha=0.1
 
 #
 conf.reg_psp=True
