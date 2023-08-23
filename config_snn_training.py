@@ -90,7 +90,9 @@ conf.reg_spike_out_const=0.01
 
 #
 conf.reg_psp=True
-conf.reg_psp_const=0.0000001
+conf.reg_psp_const=1E-7
+conf.reg_psp_eps=1E-2
+conf.reg_psp_min=True
 
 
 

@@ -766,6 +766,8 @@ flags.DEFINE_bool('reg_spike_out_sc',True,'regularization - spike out * spike_co
 # regularization - postsynaptic potential (PSP)
 flags.DEFINE_bool('reg_psp',False,'regularization - psp - entropy')
 flags.DEFINE_float('reg_psp_const',1E-2,'regularization - psp - entropy')
+flags.DEFINE_float('reg_psp_eps',1E-2,'regularization - psp - entropy - epsilon in backward')
+flags.DEFINE_bool('reg_psp_min',True,'regularization - psp - entropy min / max')
 
 
 # stdp - pathway

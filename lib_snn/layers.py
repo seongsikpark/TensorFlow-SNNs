@@ -1756,12 +1756,14 @@ def prob_fit_norm_dist(x):
     p = pdf.prob(x)
 
     #
-    eps=0.01
+    eps=conf.reg_psp_eps
     log_pi = tf.math.log(p+eps)
     h = tf.math.multiply_no_nan(log_pi, p)
     # e = tf.where(p==0,tf.zeros(e.shape),e)
-    h = -tf.reduce_mean(h)
-    #h = tf.reduce_mean(h)
+    if conf.reg_psp_min:
+        h = -tf.reduce_mean(h)
+    else:
+        h = tf.reduce_mean(h)
 
     #print(h)
     #print("min p: {:}, max p: {:}".format(tf.reduce_min(p), tf.reduce_max(p)))
@@ -1770,8 +1772,10 @@ def prob_fit_norm_dist(x):
         d = -tf.math.divide(tf.math.subtract(x,mean), tf.math.square(std))
         ret = d*p
         #de_dp = tf.math.divide_no_nan(ret,p)
-        dh_dp = -(log_pi+tf.ones(shape=log_pi.shape))
-        #dh_dp = (log_pi+tf.ones(shape=log_pi.shape))
+        if conf.reg_psp_min:
+            dh_dp = -(log_pi+tf.ones(shape=log_pi.shape))
+        else:
+            dh_dp = (log_pi+tf.ones(shape=log_pi.shape))
         ret = ret*dh_dp
         ret = ret*upstream
         #ret = ret * 0.0
