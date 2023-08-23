@@ -2012,6 +2012,10 @@ class Model(tf.keras.Model):
                 #
                 self.optimizer.apply_gradients(grads_accum_and_vars)
 
+                #
+                #print('gradients')
+                #print(grads_accum_and_vars)
+
 
                 nan_test = [tf.reduce_any(tf.math.is_nan(grad_accum)) for grad_accum in grads_accum]
                 #if tf.reduce_any(nan_test):

@@ -763,9 +763,11 @@ flags.DEFINE_bool('reg_spike_out',False,'regularization - spike output in neuron
 flags.DEFINE_float('reg_spike_out_const',1E-3,'regularization - spike coutput const')
 flags.DEFINE_bool('reg_spike_out_sc',True,'regularization - spike out * spike_count (norm)')
 
-# regularization - synaptic input
-flags.DEFINE_bool('reg_syn_in',False,'regularization - synaptic input - entropy')
-flags.DEFINE_float('reg_syn_in_const',1E-2,'regularization - synaptic input const - entropy')
+# regularization - postsynaptic potential (PSP)
+flags.DEFINE_bool('reg_psp',False,'regularization - psp - entropy')
+flags.DEFINE_float('reg_psp_const',1E-2,'regularization - psp - entropy')
+flags.DEFINE_float('reg_psp_eps',1E-2,'regularization - psp - entropy - epsilon in backward')
+flags.DEFINE_bool('reg_psp_min',True,'regularization - psp - entropy min / max')
 
 
 # stdp - pathway

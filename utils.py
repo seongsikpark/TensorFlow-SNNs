@@ -1124,8 +1124,8 @@ def set_file_path(batch_size):
         if conf.reg_spike_out:
             config_name += '_r-so-'+str(conf.reg_spike_out_const)
 
-        if conf.reg_syn_in:
-            config_name += '_r-si-'+str(conf.reg_syn_in_const)
+        if conf.reg_psp:
+            config_name += '_r-psp-'+str(conf.reg_psp_const)
 
         if conf.en_stdp_pathway:
             config_name += '_sp-'+str(conf.stdp_pathway_weight)
