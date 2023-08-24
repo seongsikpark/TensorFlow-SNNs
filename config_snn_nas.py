@@ -7,7 +7,7 @@
 import os
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,4"
-os.environ["CUDA_VISIBLE_DEVICES"]="5"
+os.environ["CUDA_VISIBLE_DEVICES"]="4"
 
 #
 from config import config
@@ -16,10 +16,10 @@ conf = config.flags
 
 #
 #conf.train_epoch = 100
-# conf.num_train_data = 100
+#conf.num_train_data = 100
 
-conf.nn_mode = 'SNN'
-# conf.nn_mode = 'ANN'
+#conf.nn_mode = 'SNN'
+conf.nn_mode = 'ANN'
 
 conf.n_reset_type = 'reset_by_sub'
 #conf.n_reset_type = 'reset_to_zero'

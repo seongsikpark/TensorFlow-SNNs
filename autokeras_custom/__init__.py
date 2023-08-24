@@ -1,5 +1,5 @@
 from autokeras import AutoModel
-from autokeras import Graph
+#from autokeras import Graph
 from autokeras_custom.nodes import ImageInput
 
 from autokeras_custom.blocks import ConvBlock

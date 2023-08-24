@@ -33,7 +33,7 @@ import tensorboard
 import datasets.datasets as datasets
 import datasets.augmentation_cifar as augmentation_path
 import gc
-from keras.callbacks import MaxMetric
+#from keras.callbacks import MaxMetric
 from keras.optimizers import Adam, SGD
 from keras.optimizers.schedules.learning_rate_schedule import CosineDecay
 from autokeras import keras_layers
@@ -44,10 +44,9 @@ import keras_tuner
 #
 import lib_snn
 
-# max_trials = 1
-max_trials = 1
+max_trials = 100
 batch_size = 100
-epoch = 1
+epoch = 3
 model_path = "am/auto_model_25"
 learning_rate = 1e-1
 
@@ -99,20 +98,24 @@ lr_schedule = CosineDecay(initial_learning_rate=learning_rate,
 #                                                      decay_factor=0.1,
 #                                                      warmup_step=20)
 
-lr_scheduler = LearningRateScheduler(lr_schedule, verbose=1)
+#lr_scheduler = LearningRateScheduler(lr_schedule, verbose=1)
+#lr_scheduler = lib_snn.optimizers.LRSchedule_step(learning_rate, train_steps_per_epoch * 3, 0.1)
+#optimizer = tf.keras.optimizers.SGD(learning_rate=lr_scheduler, momentum=0.9, name='SGD')
 
+'''
 lr_reducer = ReduceLROnPlateau(factor=0.1,
                                cooldown=0,
                                patience=5,
                                min_lr=1e-7,
                                monitor='val_acc')
+'''
 
 callbacks = [tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=1000, verbose=1),
              ModelCheckpoint(filepath=model_path, monitor='val_acc', verbose=1, save_weights_only=True, save_best_only=True),
-             lr_reducer,
-             lr_scheduler,
-             tf.keras.callbacks.TensorBoard(log_dir=model_path, write_graph=True, histogram_freq=1), # foldername: 0,1,2 ~~
-             MaxMetric(metrics=['acc'])
+             #lr_reducer,
+             #lr_scheduler,
+             #tf.keras.callbacks.TensorBoard(log_dir=model_path, write_graph=True, histogram_freq=1), # foldername: 0,1,2 ~~
+             #MaxMetric(metrics=['acc'])
              ]
 
 acc = tf.keras.metrics.categorical_accuracy
@@ -123,8 +126,12 @@ metrics = [acc, acc_top5]
 
 loss = tf.keras.losses.CategoricalCrossentropy()
 
-# Train_mode = "DNN"
-Train_mode = "SNN"
+#tuner = 'random'
+tuner = 'bayesian'
+
+Train_mode = "DNN"
+#Train_mode = "SNN"
+
 # DNN_Mode
 if Train_mode == "DNN":
     input_node = akc.ImageInput()
@@ -134,6 +141,7 @@ if Train_mode == "DNN":
     # input_node = tf.keras.layers.Input(shape=input_shape, batch_size=batch_size)
     # output_node = lib_snn.layers.InputGenLayer(name='in')(input_node)
 
+    ''' VGG like model
     output_node = input_node
     output_node = ak.ConvBlock(dropout=0, num_blocks=1, num_layers=1, separable=False, max_pooling=False, tunable=True)(output_node)
     output_node = ak.ConvBlock(dropout=0.5, num_blocks=1, num_layers=1, separable=False, max_pooling=False, tunable=True)(output_node)
@@ -146,6 +154,15 @@ if Train_mode == "DNN":
     output_node = ak.DenseBlock(num_units=512, dropout=0.5, num_layers=1, use_batchnorm=True, tunable=True)(output_node)
     output_node = ak.DenseBlock(num_units=num_class, dropout=0, num_layers=1, use_batchnorm=True, tunable=True)(output_node)
     output_node = ak.ClassificationHead(dropout=0, loss=loss, metrics=metrics, tunable=True)(output_node)
+    '''
+
+    output_node = input_node
+    output_node = akc.ConvBlock(use_batchnorm=True, max_pooling=True, separable=False, tunable=True)(output_node)
+    # output_node = ak.ResNetBlock(pretrained=False, tunable=True)(output_node)
+    output_node = akc.Flatten()(output_node)
+    output_node = akc.DenseBlock(use_batchnorm=True, tunable=True)(output_node)
+    output_node = akc.ClassificationHead(dropout=0, loss=loss, metrics=metrics, tunable=True)(output_node)
+
 
 # SNN_Mode
 if Train_mode == "SNN":
@@ -165,7 +182,8 @@ if Train_mode == "SNN":
 
 
 clf = akc.auto_model.AutoModel(inputs=input_node, outputs=output_node, overwrite=True,
-                               tuner='bayesian', max_trials=max_trials, project_name=model_path, objective='val_acc')
+#clf = ak.auto_model.AutoModel(inputs=input_node, outputs=output_node, overwrite=True,
+                               tuner=tuner, max_trials=max_trials, project_name=model_path, objective='val_acc', max_model_size_new=1e6)
 
 clf.tuner.metrics = metrics
 clf.tuner.loss = loss
@@ -178,46 +196,47 @@ clf.tuner.loss = loss
 # batch_size already in dataset
 hist = clf.fit(train_data=train_ds, validation_data=valid_ds, epochs=epoch, callbacks=callbacks)
 
-## cant export because Activation name conflict
-model = clf.export_model()
-# print(model.summary())
+if False:
+    ## cant export because Activation name conflict
+    model = clf.export_model()
+    # print(model.summary())
 
-best_epoch = clf.tuner._get_best_trial_epochs()
-print(best_epoch, "best_trial_epochs@@@@@")
-trials = clf.tuner.oracle.get_best_trials(num_trials=max_trials)
-print(trials, "Best_Trials@@@@@")
-print(clf.tuner.get_best_pipeline(), "get best pipeline @@@@@")
+    best_epoch = clf.tuner._get_best_trial_epochs()
+    print(best_epoch, "best_trial_epochs@@@@@")
+    trials = clf.tuner.oracle.get_best_trials(num_trials=max_trials)
+    print(trials, "Best_Trials@@@@@")
+    print(clf.tuner.get_best_pipeline(), "get best pipeline @@@@@")
 
-try:
-    keras.models.Model.save(self=model, filepath=model_path, save_format="tf")
-    print("@@DONE1@@")
-except Exception:
-    keras.models.Model.save(self=model, filepath=model_path+'.h5')
-    print("@@DONE1_h5@@")
-
-
-# load saved model
-try:
-    loaded_Model = keras.models.load_model(filepath=model_path, custom_objects=ak.CUSTOM_OBJECTS)
-    print("@@DONE2@@")
-except Exception:
-    loaded_Model = keras.models.load_model(filepath=model_path+'.h5', custom_objects=ak.CUSTOM_OBJECTS)
-    print("@@DONE2_h5@@")
-loaded_Model.summary()
-print(loaded_Model.evaluate(valid_ds, verbose=1), "loaded_model")
-
-# add warmup for hyperband tuner
-warmup_steps = 5  # warmup 5 epoch
-if warmup_steps:
-    lr_schedule = keras_layers.WarmUp(
-        initial_learning_rate=learning_rate,
-        decay_schedule_fn=lr_schedule,
-        warmup_steps=warmup_steps,
-    )
-lr_scheduler = LearningRateScheduler(lr_schedule, verbose=1)
-callbacks[3] = lr_scheduler
-
-loaded_Model.fit(train_ds, validation_data=valid_ds, epochs=epoch, callbacks=callbacks, verbose=1)
+    try:
+        keras.models.Model.save(self=model, filepath=model_path, save_format="tf")
+        print("@@DONE1@@")
+    except Exception:
+        keras.models.Model.save(self=model, filepath=model_path+'.h5')
+        print("@@DONE1_h5@@")
 
 
-print("@@DONE3@@")
+    # load saved model
+    try:
+        loaded_Model = keras.models.load_model(filepath=model_path, custom_objects=ak.CUSTOM_OBJECTS)
+        print("@@DONE2@@")
+    except Exception:
+        loaded_Model = keras.models.load_model(filepath=model_path+'.h5', custom_objects=ak.CUSTOM_OBJECTS)
+        print("@@DONE2_h5@@")
+    loaded_Model.summary()
+    print(loaded_Model.evaluate(valid_ds, verbose=1), "loaded_model")
+
+    # add warmup for hyperband tuner
+    warmup_steps = 5  # warmup 5 epoch
+    if warmup_steps:
+        lr_schedule = keras_layers.WarmUp(
+            initial_learning_rate=learning_rate,
+            decay_schedule_fn=lr_schedule,
+            warmup_steps=warmup_steps,
+        )
+    lr_scheduler = LearningRateScheduler(lr_schedule, verbose=1)
+    callbacks[3] = lr_scheduler
+
+    loaded_Model.fit(train_ds, validation_data=valid_ds, epochs=epoch, callbacks=callbacks, verbose=1)
+
+
+    print("@@DONE3@@")
