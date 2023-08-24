@@ -1771,10 +1771,11 @@ def prob_fit_norm_dist(x):
         d = -tf.math.divide(tf.math.subtract(x,mean), tf.math.square(std))
         ret = d*p
         #de_dp = tf.math.divide_no_nan(ret,p)
+        num_psp = tf.cast(tf.math.reduce_prod(log_pi.shape),dtype=tf.float32)
         if conf.reg_psp_min:
-            dh_dp = -(log_pi+tf.ones(shape=log_pi.shape))
+            dh_dp = -(log_pi+tf.ones(shape=log_pi.shape))/num_psp
         else:
-            dh_dp = (log_pi+tf.ones(shape=log_pi.shape))
+            dh_dp = (log_pi+tf.ones(shape=log_pi.shape))/num_psp
         ret = ret*dh_dp
         ret = ret*upstream
         #ret = ret * 0.0
