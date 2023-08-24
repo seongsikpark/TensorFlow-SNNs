@@ -312,6 +312,8 @@ class ConvBlock(block_module.Block):
         max_pooling: Optional[bool] = None,
         separable: Optional[bool] = None,
         dropout: Optional[Union[float, hyperparameters.Choice]] = None,
+        # sspark
+        use_batchnorm: Optional[bool] = None,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -345,6 +347,11 @@ class ConvBlock(block_module.Block):
             float,
         )
 
+        #
+        self.use_batchnorm = use_batchnorm
+
+
+
     def get_config(self):
         config = super().get_config()
         config.update(
@@ -356,6 +363,7 @@ class ConvBlock(block_module.Block):
                 "max_pooling": self.max_pooling,
                 "separable": self.separable,
                 "dropout": io_utils.serialize_block_arg(self.dropout),
+                "use_batchnorm": self.use_batchnorm,
             }
         )
         return config
@@ -391,6 +399,11 @@ class ConvBlock(block_module.Block):
             max_pooling = hp.Boolean("max_pooling", default=True)
         pool = layer_utils.get_max_pooling(input_node.shape)
 
+        #
+        use_batchnorm = self.use_batchnorm
+        if use_batchnorm is None:
+            use_batchnorm = hp.Boolean("use_batchnorm", default=False)
+
         for i in range(utils.add_to_hp(self.num_blocks, hp)):
             # Ryu, check DNN/SNN
             if conf.nn_mode == 'ANN':
@@ -402,7 +415,8 @@ class ConvBlock(block_module.Block):
                         padding=self._get_padding(kernel_size, output_node),
                         activation="relu",
                     )(output_node)
-                    output_node = layers.BatchNormalization()(output_node)
+                    if use_batchnorm:
+                        output_node = layers.BatchNormalization()(output_node)
                     output_node = layers.ReLU()(output_node)
                 if max_pooling:
                     output_node = pool(

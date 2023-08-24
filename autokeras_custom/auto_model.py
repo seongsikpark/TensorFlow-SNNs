@@ -14,13 +14,11 @@ from tensorflow import keras
 from tensorflow import nest
 from pathlib import Path
 from typing import List
-from typing import Optional
 from typing import Type
 from typing import Union
 
-from autokeras import tuners
-from autokeras_custom import blocks
-from autokeras.engine import tuner
+from autokeras_custom import tuners
+from autokeras_custom.engine import tuner
 from autokeras.nodes import Input
 
 

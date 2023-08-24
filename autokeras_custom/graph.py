@@ -8,8 +8,11 @@ import lib_snn
 from keras.optimizers.schedules.learning_rate_schedule import CosineDecay, ExponentialDecay
 from tensorflow import nest
 from config import config
-
 conf = config.flags
+
+import tensorflow as tf
+
+
 # batch_size = conf.batch_size
 batch_size = None
 learning_rate = conf.lr
@@ -52,8 +55,59 @@ class Graph(graph.Graph):
         return self._compile_keras_model(hp, model)
 
     def _compile_keras_model(self, hp, model):
+        # Specify hyperparameters from compile(...)
+        optimizer_name = hp.Choice(
+            "optimizer",
+            ["adam", "sgd", "adam_weight_decay"],
+            default="adam",
+        )
+        # TODO: add adadelta optimizer when it can optimize embedding layer on GPU.
+        learning_rate = hp.Choice(
+            "learning_rate", [1e-1, 1e-2, 1e-3, 1e-4, 2e-5, 1e-5], default=1e-3
+        )
+
+        if optimizer_name == "adam":
+            optimizer = keras.optimizers.Adam(learning_rate=learning_rate)
+        elif optimizer_name == "sgd":
+            optimizer = keras.optimizers.SGD(learning_rate=learning_rate)
+        elif optimizer_name == "adam_weight_decay":
+            steps_per_epoch = int(self.num_samples / self.batch_size)
+            num_train_steps = steps_per_epoch * self.epochs
+            warmup_steps = int(
+                self.epochs * self.num_samples * 0.1 / self.batch_size
+            )
+
+            lr_schedule = keras.optimizers.schedules.PolynomialDecay(
+                initial_learning_rate=learning_rate,
+                decay_steps=num_train_steps,
+                end_learning_rate=0.0,
+            )
+            if warmup_steps:
+                lr_schedule = keras_layers.WarmUp(
+                    initial_learning_rate=learning_rate,
+                    decay_schedule_fn=lr_schedule,
+                    warmup_steps=warmup_steps,
+                )
+
+            optimizer = keras.optimizers.experimental.AdamW(
+                learning_rate=lr_schedule,
+                weight_decay=0.01,
+                beta_1=0.9,
+                beta_2=0.999,
+                epsilon=1e-6,
+            )
+
+        model.compile(
+            optimizer=optimizer, metrics=self._get_metrics(), loss=self._get_loss()
+        )
+
+        return model
+
+
+    def _compile_keras_model_old(self, hp, model):
         optimizer_name = "adam"
         # optimizer_name = "sgd"
+
 
         if optimizer_name == "adam":
             steps_per_epoch = int(self.num_samples / self.batch_size)
@@ -83,6 +137,22 @@ class Graph(graph.Graph):
         # eager_mode=True
         # eager_mode = config.eager_mode
         eager_mode = False
+
+
+        # sspark
+        # metric
+        metric_accuracy = tf.keras.metrics.categorical_accuracy
+        metric_accuracy_top5 = tf.keras.metrics.top_k_categorical_accuracy
+
+        #metric_name_acc = 'acc'
+        #metric_name_acc_top5 = 'acc-5'
+        #monitor_cri = 'val_' + metric_name_acc
+        metric_name_acc = config.metric_name_acc
+        metric_name_acc_top5 = config.metric_name_acc_top5
+
+        metric_accuracy.name = metric_name_acc
+        metric_accuracy_top5.name = metric_name_acc_top5
+
 
         model.compile(
             optimizer=optimizer, metrics=self._get_metrics(), loss=self._get_loss(), run_eagerly=eager_mode
