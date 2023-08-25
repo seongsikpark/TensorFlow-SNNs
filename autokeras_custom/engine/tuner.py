@@ -190,12 +190,13 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
                 )
 
         # Insert early-stopping for acceleration.
+        # TODO: parameterize
         early_stopping_inserted = False
         new_callbacks = self._deepcopy_callbacks(callbacks)
         if not utils.contain_instance(callbacks, tf_callbacks.EarlyStopping):
             early_stopping_inserted = True
             new_callbacks.append(
-                tf_callbacks.EarlyStopping(patience=10, min_delta=1e-4)
+                tf_callbacks.EarlyStopping(monitor="val_loss", patience=4, min_delta=1e-4, verbose=1)
             )
 
         # Populate initial search space.
@@ -244,7 +245,7 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
             copied_fit_kwargs = copy.copy(fit_kwargs) # train, validation data
             copied_fit_kwargs["callbacks"] = self._remove_early_stopping(callbacks)
             # TODO: parameterized
-            copied_fit_kwargs["epochs"] = 100
+            copied_fit_kwargs["epochs"] = 200
 
             pipeline, model, history = self.final_fit(**copied_fit_kwargs)
             # sspark
@@ -324,6 +325,8 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
                 )
             self.on_trial_end(trial)
         self.on_search_end()
+
+        print('search end')
 
     def create_trial(self):
 
@@ -439,7 +442,9 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
         return [
             copy.deepcopy(callbacks)
             for callback in callbacks
+            #if not isinstance(callback, tf_callbacks.EarlyStopping)
             if not isinstance(callback, tf_callbacks.EarlyStopping)
+            #tf.keras.callbacks.EarlyStopping
         ]
 
     def _get_best_trial_epochs(self):
@@ -455,6 +460,7 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
     def final_fit(self, **kwargs):
         best_trial = self.oracle.get_best_trials(1)[0]
         best_hp = best_trial.hyperparameters
+        self._display.on_trial_begin(best_trial)
         pipeline, kwargs["x"], kwargs["validation_data"] = self._prepare_model_build(
             best_hp, **kwargs
         )

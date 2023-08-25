@@ -46,8 +46,8 @@ import lib_snn
 
 max_trials = 100
 batch_size = 100
-epoch = 3
-model_path = "am/auto_model_25"
+epoch = 10
+model_path = "am/t-100_e-10"
 learning_rate = 1e-1
 
 
@@ -110,8 +110,8 @@ lr_reducer = ReduceLROnPlateau(factor=0.1,
                                monitor='val_acc')
 '''
 
-callbacks = [tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=1000, verbose=1),
-             ModelCheckpoint(filepath=model_path, monitor='val_acc', verbose=1, save_weights_only=True, save_best_only=True),
+#callbacks = [tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=3, verbose=1),
+callbacks = [ModelCheckpoint(filepath=model_path, monitor='val_acc', verbose=1, save_weights_only=True, save_best_only=True),
              #lr_reducer,
              #lr_scheduler,
              #tf.keras.callbacks.TensorBoard(log_dir=model_path, write_graph=True, histogram_freq=1), # foldername: 0,1,2 ~~
