@@ -384,7 +384,7 @@ def VGG16(
             norm_fc1 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='bn_fc1')(syn_fc1)
         else:
             norm_fc1 = syn_fc1
-        a_fc1 = lib_snn.activations.Activations(act_type=act_type,name='n_fc1')(norm_fc1)
+        a_fc1 = lib_snn.activations.Activation(act_type=act_type,name='n_fc1')(norm_fc1)
         a_d_fc1 = tf.keras.layers.Dropout(dropout_conv_r[2], name='fc1_do')(a_fc1)
         #x = lib_snn.layers.Dense(n_dim_cls, activation=act_relu, use_bn=use_bn_cls, kernel_initializer=k_init, name='fc2')(x)
         syn_fc2 = lib_snn.layers.Dense(n_dim_cls, kernel_initializer=k_init, name='fc2')(a_d_fc1)

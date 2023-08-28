@@ -415,7 +415,7 @@ class Layer():
             #output = super().call(input,**kwargs)
 
             # TODO: add codes to check parent's class call argument - including training or not
-            if isinstance(self, lib_snn.layers.BatchNormalizations):
+            if isinstance(self, lib_snn.layers.BatchNormalization):
                 output = super().call(input,training)
             else:
                 output = super().call(input)
@@ -1379,7 +1379,7 @@ class Flatten(Layer, tf.keras.layers.Flatten):
 
 
 # class BatchNormalization(Layer, layers_new.batch_normalization.BatchNormalization):
-class BatchNormalizations(Layer, layers_new.batch_normalization.BatchNormalization):
+class BatchNormalization(Layer, layers_new.batch_normalization.BatchNormalization):
 
     def __init__(self,
                  axis=-1,

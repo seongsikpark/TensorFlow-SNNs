@@ -65,7 +65,7 @@ flags.DEFINE_integer('size_test_batch', 1, 'size of test batch') # not used now
 
 
 #
-flags.DEFINE_string('dataset', 'MNIST', 'dataset')
+#flags.DEFINE_string('dataset', 'MNIST', 'dataset')
 # flags.DEFINE_string('ann_model', 'MLP', 'neural network model')
 
 
@@ -267,7 +267,7 @@ flags.DEFINE_bool('dnn_to_snn', False, 'dnn-to-snn conversion')
 flags.DEFINE_string('nn_mode', 'SNN', 'ANN: Analog Neural Network, SNN: Spiking Neural Network')
 
 # datasets
-# flags.DEFINE_string('dataset', 'CIFAR10', 'dataset')
+flags.DEFINE_string('dataset', 'CIFAR10', 'dataset')
 #flags.DEFINE_string('dataset', 'CIFAR100', 'dataset')
 #flags.DEFINE_string('dataset', 'ImageNet', 'dataset')
 
@@ -406,16 +406,22 @@ flags.DEFINE_string('root_tensorboard', './tensorboard/', 'root - tensorboard')
 # model_path = 'am/auto_model_31'
 # model_path = 'evo_p20c5/' + project_index
 save_index = '0'
-model_path = 'ak_HW_MNIST/' + save_index
-flags.DEFINE_string('model_path', model_path, 'save model path')
+#model_path = 'ak_HW_MNIST/' + save_index
+flags.DEFINE_string('model_path', 'model', 'save model path')
 
 # max trial, lr
 flags.DEFINE_integer('max_trial', 1, 'trial num')
 flags.DEFINE_float('lr', 0.1, 'initial learning rate')
 
-flags.DEFINE_string('root_model_best', '/home/fbwnsrb120/Projects/Clone/' + model_path, 'root model best')
-flags.DEFINE_string('root_model_save', '/home/fbwnsrb120/Projects/Clone/' + model_path, 'root model save')
-flags.DEFINE_string('root_model_load', '/home/fbwnsrb120/Projects/Clone/' + model_path, 'root model load')
+#flags.DEFINE_string('root_model_best', '/home/fbwnsrb120/Projects/Clone/' + model_path, 'root model best')
+#flags.DEFINE_string('root_model_save', '/home/fbwnsrb120/Projects/Clone/' + model_path, 'root model save')
+#flags.DEFINE_string('root_model_load', '/home/fbwnsrb120/Projects/Clone/' + model_path, 'root model load')
+
+flags.DEFINE_string('root_model_best', '~/best_model', 'root model best')
+flags.DEFINE_string('root_model_save', './models', 'root model save')
+flags.DEFINE_string('root_model_load', './models', 'root model load')
+
+
 ################################
 
 # flags.DEFINE_string('root_model_best', '/home/sspark/Models/CNN', 'root model best')
@@ -565,9 +571,9 @@ flags.DEFINE_bool('f_stat_train_mode',True,'stat with train data')
 #flags.DEFINE_bool('f_stat_train_mode',False,'stat with train data')
 
 
-#flags.DEFINE_string('path_stat_root','', 'path stat - root, empty->path_model_load')
+flags.DEFINE_string('path_stat_root','', 'path stat - root, empty->path_model_load')
 # flags.DEFINE_string('path_stat_root','/home/sspark/Models/CNN/VGG16_CIFAR10', 'path stat - root, empty->path_model_load')
-flags.DEFINE_string('path_stat_root','/home/fbwnsrb120/Projects/Clone/' + model_path, 'path stat - root, empty->path_model_load')
+#flags.DEFINE_string('path_stat_root','/home/fbwnsrb120/Projects/Clone/' + model_path, 'path stat - root, empty->path_model_load')
 
 flags.DEFINE_string('path_stat_dir','stat', 'path stat dir under path_stat_root')
 flags.DEFINE_string('prefix_stat', '', 'prefix of stat file name')

@@ -2090,7 +2090,7 @@ class Model(tf.keras.Model):
         self.layers_w_act = []
         for layer in self.layers:
             #if hasattr(layer, 'act'):
-            if isinstance(layer, lib_snn.activations.Activations):
+            if isinstance(layer, lib_snn.activations.Activation):
                 #if not isinstance(layer,lib_snn.layers.InputGenLayer):
                 #if not layer.act_dnn is None:
                 #if not (layer.activation is None):

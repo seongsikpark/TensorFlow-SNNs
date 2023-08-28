@@ -15,13 +15,13 @@ preprocess_input_others = tf.keras.applications.imagenet_utils.preprocess_input
 #def load(model_name,dataset_name,batch_size,input_size,train_type,train,conf,num_parallel_call):
 def load():
 
-    # model_name = config.model_name
+    model_name = config.model_name
     # dataset_name = config.dataset_name
     # batch_size = config.batch_size
     # train_type = config.train_type
     # train = config.train
     # model_name ="am/auto_model_30"
-    model_name = flags.model_path
+    #model_name = flags.model_path
     dataset_name = "CIFAR10"
     batch_size = 100
     train_type = "scratch"

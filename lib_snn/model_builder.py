@@ -102,7 +102,8 @@ def model_builder(
         learning_rate = lib_snn.optimizers.LRSchedule_step_wup(learning_rate, train_steps_per_epoch * 100, 0.1,
                                                                train_steps_per_epoch * 30)
     else:
-        assert False
+        #assert False
+        pass
 
     # optimizer
     if opt == 'SGD':

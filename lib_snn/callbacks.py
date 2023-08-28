@@ -114,14 +114,16 @@ class TensorboardBestValAcc(tf.keras.callbacks.Callback):
         super(TensorboardBestValAcc, self).__init__(**kwargs)
 
     def on_epoch_begin(self, epoch, logs=None):
-        print('on_epoch_begin')
-        print(logs)
+        #print('on_epoch_begin')
+        #print(logs)
+        pass
 
     def on_epoch_end(self, epoch, logs=None):
-        print('best val_acc')
+        #print('best val_acc')
         #print(cb_model_checkpoint.best)
-        print(self.best_val_acc)
-        print(logs)
+        #print(self.best_val_acc)
+        #print(logs)
+        pass
 
 
 class SNNLIB(tf.keras.callbacks.Callback):
