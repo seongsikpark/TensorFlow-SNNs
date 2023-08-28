@@ -218,7 +218,10 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
             copied_fit_kwargs["callbacks"] = self._remove_early_stopping(callbacks)
 
             # Decide the number of epochs.
-            copied_fit_kwargs["epochs"] = epochs
+            # sspark
+            epochs_final=200
+            #copied_fit_kwargs["epochs"] = epochs
+            copied_fit_kwargs["epochs"] = epochs_final
             if not epochs_provided:
                 copied_fit_kwargs["epochs"] = self._get_best_trial_epochs()
 
@@ -459,6 +462,9 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
 
     def final_fit(self, **kwargs):
         best_trial = self.oracle.get_best_trials(1)[0]
+        # sspark
+        print('best trial')
+        self._display.on_trial_begin(best_trial)
         best_hp = best_trial.hyperparameters
         self._display.on_trial_begin(best_trial)
         pipeline, kwargs["x"], kwargs["validation_data"] = self._prepare_model_build(

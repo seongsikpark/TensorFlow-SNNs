@@ -37,14 +37,13 @@ from lib_snn.sim import glb_t
 
 # abstract class for DNN / SNN
 # Activation
-# class Activation(keras.engine.base_layer.Layer):
-class Activations(keras.engine.base_layer.Layer):
+class Activation(keras.engine.base_layer.Layer):
 
     #index = None    # layer index count starts from InputGenLayer
 
     def __init__(self, act_type=None, loc='HID', **kwargs):
 
-        super(Activations, self).__init__(**kwargs)
+        super(Activation, self).__init__(**kwargs)
         #
         #self.depth = -1
 

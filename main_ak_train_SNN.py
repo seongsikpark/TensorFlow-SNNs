@@ -46,9 +46,16 @@ import lib_snn
 
 max_trials = 100
 batch_size = 100
-epoch = 10
-model_path = "am/t-100_e-10"
+epoch = 100
 learning_rate = 1e-1
+
+
+#
+max_model_size=1.5E6
+
+#
+#model_path = "am/m-1.5e6_t-100_e-10"
+model_path = "am/test"
 
 
 train_ds, valid_ds, test_ds, train_ds_num, valid_ds_num, test_ds_num, num_class, train_steps_per_epoch = datasets.load()
@@ -183,7 +190,7 @@ if Train_mode == "SNN":
 
 clf = akc.auto_model.AutoModel(inputs=input_node, outputs=output_node, overwrite=True,
 #clf = ak.auto_model.AutoModel(inputs=input_node, outputs=output_node, overwrite=True,
-                               tuner=tuner, max_trials=max_trials, project_name=model_path, objective='val_acc', max_model_size_new=1e6)
+                               tuner=tuner, max_trials=max_trials, project_name=model_path, objective='val_acc', max_model_size_new=max_model_size)
 
 clf.tuner.metrics = metrics
 clf.tuner.loss = loss
