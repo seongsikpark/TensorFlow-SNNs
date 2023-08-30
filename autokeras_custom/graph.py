@@ -55,17 +55,46 @@ class Graph(graph.Graph):
         return self._compile_keras_model(hp, model)
 
     def _compile_keras_model(self, hp, model):
-        # Specify hyperparameters from compile(...)
-        optimizer_name = hp.Choice(
-            "optimizer",
-            ["adam", "sgd", "adam_weight_decay"],
-            default="adam",
-        )
-        # TODO: add adadelta optimizer when it can optimize embedding layer on GPU.
-        learning_rate = hp.Choice(
-            "learning_rate", [1e-1, 1e-2, 1e-3, 1e-4, 2e-5, 1e-5], default=1e-3
-        )
 
+        # sspark
+        if conf.optimizer == None:
+            # Specify hyperparameters from compile(...)
+            optimizer_name = hp.Choice(
+                "optimizer",
+                ["adam", "sgd", "adam_weight_decay"],
+                default="adam",
+            )
+            # TODO: add adadelta optimizer when it can optimize embedding layer on GPU.
+            learning_rate = hp.Choice( "learning_rate", [1e-1, 1e-2, 1e-3, 1e-4, 2e-5, 1e-5], default=1e-3 )
+        else:
+            optimizer_name = conf.optimizer
+            learning_rate = conf.learning_rate
+
+        # TODO: move, parameterize
+        if conf.num_train_data < 0:
+            num_train_data = 50000
+        else:
+            num_train_data = conf.num_train_data
+        train_steps_per_epoch = num_train_data / conf.batch_size
+        train_epoch = conf.train_epoch
+        lr_schedule_first_decay_step = train_steps_per_epoch * 10  # in iteration
+        step_decay_epoch = conf.step_decay_epoch
+
+        lr_schedule = conf.lr_schedule
+
+        if lr_schedule == 'COS':
+            learning_rate = tf.keras.optimizers.schedules.CosineDecay(learning_rate, train_steps_per_epoch * train_epoch)
+        elif lr_schedule == 'COSR':
+            learning_rate = tf.keras.optimizers.schedules.CosineDecayRestarts(learning_rate, lr_schedule_first_decay_step)
+        elif lr_schedule == 'STEP':
+            learning_rate = lib_snn.optimizers.LRSchedule_step(learning_rate, train_steps_per_epoch * step_decay_epoch, 0.1)
+        elif lr_schedule == 'STEP_WUP':
+            learning_rate = lib_snn.optimizers.LRSchedule_step_wup(learning_rate, train_steps_per_epoch * 100, 0.1,
+                                                                   train_steps_per_epoch * 30)
+        else:
+            pass
+
+        optimizer_name = optimizer_name.lower()
         if optimizer_name == "adam":
             optimizer = keras.optimizers.Adam(learning_rate=learning_rate)
         elif optimizer_name == "sgd":
@@ -106,7 +135,7 @@ class Graph(graph.Graph):
 
     def _compile_keras_model_old(self, hp, model):
         optimizer_name = "adam"
-        # optimizer_name = "sgd"
+        #optimizer_name = "sgd"
 
 
         if optimizer_name == "adam":
