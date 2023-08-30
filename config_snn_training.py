@@ -15,15 +15,17 @@ conf = config.flags
 
 
 #
-#conf.train_epoch = 100
+conf.train_epoch = 120
+conf.step_decay_epoch = 40
 #conf.num_train_data = 10000
+
 
 #conf.nn_mode = 'SNN'
 conf.nn_mode = 'ANN'
 
-conf.optimizer = 'ADAM'
-conf.learning_rate = 0.001
-conf.lr_schedule = None
+#conf.optimizer = 'ADAM'
+#conf.learning_rate = 0.001
+#conf.lr_schedule = None
 
 #conf.n_reset_type = 'reset_by_sub'
 conf.n_reset_type = 'reset_to_zero'

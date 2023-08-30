@@ -328,7 +328,7 @@ flags.DEFINE_integer('train_epoch', 300, 'train epoch')
 flags.DEFINE_integer('step_decay_epoch', 100, 'learning rate schedule - step decy')
 
 #
-flags.DEFINE_enum('optimizer', 'ADAM', ['SGD', 'ADAM'], 'optimizer')
+flags.DEFINE_enum('optimizer', 'SGD', ['SGD', 'ADAM'], 'optimizer')
 
 #
 flags.DEFINE_enum('lr_schedule', 'STEP', ['STEP', 'STEP_WUP', 'COS', 'COSR'], 'learning rate scheduler')
