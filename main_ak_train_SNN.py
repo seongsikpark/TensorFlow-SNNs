@@ -46,7 +46,7 @@ import lib_snn
 
 max_trials = 100
 batch_size = 100
-epoch = 100
+epoch = 1
 learning_rate = 1e-1
 
 
@@ -148,27 +148,27 @@ if Train_mode == "DNN":
     # input_node = tf.keras.layers.Input(shape=input_shape, batch_size=batch_size)
     # output_node = lib_snn.layers.InputGenLayer(name='in')(input_node)
 
-    ''' VGG like model
+    ''' VGG like model'''
     output_node = input_node
-    output_node = ak.ConvBlock(dropout=0, num_blocks=1, num_layers=1, separable=False, max_pooling=False, tunable=True)(output_node)
-    output_node = ak.ConvBlock(dropout=0.5, num_blocks=1, num_layers=1, separable=False, max_pooling=False, tunable=True)(output_node)
-    output_node = ak.ConvBlock(dropout=0.1, num_blocks=1, num_layers=3, separable=False, max_pooling=True, tunable=True)(output_node)
-    output_node = ak.ConvBlock(dropout=0.1, num_blocks=1, num_layers=3, separable=False, max_pooling=False, tunable=True)(output_node)
-    output_node = ak.ConvBlock(dropout=0.1, num_blocks=1, num_layers=1, separable=False, max_pooling=True, tunable=True)(output_node)
-    # output_node = ak.ResNetBlock(pretrained=False, tunable=True)(output_node)
-    output_node = ak.Flatten()(output_node)
-    output_node = ak.DenseBlock(num_units=512, dropout=0.1, num_layers=1, use_batchnorm=True, tunable=True)(output_node)
-    output_node = ak.DenseBlock(num_units=512, dropout=0.5, num_layers=1, use_batchnorm=True, tunable=True)(output_node)
-    output_node = ak.DenseBlock(num_units=num_class, dropout=0, num_layers=1, use_batchnorm=True, tunable=True)(output_node)
-    output_node = ak.ClassificationHead(dropout=0, loss=loss, metrics=metrics, tunable=True)(output_node)
-    '''
-
-    output_node = input_node
-    output_node = akc.ConvBlock(use_batchnorm=True, max_pooling=True, separable=False, tunable=True)(output_node)
+    output_node = akc.ConvBlock(dropout=0.2, num_blocks=1, num_layers=2, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
+    output_node = akc.ConvBlock(dropout=0.2, num_blocks=1, num_layers=2, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
+    output_node = akc.ConvBlock(dropout=0.2, num_blocks=1, num_layers=3, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
+    output_node = akc.ConvBlock(dropout=0.2, num_blocks=1, num_layers=3, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
+    output_node = akc.ConvBlock(dropout=0.2, num_blocks=1, num_layers=3, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
     # output_node = ak.ResNetBlock(pretrained=False, tunable=True)(output_node)
     output_node = akc.Flatten()(output_node)
-    output_node = akc.DenseBlock(use_batchnorm=True, tunable=True)(output_node)
+    output_node = akc.DenseBlock(num_units=512, dropout=0.0, num_layers=1, use_batchnorm=True, tunable=True)(output_node)
+    output_node = akc.DenseBlock(num_units=512, dropout=0.0, num_layers=1, use_batchnorm=True, tunable=True)(output_node)
+    output_node = akc.DenseBlock(num_units=num_class, dropout=0, num_layers=1, use_batchnorm=True, tunable=True)(output_node)
     output_node = akc.ClassificationHead(dropout=0, loss=loss, metrics=metrics, tunable=True)(output_node)
+
+    if False:
+        output_node = input_node
+        output_node = akc.ConvBlock(use_batchnorm=True, max_pooling=True, separable=False, tunable=True)(output_node)
+        # output_node = ak.ResNetBlock(pretrained=False, tunable=True)(output_node)
+        output_node = akc.Flatten()(output_node)
+        output_node = akc.DenseBlock(use_batchnorm=True, tunable=True)(output_node)
+        output_node = akc.ClassificationHead(dropout=0, loss=loss, metrics=metrics, tunable=True)(output_node)
 
 
 # SNN_Mode

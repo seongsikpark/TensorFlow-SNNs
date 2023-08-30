@@ -1,7 +1,17 @@
-
+#import keras_core.src.saving
+#import keras_nlp.src.backend.keras.saving
 import tensorflow as tf
 
+#import keras
+#from keras_nlp.src.backend import keras
+#from tensorflow.keras import utils
+from lib_snn import keras
+
+
 #@tf.function
+#@keras_core.saving.register_keras_serializable(package="LibSNN")
+@keras.saving.register_keras_serializable(package="LibSNN")
+#@utils.register_keras_serializable(package="LibSNN")
 class LRSchedule_step(tf.keras.optimizers.schedules.LearningRateSchedule):
 
     def __init__(self, initial_learning_rate, decay_step, decay_factor):
@@ -35,7 +45,7 @@ class LRSchedule_step(tf.keras.optimizers.schedules.LearningRateSchedule):
         config = {
             'initial_learning_rate': self.initial_learning_rate,
             'decay_step': self.decay_step,
-            'decay_fact-r': self.decay_factor,
+            'decay_factor': self.decay_factor,
         }
 
         return config
