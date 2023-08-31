@@ -82,7 +82,7 @@ class Neuron(tf.keras.layers.Layer):
         #else:
             #leak_const_train=False
         leak_const_train = conf.leak_const_train
-        
+
         #self.leak_const = tf.Variable(self.leak_const_init,trainable=leak_const_train,dtype=tf.float32,shape=self.dim,name='leak_const')
         self.leak_const = tf.Variable(self.leak_const_init,trainable=leak_const_train,dtype=tf.float32,shape=self.dim_wo_batch,name='leak_const')
 
@@ -147,7 +147,10 @@ class Neuron(tf.keras.layers.Layer):
                 tensor_array_name='spike_trace')
 
 
-
+        # spike regularization
+        if conf.reg_spike_out_sc:
+            self.reg_spike_out_a = self.add_weight(shape=[],initializer="ones",trainable=True,name=self.name+'_reg_s_a')
+            #self.reg_spike_out_b = self.add_weight(shape=[],initializer="ones",trainable=True,name=self.name+'_reg_s_b')
 
 
     def build(self, input_shapes):
@@ -320,6 +323,8 @@ class Neuron(tf.keras.layers.Layer):
         #
         #            #self.jit_q = self.add_variable("jit_q",shape=shape,dtype=tf.bool,initializer=tf.constant_initializer(False),trainable=False)
         #            self.jit_q = self.add_variable("jit_q",shape=shape,dtype=tf.int32,initializer=tf.constant_initializer(False),trainable=False)
+
+
 
         self.reset()
 
@@ -638,7 +643,14 @@ class Neuron(tf.keras.layers.Layer):
                     #self.add_loss(conf.reg_spike_out_const * tf.reduce_mean(self.out * self.spike_count / tf.reduce_max(self.spike_count)))
                     sc_norm = tf.math.divide_no_nan(self.spike_count,tf.reduce_max(self.spike_count,axis=reduce_axis,keepdims=True))
                     eps = conf.reg_spike_out_alpha
-                    self.add_loss(conf.reg_spike_out_const*tf.reduce_mean(self.out * (1-sc_norm+eps)))
+                    #self.add_loss(conf.reg_spike_out_const*tf.reduce_mean(self.out * (1-sc_norm+eps)))
+                    #self.add_loss(conf.reg_spike_out_const*tf.reduce_mean(self.out * (1-sc_norm*self.reg_spike_out_a+self.reg_spike_out_b)))
+                    #sc_loss = conf.reg_spike_out_const*tf.reduce_mean(self.out * (self.reg_spike_out_b-sc_norm*self.reg_spike_out_a))
+                    #sc_loss = tf.square(sc_loss)
+                    sc_rate = tf.square(1.0-sc_norm*self.reg_spike_out_a)
+                    sc_loss = conf.reg_spike_out_const*tf.reduce_mean(self.out*sc_rate)
+                    self.add_loss(sc_loss)
+                    #self.add_loss(conf.reg_spike_out_const*tf.reduce_mean(self.out * (self.reg_spike_out_b-sc_norm*self.reg_spike_out_a)))
                     #self.add_loss(conf.reg_spike_o230822ut_const * tf.reduce_mean(self.out * self.spike_count))
 
                     #out_ret = self.reg_spike_out_fn(out_ret)
