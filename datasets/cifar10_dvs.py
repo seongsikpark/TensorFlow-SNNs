@@ -15,6 +15,11 @@ from tonic.download_utils import extract_archive
 from tonic.io import read_aedat4
 
 
+# event-tfds
+import tensorflow_datasets as tfds
+import events_tfds.events.cifar10_dvs
+
+
 class CIFAR10DVS(Dataset):
     """`CIFAR10-DVS <https://www.frontiersin.org/articles/10.3389/fnins.2017.00309/full>`_
     ::
@@ -135,12 +140,17 @@ class CIFAR10DVS(Dataset):
 
 
     def load(self):
-        print('here')
+        #print('here')
+        #transform = tonic.transforms.ToVoxelGrid(self.sensor_size,n_time_bins=10)
+        #event, target = self.__getitem__(0)
+        #frames = transform(event)
 
-        transform = tonic.transforms.ToVoxelGrid(self.sensor_size,n_time_bins=10)
+        train_ds = tfds.load("cifar10_dvs", split="train", as_supervised=True)
 
-        event, target = self.__getitem__(0)
+        for events, labels in train_ds:
+            print(labels)
 
-        frames = transform(event)
+
+
 
         print('here;')
