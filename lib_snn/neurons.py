@@ -642,13 +642,18 @@ class Neuron(tf.keras.layers.Layer):
 
                     #self.add_loss(conf.reg_spike_out_const * tf.reduce_mean(self.out * self.spike_count / tf.reduce_max(self.spike_count)))
                     sc_norm = tf.math.divide_no_nan(self.spike_count,tf.reduce_max(self.spike_count,axis=reduce_axis,keepdims=True))
-                    eps = conf.reg_spike_out_alpha
                     #self.add_loss(conf.reg_spike_out_const*tf.reduce_mean(self.out * (1-sc_norm+eps)))
                     #self.add_loss(conf.reg_spike_out_const*tf.reduce_mean(self.out * (1-sc_norm*self.reg_spike_out_a+self.reg_spike_out_b)))
                     #sc_loss = conf.reg_spike_out_const*tf.reduce_mean(self.out * (self.reg_spike_out_b-sc_norm*self.reg_spike_out_a))
                     #sc_loss = tf.square(sc_loss)
-                    sc_rate = tf.square(1.0-sc_norm*self.reg_spike_out_a)
-                    sc_loss = conf.reg_spike_out_const*tf.reduce_mean(self.out*sc_rate)
+
+                    if conf.reg_spike_out_sc_train:
+                        sc_rate = tf.square(1.0 - sc_norm * self.reg_spike_out_a)
+                        sc_loss = conf.reg_spike_out_const * tf.reduce_mean( self.out * sc_rate)
+                    else:
+                        eps = conf.reg_spike_out_alpha
+                        sc_loss = conf.reg_spike_out_const*tf.reduce_mean(self.out * (1-sc_norm+eps))
+
                     self.add_loss(sc_loss)
                     #self.add_loss(conf.reg_spike_out_const*tf.reduce_mean(self.out * (self.reg_spike_out_b-sc_norm*self.reg_spike_out_a)))
                     #self.add_loss(conf.reg_spike_o230822ut_const * tf.reduce_mean(self.out * self.spike_count))
