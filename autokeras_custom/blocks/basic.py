@@ -320,6 +320,7 @@ class ConvBlock(block_module.Block):
         self.kernel_size = utils.get_hyperparameter(
             kernel_size,
             hyperparameters.Choice("kernel_size", [3, 5, 7], default=3),
+            #hyperparameters.Choice("kernel_size", [3], default=3),
             int,
         )
         self.num_blocks = utils.get_hyperparameter(

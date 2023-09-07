@@ -33,6 +33,9 @@ from keras_tuner.engine import tuner_utils
 import warnings
 import numpy as np
 
+#
+from autokeras_custom.engine import utils as tuner_utils_custom
+
 
 class AutoTuner(keras_tuner.engine.tuner.Tuner):
     """A Tuner class based on KerasTuner for AutoKeras.
@@ -66,6 +69,9 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
         # Save or load the HyperModel.
         self.hypermodel.save(os.path.join(self.project_dir, "graph"))
         self.hyper_pipeline = None
+
+        #
+        self._display = tuner_utils_custom.Display(oracle=self.oracle)
 
     def _populate_initial_space(self):
         # Override the function to prevent building the model during initialization.
@@ -196,7 +202,7 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
         if not utils.contain_instance(callbacks, tf_callbacks.EarlyStopping):
             early_stopping_inserted = True
             new_callbacks.append(
-                tf_callbacks.EarlyStopping(monitor="val_loss", patience=4, min_delta=1e-4, verbose=1)
+                tf_callbacks.EarlyStopping(monitor="val_loss", patience=20, min_delta=1e-4, verbose=1)
             )
 
         # Populate initial search space.
@@ -219,7 +225,8 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
 
             # Decide the number of epochs.
             # sspark
-            epochs_final=200
+            #epochs_final=200
+            epochs_final=120
             #copied_fit_kwargs["epochs"] = epochs
             copied_fit_kwargs["epochs"] = epochs_final
             if not epochs_provided:
@@ -430,6 +437,23 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
 
         return trial
 
+    # sspark
+    # based on keras_tuner.engine.base_tuner.on_trial_end
+    def on_trial_end(self,trial):
+        """Called at the end of a trial.
+
+        Args:
+            trial: A `Trial` instance.
+        """
+        # Send status to Logger
+        if self.logger:
+            self.logger.report_trial_state(trial.trial_id, trial.get_state())
+
+        self.oracle.end_trial(trial.trial_id, trial_module.TrialStatus.COMPLETED)
+        self.oracle.update_space(trial.hyperparameters)
+        # Display needs the updated trial scored by the Oracle.
+        self._display.on_trial_end(self.oracle.get_trial(trial.trial_id))
+        self.save()
 
     def get_state(self):
         state = super().get_state()
@@ -472,6 +496,10 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
         )
 
         model = self._build_best_model()
+
+        # sspark
+        model.summary()
+
         self.adapt(model, kwargs["x"])
         model, history = utils.fit_with_adaptive_batch_size(
             model, self.hypermodel.batch_size, **kwargs
