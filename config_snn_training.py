@@ -9,7 +9,7 @@ import os
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,2"
 #os.environ["CUDA_VISIBLE_DEVICES"]="4,7"
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="2"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3,4,5,6,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,4"
@@ -85,13 +85,13 @@ conf.leak_const_init = 0.9
 
 #
 conf.reg_spike_out=True
-conf.reg_spike_out_const=7E-3
+conf.reg_spike_out_const=5E-3
 conf.reg_spike_out_alpha=0
-conf.reg_spike_out_sc=True
-conf.reg_spike_out_sc_train=False
+#conf.reg_spike_out_sc=True
+#conf.reg_spike_out_sc_train=False
 
 #
-conf.reg_psp=True
+#conf.reg_psp=True
 conf.reg_psp_const=1E-3
 conf.reg_psp_eps=1E-10
 conf.reg_psp_min=False
