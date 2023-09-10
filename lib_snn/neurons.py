@@ -148,7 +148,7 @@ class Neuron(tf.keras.layers.Layer):
 
 
         # spike regularization
-        if conf.reg_spike_out_sc:
+        if conf.reg_spike_out_sc_train:
             self.reg_spike_out_a = self.add_weight(shape=[],initializer="ones",trainable=True,name=self.name+'_reg_s_a')
             #self.reg_spike_out_b = self.add_weight(shape=[],initializer="ones",trainable=True,name=self.name+'_reg_s_b')
 
