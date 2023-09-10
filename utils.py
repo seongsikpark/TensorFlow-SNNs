@@ -1121,15 +1121,27 @@ def set_file_path(batch_size):
         config_name += config_n_reset
 
         # regularization
+        reg_spike_str='_r-'
         if conf.reg_spike_out:
-            config_name += '_r-so-'+str(conf.reg_spike_out_const)
+            if conf.reg_spike_out_sc:
+                if conf.reg_spike_out_sc_train:
+                    reg_spike_str+='sc-t'
+                else:
+                    reg_spike_str+='sc'
+            else:
+                reg_spike_str+='so'
+
+            config_name += reg_spike_str+'-'+str(conf.reg_spike_out_const)+'_'+str(conf.reg_spike_out_alpha)
+            #config_name += '_r-so-'+str(conf.reg_spike_out_const)+'_'+str(conf.reg_spike_out_alpha)
 
         if conf.reg_psp:
-            config_name += '_r-psp-'+str(conf.reg_psp_const)
+            if conf.reg_psp_min:
+                config_name += '_r-psp-mi-'+str(conf.reg_psp_const)+'_'+str(conf.reg_psp_eps)
+            else:
+                config_name += '_r-psp-ma-'+str(conf.reg_psp_const)+'_'+str(conf.reg_psp_eps)
 
         if conf.en_stdp_pathway:
             config_name += '_sp-'+str(conf.stdp_pathway_weight)
-
 
     #
     # TODO: configuration & file naming
