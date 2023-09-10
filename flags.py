@@ -760,16 +760,16 @@ flags.DEFINE_bool('fine_tune_quant',False,'fine tuning - quantization')
 
 # regularization - spike
 flags.DEFINE_bool('reg_spike_out',False,'regularization - spike output in neuron')
-flags.DEFINE_float('reg_spike_out_const',1E-3,'regularization - spike count const')
-flags.DEFINE_float('reg_spike_out_alpha',1E-3,'regularization - spike count alpha')
-flags.DEFINE_bool('reg_spike_out_sc',True,'regularization - spike out * spike_count (norm)')
-flags.DEFINE_bool('reg_spike_out_sc_train',True,'regularization - spike out * spike_count (norm), coefficient train')
+flags.DEFINE_float('reg_spike_out_const',7E-3,'regularization - spike count const')
+flags.DEFINE_float('reg_spike_out_alpha',0,'regularization - spike count alpha')
+flags.DEFINE_bool('reg_spike_out_sc',False,'regularization - spike out * spike_count (norm)')
+flags.DEFINE_bool('reg_spike_out_sc_train',False,'regularization - spike out * spike_count (norm), coefficient train')
 
 # regularization - postsynaptic potential (PSP)
 flags.DEFINE_bool('reg_psp',False,'regularization - psp - entropy')
-flags.DEFINE_float('reg_psp_const',1E-2,'regularization - psp - entropy')
-flags.DEFINE_float('reg_psp_eps',1E-2,'regularization - psp - entropy - epsilon in backward')
-flags.DEFINE_bool('reg_psp_min',True,'regularization - psp - entropy min / max')
+flags.DEFINE_float('reg_psp_const',1E-3,'regularization - psp - entropy')
+flags.DEFINE_float('reg_psp_eps',1E-10,'regularization - psp - entropy - epsilon in backward')
+flags.DEFINE_bool('reg_psp_min',False,'regularization - psp - entropy min / max')
 
 
 # stdp - pathway
