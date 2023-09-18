@@ -118,7 +118,7 @@ def VGG16(
         norm_c1 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn_first_layer,name='bn_conv1')(syn_c1)
     else:
         norm_c1 = syn_c1
-    a_c1 = lib_snn.activations.Activation(act_type=act_type,name='n_conv1')(syn_c1)
+    a_c1 = lib_snn.activations.Activation(act_type=act_type,name='n_conv1')(norm_c1)
     a_d_c1 = tf.keras.layers.Dropout(dropout_conv_r[0], name='conv1_do')(a_c1)
     #x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv1_1')(x)
     syn_c1_1 = lib_snn.layers.Conv2D(channels, 3, padding='SAME', kernel_initializer=k_init, name='conv1_1')(a_d_c1)
