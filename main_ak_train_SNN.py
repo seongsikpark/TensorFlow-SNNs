@@ -55,7 +55,7 @@ import lib_snn
 max_trials = 100
 max_trials = 1
 batch_size = 100
-epoch = 120
+epoch = conf.train_epoch
 #epoch = 1
 learning_rate = 1e-1
 
