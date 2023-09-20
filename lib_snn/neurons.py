@@ -640,19 +640,33 @@ class Neuron(tf.keras.layers.Layer):
                     n_dim = len(self.dim)
                     reduce_axis= [i for i in range(1,n_dim)]
 
-                    #self.add_loss(conf.reg_spike_out_const * tf.reduce_mean(self.out * self.spike_count / tf.reduce_max(self.spike_count)))
-                    sc_norm = tf.math.divide_no_nan(self.spike_count,tf.reduce_max(self.spike_count,axis=reduce_axis,keepdims=True))
-                    #self.add_loss(conf.reg_spike_out_const*tf.reduce_mean(self.out * (1-sc_norm+eps)))
-                    #self.add_loss(conf.reg_spike_out_const*tf.reduce_mean(self.out * (1-sc_norm*self.reg_spike_out_a+self.reg_spike_out_b)))
-                    #sc_loss = conf.reg_spike_out_const*tf.reduce_mean(self.out * (self.reg_spike_out_b-sc_norm*self.reg_spike_out_a))
-                    #sc_loss = tf.square(sc_loss)
-
-                    if conf.reg_spike_out_sc_train:
-                        sc_rate = tf.square(1.0 - sc_norm * self.reg_spike_out_a)
-                        sc_loss = conf.reg_spike_out_const * tf.reduce_mean( self.out * sc_rate)
+                    sc_norm_sm = True
+                    if sc_norm_sm:
+                        if conf.reg_spike_out_sc_train:
+                            sc = tf.math.divide_no_nan(self.spike_count,self.reg_spike_out_a) # temperature
+                        else:
+                            sc = self.spike_count
+                        #print(sc)
+                        sc_norm = tf.keras.layers.Softmax(axis=reduce_axis)(sc)
+                        #sc_norm = tf.nn.softmax(sc,axis=reduce_axis)
+                        #print(sc_norm)
+                        sc_rate = tf.square(1.0 - sc_norm)
                     else:
-                        eps = conf.reg_spike_out_alpha
-                        sc_loss = conf.reg_spike_out_const*tf.reduce_mean(self.out * (1-sc_norm+eps))
+                        #self.add_loss(conf.reg_spike_out_const * tf.reduce_mean(self.out * self.spike_count / tf.reduce_max(self.spike_count)))
+                        sc_norm = tf.math.divide_no_nan(self.spike_count,tf.reduce_max(self.spike_count,axis=reduce_axis,keepdims=True))
+                        #self.add_loss(conf.reg_spike_out_const*tf.reduce_mean(self.out * (1-sc_norm+eps)))
+                        #self.add_loss(conf.reg_spike_out_const*tf.reduce_mean(self.out * (1-sc_norm*self.reg_spike_out_a+self.reg_spike_out_b)))
+                        #sc_loss = conf.reg_spike_out_const*tf.reduce_mean(self.out * (self.reg_spike_out_b-sc_norm*self.reg_spike_out_a))
+                        #sc_loss = tf.square(sc_loss)
+
+                        if conf.reg_spike_out_sc_train:
+                            sc_rate = tf.square(1.0 - sc_norm * self.reg_spike_out_a)
+                        else:
+                            eps = conf.reg_spike_out_alpha
+                            sc_rate = (1-sc_norm+eps)
+
+                    #
+                    sc_loss = conf.reg_spike_out_const*tf.reduce_mean(self.out * sc_rate)
 
                     self.add_loss(sc_loss)
                     #self.add_loss(conf.reg_spike_out_const*tf.reduce_mean(self.out * (self.reg_spike_out_b-sc_norm*self.reg_spike_out_a)))
