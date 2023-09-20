@@ -36,6 +36,10 @@ import numpy as np
 #
 from autokeras_custom.engine import utils as tuner_utils_custom
 
+#
+from absl import flags
+conf = flags.FLAGS
+
 
 class AutoTuner(keras_tuner.engine.tuner.Tuner):
     """A Tuner class based on KerasTuner for AutoKeras.
@@ -226,7 +230,8 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
             # Decide the number of epochs.
             # sspark
             #epochs_final=200
-            epochs_final=120
+            #epochs_final=120
+            epochs_final = conf.train_epoch
             #copied_fit_kwargs["epochs"] = epochs
             copied_fit_kwargs["epochs"] = epochs_final
             if not epochs_provided:
