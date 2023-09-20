@@ -2,6 +2,7 @@ import collections
 import os
 import shutil
 
+import keras.callbacks
 import tensorflow as tf
 
 from tensorflow.python.keras.utils.io_utils import path_to_string
@@ -269,6 +270,16 @@ class SNNLIB(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         lib_snn.proc.postproc_epoch_train(self,epoch,logs)
 
+
+class LearningRateTracker(keras.callbacks.Callback):
+    def on_epoch_end(self, epoch, logs=None):
+        optimizer = self.model.optimizer
+        _lr = tf.keras.backend.get_value(optimizer.lr)
+        print('')
+        #print(epoch+1)
+        #print(_lr)
+        #print(_lr.learning_rate)
+        print('Epoch: {:} - Learning rate: {:.3f}'.format(epoch+1, _lr))
 
 #
 class DNNtoSNN(tf.keras.callbacks.Callback):

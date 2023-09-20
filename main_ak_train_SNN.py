@@ -41,10 +41,19 @@ from autokeras import keras_layers
 # import config
 import keras_tuner
 
+
+
+from absl import flags
+conf = flags.FLAGS
+
+
+from keras_tuner.engine import hyperparameters
+
 #
 import lib_snn
 
 max_trials = 100
+max_trials = 1
 batch_size = 100
 epoch = 120
 #epoch = 1
@@ -53,7 +62,7 @@ learning_rate = 1e-1
 
 #
 #max_model_size=1.5E6
-max_model_size=1.0E6
+max_model_size=1.0E7
 
 #
 #model_path = "am/m-1.5e6_t-100_e-10"
@@ -126,17 +135,42 @@ callbacks = [ModelCheckpoint(filepath=model_path, monitor='val_acc', verbose=1, 
              #tf.keras.callbacks.TensorBoard(log_dir=model_path, write_graph=True, histogram_freq=1), # foldername: 0,1,2 ~~
              #MaxMetric(metrics=['acc'])
              ]
+#callbacks.callbacks_snn_train(model,train_ds_num,valid_ds,test_ds_num)
+
+# TODO: move
+def scheduler(epoch, lr):
+
+    initial_learning_rate = conf.learning_rate
+    decay_step = conf.step_decay_epoch
+    decay_factor = 0.1
+
+    factor_n = tf.cast(tf.math.floordiv(epoch,decay_step),tf.float32)
+    factor = tf.math.pow(decay_factor,factor_n)
+    learning_rate = initial_learning_rate*factor
+
+    return learning_rate
+
+
+callback_lr_schedule = tf.keras.callbacks.LearningRateScheduler(scheduler, verbose=0)
+#callback_lr_tracker = lib_snn.callbacks.LearningRateTracker()
+
+#callbacks.append(callback_lr_schedule)
+#callbacks.append(callback_lr_tracker)
 
 acc = tf.keras.metrics.categorical_accuracy
 acc_top5 = tf.keras.metrics.top_k_categorical_accuracy
 acc.name = 'acc'
 acc_top5.name = 'acc-5'
+#metrics = [acc, acc_top5]
 metrics = [acc, acc_top5]
 
 loss = tf.keras.losses.CategoricalCrossentropy()
 
 #tuner = 'random'
 tuner = 'bayesian'
+
+
+filters = hyperparameters.Choice("filters", [64, 128, 256, 512], default=128)
 
 Train_mode = "DNN"
 #Train_mode = "SNN"
@@ -154,15 +188,15 @@ if Train_mode == "DNN":
     ''' VGG like model'''
     output_node = input_node
     output_node = akc.ConvBlock(dropout=0.2, filters=64, kernel_size=kernel_size, num_blocks=1, num_layers=2, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
-    output_node = akc.ConvBlock(dropout=0.2, kernel_size=kernel_size, num_blocks=1, num_layers=2, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
-    output_node = akc.ConvBlock(dropout=0.2, kernel_size=kernel_size, num_blocks=1, num_layers=3, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
-    output_node = akc.ConvBlock(dropout=0.2, kernel_size=kernel_size, num_blocks=1, num_layers=3, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
+    output_node = akc.ConvBlock(dropout=0.2, filters=128, kernel_size=kernel_size, num_blocks=1, num_layers=2, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
+    output_node = akc.ConvBlock(dropout=0.2, filters=256,  kernel_size=kernel_size, num_blocks=1, num_layers=3, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
+    output_node = akc.ConvBlock(dropout=0.2, filters=512, kernel_size=kernel_size, num_blocks=1, num_layers=3, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
     #output_node = akc.ConvBlock(dropout=0.2, num_blocks=1, num_layers=3, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
     # output_node = ak.ResNetBlock(pretrained=False, tunable=True)(output_node)
     output_node = akc.Flatten()(output_node)
     output_node = akc.DenseBlock(num_units=512, dropout=0.0, num_layers=1, use_batchnorm=True, tunable=True)(output_node)
     output_node = akc.DenseBlock(num_units=512, dropout=0.0, num_layers=1, use_batchnorm=True, tunable=True)(output_node)
-    output_node = akc.DenseBlock(num_units=num_class, dropout=0, num_layers=1, use_batchnorm=True, tunable=True)(output_node)
+    #output_node = akc.DenseBlock(num_units=num_class, dropout=0, num_layers=1, use_batchnorm=True, tunable=True)(output_node)
     output_node = akc.ClassificationHead(dropout=0, loss=loss, metrics=metrics, tunable=True)(output_node)
 
     if False:

@@ -80,6 +80,7 @@ class Graph(graph.Graph):
         lr_schedule_first_decay_step = train_steps_per_epoch * 10  # in iteration
         step_decay_epoch = conf.step_decay_epoch
 
+        # lr scheduling moves to callback
         lr_schedule = conf.lr_schedule
 
         if lr_schedule == 'COS':
@@ -98,7 +99,7 @@ class Graph(graph.Graph):
         if optimizer_name == "adam":
             optimizer = keras.optimizers.Adam(learning_rate=learning_rate)
         elif optimizer_name == "sgd":
-            optimizer = keras.optimizers.SGD(learning_rate=learning_rate)
+            optimizer = keras.optimizers.SGD(learning_rate=learning_rate, momentum=0.9, name='SGD')
         elif optimizer_name == "adam_weight_decay":
             steps_per_epoch = int(self.num_samples / self.batch_size)
             num_train_steps = steps_per_epoch * self.epochs
