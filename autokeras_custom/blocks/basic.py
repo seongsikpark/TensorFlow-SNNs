@@ -413,16 +413,24 @@ class ConvBlock(block_module.Block):
                     output_node = conv(
                         filters,
                         kernel_size,
-                        padding=self._get_padding(kernel_size, output_node),
+                        # sspark
+                        #padding=self._get_padding(kernel_size, output_node),
+                        padding='same',
                         activation="relu",
                     )(output_node)
                     if use_batchnorm:
                         output_node = layers.BatchNormalization()(output_node)
                     output_node = layers.ReLU()(output_node)
+                    if j < self.num_layers-1:
+                        if utils.add_to_hp(self.dropout, hp) > 0:
+                            output_node = layers.Dropout(utils.add_to_hp(self.dropout, hp))(output_node)
+
                 if max_pooling:
                     output_node = pool(
                         kernel_size - 1,
-                        padding=self._get_padding(kernel_size - 1, output_node),
+                        # sspark
+                        #padding=self._get_padding(kernel_size - 1, output_node),
+                        padding='valid',
                     )(output_node)
             else:
                 for j in range(utils.add_to_hp(self.num_layers, hp)):
@@ -449,10 +457,6 @@ class ConvBlock(block_module.Block):
                     #                                     kernel_size - 1,
                     #                                     padding=self._get_padding(kernel_size - 1, output_node)
                     #         )(output_node)
-            if utils.add_to_hp(self.dropout, hp) > 0:
-                output_node = layers.Dropout(utils.add_to_hp(self.dropout, hp))(
-                    output_node
-                )
         return output_node
 
     @staticmethod

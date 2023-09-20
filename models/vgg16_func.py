@@ -374,7 +374,6 @@ def VGG16(
         #x = lib_snn.layers.AveragePooling2D((2, 2), (2, 2), name='conv5_p') (x)
         a_p_c5_2 = pool((2, 2), (2, 2), name='conv5_p') (a_c5_2)
 
-
         #
         a_p_c5_2_f = tf.keras.layers.Flatten(data_format=data_format)(a_p_c5_2)
         a_d_c5_2_f = tf.keras.layers.Dropout(dropout_conv_r[2], name='flatten_do')(a_p_c5_2_f)

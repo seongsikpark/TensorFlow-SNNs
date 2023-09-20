@@ -22,6 +22,7 @@ class LRSchedule_step(tf.keras.optimizers.schedules.LearningRateSchedule):
         #self.laeraning_rate = tf.constant(self.initial_learning_rate)
         self.decay_step = decay_step
         self.decay_factor = decay_factor
+        self.learning_rate = initial_learning_rate
 
     def __call__(self,step):
 
@@ -32,11 +33,13 @@ class LRSchedule_step(tf.keras.optimizers.schedules.LearningRateSchedule):
 
         factor = tf.math.pow(self.decay_factor,factor_n)
         #factor = tf.where(cond,tf.math.pow(self.decay_factor,factor_n),1.0)
-        learning_rate = self.initial_learning_rate*factor
+        self.learning_rate = self.initial_learning_rate*factor
+        learning_rate = self.learning_rate
 
         #print(step)
         #print(factor_n)
         #print(factor)
+        #print(learning_rate)
 
         return learning_rate
 
