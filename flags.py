@@ -764,6 +764,7 @@ flags.DEFINE_float('reg_spike_out_const',7E-3,'regularization - spike count cons
 flags.DEFINE_float('reg_spike_out_alpha',0,'regularization - spike count alpha')
 flags.DEFINE_bool('reg_spike_out_sc',False,'regularization - spike out * spike_count (norm)')
 flags.DEFINE_bool('reg_spike_out_sc_train',False,'regularization - spike out * spike_count (norm), coefficient train')
+flags.DEFINE_bool('reg_spike_out_sc_sm',False,'regularization - spike out * spike_count (norm), softmax normalization')
 
 # regularization - postsynaptic potential (PSP)
 flags.DEFINE_bool('reg_psp',False,'regularization - psp - entropy')
