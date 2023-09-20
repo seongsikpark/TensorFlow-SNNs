@@ -41,7 +41,7 @@ from autokeras import keras_layers
 # import config
 import keras_tuner
 
-
+import callbacks
 
 from absl import flags
 conf = flags.FLAGS
@@ -128,14 +128,17 @@ lr_reducer = ReduceLROnPlateau(factor=0.1,
                                monitor='val_acc')
 '''
 
+
+#callbacks = [ModelCheckpoint(filepath=model_path, monitor='val_acc', verbose=1, save_weights_only=True, save_best_only=True), ]
+
+
 #callbacks = [tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=3, verbose=1),
-callbacks = [ModelCheckpoint(filepath=model_path, monitor='val_acc', verbose=1, save_weights_only=True, save_best_only=True),
              #lr_reducer,
              #lr_scheduler,
              #tf.keras.callbacks.TensorBoard(log_dir=model_path, write_graph=True, histogram_freq=1), # foldername: 0,1,2 ~~
              #MaxMetric(metrics=['acc'])
-             ]
 #callbacks.callbacks_snn_train(model,train_ds_num,valid_ds,test_ds_num)
+
 
 # TODO: move
 def scheduler(epoch, lr):
@@ -229,6 +232,33 @@ clf = akc.auto_model.AutoModel(inputs=input_node, outputs=output_node, overwrite
 #clf = ak.auto_model.AutoModel(inputs=input_node, outputs=output_node, overwrite=True,
                                tuner=tuner, max_trials=max_trials, project_name=model_path, objective='val_acc', max_model_size_new=max_model_size)
 
+
+#
+monitor_cri = config.monitor_cri
+filepath_save = config.filepath_save
+path_tensorboard = config.path_tensorboard
+
+best=0.0
+
+# model checkpoint save and resume
+cb_model_checkpoint = lib_snn.callbacks.ModelCheckpointResume(
+    filepath=filepath_save + '/ep-{epoch:04d}.hdf5',
+    save_weight_only=True,
+    save_best_only=True,
+    monitor=monitor_cri,
+    verbose=1,
+    best=best,
+    log_dir=path_tensorboard,
+    # tensorboard_writer=cb_tensorboard._writers['train']
+)
+
+#callbacks_train, callbacks_test = callbacks.callbacks_snn_train(model,train_ds_num,valid_ds,test_ds_num)
+#callbacks = callbacks_train
+callbacks=[]
+callbacks.append(cb_model_checkpoint)
+
+
+#
 clf.tuner.metrics = metrics
 clf.tuner.loss = loss
 # clf.tuner.optimizer = optimizer
