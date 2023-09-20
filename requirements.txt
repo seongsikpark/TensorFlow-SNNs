@@ -29,7 +29,6 @@ distro-info===0.18ubuntu0.18.04.1
 dm-tree==0.1.6
 et-xmlfile==1.0.1
 etils==0.6.0
-events-tfds @ file:///home/sspark/Projects/02_SNN_training/events-tfds
 expelliarmus==1.1.12
 flatbuffers==1.12
 fonttools==4.33.3
