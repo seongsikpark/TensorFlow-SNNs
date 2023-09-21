@@ -337,14 +337,16 @@ class ConvBlock(block_module.Block):
             filters,
             hyperparameters.Choice(
                 "filters", [16, 32, 64, 128, 256, 512], default=32
-        ),
+                #"filters", [64, 128, 256, 512], default=128
+            ),
             int,
         )
         self.max_pooling = max_pooling
         self.separable = separable
         self.dropout = utils.get_hyperparameter(
             dropout,
-            hyperparameters.Choice("dropout", [0.0, 0.25, 0.5], default=0.0),
+            #hyperparameters.Choice("dropout", [0.0, 0.25, 0.5], default=0.0),
+            hyperparameters.Choice("dropout", [0.0, 0.25, 0.5], default=0.5),
             float,
         )
 

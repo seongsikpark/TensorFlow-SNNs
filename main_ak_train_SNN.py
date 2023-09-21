@@ -53,7 +53,6 @@ from keras_tuner.engine import hyperparameters
 import lib_snn
 
 max_trials = 100
-max_trials = 1
 batch_size = 100
 epoch = conf.train_epoch
 #epoch = 1
@@ -205,10 +204,10 @@ if Train_mode == "DNN":
 
     output_node = input_node
     output_node = akc.ConvBlock(dropout=0.2, filters=64, kernel_size=kernel_size, num_blocks=1, num_layers=2, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
-    output_node = akc.ConvBlock(dropout=0.2, filters=128, kernel_size=kernel_size, num_blocks=1, num_layers=2, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
-    output_node = akc.ConvBlock(dropout=0.2, filters=256,  kernel_size=kernel_size, num_blocks=1, num_layers=3, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
-    output_node = akc.ConvBlock(dropout=0.2, filters=512, kernel_size=kernel_size, num_blocks=1, num_layers=3, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
-    output_node = akc.ConvBlock(dropout=0.2, filters=512, kernel_size=kernel_size, num_blocks=1, num_layers=3, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
+    output_node = akc.ConvBlock(dropout=0.2, filters=filters, kernel_size=kernel_size, num_blocks=1, num_layers=2, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
+    output_node = akc.ConvBlock(dropout=0.2, filters=filters,  kernel_size=kernel_size, num_blocks=1, num_layers=3, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
+    output_node = akc.ConvBlock(dropout=0.2, filters=filters, kernel_size=kernel_size, num_blocks=1, num_layers=3, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
+    output_node = akc.ConvBlock(dropout=0.2, filters=filters, kernel_size=kernel_size, num_blocks=1, num_layers=3, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
     # output_node = ak.ResNetBlock(pretrained=False, tunable=True)(output_node)
     output_node = akc.Flatten()(output_node)
     output_node = akc.DenseBlock(num_units=512, dropout=0.0, num_layers=1, use_batchnorm=True, tunable=True)(output_node)
