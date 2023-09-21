@@ -63,7 +63,8 @@ class Input(node_module.Node, io_hypermodel.IOHyperModel):
     # Ryu
     def build_node(self, hp, batch_size: Optional[int] = 100):
         # return keras.Input(shape=self.shape, dtype=self.dtype)
-        input = keras.Input(shape=self.shape, batch_size=batch_size, dtype=self.dtype)
+        #input = keras.Input(shape=self.shape, batch_size=batch_size, dtype=self.dtype)
+        input = tf.keras.layers.Input(shape=self.shape, batch_size=batch_size)
         # input = lib_snn.layers.InputGenLayer(name='in')(input)
         if conf.flags.nn_mode == 'SNN':
             input = lib_snn.layers.InputGenLayer(name='in')(input)

@@ -205,8 +205,9 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
         new_callbacks = self._deepcopy_callbacks(callbacks)
         if not utils.contain_instance(callbacks, tf_callbacks.EarlyStopping):
             early_stopping_inserted = True
+            # TODO
             new_callbacks.append(
-                tf_callbacks.EarlyStopping(monitor="val_loss", patience=20, min_delta=1e-4, verbose=1)
+                tf_callbacks.EarlyStopping(monitor="val_loss", patience=conf.step_decay_epoch*0.8, min_delta=1e-4, verbose=1)
             )
 
         # Populate initial search space.
