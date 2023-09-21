@@ -166,7 +166,8 @@ class Graph(graph.Graph):
 
         # eager_mode=True
         # eager_mode = config.eager_mode
-        eager_mode = False
+        #eager_mode = False
+        eager_mode = conf.debug_mode
 
 
         # sspark

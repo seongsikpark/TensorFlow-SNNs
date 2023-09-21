@@ -416,7 +416,7 @@ class ConvBlock(block_module.Block):
                         # sspark
                         #padding=self._get_padding(kernel_size, output_node),
                         padding='same',
-                        activation="relu",
+                        #activation="relu",
                     )(output_node)
                     if use_batchnorm:
                         output_node = layers.BatchNormalization()(output_node)
@@ -427,7 +427,8 @@ class ConvBlock(block_module.Block):
 
                 if max_pooling:
                     output_node = pool(
-                        kernel_size - 1,
+                        #kernel_size - 1,
+                        (2,2), (2,2),
                         # sspark
                         #padding=self._get_padding(kernel_size - 1, output_node),
                         padding='valid',
