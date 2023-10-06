@@ -64,7 +64,7 @@ RESNET_V2 = {
     "resnet101_v2": applications.ResNet101V2,
     "resnet152_v2": applications.ResNet152V2,
 }
-# 
+#
 # RESNET_Custom = {
 #     "resnet56_v2": applications.ResNet56V2,
 # }
@@ -386,7 +386,8 @@ class ConvBlock(block_module.Block):
         input_node = inputs[0]
         output_node = input_node
 
-        kernel_size = utils.add_to_hp(self.kernel_size, hp)
+        # sspark
+        #kernel_size = utils.add_to_hp(self.kernel_size, hp)
 
         separable = self.separable
         if separable is None:
@@ -410,7 +411,11 @@ class ConvBlock(block_module.Block):
         for i in range(utils.add_to_hp(self.num_blocks, hp)):
             # Ryu, check DNN/SNN
             if conf.nn_mode == 'ANN':
-                for j in range(utils.add_to_hp(self.num_layers, hp)):
+                num_layers=utils.add_to_hp(self.num_layers, hp)
+                for j in range(num_layers):
+                    # sspark
+                    kernel_size = utils.add_to_hp(self.kernel_size, hp, "kernel_size_{i}_{j}".format(i=i,j=j))
+
                     filters = utils.add_to_hp(self.filters, hp, "filters_{i}_{j}".format(i=i, j=j))
                     output_node = conv(
                         filters,
@@ -423,7 +428,7 @@ class ConvBlock(block_module.Block):
                     if use_batchnorm:
                         output_node = layers.BatchNormalization()(output_node)
                     output_node = layers.ReLU()(output_node)
-                    if j < self.num_layers-1:
+                    if j < num_layers-1:
                         if utils.add_to_hp(self.dropout, hp) > 0:
                             output_node = layers.Dropout(utils.add_to_hp(self.dropout, hp))(output_node)
 
@@ -1076,25 +1081,25 @@ class BertBlock(block_module.Block):
 
 
 
-# 
-# 
+#
+#
 # class UseCustomResNet56(block_module.Block):
 #     """Blocks extending Keras applications."""
-# 
+#
 #     def __init__(self, pretrained, models, min_size, **kwargs):
 #         super().__init__(**kwargs)
 #         self.pretrained = pretrained
 #         self.models = models
 #         self.min_size = min_size
-# 
+#
 #     def get_config(self):
 #         config = super().get_config()
 #         config.update({"pretrained": self.pretrained})
 #         return config
-# 
+#
 #     def build(self, hp, inputs=None):
 #         input_node = nest.flatten(inputs)[0]
-# 
+#
 #         pretrained = self.pretrained
 #         if input_node.shape[3] not in [1, 3]:
 #             if self.pretrained:
@@ -1111,12 +1116,12 @@ class BertBlock(block_module.Block):
 #                     trainable = hp.Boolean("trainable", default=False)
 #         elif pretrained:
 #             trainable = hp.Boolean("trainable", default=False)
-# 
+#
 #         if len(self.models) > 1:
 #             version = hp.Choice("version", list(self.models.keys()))
 #         else:
 #             version = list(self.models.keys())[0]
-# 
+#
 #         min_size = self.min_size
 #         if hp.Boolean("imagenet_size", default=False):
 #             min_size = 64
@@ -1131,7 +1136,7 @@ class BertBlock(block_module.Block):
 #             input_node = layers.Conv2D(filters=3, kernel_size=1, padding="same")(
 #                 input_node
 #             )
-# 
+#
 #         if pretrained:
 #             model = self.models[version](weights="imagenet", include_top=False)
 #             model.trainable = trainable
@@ -1139,20 +1144,20 @@ class BertBlock(block_module.Block):
 #             model = self.models[version](
 #                 weights=None, include_top=False, input_shape=input_node.shape[1:]
 #             )
-# 
+#
 #         return model(input_node)
-# 
-# 
+#
+#
 # class ResNetBlockCustom(UseCustomResNet56):
 #     """Block for ResNet.
-# 
+#
 #     # Arguments
 #         version: String. 'v1', 'v2'. The type of ResNet to use.
 #             If left unspecified, it will be tuned automatically.
 #         pretrained: Boolean. Whether to use ImageNet pretrained weights.
 #             If left unspecified, it will be tuned automatically.
 #     """
-# 
+#
 #     def __init__(
 #             self,
 #             version: Optional[str] = None,
@@ -1172,7 +1177,7 @@ class BertBlock(block_module.Block):
 #             )
 #         super().__init__(pretrained=pretrained, models=models, min_size=32, **kwargs)
 #         self.version = version
-# 
+#
 #     def get_config(self):
 #         config = super().get_config()
 #         config.update({"version": self.version})
