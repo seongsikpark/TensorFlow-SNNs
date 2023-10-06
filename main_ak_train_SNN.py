@@ -65,7 +65,8 @@ max_model_size=1.0E7
 
 #
 #model_path = "am/m-1.5e6_t-100_e-10"
-model_path = "am/test"
+#model_path = "am/test"
+model_path = "am/231006_0_Bay_VGG"
 
 
 train_ds, valid_ds, test_ds, train_ds_num, valid_ds_num, test_ds_num, num_class, train_steps_per_epoch = datasets.load()
@@ -171,8 +172,10 @@ loss = tf.keras.losses.CategoricalCrossentropy()
 #tuner = 'random'
 tuner = 'bayesian'
 
-
 filters = hyperparameters.Choice("filters", [64, 128, 256, 512], default=128)
+#filters = [64, 128, 256, 512, 512]
+kernel_size= hyperparameters.Choice("kernel_size", [3,5,7], default=3)
+num_layers= hyperparameters.Choice("num_layers", [1,2,3,4,5], default=2)
 
 Train_mode = "DNN"
 #Train_mode = "SNN"
@@ -185,7 +188,6 @@ if Train_mode == "DNN":
     # input_shape = (32,32,3)
     # input_node = tf.keras.layers.Input(shape=input_shape, batch_size=batch_size)
     # output_node = lib_snn.layers.InputGenLayer(name='in')(input_node)
-    kernel_size=3
 
     ''' VGG16 model'''
     if False:
@@ -203,11 +205,11 @@ if Train_mode == "DNN":
         output_node = akc.ClassificationHead(dropout=0, loss=loss, metrics=metrics, tunable=True)(output_node)
 
     output_node = input_node
-    output_node = akc.ConvBlock(dropout=0.2, filters=64, kernel_size=kernel_size, num_blocks=1, num_layers=2, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
-    output_node = akc.ConvBlock(dropout=0.2, filters=filters, kernel_size=kernel_size, num_blocks=1, num_layers=2, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
-    output_node = akc.ConvBlock(dropout=0.2, filters=filters,  kernel_size=kernel_size, num_blocks=1, num_layers=3, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
-    output_node = akc.ConvBlock(dropout=0.2, filters=filters, kernel_size=kernel_size, num_blocks=1, num_layers=3, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
-    output_node = akc.ConvBlock(dropout=0.2, filters=filters, kernel_size=kernel_size, num_blocks=1, num_layers=3, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
+    output_node = akc.ConvBlock(dropout=0.2, filters=filters, kernel_size=kernel_size, num_blocks=1, num_layers=num_layers, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
+    output_node = akc.ConvBlock(dropout=0.2, filters=filters, kernel_size=kernel_size, num_blocks=1, num_layers=num_layers, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
+    output_node = akc.ConvBlock(dropout=0.2, filters=filters,  kernel_size=kernel_size, num_blocks=1, num_layers=num_layers, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
+    output_node = akc.ConvBlock(dropout=0.2, filters=filters, kernel_size=kernel_size, num_blocks=1, num_layers=num_layers, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
+    #output_node = akc.ConvBlock(dropout=0.2, filters=filters[4], kernel_size=kernel_size, num_blocks=1, num_layers=3, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
     # output_node = ak.ResNetBlock(pretrained=False, tunable=True)(output_node)
     output_node = akc.Flatten()(output_node)
     output_node = akc.DenseBlock(num_units=512, dropout=0.0, num_layers=1, use_batchnorm=True, tunable=True)(output_node)
@@ -243,7 +245,7 @@ if Train_mode == "SNN":
     output_node = akc.ClassificationHead(dropout=0, loss=loss, metrics=metrics, tunable=True)(output_node)
 
 
-clf = akc.auto_model.AutoModel(inputs=input_node, outputs=output_node, overwrite=True,
+clf = akc.auto_model.AutoModel(inputs=input_node, outputs=output_node, overwrite=False,
 #clf = ak.auto_model.AutoModel(inputs=input_node, outputs=output_node, overwrite=True,
                                tuner=tuner, max_trials=max_trials, project_name=model_path, objective='val_acc', max_model_size_new=max_model_size)
 
