@@ -4,13 +4,20 @@ import numpy as np
 import os
 import tensorflow_datasets as tfds
 
+
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
+
 from datasets.augmentation_cifar import resize_with_crop
 from datasets.augmentation_cifar import resize_with_crop_aug
 from datasets.augmentation_cifar import mixup
 from datasets.augmentation_cifar import cutmix
 
 
+
+
 from config import config
+
 
 
 def load(dataset_name,batch_size,input_size,input_size_pre_crop_ratio,num_class,

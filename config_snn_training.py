@@ -9,10 +9,11 @@ import os
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,2"
 #os.environ["CUDA_VISIBLE_DEVICES"]="4,7"
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+#os.environ["CUDA_VISIBLE_DEVICES"]="0"
+#os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3,4,5,6,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
-#os.environ["CUDA_VISIBLE_DEVICES"]="0,4"
+os.environ["CUDA_VISIBLE_DEVICES"]="0,1"
 #os.environ["CUDA_VISIBLE_DEVICES"]="2,3,4,5,6,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="2,3,6,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="4,5,6,7"
@@ -31,7 +32,7 @@ conf = config.flags
 #conf.mode='inference'
 ##conf.batch_size_inf=100
 #conf.batch_size=400
-#conf.batch_size=200
+conf.batch_size=200
 #conf.batch_size=300
 #conf.batch_size=180
 #conf.batch_size=120
@@ -40,11 +41,12 @@ conf = config.flags
 
 
 #
-#conf.learning_rate = 0.01
+#conf.learning_rate = 0.1
+#conf.lmb = 1.0E-4
 
 #
-#conf.train_epoch = 120
-#conf.step_decay_epoch = 40
+#conf.train_epoch = 90
+#conf.step_decay_epoch = 30
 #conf.train_epoch = 10
 #conf.train_epoch = 10
 #conf.num_train_data = 10000
@@ -84,8 +86,8 @@ conf.leak_const_init = 0.9
 
 
 #
-conf.reg_spike_out=True
-conf.reg_spike_out_const=7E-3
+#conf.reg_spike_out=True
+conf.reg_spike_out_const=5E-3
 conf.reg_spike_out_alpha=1
 conf.reg_spike_out_sc=True
 #conf.reg_spike_out_sc_train=True
