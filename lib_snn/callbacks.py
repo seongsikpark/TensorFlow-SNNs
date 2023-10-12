@@ -250,11 +250,21 @@ class SNNLIB(tf.keras.callbacks.Callback):
         #if not hasattr(self,'spike_count_total'):
         #    self.spike_count_total = 0
 
-        for neuron in self.model.layers_w_neuron:
-            name = neuron.name
-            spike_count = tf.reduce_sum(neuron.act.spike_count_int)
-            self.list_spike_count[name] += spike_count
-            self.spike_count_total += spike_count
+        #
+        strategy = tf.distribute.get_strategy()
+        if isinstance(strategy,tf.distribute.OneDeviceStrategy):
+            for neuron in self.model.layers_w_neuron:
+                name = neuron.name
+                spike_count = tf.reduce_sum(neuron.act.spike_count_int)
+                self.list_spike_count[name] += spike_count
+                self.spike_count_total += spike_count
+        else:
+            for neuron in self.model.layers_w_neuron:
+                name = neuron.name
+                spike_count = tf.reduce_sum(neuron.act.spike_count_int.values)
+                self.list_spike_count[name] += spike_count
+                self.spike_count_total += spike_count
+
 
         #self.batch_count += 1
 

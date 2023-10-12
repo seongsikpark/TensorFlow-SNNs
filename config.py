@@ -39,6 +39,11 @@ import datetime
 #
 import utils
 
+#
+import tensorflow_datasets as tfds
+tfds.core.utils.gcs_utils._is_gcs_disabled = True
+os.environ['NO_GCE_CHECK']='ture'
+
 
 
 
