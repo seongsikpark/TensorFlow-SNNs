@@ -334,7 +334,10 @@ else:
         print("{:} - # of para: {:.3e}, acc: {:.2f}".format(key, num_parameters, score * 100))
 
 
-    df = pd.DataFrame()
+    #df = pd.DataFrame()
+    df = pd.DataFrame
+    df = pd.DataFrame(list_acc)
+    df.to_excel('text_out.xlsx')
 
 
 
