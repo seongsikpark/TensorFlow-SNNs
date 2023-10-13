@@ -7,7 +7,7 @@
 import os
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,4"
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="3"
 
 #
 from config import config
@@ -15,12 +15,13 @@ conf = config.flags
 
 #conf.debug_mode = True
 
+#conf.data_aug_mix='None'
 
 #
 #conf.train_epoch = 100
 #conf.num_train_data = 100
-#conf.train_epoch = 120
-#conf.step_decay_epoch = 40
+conf.train_epoch = 150
+conf.step_decay_epoch = 50
 
 
 #

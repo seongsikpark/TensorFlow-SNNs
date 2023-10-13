@@ -49,9 +49,16 @@ conf = flags.FLAGS
 
 from keras_tuner.engine import hyperparameters
 
+from keras.utils import layer_utils
+
+#
+import pandas as pd
+
 #
 import lib_snn
 
+
+#
 max_trials = 100
 batch_size = 100
 epoch = conf.train_epoch
@@ -66,7 +73,8 @@ max_model_size=1.0E7
 #
 #model_path = "am/m-1.5e6_t-100_e-10"
 #model_path = "am/test"
-model_path = "am/231006_0_Bay_VGG"
+#model_path = "am/231004_3_Greedy_VGG"
+model_path = "am/231006_3_greedy_VGG"
 
 
 train_ds, valid_ds, test_ds, train_ds_num, valid_ds_num, test_ds_num, num_class, train_steps_per_epoch = datasets.load()
@@ -170,7 +178,8 @@ metrics = [acc, acc_top5]
 loss = tf.keras.losses.CategoricalCrossentropy()
 
 #tuner = 'random'
-tuner = 'bayesian'
+#tuner = 'bayesian'
+tuner = 'greedy'
 
 filters = hyperparameters.Choice("filters", [64, 128, 256, 512], default=128)
 #filters = [64, 128, 256, 512, 512]
@@ -207,7 +216,7 @@ if Train_mode == "DNN":
     output_node = input_node
     output_node = akc.ConvBlock(dropout=0.2, filters=filters, kernel_size=kernel_size, num_blocks=1, num_layers=num_layers, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
     output_node = akc.ConvBlock(dropout=0.2, filters=filters, kernel_size=kernel_size, num_blocks=1, num_layers=num_layers, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
-    output_node = akc.ConvBlock(dropout=0.2, filters=filters,  kernel_size=kernel_size, num_blocks=1, num_layers=num_layers, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
+    output_node = akc.ConvBlock(dropout=0.2, filters=filters, kernel_size=kernel_size, num_blocks=1, num_layers=num_layers, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
     output_node = akc.ConvBlock(dropout=0.2, filters=filters, kernel_size=kernel_size, num_blocks=1, num_layers=num_layers, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
     #output_node = akc.ConvBlock(dropout=0.2, filters=filters[4], kernel_size=kernel_size, num_blocks=1, num_layers=3, separable=False, max_pooling=True, use_batchnorm=True, tunable=True)(output_node)
     # output_node = ak.ResNetBlock(pretrained=False, tunable=True)(output_node)
@@ -284,8 +293,52 @@ clf.tuner.loss = loss
 # snn_cb = lib_snn.callbacks.SNNLIB(conf, model_path, train_ds_num, valid_ds_num)
 # callbacks.append(snn_cb)
 
-# batch_size already in dataset
-hist = clf.fit(train_data=train_ds, validation_data=valid_ds, epochs=epoch, callbacks=callbacks)
+
+#
+#f_search=True
+f_search=False
+if f_search:
+    # batch_size already in dataset
+    hist = clf.fit(train_data=train_ds, validation_data=valid_ds, epochs=epoch, callbacks=callbacks)
+else:
+    dataset = train_ds
+
+    # input pipeline setting
+    #self._analyze_data(dataset)
+    #self._build_hyper_pipeline(dataset)
+    clf._analyze_data(dataset)
+    clf._build_hyper_pipeline(dataset)
+
+
+    # load and analysis
+    tuner = clf.tuner
+
+    trials_dict = tuner.oracle.trials
+
+    trials_dict_sorted = sorted(trials_dict.items())
+
+    list_num_para = []
+    list_acc = []
+
+    for key, trial in trials_dict_sorted:
+        hp = trial.hyperparameters
+        score = trial.score
+
+        tuner._prepare_model_build(hp, x=dataset)
+        model = tuner._build_hypermodel(hp)
+        num_parameters = layer_utils.count_params(model.trainable_weights)
+
+        list_acc.append(score)
+        list_num_para.append(num_parameters)
+
+        print("{:} - # of para: {:.3e}, acc: {:.2f}".format(key, num_parameters, score * 100))
+
+
+    df = pd.DataFrame()
+
+
+
+
 
 if False:
     ## cant export because Activation name conflict
