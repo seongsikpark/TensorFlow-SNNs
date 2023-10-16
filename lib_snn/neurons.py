@@ -683,8 +683,11 @@ class Neuron(tf.keras.layers.Layer):
                     #pass
                 else:
                     # old - previous work
-                    #sc_loss = tf.reduce_mean(self.out)
-                    sc_loss = tf.norm(self.out,ord=2)
+                    sc_loss = tf.reduce_mean(self.out)
+
+                    #sc_loss = tf.norm(self.out,ord=2)
+                    #sc_loss = tf.norm(self.out)
+
                     sc_loss = conf.reg_spike_out_const*sc_loss
                     self.add_loss(sc_loss)
 
