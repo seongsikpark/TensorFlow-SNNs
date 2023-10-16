@@ -651,7 +651,9 @@ class Neuron(tf.keras.layers.Layer):
                         sc_norm = tf.keras.layers.Softmax(axis=reduce_axis)(sc)
                         #sc_norm = tf.nn.softmax(sc,axis=reduce_axis)
                         #print(sc_norm)
-                        sc_rate = tf.square(1.0 - sc_norm)
+                        #sc_rate = tf.square(1.0 - sc_norm)
+                        sc_rate = 1.0 - sc_norm
+
                     else:
                         #self.add_loss(conf.reg_spike_out_const * tf.reduce_mean(self.out * self.spike_count / tf.reduce_max(self.spike_count)))
                         sc_norm = tf.math.divide_no_nan(self.spike_count,tf.reduce_max(self.spike_count,axis=reduce_axis,keepdims=True))
@@ -664,7 +666,11 @@ class Neuron(tf.keras.layers.Layer):
                             sc_rate = tf.square(1.0 - sc_norm * self.reg_spike_out_a)
                         else:
                             eps = conf.reg_spike_out_alpha
-                            sc_rate = (1-sc_norm+eps)
+                            sc_rate = 1-sc_norm*eps
+                            #sc_rate = 1-sc_norm*eps
+
+                    if conf.reg_spike_cout_sc_sq:
+                        sc_rate = tf.square(sc_rate)
 
                     #
                     sc_loss = conf.reg_spike_out_const*tf.reduce_mean(self.out * sc_rate)
@@ -676,8 +682,11 @@ class Neuron(tf.keras.layers.Layer):
                     #out_ret = self.reg_spike_out_fn(out_ret)
                     #pass
                 else:
-                    # old
-                    self.add_loss(conf.reg_spike_out_const*tf.reduce_mean(self.out))
+                    # old - previous work
+                    #sc_loss = tf.reduce_mean(self.out)
+                    sc_loss = tf.norm(self.out,ord=2)
+                    sc_loss = conf.reg_spike_out_const*sc_loss
+                    self.add_loss(sc_loss)
 
         #if True:
         if False:
