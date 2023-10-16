@@ -1124,16 +1124,15 @@ def set_file_path(batch_size):
         reg_spike_str='_r-'
         if conf.reg_spike_out:
             if conf.reg_spike_out_sc:
+                reg_spike_str += 'sc'
                 if conf.reg_spike_out_sc_sm:
-                    if conf.reg_spike_out_sc_train:
-                        reg_spike_str+='sc-sm-t'
-                    else:
-                        reg_spike_str+='sc-sm'
-                else:
-                    if conf.reg_spike_out_sc_train:
-                        reg_spike_str+='sc-t'
-                    else:
-                        reg_spike_str+='sc'
+                    reg_spike_str += '-sm'
+
+                if conf.reg_spike_out_sc_sq:
+                    reg_spike_str += '-sq'
+
+                if conf.reg_spike_out_sc_train:
+                    reg_spike_str+='-t'
             else:
                 reg_spike_str+='so'
 
