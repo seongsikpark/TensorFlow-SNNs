@@ -666,8 +666,7 @@ class Neuron(tf.keras.layers.Layer):
                             sc_rate = tf.square(1.0 - sc_norm * self.reg_spike_out_a)
                         else:
                             eps = conf.reg_spike_out_alpha
-                            sc_rate = 1-sc_norm*eps
-                            #sc_rate = 1-sc_norm*eps
+                            sc_rate = 1-sc_norm+eps
 
                     if conf.reg_spike_out_sc_sq:
                         sc_rate = tf.square(sc_rate)
