@@ -763,6 +763,7 @@ flags.DEFINE_bool('reg_spike_out',False,'regularization - spike output in neuron
 flags.DEFINE_float('reg_spike_out_const',7E-3,'regularization - spike count const')
 flags.DEFINE_float('reg_spike_out_alpha',0,'regularization - spike count alpha')
 flags.DEFINE_bool('reg_spike_out_sc',False,'regularization - spike out * spike_count (norm)')
+flags.DEFINE_bool('reg_spike_out_sc_wta',True,'regularization - spike out * spike_count (norm), winner-take-all')
 flags.DEFINE_bool('reg_spike_out_sc_train',False,'regularization - spike out * spike_count (norm), coefficient train')
 flags.DEFINE_bool('reg_spike_out_sc_sm',False,'regularization - spike out * spike_count (norm), softmax normalization')
 flags.DEFINE_bool('reg_spike_out_sc_sq',False,'regularization - spike out * spike_count (norm), squre')
