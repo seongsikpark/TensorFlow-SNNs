@@ -1126,7 +1126,7 @@ def set_file_path(batch_size):
             if conf.reg_spike_out_sc:
                 reg_spike_str += 'sc'
 
-                if not conf.reg_spike_out_sc_sm:
+                if not conf.reg_spike_out_sc_wta:
                     reg_spike_str += '-nwta'
 
                 if conf.reg_spike_out_sc_sm:
