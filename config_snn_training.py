@@ -87,20 +87,20 @@ conf.leak_const_init = 0.9
 
 #
 conf.reg_spike_out=True
-conf.reg_spike_out_const=1E-3
-conf.reg_spike_ou23101t_alpha=2
-conf.reg_spike_out_sc=True
-conf.reg_spike_out_sc_wta=False
+conf.reg_spike_out_const=1E-9
+conf.reg_spike_out_alpha=0
+#conf.reg_spike_out_sc=True
+#conf.reg_spike_out_sc_wta=False
 #conf.reg_spike_out_sc_train=True
-conf.reg_spike_out_sc_sm=True
-conf.reg_spike_out_sc_sq=True
-
+#conf.reg_spike_out_sc_sm=True
+#conf.reg_spike_out_sc_sq=True
+conf.reg_spike_out_norm=True
 
 #
 #conf.reg_psp=True
 conf.reg_psp_const=1E-3
 conf.reg_psp_eps=1E-10
-conf.reg_psp_min=False
+conf.reg_psp_min=True
 
 
 
