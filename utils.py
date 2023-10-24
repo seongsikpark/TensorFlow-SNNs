@@ -1139,6 +1139,8 @@ def set_file_path(batch_size):
                     reg_spike_str+='-t'
             else:
                 reg_spike_str+='so'
+                if conf.reg_spike_out_norm:
+                    reg_spike_str+='-n'
 
             config_name += reg_spike_str+'-'+str(conf.reg_spike_out_const)+'_'+str(conf.reg_spike_out_alpha)
             #config_name += '_r-so-'+str(conf.reg_spike_out_const)+'_'+str(conf.reg_spike_out_alpha)
