@@ -13,6 +13,7 @@ import flags
 from absl import flags
 conf = flags.FLAGS
 
+
 import os
 
 #
@@ -34,9 +35,15 @@ matplotlib.use('TkAgg')
 import re
 import shutil
 import datetime
+import time
 
 #
 import utils
+
+#
+import tensorflow_datasets as tfds
+tfds.core.utils.gcs_utils._is_gcs_disabled = True
+os.environ['NO_GCE_CHECK']='ture'
 
 
 
@@ -142,10 +149,16 @@ class Config():
 
 
 
+        #
+        t_time = time.time()
+        year_month = time.strftime("%y%m",time.localtime(t_time))
+        year_month_date_hour_min = time.strftime("%y%m%d-%H%M",time.localtime(t_time))
+
         root_tensorboard = self.flags.root_tensorboard
         path_tensorboard = os.path.join(root_tensorboard, self.flags.exp_set_name)
+        path_tensorboard = os.path.join(path_tensorboard, year_month)
         path_tensorboard = os.path.join(path_tensorboard, self.model_dataset_name)
-        path_tensorboard = os.path.join(path_tensorboard, self.config_name)
+        path_tensorboard = os.path.join(path_tensorboard, year_month_date_hour_min+'_'+self.config_name)
         self.path_tensorboard = path_tensorboard
 
 

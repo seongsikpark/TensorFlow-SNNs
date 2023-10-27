@@ -17,8 +17,8 @@ conf = config.flags
 #
 #conf.train_epoch = 100
 #conf.num_train_data = 10000
-#conf.train_epoch = 120
-#conf.step_decay_epoch = 40
+#conf.train_epoch = 150
+#conf.step_decay_epoch = 50
 
 #conf.nn_mode = 'SNN'
 conf.nn_mode = 'ANN'
