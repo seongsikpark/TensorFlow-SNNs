@@ -20,7 +20,7 @@ class LRSchedule_step(tf.keras.optimizers.schedules.LearningRateSchedule):
         #self.learning_rate = tf.Tensor(self.initial_learning_rate,value_index=(),dtype=tf.float32)
         #self.learning_rate = self.initial_learning_rate
         #self.laeraning_rate = tf.constant(self.initial_learning_rate)
-        self.decay_step = decay_step
+        self.decay_step = int(decay_step)
         self.decay_factor = decay_factor
         self.learning_rate = initial_learning_rate
 
