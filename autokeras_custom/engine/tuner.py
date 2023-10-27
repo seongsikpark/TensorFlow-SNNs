@@ -314,8 +314,8 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
                 if self.over_max_model:
                     results = copy.deepcopy(self.results_1st)
                     print(results[0].history)
-                    #results[0].history['val_acc'] = [0.1]*len(results[0].history['val_acc'])
-                    results[0].history['val_acc'] = [0.8]*len(results[0].history['val_acc'])
+                    results[0].history['val_acc'] = [0.1]*len(results[0].history['val_acc'])
+                    #results[0].history['val_acc'] = [0.8]*len(results[0].history['val_acc'])
                 else:
                     results = self.run_trial(trial, *fit_args, **fit_kwargs)
 
