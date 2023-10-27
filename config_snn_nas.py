@@ -19,10 +19,8 @@ conf = config.flags
 #
 #conf.train_epoch = 100
 #conf.num_train_data = 100
-#conf.train_epoch = 150
-#conf.step_decay_epoch = 50
-conf.train_epoch = 1
-conf.num_train_data = 100
+conf.train_epoch = 150
+conf.step_decay_epoch = 50
 
 
 #
