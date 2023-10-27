@@ -307,8 +307,8 @@ clf.tuner.loss = loss
 
 
 #
-#f_search=True
-f_search=False
+f_search=True
+#f_search=False
 if f_search:
     # batch_size already in dataset
     hist = clf.fit(train_data=train_ds, validation_data=valid_ds, epochs=epoch, callbacks=callbacks)
