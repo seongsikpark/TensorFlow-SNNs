@@ -74,14 +74,11 @@ max_model_size=None
 #
 #model_path = "am/m-1.5e6_t-100_e-10"
 #model_path = "am/test"
-#model_path = "am/231006_0_Bay_VGG" # BEST
-#model_path = "am/231012_0_RAND_VGG"
-#model_path = "am/231014_0_Bay_VGG"
-#model_path = "am/231020_0_Evo_VGG"
-#model_path = "am/231020_0_Hyp_VGG"
-#model_path = "am/231023_0_Rand_VGG"
-model_path = "am/231028_0_Rand_VGG"
-#model_path = "am/test"
+#model_path = "am/231006_1_Bay_VGG"
+#model_path = "am/231012_1_RAND_VGG"
+#model_path = "am/231014_1_Greedy_VGG"
+#model_path = "am/231020_1_Random_VGG"
+model_path = "am/231028_1_Random_VGG"
 
 
 train_ds, valid_ds, test_ds, train_ds_num, valid_ds_num, test_ds_num, num_class, train_steps_per_epoch = datasets.load()
@@ -187,8 +184,6 @@ loss = tf.keras.losses.CategoricalCrossentropy()
 tuner = 'random'
 #tuner = 'bayesian'
 #tuner = 'greedy'
-#tuner = 'evolution'
-#tuner = 'hyperband'
 
 filters = hyperparameters.Choice("filters", [64, 128, 256, 512], default=128)
 #filters = [64, 128, 256, 512, 512]
