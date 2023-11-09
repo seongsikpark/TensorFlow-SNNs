@@ -640,7 +640,6 @@ class Neuron(tf.keras.layers.Layer):
                     n_dim = len(self.dim)
                     reduce_axis= [i for i in range(1,n_dim)]
 
-                    sc_norm_sm = True
                     if conf.reg_spike_out_sc_sm:
                         if conf.reg_spike_out_sc_train:
                             sc = tf.math.divide_no_nan(self.spike_count,self.reg_spike_out_a) # temperature
@@ -652,7 +651,10 @@ class Neuron(tf.keras.layers.Layer):
                         #sc_norm = tf.nn.softmax(sc,axis=reduce_axis)
                         #print(sc_norm)
                         #sc_rate = tf.square(1.0 - sc_norm)
-                        sc_rate = 1.0 - sc_norm
+                        if conf.reg_spike_out_sc_wta:
+                            sc_rate = 1.0 - sc_norm
+                        else:
+                            sc_rate = sc_norm
 
                     else:
                         #self.add_loss(conf.reg_spike_out_const * tf.reduce_mean(self.out * self.spike_count / tf.reduce_max(self.spike_count)))
@@ -662,11 +664,19 @@ class Neuron(tf.keras.layers.Layer):
                         #sc_loss = conf.reg_spike_out_const*tf.reduce_mean(self.out * (self.reg_spike_out_b-sc_norm*self.reg_spike_out_a))
                         #sc_loss = tf.square(sc_loss)
 
-                        if conf.reg_spike_out_sc_train:
-                            sc_rate = tf.square(1.0 - sc_norm * self.reg_spike_out_a)
+
+                        if conf.reg_spike_out_sc_wta:
+                            if conf.reg_spike_out_sc_train:
+                                sc_rate = tf.square(1.0 - sc_norm * self.reg_spike_out_a)
+                            else:
+                                eps = conf.reg_spike_out_alpha
+                                sc_rate = 1-sc_norm+eps
                         else:
-                            eps = conf.reg_spike_out_alpha
-                            sc_rate = 1-sc_norm+eps
+                            if conf.reg_spike_out_sc_train:
+                                sc_rate = tf.square(sc_norm * self.reg_spike_out_a)
+                            else:
+                                eps = conf.reg_spike_out_alpha
+                                sc_rate = sc_norm + eps
 
                     if conf.reg_spike_out_sc_sq:
                         sc_rate = tf.square(sc_rate)

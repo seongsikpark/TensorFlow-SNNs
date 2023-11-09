@@ -24,12 +24,15 @@ def load():
         #'ImageNet': datasets.imagenet,
         #'CIFAR10': datasets.cifar,
         #'CIFAR100': datasets.cifar,
-        'ImageNet': datasets.image_cls.ImageClass,
-        'CIFAR10': datasets.image_cls.ImageClass,
-        'CIFAR100': datasets.image_cls.ImageClass,
+        'ImageNet': datasets.image_cls,
+        'CIFAR10': datasets.image_cls,
+        'CIFAR100': datasets.image_cls,
         'CIFAR10_DVS': datasets.cifar10_dvs.CIFAR10DVS,
     }
-    dataset = dataset_sel[dataset_name]()
+    if dataset_name=='CIFAR10_DVS':
+        dataset = dataset_sel[dataset_name]()
+    else:
+        dataset = dataset_sel[dataset_name]
 
     # num_class
     num_class_sel = {
