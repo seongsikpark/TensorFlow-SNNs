@@ -3,6 +3,7 @@ from __future__ import absolute_import
 #from . import imagenet
 
 from . import datasets
+from . import datasets_bck_eventdata
 
 from . import imagenet
 from . import cifar10

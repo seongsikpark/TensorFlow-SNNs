@@ -28,6 +28,8 @@ filepath_save, filepath_load, config_name = lib_snn.utils.set_file_path()
 ########################################
 train_ds, valid_ds, test_ds, train_ds_num, valid_ds_num, test_ds_num, num_class, train_steps_per_epoch = \
     datasets.datasets.load()
+    #datasets.datasets_bck_eventdata.load()
+
 
 #
 with dist_strategy.scope():
