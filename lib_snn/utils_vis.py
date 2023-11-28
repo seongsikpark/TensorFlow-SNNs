@@ -5,6 +5,7 @@ input_size_default = {
     'ImageNet': 224,
     'CIFAR10': 32,
     'CIFAR100': 32,
+    'CIFAR10_DVS': 128,
 }
 
 #
@@ -25,11 +26,16 @@ input_sizes_cifar = {
     'VGG16': 32,
 }
 
+input_sizes_cifar_dvs = {
+    'VGG16': 32,
+}
+
 #
 input_size_sel ={
     'ImageNet': input_sizes_imagenet,
     'CIFAR10': input_sizes_cifar,
     'CIFAR100': input_sizes_cifar,
+    'CIFAR10_DVS': input_sizes_cifar_dvs,
 }
 
 

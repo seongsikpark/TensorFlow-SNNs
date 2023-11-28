@@ -1,156 +1,78 @@
-'''
- source code from Tonic official site
- (https://tonic.readthedocs.io/en/latest/_modules/tonic/datasets/cifar10dvs.html#CIFAR10DVS)
-
-'''
-
-import os
-from typing import Callable, Optional
-
-import numpy as np
-import tonic.transforms
-
-from tonic.dataset import Dataset
-from tonic.download_utils import extract_archive
-from tonic.io import read_aedat4
 
 
-# event-tfds
+
 import tensorflow_datasets as tfds
 import events_tfds.events.cifar10_dvs
+from events_tfds.vis.image import as_frames
+#from events_tfds.vis.image import as_frame
+from datasets.events.image import as_frame
+from events_tfds.vis.anim import animate_frames
+
+import tensorflow as tf
+
+import matplotlib.pyplot as plt
+
+from config import config
+conf = config.flags
+
+def load():
+    #train_ds = tfds.load("cifar10_dvs", split="train", as_supervised=True)
 
 
-class CIFAR10DVS(Dataset):
-    """`CIFAR10-DVS <https://www.frontiersin.org/articles/10.3389/fnins.2017.00309/full>`_
-    ::
+    batch_size = config.batch_size
+    num_parallel = tf.data.AUTOTUNE
 
-        @article{li2017cifar10,
-        title={Cifar10-dvs: an event-stream dataset for object classification},
-        author={Li, Hongmin and Liu, Hanchao and Ji, Xiangyang and Li, Guoqi and Shi, Luping},
-        journal={Frontiers in neuroscience},
-        volume={11},
-        pages={309},
-        year={2017},
-        publisher={Frontiers}
-        }
-
-    Parameters:
-        save_to (string): Location to save files to on disk.
-        transform (callable, optional): A callable of transforms to apply to the data.
-        target_transform (callable, optional): A callable of transforms to apply to the targets/labels.
-        transforms (callable, optional): A callable of transforms that is applied to both data and
-                                         labels at the same time.
-    """
-
-    url = "https://figshare.com/ndownloader/files/38023437"
-
-    filename = "CIFAR10DVS.zip"
-    file_md5 = "ce3a4a0682dc0943703bd8f749a7701c"
-    data_filename = [
-        "airplane.zip",
-        "automobile.zip",
-        "bird.zip",
-        "cat.zip",
-        "deer.zip",
-        "dog.zip",
-        "frog.zip",
-        "horse.zip",
-        "ship.zip",
-        "truck.zip",
-    ]
-
-    folder_name = ""
-    dtype = np.dtype(
-        [("t", np.uint64), ("x", np.uint16), ("y", np.uint16), ("p", bool)]
-    )
-    ordering = dtype.names
-    sensor_size = (128, 128, 2)
-
-    def __init__(
-        self,
-        #save_to: str,
-        #save_to= '~/Datasets/CIFAR10_DVS',
-        save_to= '/home/sspark/Datasets/CIFAR10_DVS',
-        transform: Optional[Callable] = None,
-        target_transform: Optional[Callable] = None,
-        transforms: Optional[Callable] = None,
-    ):
-        super().__init__(
-            save_to,
-            transform=transform,
-            target_transform=target_transform,
-            transforms=transforms,
-        )
-
-        # classes for CIFAR10DVS dataset
-
-        classes = {
-            "airplane": 0,
-            "automobile": 1,
-            "bird": 2,
-            "cat": 3,
-            "deer": 4,
-            "dog": 5,
-            "frog": 6,
-            "horse": 7,
-            "ship": 8,
-            "truck": 9,
-        }
-
-        if not self._check_exists():
-            self.download()
-            for filename in self.data_filename:
-                extract_archive(os.path.join(self.location_on_system, filename))
-
-        file_path = os.path.join(self.location_on_system, self.folder_name)
-        for path, dirs, files in os.walk(file_path):
-            dirs.sort()
-            for file in files:
-                if file.endswith("aedat4"):
-                    self.data.append(os.path.join(path, file))
-                    label_number = classes[os.path.basename(path)]
-                    self.targets.append(label_number)
-
-    def __getitem__(self, index):
-        """
-        Returns:
-            a tuple of (events, target) where target is the index of the target class.
-        """
-        events = read_aedat4(self.data[index])
-        events.dtype.names = ["t", "x", "y", "p"]
-
-        target = self.targets[index]
-
-        if self.transform is not None:
-            events = self.transform(events)
-        if self.target_transform is not None:
-            target = self.target_transform(target)
-        if self.transforms is not None:
-            events, target = self.transforms(events, target)
-        return events, target
-
-    def __len__(self):
-        return len(self.data)
-
-    def _check_exists(self):
-        return (
-            self._is_file_present()
-            and self._folder_contains_at_least_n_files_of_type(1000, ".aedat4")
-        )
-
-
-    def load(self):
-        #print('here')
-        #transform = tonic.transforms.ToVoxelGrid(self.sensor_size,n_time_bins=10)
-        #event, target = self.__getitem__(0)
-        #frames = transform(event)
-
-        train_ds = tfds.load("cifar10_dvs", split="train", as_supervised=True)
-
+    if False:
         for events, labels in train_ds:
+            print(events)
             print(labels)
 
 
+        #train_ds = train_ds.map(lambda events, labels: )
+
+    train_ratio = 0.9
+    train_ratio_percent = int(train_ratio*100)
+    #train_ds, train_ds_info = tfds.load("cifar10_dvs", split="train", as_supervised=True)
+    #train_ds = tfds.load("cifar10_dvs", split="train", as_supervised=True)
+    train_ds, valid_ds = tfds.load("cifar10_dvs", split=["train[:"+str(train_ratio_percent)+"%]", "train["+str(train_ratio_percent)+":]"], as_supervised=True)
+
+    #train_ds = train_ds.map(lambda events, labels: as_frame())
+
+    # tf tensor version test
+    if False:
+    #if True:
+        for events, labels in train_ds:
+            #frames = as_frames(**{k: v.numpy() for k, v in events.items()}, num_frames=20)
+            coords = events['coords']
+            polarity = events['polarity']
+            frame = as_frame(events,labels)
+            #print(labels.numpy())
+
+    image_shape = (128,128,3)
+    train_ds = train_ds.map(lambda events,labels: as_frame(events,labels,shape=image_shape))
+    train_ds = train_ds.batch(batch_size)
+    train_ds = train_ds.prefetch(num_parallel)
+
+    valid_ds = valid_ds.map(lambda events,labels: as_frame(events,labels,shape=image_shape))
+    valid_ds = valid_ds.batch(batch_size)
+    valid_ds = valid_ds.prefetch(num_parallel)
 
 
-        print('here;')
+    if False: # tfds events code
+    #if True: # tfds events code
+        for events, labels in train_ds:
+            #frames = as_frames(**{k: v.numpy() for k, v in events.items()}, num_frames=20)
+            coords = events['coords'].numpy()
+            polarity = events['polarity'].numpy()
+            frame = as_frame(coords,polarity)
+            #print(labels.numpy())
+            #print(tf.reduce_max(events["coords"], axis=0).numpy())
+            #anim = animate_frames(frames, fps=4)
+
+            print(labels.numpy())
+            plt.imshow(frame)
+
+    #valid_ds = train_ds
+    train_ds_num=10000*train_ratio
+    valid_ds_num=10000*(1-train_ratio)
+    return train_ds, valid_ds, valid_ds, train_ds_num, valid_ds_num, valid_ds_num
