@@ -55,12 +55,12 @@ conf = config.flags
 #conf.dataset='CIFAR100'
 #conf.dataset='ImageNet'
 conf.dataset='CIFAR10_DVS'
-
+conf.time_step = 10 # for CIFAR10_DVS
 
 conf.pooling_vgg = 'avg'
 
-#conf.nn_mode = 'SNN'
-conf.nn_mode = 'ANN'
+conf.nn_mode = 'SNN'
+#conf.nn_mode = 'ANN'
 
 conf.n_reset_type = 'reset_by_sub'
 #conf.n_reset_type = 'reset_to_zero'

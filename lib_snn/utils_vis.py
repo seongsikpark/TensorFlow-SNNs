@@ -1,4 +1,6 @@
 
+from config import config
+conf = config.flags
 
 #
 input_size_default = {
@@ -46,6 +48,9 @@ def image_shape_vis(model_name, dataset_name):
     #input_size = input_sizes.get(model_name,224)
 
     #
-    image_shape = (input_size, input_size, 3)
+    if conf.input_data_time_dim:
+        image_shape = (conf.time_dim_size, input_size, input_size, 3)
+    else:
+        image_shape = (input_size, input_size, 3)
 
     return image_shape

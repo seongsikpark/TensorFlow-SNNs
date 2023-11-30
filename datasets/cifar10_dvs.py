@@ -3,8 +3,9 @@
 
 import tensorflow_datasets as tfds
 import events_tfds.events.cifar10_dvs
-from events_tfds.vis.image import as_frames
+#from events_tfds.vis.image import as_frames
 #from events_tfds.vis.image import as_frame
+from datasets.events.image import as_frames
 from datasets.events.image import as_frame
 from events_tfds.vis.anim import animate_frames
 
@@ -34,7 +35,9 @@ def load():
     train_ratio_percent = int(train_ratio*100)
     #train_ds, train_ds_info = tfds.load("cifar10_dvs", split="train", as_supervised=True)
     #train_ds = tfds.load("cifar10_dvs", split="train", as_supervised=True)
-    train_ds, valid_ds = tfds.load("cifar10_dvs", split=["train[:"+str(train_ratio_percent)+"%]", "train["+str(train_ratio_percent)+":]"], as_supervised=True)
+    train_ds, valid_ds = tfds.load("cifar10_dvs", split=["train[:"+str(train_ratio_percent)+"%]", "train["+str(train_ratio_percent)+"%:]"], as_supervised=True)
+    #train_ds, valid_ds = tfds.load("cifar10_dvs", split=["train[:200]", "train[9000:]"], as_supervised=True)
+
 
     #train_ds = train_ds.map(lambda events, labels: as_frame())
 
@@ -48,12 +51,26 @@ def load():
             frame = as_frame(events,labels)
             #print(labels.numpy())
 
+    num_frames = conf.time_step
+    conf.time_dim_size = num_frames
+
     image_shape = (128,128,3)
-    train_ds = train_ds.map(lambda events,labels: as_frame(events,labels,shape=image_shape))
+
+    # test
+    ##for events, labels in train_ds:
+    #ds, = train_ds.take(1)
+    #events = ds[0]
+    #labels = ds[1]
+    #as_frames(events,labels,shape=image_shape,num_frames=num_frames)
+    #assert False
+
+    #train_ds = train_ds.map(lambda events,labels: as_frame(events,labels,shape=image_shape))
+    train_ds = train_ds.map(lambda events,labels: as_frames(events,labels,shape=image_shape,num_frames=num_frames))
     train_ds = train_ds.batch(batch_size)
     train_ds = train_ds.prefetch(num_parallel)
 
-    valid_ds = valid_ds.map(lambda events,labels: as_frame(events,labels,shape=image_shape))
+    #valid_ds = valid_ds.map(lambda events,labels: as_frame(events,labels,shape=image_shape))
+    valid_ds = valid_ds.map(lambda events,labels: as_frames(events,labels,shape=image_shape,num_frames=num_frames))
     valid_ds = valid_ds.batch(batch_size)
     valid_ds = valid_ds.prefetch(num_parallel)
 
@@ -75,4 +92,5 @@ def load():
     #valid_ds = train_ds
     train_ds_num=10000*train_ratio
     valid_ds_num=10000*(1-train_ratio)
+
     return train_ds, valid_ds, valid_ds, train_ds_num, valid_ds_num, valid_ds_num

@@ -1028,10 +1028,14 @@ class InputGenLayer(Layer, tf.keras.layers.Layer):
         #self.kernel=1           # dummy
         #self.bias=0
 
-    #def call(self, inputs, training):
+    def call(self, inputs, training):
         # print('input gen layer - call')
+        if conf.input_data_time_dim:
+            if inputs.shape.__len__() > 4:
+                return inputs[:,0,:,:,:]    # for model build
+
         #print(inputs)
-    #    return inputs
+        return inputs
 
         #
 #    def call(self, inputs, training):

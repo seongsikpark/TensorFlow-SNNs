@@ -781,6 +781,10 @@ flags.DEFINE_bool('en_stdp_pathway',False,'enable - stdp pathway')
 flags.DEFINE_float('stdp_pathway_weight',0.5,'stdp pathway weight - weight = (1-alpha)+alpha*spike_trace')
 flags.DEFINE_bool('spike_trace_debug',False,'debug spike trace - record')
 
+# DVS
+flags.DEFINE_bool('input_data_time_dim',False,'input data has time dimension')
+flags.DEFINE_integer('time_dim_size',1,'time dimension size')
+
 
 #
 conf=flags.FLAGS
