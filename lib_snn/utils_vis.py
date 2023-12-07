@@ -7,7 +7,7 @@ input_size_default = {
     'ImageNet': 224,
     'CIFAR10': 32,
     'CIFAR100': 32,
-    'CIFAR10_DVS': 128,
+    'CIFAR10_DVS': 32,
 }
 
 #
