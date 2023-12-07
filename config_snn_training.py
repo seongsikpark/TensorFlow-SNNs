@@ -9,7 +9,7 @@ import os
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,2"
 #os.environ["CUDA_VISIBLE_DEVICES"]="4,7"
-os.environ["CUDA_VISIBLE_DEVICES"]="7"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3,4,5,6,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,4"
@@ -41,6 +41,7 @@ conf = config.flags
 
 #
 #conf.learning_rate = 0.01
+conf.lmb = 3E-3
 
 #
 #conf.train_epoch = 120
@@ -49,15 +50,15 @@ conf = config.flags
 #conf.train_epoch = 10
 #conf.num_train_data = 10000
 
-#conf.model='ResNet20'
+conf.model='ResNet20'
 #conf.model='ResNet32'
 
 #conf.dataset='CIFAR100'
 #conf.dataset='ImageNet'
 conf.dataset='CIFAR10_DVS'
-conf.time_step = 10 # for CIFAR10_DVS
 
-conf.pooling_vgg = 'avg'
+
+#conf.pooling_vgg = 'avg'
 
 conf.nn_mode = 'SNN'
 #conf.nn_mode = 'ANN'
@@ -86,7 +87,7 @@ conf.leak_const_init = 0.9
 #
 if False:
     conf.reg_spike_out=True
-    conf.reg_spike_out_const=1E-5
+    conf.reg_spike_out_const=2E-6
     conf.reg_spike_out_alpha=4
     conf.reg_spike_out_sc=True
     #conf.reg_spike_out_sc_wta=False

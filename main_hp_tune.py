@@ -770,7 +770,7 @@ with dist_strategy.scope():
         hp_model_builder = lib_snn.hp_tune_model.CustomHyperModel(hp_tune_args, hps)
 
         search_func = lib_snn.hp_tune.GridSearch
-        #search_func = keras_tuner.RandomSearch
+        #search_func = keras_auner.RandomSearch
         search_max_trials = 20
 
         #tuner = kt.Hyperband(model_builder,

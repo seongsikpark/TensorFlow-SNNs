@@ -128,6 +128,9 @@ def as_frames(
 
     images = tf.tensor_scatter_nd_update(images,idxs,colors)
 
+    #
+    images=tf.image.random_flip_left_right(images)
+
 
     # resize image
     s=32
