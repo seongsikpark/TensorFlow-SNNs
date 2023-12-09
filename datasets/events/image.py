@@ -130,6 +130,7 @@ def as_frames(
 
     #
     images=tf.image.random_flip_left_right(images)
+    images=tf.image.random_flip_up_down(images)
 
 
     # resize image
