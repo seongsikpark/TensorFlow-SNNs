@@ -128,14 +128,11 @@ def as_frames(
 
     images = tf.tensor_scatter_nd_update(images,idxs,colors)
 
-    #
-    images=tf.image.random_flip_left_right(images)
-    images=tf.image.random_flip_up_down(images)
-
-
     # resize image
     s=32
     images = tf.image.resize(images, (s, s))
+    images=tf.image.random_flip_left_right(images)
+    images=tf.image.random_flip_up_down(images)
 
 
     # one-hot vectorization - label
