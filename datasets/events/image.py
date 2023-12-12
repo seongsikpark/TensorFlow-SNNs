@@ -130,7 +130,8 @@ def as_frames(
 
     # resize image
     s=32
-    images = tf.image.resize(images, (s, s))
+    #images = tf.image.resize(images, (s, s))
+    images=tf.image.resize(images,(s,s),method='lanczos3')   # VGG, ResNet
     images=tf.image.random_flip_left_right(images)
     images=tf.image.random_flip_up_down(images)
 
