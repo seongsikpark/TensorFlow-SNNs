@@ -1,6 +1,7 @@
 
 from models.vgg16_tr import VGG16_TR
 #from models.vgg16 import VGG16
+from models.vgg11_func import VGG11
 from models.vgg16_func import VGG16
 from models.resnet import ResNet18
 from models.resnet import ResNet34
@@ -37,6 +38,7 @@ model_sel_tr = {
 }
 
 model_sel_sc = {
+    'VGG11': VGG11,
     'VGG16': VGG16,
     'ResNet18': ResNet18,
     'ResNet20': ResNet20,
