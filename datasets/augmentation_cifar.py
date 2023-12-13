@@ -4,7 +4,7 @@
 
 
 import tensorflow as tf
-import tensorflow_addons as tfa
+#import tensorflow_addons as tfa
 
 #from main import input_size
 #from main import input_size_pre_crop_ratio

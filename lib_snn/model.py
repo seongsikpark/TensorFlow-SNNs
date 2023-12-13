@@ -3233,6 +3233,10 @@ class Model(tf.keras.Model):
 
                     glb_t.reset()
                     for t in range(1,self.conf.time_step+1):
+                        if conf.input_data_time_dim:    # event data
+                            _input_t = _input[:,t-1,:,:,:]
+                        else:   # static image
+                            _input_t = _input
                         layer_out = layer_out.write(t-1,_input)
                         glb_t()
 
@@ -3264,9 +3268,7 @@ class Model(tf.keras.Model):
                         f_temporal_reduction = True
 
                     if f_temporal_reduction:
-
                         _layer_in = tf.reduce_mean(layer_in.stack(),axis=0)
-
                         _layer_out = node.layer(_layer_in)
 
                         #
@@ -3282,7 +3284,6 @@ class Model(tf.keras.Model):
                             layer_out= layer_out.write(t-1,_layer_out)
 
                             glb_t()
-
                     else:
                         glb_t.reset()
                         for t in range(1,self.conf.time_step+1):
