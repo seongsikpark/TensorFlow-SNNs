@@ -7,12 +7,14 @@
 import os
 #os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"]="7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,2"
 #os.environ["CUDA_VISIBLE_DEVICES"]="4,7"
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+#os.environ["CUDA_VISIBLE_DEVICES"]="0,4"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3,4,5,6,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
+#os.environ["CUDA_VISIBLE_DEVICES"]="0,4"
 #os.environ["CUDA_VISIBLE_DEVICES"]="2,3,4,5,6,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="2,3,6,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="4,5,6,7"
@@ -40,12 +42,13 @@ conf = config.flags
 
 
 #
-#conf.learning_rate = 0.1
-#conf.lmb = 1.0E-4
+#conf.learning_rate = 0.01
+#conf.lmb = 1E-5
+conf.time_step = 8
 
 #
-#conf.train_epoch = 90
-#conf.step_decay_epoch = 30
+#conf.train_epoch = 150
+#conf.step_decay_epoch = 50
 #conf.train_epoch = 10
 #conf.train_epoch = 10
 #conf.num_train_data = 10000
@@ -58,7 +61,7 @@ conf = config.flags
 #conf.dataset='CIFAR10_DVS'
 
 
-#conf.pooling_vgg = 'avg'
+conf.pooling_vgg = 'avg'
 
 conf.nn_mode = 'SNN'
 #conf.nn_mode = 'ANN'
@@ -86,25 +89,25 @@ conf.leak_const_init = 0.9
 
 #
 if True:
-#if False:
-    conf.reg_spike_out = True
-    conf.reg_spike_out_const = 2E-7
-    conf.reg_spike_out_alpha = 4
+    #if False:
+    conf.reg_spike_out=True
+    conf.reg_spike_out_const=3E-6
+    conf.reg_spike_out_alpha=4
     conf.reg_spike_out_sc=True
-    conf.reg_spike_out_sc_wta=False
-    # conf.reg_spike_out_sc_train=True
+    #conf.reg_spike_out_sc_wta=False
+    #conf.reg_spike_out_sc_train=True
     conf.reg_spike_out_sc_sm=True
     #conf.reg_spike_out_sc_sq=True
-    conf.reg_spike_out_norm = True
+    conf.reg_spike_out_norm=True
 
     #
-    ##conf.reg_psp=True
-    conf.reg_psp_const = 1E-3
-    conf.reg_psp_eps = 1E-10
-    conf.reg_psp_min = True
+    #conf.reg_psp=True
+    conf.reg_psp_const=1E-3
+    conf.reg_psp_eps=1E-10
+    conf.reg_psp_min=True
 else:
     conf.reg_spike_out=True
-    conf.reg_spike_out_const=1E-6
+    conf.reg_spike_out_const=5E-5
     conf.reg_spike_out_alpha=0
     #conf.reg_spike_out_sc=True
     #conf.reg_spike_out_sc_wta=False
@@ -118,8 +121,6 @@ else:
     conf.reg_psp_const=1E-3
     conf.reg_psp_eps=1E-10
     conf.reg_psp_min=True
-
-
 
 
 #
