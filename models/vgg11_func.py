@@ -163,7 +163,7 @@ def VGG11(
 
 
     #
-    syn_c5 = lib_snn.layers.Conv2D(channels, 3, padding='SAME', kernel_initializer=k_init, name='conv5')(a_p_c4_1231213)
+    syn_c5 = lib_snn.layers.Conv2D(channels, 3, padding='SAME', kernel_initializer=k_init, name='conv5')(a_p_c4_1)
     if use_bn_feat:
         norm_c5 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='bn_conv5')(syn_c5)
     else:
