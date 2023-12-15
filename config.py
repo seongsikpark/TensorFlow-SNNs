@@ -54,6 +54,8 @@ class Config():
         self.flags = flags.FLAGS
         #self.num_parallel_cpu = -1
 
+
+
     def set(self):
 
         #
