@@ -828,6 +828,7 @@ def dnn_snn_compare_func(self):
 
 #
 def cal_results(self):
+    assert False, 'check call it each epoch end - move to batch end routine'
 
     #if conf.snn_training_spatial_first:
     if True:
