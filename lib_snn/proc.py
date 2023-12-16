@@ -781,6 +781,25 @@ def postproc_batch_train(self):
 #print('postproc_batch_train')
     pass
 
+
+    #
+    postproc_batch_train_sel={
+        'ANN': postproc_batch_train_ann,
+        'SNN': postproc_batch_train_snn,
+    }
+    postproc_batch_train_sel[self.model.nn_mode](self)
+
+
+
+#
+def postproc_batch_train_ann(self):
+    pass
+
+
+def postproc_batch_train_snn(self):
+    pass
+
+
 #
 def dnn_snn_compare_func(self):
     #dnn_snn_compare = True

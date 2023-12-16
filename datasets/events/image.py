@@ -130,10 +130,13 @@ def as_frames(
 
     # resize image
     s=32
+    crop_size = 36
     #images = tf.image.resize(images, (s, s))
+    images = tf.image.random_crop(images, (num_frames,crop_size,crop_size,3))    # random crop
     images=tf.image.resize(images,(s,s),method='lanczos3')   # VGG, ResNet
     images=tf.image.random_flip_left_right(images)
     images=tf.image.random_flip_up_down(images)
+
 
 
     # one-hot vectorization - label
