@@ -402,9 +402,9 @@ flags.DEFINE_string('pooling_resnet_imagenet_pre', 'max', 'max or avg, for ResNe
 flags.DEFINE_string('root_tensorboard', './tensorboard/', 'root - tensorboard')
 
 flags.DEFINE_string('root_model_best', '/home/sspark/Models/CNN', 'root model best')
-flags.DEFINE_string('root_model_save', './models', 'root model save')
+flags.DEFINE_string('root_model_save', './models_ckpt', 'root model save')
 #flags.DEFINE_string('root_model_load', '/home/sspark/Projects/00_SNN/models', 'root model load')
-flags.DEFINE_string('root_model_load', './models', 'root model load')
+flags.DEFINE_string('root_model_load', './models_ckpt', 'root model load')
 #flags.DEFINE_string('root_model_load', '/home/sspark/Models/CNN', 'root model load')
 
 #
