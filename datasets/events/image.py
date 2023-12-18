@@ -5,8 +5,11 @@ from config import config
 conf = config.flags
 
 
-RED = [255,0,0]
-GREEN = [0,255,0]
+#RED = [255,0,0]
+#GREEN = [0,255,0]
+
+RED = [1,0,0]
+GREEN = [0,1,0]
 
 
 #
