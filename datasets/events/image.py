@@ -5,8 +5,8 @@ from config import config
 conf = config.flags
 
 
-#RED = [255,0,0]
-#GREEN = [0,255,0]
+#RED = [255,0,0]    # on
+#GREEN = [0,255,0]  # off
 
 RED = [1,0,0]
 GREEN = [0,1,0]
@@ -19,6 +19,7 @@ GREEN = [0,1,0]
 #
 #def as_frame(coords, polarity, shape=None, image=None):
 def as_frame(events, labels, shape=None):
+    assert False, 'use as_frames or update code'
 
     num_class=10
     coords = events['coords']
@@ -81,6 +82,7 @@ def as_frames(
     num_frames=None,
     shape=None,
     flip_up_down=False,
+    augmentation=False,
 ):
 
     #
@@ -134,12 +136,16 @@ def as_frames(
     # resize image
     s=32
     crop_size = 36
-    #images = tf.image.resize(images, (s, s))
-    #images = tf.image.random_crop(images, (num_frames,crop_size,crop_size,3))    # random crop
-    images=tf.image.resize(images,(crop_size,crop_size),method='lanczos3')   # VGG, ResNet
-    images = tf.image.random_crop(images, (num_frames,s,s,3))    # random crop
-    images=tf.image.random_flip_left_right(images)
-    images=tf.image.random_flip_up_down(images)
+    if augmentation:
+        #images = tf.image.resize(images, (s, s))
+        #images = tf.image.random_crop(images, (num_frames,crop_size,crop_size,3))    # random crop
+        images=tf.image.resize(images,(crop_size,crop_size),method='lanczos3')   # VGG, ResNet
+        images = tf.image.random_crop(images, (num_frames,s,s,3))    # random crop
+        images=tf.image.random_flip_left_right(images)
+        images=tf.image.random_flip_up_down(images)
+    else:
+        images = tf.image.resize(images, (s, s))
+
 
 
 

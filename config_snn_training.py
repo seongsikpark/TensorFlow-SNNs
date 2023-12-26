@@ -41,7 +41,7 @@ conf = config.flags
 
 #
 conf.learning_rate = 0.1
-conf.lmb = 1.0E-4
+conf.lmb = 1.0E-2
 
 #
 #conf.train_epoch = 90

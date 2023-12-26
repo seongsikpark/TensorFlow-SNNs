@@ -65,7 +65,7 @@ def load():
     #assert False
 
     #train_ds = train_ds.map(lambda events,labels: as_frame(events,labels,shape=image_shape))
-    train_ds = train_ds.map(lambda events,labels: as_frames(events,labels,shape=image_shape,num_frames=num_frames))
+    train_ds = train_ds.map(lambda events,labels: as_frames(events,labels,shape=image_shape,num_frames=num_frames,augmentation=True))
     train_ds = train_ds.batch(batch_size)
     train_ds = train_ds.prefetch(num_parallel)
 
