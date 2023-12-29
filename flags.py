@@ -314,10 +314,10 @@ flags.DEFINE_integer('batch_size', 100, '')
 
 #flags.DEFINE_integer('batch_size_inf', 1000, '')
 #flags.DEFINE_integer('batch_size_inf', 500, '')
-flags.DEFINE_integer('batch_size_inf', 400, '')
+#flags.DEFINE_integer('batch_size_inf', 400, '')
 #flags.DEFINE_integer('batch_size_inf', 250, '')
 #flags.DEFINE_integer('batch_size_inf', 200, '')
-#flags.DEFINE_integer('batch_size_inf', 100, '')
+flags.DEFINE_integer('batch_size_inf', 100, '')
 #flags.DEFINE_integer('batch_size_inf', 10, '')
 #flags.DEFINE_integer('batch_size_inf', 1, '')
 

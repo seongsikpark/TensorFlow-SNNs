@@ -205,7 +205,7 @@ class SNNLIB(tf.keras.callbacks.Callback):
     def on_test_end(self, logs=None):
         #if not self.conf.train:
         if self.conf.mode=='inference':
-            lib_snn.proc.postproc(self)
+            lib_snn.proc.postproc(self, logs)
 
     def on_test_batch_begin(self, batch, logs=None):
         #print('on_test_batch_begin')
@@ -239,70 +239,15 @@ class SNNLIB(tf.keras.callbacks.Callback):
 
     def on_train_batch_end(self, batch, logs=None):
         #print('on_test_batch_end')
-
-
-        #tf.summary.scalar('best_acc_val', data=self.best, step=epoch)
-        #logs['best_acc_val'] = self.best
-
-        #if not hasattr(self,'list_spike_count'):
-        #    self.list_spike_count = collections.OrderedDict()
-
-        #if not hasattr(self,'spike_count_total'):
-        #    self.spike_count_total = 0
-
-        #
-        strategy = tf.distribute.get_strategy()
-        if isinstance(strategy,tf.distribute.OneDeviceStrategy):
-            for neuron in self.model.layers_w_neuron:
-                name = neuron.name
-                spike_count = tf.reduce_sum(neuron.act.spike_count_int)
-                self.list_spike_count[name] += spike_count
-                self.spike_count_total += spike_count
-        else:
-            for neuron in self.model.layers_w_neuron:
-                name = neuron.name
-                spike_count = tf.reduce_sum(neuron.act.spike_count_int.values)
-                self.list_spike_count[name] += spike_count
-                self.spike_count_total += spike_count
-
-
-        #self.batch_count += 1
-
         lib_snn.proc.postproc_batch_train(self)
-
-
-
 
     def on_epoch_begin(self, epoch, logs=None):
         lib_snn.proc.preproc_epoch_train(self,epoch)
 
-        #
-        for neuron in self.model.layers_w_neuron:
-            self.list_spike_count[neuron.name] = 0
-
-        self.spike_count_total = 0
-
-
     def on_epoch_end(self, epoch, logs=None):
-
-        #
-        #num_batch = config.flags.num_train_data / config.batch_size
-        #num_train_data = config.flags.num_train_data
-        for neuron in self.model.layers_w_neuron:
-            self.list_spike_count[neuron.name]/=self.train_ds_num
-
-        self.spike_count_total/=self.train_ds_num
+        lib_snn.proc.postproc_epoch_train(self,epoch,logs)
 
 
-        tf.summary.scalar('s_count', data=self.spike_count_total, step=epoch)
-        logs['s_count'] = self.spike_count_total
-
-        if 'best_val_acc' in logs.keys():
-            if logs['val_acc'] == logs['best_val_acc']:
-                self.spike_count_total_best = self.spike_count_total
-
-            tf.summary.scalar('bset_s_count', data=self.spike_count_total_best, step=epoch)
-            logs['best_s_count'] = self.spike_count_total_best
 #
 class DNNtoSNN(tf.keras.callbacks.Callback):
     def __init__(self, conf, **kwargs):

@@ -92,6 +92,9 @@ def reset(self):
         if isinstance(metric,compile_utils.MetricsContainer):
             metric.reset_state()
 
+    spike_count_epoch_init(self)
+
+
 #
 def reset_batch_ann(self):
     pass
@@ -364,10 +367,7 @@ def preproc_epoch_train_ann(self, epoch):
 
 
 def preproc_epoch_train_snn(self, epoch):
-    pass
-    # test
-    #if (epoch > 0) and (epoch % 100 ==0) :
-    #    conf.time_step = tf.cast(conf.time_step/2,tf.int32)
+    spike_count_epoch_init(self)
 
 
 
@@ -390,6 +390,9 @@ def reset_snn_time_step(self):
 ########################################
 def postproc_batch_test(self):
     #print('postproc_batch_test')
+
+    #
+    spike_count_batch_end(self)
 
     # TODO: need?
     if self.model.en_record_output:
@@ -484,16 +487,16 @@ def collect_record_output(self):
 ########################################
 # (on_test_end)
 ########################################
-def postproc(self):
+def postproc(self,logs):
 
     #
     postproc_sel={
         'ANN': postproc_ann,
         'SNN': postproc_snn,
     }
-    postproc_sel[self.model.nn_mode](self)
+    postproc_sel[self.model.nn_mode](self,logs)
 
-def postproc_ann(self):
+def postproc_ann(self,logs):
     #
     if self.conf.f_write_stat:
         lib_snn.weight_norm.save_act_stat(self)
@@ -713,7 +716,7 @@ def plot_dnn_act(self, layers=None, idx=None):
             axe.axhline(y=act, color='b')
 
 
-def postproc_snn(self):
+def postproc_snn(self, logs):
     #
     # TODO: to be updated
     #postproc_snn_sel={
@@ -723,6 +726,9 @@ def postproc_snn(self):
     #}
     #postproc_snn_sel[self.model.run_mode](self)
 
+    #
+    spike_count_epoch_end(self,0,logs)
+
     #if self.conf.train:
     if self.conf.mode=='train' or self.conf.mode=='load_and_train':
         postproc_snn_train(self)
@@ -731,7 +737,7 @@ def postproc_snn(self):
 
 def postproc_snn_infer(self):
     # results
-    cal_results(self)
+    #cal_results(self)
 
     #
     if self.f_vth_set_and_norm:
@@ -742,7 +748,7 @@ def postproc_snn_infer(self):
         lib_snn.calibration.calibration_bias_set(self)
 
     # print results
-    print_results(self)
+    #print_results(self)
 
     #
     save_condition = (self.conf.full_test and \
@@ -781,7 +787,6 @@ def postproc_batch_train(self):
 #print('postproc_batch_train')
     pass
 
-
     #
     postproc_batch_train_sel={
         'ANN': postproc_batch_train_ann,
@@ -798,6 +803,90 @@ def postproc_batch_train_ann(self):
 
 def postproc_batch_train_snn(self):
     pass
+    spike_count_batch_end(self)
+
+
+########################################
+# (on_train_epoch_end)
+########################################
+def postproc_epoch_train(self,epoch,logs):
+
+    #
+    postproc_epoch_train_sel={
+        'ANN': postproc_epoch_train_ann,
+        'SNN': postproc_epoch_train_snn,
+    }
+    postproc_epoch_train_sel[self.model.nn_mode](self,epoch,logs)
+
+
+def postproc_epoch_train_ann(self,epoch,logs):
+    pass
+
+def postproc_epoch_train_snn(self,epoch,logs):
+    spike_count_epoch_end(self,epoch,logs)
+
+
+########################################
+# spike count
+########################################
+
+def spike_count_epoch_init(self):
+    #
+    for neuron in self.model.layers_w_neuron:
+        self.list_spike_count[neuron.name] = 0
+
+    self.spike_count_total = 0
+
+def spike_count_batch_end(self):
+    #tf.summary.scalar('best_acc_val', data=self.best, step=epoch)
+    #logs['best_acc_val'] = self.best
+
+    #if not hasattr(self,'list_spike_count'):
+    #    self.list_spike_count = collections.OrderedDict()
+
+    #if not hasattr(self,'spike_count_total'):
+    #    self.spike_count_total = 0
+
+    #
+    strategy = tf.distribute.get_strategy()
+    if isinstance(strategy,tf.distribute.OneDeviceStrategy):
+        for neuron in self.model.layers_w_neuron:
+            name = neuron.name
+            #spike_count = tf.reduce_sum(neuron.act.spike_count_int)
+            spike_count = tf.reduce_mean(neuron.act.spike_count_int,axis=0)
+            spike_count = tf.reduce_sum(spike_count)
+            self.list_spike_count[name] += spike_count
+            self.spike_count_total += spike_count
+    else:
+        for neuron in self.model.layers_w_neuron:
+            name = neuron.name
+            #spike_count = tf.reduce_sum(neuron.act.spike_count_int.values)
+            spike_count = tf.reduce_mean(neuron.act.spike_count_int.values,axis=0)
+            spike_count = tf.reduce_sum(spike_count)
+            self.list_spike_count[name] += spike_count
+            self.spike_count_total += spike_count
+
+def spike_count_epoch_end(self,epoch,logs):
+
+    #num_batch = config.flags.num_train_data / config.batch_size
+    #num_train_data = config.flags.num_train_data
+    #
+    #for neuron in self.model.layers_w_neuron:
+    #    self.list_spike_count[neuron.name]/=self.train_ds_num
+    #self.spike_count_total/=self.train_ds_num
+
+
+    tf.summary.scalar('s_count', data=self.spike_count_total, step=epoch)
+    logs['s_count'] = self.spike_count_total
+
+    if 'best_val_acc' in logs.keys():
+        if logs['val_acc'] == logs['best_val_acc']:
+            self.spike_count_total_best = self.spike_count_total
+
+        tf.summary.scalar('bset_s_count', data=self.spike_count_total_best, step=epoch)
+        logs['best_s_count'] = self.spike_count_total_best
+
+
 
 
 #
@@ -829,7 +918,7 @@ def dnn_snn_compare_func(self):
 
 #
 def cal_results(self):
-    assert False, 'check call it each epoch end - move to batch end routine'
+    #assert False, 'check call it each epoch end - move to batch end routine'
 
     #if conf.snn_training_spatial_first:
     if True:

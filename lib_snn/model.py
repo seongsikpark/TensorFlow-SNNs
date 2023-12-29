@@ -715,12 +715,6 @@ class Model(tf.keras.Model):
             #ret = y_pred.read(self.conf.time_step-1)
             ret = y_pred
 
-            #
-
-
-
-
-
         else:   # temporal first - old
             #inputs_expand_shape = [self.conf.time_step,]+inputs.shape
             #inputs_e = tf.broadcast_to(inputs,shape=inputs_expand_shape)
