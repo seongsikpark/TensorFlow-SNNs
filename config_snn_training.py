@@ -28,7 +28,7 @@ conf = config.flags
 
 
 #
-#conf.mode='inference'
+conf.mode='inference'
 ##conf.batch_size_inf=100
 #conf.batch_size=400
 #conf.batch_size=200
@@ -39,9 +39,11 @@ conf = config.flags
 #conf.name_model_load='./models/VGG16_AP_CIFAR100/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-z'
 
 
+conf.root_model_load='./models_ckpt_WTA-SNN'
+
 #
-conf.learning_rate = 0.1
-conf.lmb = 1.0E-2
+#conf.learning_rate = 0.1
+#conf.lmb = 1.0E-2
 
 #
 #conf.train_epoch = 90
@@ -51,13 +53,13 @@ conf.lmb = 1.0E-2
 #conf.num_train_data = 10000
 
 
-conf.model='VGG11'
+#conf.model='VGG11'
 #conf.model='ResNet20'
 #conf.model='ResNet32'
 
 #conf.dataset='CIFAR100'
 #conf.dataset='ImageNet'
-conf.dataset='CIFAR10_DVS'
+#conf.dataset='CIFAR10_DVS'
 
 
 conf.pooling_vgg = 'avg'
