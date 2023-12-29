@@ -134,8 +134,10 @@ def as_frames(
     images = tf.tensor_scatter_nd_update(images,idxs,colors)
 
     # resize image
-    s=32
-    crop_size = 36
+    #s=32
+    #crop_size = 36
+    s=48
+    crop_size = 52
 
     if augmentation:
         image_resize_size = crop_size

@@ -39,7 +39,7 @@ with dist_strategy.scope():
     ########################################
     #data_batch = valid_ds.take(1)
     #model = lib_snn.model_builder.model_builder(num_class,train_steps_per_epoch)
-    model = lib_snn.model_builder.model_builder(num_class,train_steps_per_epoch)
+    model = lib_snn.model_builder.model_builder(num_class,train_steps_per_epoch,valid_ds)
 
     ########################################
     # load model

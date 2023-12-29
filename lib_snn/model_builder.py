@@ -22,7 +22,8 @@ import functools
 
 def model_builder(
     num_class,
-    train_steps_per_epoch
+    train_steps_per_epoch,
+    valid_ds
 ):
 
     print('Model Builder - {}'.format(conf.nn_mode))
@@ -41,8 +42,16 @@ def model_builder(
     #
     eager_mode = config.eager_mode
 
-    batch_size = config.batch_size
-    image_shape = lib_snn.utils_vis.image_shape_vis(model_name, dataset_name)
+
+    data_batch, = valid_ds.take(1)
+    images = data_batch[0]
+    labels = data_batch[1]
+
+    #batch_size = config.batch_size
+    #image_shape = lib_snn.utils_vis.image_shape_vis(model_name, dataset_name)
+
+    batch_size = images.shape[0]
+    image_shape = images.shape[1:]
 
     # train
     train_type = config.train_type
