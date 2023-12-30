@@ -11,6 +11,7 @@ conf = flags.FLAGS
 
 
 from tensorflow.python.keras.engine import compile_utils
+from tensorflow.python.keras import backend as K
 
 #
 import collections
@@ -847,35 +848,37 @@ def spike_count_batch_end(self):
     #if not hasattr(self,'spike_count_total'):
     #    self.spike_count_total = 0
 
+
     #
     strategy = tf.distribute.get_strategy()
     if isinstance(strategy,tf.distribute.OneDeviceStrategy):
         for neuron in self.model.layers_w_neuron:
             name = neuron.name
-            #spike_count = tf.reduce_sum(neuron.act.spike_count_int)
-            spike_count = tf.reduce_mean(neuron.act.spike_count_int,axis=0)
-            spike_count = tf.reduce_sum(spike_count)
+            spike_count = tf.reduce_sum(neuron.act.spike_count_int)
             self.list_spike_count[name] += spike_count
             self.spike_count_total += spike_count
     else:
         for neuron in self.model.layers_w_neuron:
             name = neuron.name
-            #spike_count = tf.reduce_sum(neuron.act.spike_count_int.values)
-            spike_count = tf.reduce_mean(neuron.act.spike_count_int.values,axis=0)
-            spike_count = tf.reduce_sum(spike_count)
+            spike_count = tf.reduce_sum(neuron.act.spike_count_int.values)
             self.list_spike_count[name] += spike_count
             self.spike_count_total += spike_count
 
 def spike_count_epoch_end(self,epoch,logs):
 
-    #num_batch = config.flags.num_train_data / config.batch_size
-    #num_train_data = config.flags.num_train_data
+
+
+    training = K.learning_phase()
+    if training:
+        num_data = self.train_ds_num
+    else:
+        num_data = self.test_ds_num
+
+    for neuron in self.model.layers_w_neuron:
+        self.list_spike_count[neuron.name]/=num_data
+    self.spike_count_total/=num_data
+
     #
-    #for neuron in self.model.layers_w_neuron:
-    #    self.list_spike_count[neuron.name]/=self.train_ds_num
-    #self.spike_count_total/=self.train_ds_num
-
-
     tf.summary.scalar('s_count', data=self.spike_count_total, step=epoch)
     logs['s_count'] = self.spike_count_total
 

@@ -231,7 +231,7 @@ class SNNLIB(tf.keras.callbacks.Callback):
         lib_snn.proc.reset(self)
 
     def on_train_end(self, logs=None):
-        lib_snn.proc.postproc(self)
+        lib_snn.proc.postproc(self,logs)
 
     def on_train_batch_begin(self, batch, logs=None):
         #print('on_test_batch_begin')
