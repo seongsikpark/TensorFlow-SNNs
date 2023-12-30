@@ -94,10 +94,10 @@ if True:
     if True:
     #if False:
         conf.reg_spike_out = True
-        conf.reg_spike_out_const = 3E-6
+        conf.reg_spike_out_const = 6E-2
         conf.reg_spike_out_alpha = 4
         conf.reg_spike_out_sc=True
-        #conf.reg_spike_out_sc_wta=False
+        conf.reg_spike_out_sc_wta=False
         # conf.reg_spike_out_sc_train=True
         conf.reg_spike_out_sc_sm=True
         #conf.reg_spike_out_sc_sq=True
