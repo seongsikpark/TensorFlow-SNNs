@@ -2007,8 +2007,8 @@ class Model(tf.keras.Model):
                 self.optimizer.apply_gradients(grads_accum_and_vars)
 
                 # print gradients
-                if True:
-                #if False:
+                #if True:
+                if False:
                     print('')
                     print('gradients')
 
