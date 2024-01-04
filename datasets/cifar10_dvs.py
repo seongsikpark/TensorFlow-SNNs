@@ -54,7 +54,8 @@ def load():
     num_frames = conf.time_step
     conf.time_dim_size = num_frames
 
-    image_shape = (128,128,3)
+    #image_shape = (128,128,3)
+    image_shape = (128,128,2)
 
     # test
     ##for events, labels in train_ds:
