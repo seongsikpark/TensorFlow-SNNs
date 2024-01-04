@@ -2006,6 +2006,25 @@ class Model(tf.keras.Model):
                 #
                 self.optimizer.apply_gradients(grads_accum_and_vars)
 
+                # print gradients
+                #if True:
+                if False:
+                    print('')
+                    print('gradients')
+
+                    for gv in grads_accum_and_vars:
+                        g = gv[0]
+                        v = gv[1]
+                        name = v.name
+                        g_mean = tf.reduce_mean(g)
+                        g_max = tf.reduce_max(g)
+                        g_min = tf.reduce_min(g)
+                        g_std = tf.math.reduce_std(g)
+                        if name == 'conv1/kernel:0':
+                            print("{:} - mean: {:e}, max: {:e}, min: {:e}, std: {:e}".format(name, g_mean, g_max, g_min, g_std))
+
+                    print('')
+
                 #
                 #print('gradients')
                 #print(grads_accum_and_vars)

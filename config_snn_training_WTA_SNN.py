@@ -23,23 +23,26 @@ from config import config
 conf = config.flags
 
 #
-#conf.debug_mode = True
+conf.debug_mode = True
 #conf.verbose_snn_train = True
+#conf.verbose_visual = True
 
 
 #
-conf.mode='inference'
+#conf.mode='inference'
 ##conf.batch_size_inf=100
 #conf.batch_size=400
 #conf.batch_size=200
 #conf.batch_size=300
 #conf.batch_size=180
 #conf.batch_size=120
+#conf.batch_size=1
+
 #conf.time_step=2
 #conf.name_model_load='./models/VGG16_AP_CIFAR100/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-z'
 
 
-conf.root_model_load='./models_ckpt_WTA-SNN'
+#conf.root_model_load='./models_ckpt_WTA-SNN'
 
 #
 #conf.learning_rate = 0.1
@@ -50,7 +53,9 @@ conf.root_model_load='./models_ckpt_WTA-SNN'
 #conf.step_decay_epoch = 30
 #conf.train_epoch = 10
 #conf.train_epoch = 10
-#conf.num_train_data = 10000
+conf.num_train_data = 1000
+#conf.idx_test_data=0
+#conf.num_test_data=1
 
 
 #conf.model='VGG11'
@@ -88,9 +93,52 @@ conf.leak_const_init = 0.9
 #conf.leak_const_train = True
 
 
-#
-#if False:
+# WTA-SNN
 if True:
+#if False:
+    conf.reg_spike_out = True
+    conf.reg_spike_out_const = 3E-6
+    conf.reg_spike_out_alpha = 4
+    conf.reg_spike_out_sc=True
+    #conf.reg_spike_out_sc_wta=False
+    # conf.reg_spike_out_sc_train=True
+    conf.reg_spike_out_sc_sm=True
+    #conf.reg_spike_out_sc_sq=True
+    conf.reg_spike_out_norm = True
+
+
+# spike reg - similar spike
+#if True:
+if False:
+    conf.reg_spike_out = True
+    conf.reg_spike_out_const = 6E-2
+    conf.reg_spike_out_alpha = 4
+    conf.reg_spike_out_sc=True
+    conf.reg_spike_out_sc_wta=False
+    # conf.reg_spike_out_sc_train=True
+    conf.reg_spike_out_sc_sm=True
+    #conf.reg_spike_out_sc_sq=True
+    conf.reg_spike_out_norm = True
+
+
+# spike reg - similar acc
+#if True:
+if False:
+    conf.reg_spike_out = True
+    conf.reg_spike_out_const = 3E-6
+    conf.reg_spike_out_alpha = 4
+    conf.reg_spike_out_sc=True
+    conf.reg_spike_out_sc_wta=False
+    # conf.reg_spike_out_sc_train=True
+    conf.reg_spike_out_sc_sm=True
+    #conf.reg_spike_out_sc_sq=True
+    conf.reg_spike_out_norm = True
+
+
+
+#
+if False:
+#if True:
     if True:
     #if False:
         conf.reg_spike_out = True

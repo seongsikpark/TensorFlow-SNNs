@@ -1,4 +1,4 @@
-
+import keras.layers
 import numpy as np
 np.set_printoptions(precision=4)
 np.set_printoptions(linewidth=np.inf)
@@ -761,6 +761,20 @@ class Neuron(tf.keras.layers.Layer):
         #spike_trace_update = spike_trace_pre
         #if t < conf.time_step:
             #self.spike_trace = self.spike_trace.write(t,spike_trace_update)
+
+
+        # visual
+        #if conf.verbose_visual:
+            #import lib_snn
+            #from lib_snn.sim import glb_plot_psp
+            #lib_snn.utils.plot_hist(glb_plot_psp,inputs,100,norm_fit=True)
+        #print(inputs)
+        #import lib_snn
+        #from lib_snn.sim import glb_plot_psp
+        #lib_snn.utils.plot_hist(glb_plot_psp,inputs,100,norm_fit=True)
+
+        #print(inputs.numpy())
+
 
 
         #return out_ret, grad
@@ -2062,6 +2076,18 @@ class Neuron(tf.keras.layers.Layer):
 
         #self.out = fire
         #self.count_spike(t)
+
+        # noise robustness test
+        # gaussian noise
+        #noise = tf.random.normal(shape=fire.shape,mean=0,stddev=0.2)
+        #fire = fire + noise
+
+        # deletion noise
+        #noise_pr = 0.01
+        #rand = tf.random.uniform(fire.shape, minval=0.0, maxval=1.0)
+        #f_noise_del = tf.less(rand, tf.constant(noise_pr, shape=fire.shape))
+        #fire = tf.where(f_noise_del,tf.zeros(fire.shape),fire)
+
 
         return fire, vmem_fire
 

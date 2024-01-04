@@ -8,9 +8,12 @@ conf = config.flags
 #RED = [255,0,0]    # on
 #GREEN = [0,255,0]  # off
 
-RED = [1,0,0]
-GREEN = [0,1,0]
+#RED = [1,0,0]
+#GREEN = [0,1,0]
 
+
+RED = [1,0]      # on
+GREEN = [0,1]    # off
 
 #
 # this function is modified based on
@@ -143,7 +146,8 @@ def as_frames(
         image_resize_size = crop_size
     else:
         image_resize_size = s
-    images=tf.image.resize(images,(image_resize_size,image_resize_size),method='lanczos3')   # VGG, ResNet
+    #images=tf.image.resize(images,(image_resize_size,image_resize_size),method='lanczos3')   # VGG, ResNet
+    images=tf.image.resize(images,(image_resize_size,image_resize_size),method='bilinear')   # VGG, ResNet
 
 
 
@@ -151,7 +155,7 @@ def as_frames(
         #images = tf.image.resize(images, (s, s))
         #images = tf.image.random_crop(images, (num_frames,crop_size,crop_size,3))    # random crop
         #images=tf.image.resize(images,(crop_size,crop_size),method='lanczos3')   # VGG, ResNet
-        images = tf.image.random_crop(images, (num_frames,s,s,3))    # random crop
+        images = tf.image.random_crop(images, (num_frames,s,s,2))    # random crop
         images=tf.image.random_flip_left_right(images)
         images=tf.image.random_flip_up_down(images)
 
