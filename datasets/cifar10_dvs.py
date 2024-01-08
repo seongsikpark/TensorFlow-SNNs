@@ -35,7 +35,8 @@ def load():
     train_ratio_percent = int(train_ratio*100)
     #train_ds, train_ds_info = tfds.load("cifar10_dvs", split="train", as_supervised=True)
     #train_ds = tfds.load("cifar10_dvs", split="train", as_supervised=True)
-    train_ds, valid_ds = tfds.load("cifar10_dvs", split=["train[:"+str(train_ratio_percent)+"%]", "train["+str(train_ratio_percent)+"%:]"], as_supervised=True, shuffle_files=True)
+    train_ds = tfds.load("cifar10_dvs", split="train[:"+str(train_ratio_percent)+"%]", as_supervised=True, shuffle_files=True)
+    valid_ds = tfds.load("cifar10_dvs", split="train["+str(train_ratio_percent)+"%:]", as_supervised=True)
     #train_ds, valid_ds = tfds.load("cifar10_dvs", split=["train[:200]", "train[9000:]"], as_supervised=True)
 
 
