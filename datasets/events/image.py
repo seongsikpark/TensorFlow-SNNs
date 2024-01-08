@@ -140,7 +140,8 @@ def as_frames(
     #s=32
     #crop_size = 36
     s=48
-    crop_size = 52
+    #crop_size = 52
+    crop_size = 48
 
     if augmentation:
         image_resize_size = crop_size
