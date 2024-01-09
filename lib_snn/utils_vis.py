@@ -49,7 +49,8 @@ def image_shape_vis(model_name, dataset_name):
 
     #
     if conf.input_data_time_dim:
-        image_shape = (conf.time_dim_size, input_size, input_size, 2)
+        #image_shape = (conf.time_dim_size, input_size, input_size, 2)
+        image_shape = (conf.time_dim_size, input_size, input_size, 1)
     else:
         image_shape = (input_size, input_size, 3)
 
