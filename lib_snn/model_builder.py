@@ -1,5 +1,6 @@
 
 import tensorflow as tf
+import keras
 
 import lib_snn
 
@@ -131,6 +132,12 @@ def model_builder(
             optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate, name='ADAM')
         else:
             optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate, name='ADAM',clipnorm=conf.grad_clipnorm)
+    elif opt == 'ADAMW':
+        learning_rate = learning_rate
+        if conf.grad_clipnorm == None:
+            optimizer = tf.keras.optimizers.experimental.AdamW(learning_rate=learning_rate, name='ADAMW')
+        else:
+            optimizer = tf.keras.optimizers.experimental.AdamW(learning_rate=learning_rate, name='ADAMW', clipnorm=conf.grad_clipnorm)
     else:
         assert False
 

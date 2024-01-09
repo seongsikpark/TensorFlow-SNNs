@@ -42,7 +42,7 @@ conf = config.flags
 #conf.root_model_load='./models_ckpt_WTA-SNN'
 
 #
-conf.learning_rate = 0.0001
+conf.learning_rate = 0.001
 conf.lmb = 1.0E-4
 conf.optimizer = 'ADAM'
 conf.lr_schedule = None

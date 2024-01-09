@@ -2000,7 +2000,12 @@ class Model(tf.keras.Model):
                     #glb_t.t=conf.time_step
                     glb_t.set(conf.time_step)
 
-                    grads_accum_and_vars = self.optimizer._compute_gradients(loss=loss, var_list=self.trainable_variables, grad_loss=grad_loss, tape=tape)
+                    if hasattr(self.optimizer,'_compute_gradients'):
+                        grads_accum_and_vars = self.optimizer._compute_gradients(loss=loss, var_list=self.trainable_variables, grad_loss=grad_loss, tape=tape)
+                    elif hasattr(self.optimizer,'compute_gradients'):
+                        grads_accum_and_vars = self.optimizer.compute_gradients(loss=loss, var_list=self.trainable_variables, tape=tape)
+                    else:
+                        assert False, 'compute gradients'
 
 
                 #
