@@ -14,8 +14,11 @@ conf = config.flags
 #RED = [1,0]      # on
 #GREEN = [0,1]    # off
 
-RED = [1]      # on
-GREEN = [-1]    # off
+#RED = [1]      # on
+#GREEN = [-1]    # off
+
+RED = [0.1]      # on
+GREEN = [-0.1]    # off
 
 #
 # this function is modified based on
@@ -44,7 +47,8 @@ def as_frame(events, labels, shape=None):
 
 
     #image = tf.zeros(image_shape,dtype=tf.uint8)
-    images = tf.zeros(image_shape,dtype=tf.int32)
+    #images = tf.zeros(image_shape,dtype=tf.int32)
+    images = tf.zeros(image_shape,dtype=tf.float32)
 
 
     #colors = tf.where(tf.expand_dims(polarity,1),[255,0,0],[0,255,0])
@@ -121,7 +125,8 @@ def as_frames(
 
     #frame_data = np.zeros((num_frames, *shape, 3), dtype=np.uint8)
 
-    images = tf.zeros(image_shape,dtype=tf.int32)
+    #images = tf.zeros(image_shape,dtype=tf.int32)
+    images = tf.zeros(image_shape,dtype=tf.float32)
 
     #if polarity is None:
     #    colors = WHITE
