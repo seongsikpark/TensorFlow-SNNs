@@ -2017,7 +2017,7 @@ class Model(tf.keras.Model):
                     print('')
                     print('gradients')
 
-                    for gv in grads_accum_and_vars:
+                    for gv in grads_accumuand_vars:
                         g = gv[0]
                         v = gv[1]
                         name = v.name
@@ -2025,8 +2025,9 @@ class Model(tf.keras.Model):
                         g_max = tf.reduce_max(g)
                         g_min = tf.reduce_min(g)
                         g_std = tf.math.reduce_std(g)
-                        if name == 'conv1/kernel:0':
-                            print("{:} - mean: {:e}, max: {:e}, min: {:e}, std: {:e}".format(name, g_mean, g_max, g_min, g_std))
+                        #if name == 'conv1/kernel:0':
+                        #    print("{:} - mean: {:e}, max: {:e}, min: {:e}, std: {:e}".format(name, g_mean, g_max, g_min, g_std))
+                        print("{:} - mean: {:e}, max: {:e}, min: {:e}, std: {:e}".format(name, g_mean, g_max, g_min, g_std))
 
                     print('')
 

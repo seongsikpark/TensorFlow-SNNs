@@ -757,26 +757,6 @@ class Neuron(tf.keras.layers.Layer):
             self.update_spike_trace(t,spike)
             ##pass
 
-        #spike_trace_pre = self.spike_trace.read(t-1)
-        #spike_trace_update = spike_trace_pre
-        #if t < conf.time_step:
-            #self.spike_trace = self.spike_trace.write(t,spike_trace_update)
-
-
-        # visual
-        #if conf.verbose_visual:
-            #import lib_snn
-            #from lib_snn.sim import glb_plot_psp
-            #lib_snn.utils.plot_hist(glb_plot_psp,inputs,100,norm_fit=True)
-        #print(inputs)
-        #import lib_snn
-        #from lib_snn.sim import glb_plot_psp
-        #lib_snn.utils.plot_hist(glb_plot_psp,inputs,100,norm_fit=True)
-
-        #print(inputs.numpy())
-
-
-
         #return out_ret, grad
         return out_ret
 
@@ -2083,10 +2063,10 @@ class Neuron(tf.keras.layers.Layer):
         #fire = fire + noise
 
         # deletion noise
-        #noise_pr = 0.01
-        #rand = tf.random.uniform(fire.shape, minval=0.0, maxval=1.0)
-        #f_noise_del = tf.less(rand, tf.constant(noise_pr, shape=fire.shape))
-        #fire = tf.where(f_noise_del,tf.zeros(fire.shape),fire)
+        noise_pr = 0.05
+        rand = tf.random.uniform(fire.shape, minval=0.0, maxval=1.0)
+        f_noise_del = tf.less(rand, tf.constant(noise_pr, shape=fire.shape))
+        fire = tf.where(f_noise_del,tf.zeros(fire.shape),fire)
 
 
         return fire, vmem_fire

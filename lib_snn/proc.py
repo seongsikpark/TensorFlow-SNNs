@@ -93,7 +93,8 @@ def reset(self):
         if isinstance(metric,compile_utils.MetricsContainer):
             metric.reset_state()
 
-    spike_count_epoch_init(self)
+    if self.conf.mode=='inference':
+        spike_count_epoch_init(self)
 
 
 #
@@ -356,12 +357,17 @@ def preproc_batch_snn(self):
     #reset_snn_sample(self)
 
 def preproc_epoch_train(self,epoch):
+
+    self.epoch = epoch
+
     #
     preproc_epoch_sel={
         'ANN': preproc_epoch_train_ann,
         'SNN': preproc_epoch_train_snn,
     }
     preproc_epoch_sel[self.model.nn_mode](self,epoch)
+
+
 
 def preproc_epoch_train_ann(self, epoch):
     pass
@@ -389,76 +395,78 @@ def reset_snn_time_step(self):
 ########################################
 # (on_test_batch_end)
 ########################################
-def postproc_batch_test(self):
+def postproc_batch_test(self, batch, logs):
     #print('postproc_batch_test')
 
-    #
-    spike_count_batch_end(self)
 
-    # TODO: need?
-    if self.model.en_record_output:
-        collect_record_output(self)
+    if self.conf.mode=='inference':
 
-    if self.run_for_vth_search:
-        #lib_snn.calibration.weight_calibration_act_based(self)
-        lib_snn.calibration.vth_search(self)
+        #
+        spike_count_batch_end(self)
 
-    if self.run_for_calibration_ML:
-        #if self.conf.calibration_bias_ICML_21:
-        #if not self.vth_search_done:
-        #    lib_snn.calibration.weight_calibration_act_based(self)
-            #self.vth_search_done=True
-        lib_snn.calibration.bias_calibration_ICML_21(self)
+        # TODO: need?
+        if self.model.en_record_output:
+            collect_record_output(self)
+
+        if self.run_for_vth_search:
+            #lib_snn.calibration.weight_calibration_act_based(self)
+            lib_snn.calibration.vth_search(self)
+
+        if self.run_for_calibration_ML:
+            #if self.conf.calibration_bias_ICML_21:
+            #if not self.vth_search_done:
+            #    lib_snn.calibration.weight_calibration_act_based(self)
+                #self.vth_search_done=True
+            lib_snn.calibration.bias_calibration_ICML_21(self)
 
 
-    #
-    if False:
-        print('non zero ratio in ann act (postproc_batch)')
-        #for layer in self.layers_w_kernel:
+        #
+        if False:
+            print('non zero ratio in ann act (postproc_batch)')
+            #for layer in self.layers_w_kernel:
 
-        if not hasattr(self,'nonzero_ratios'):
-            self.nonzero_ratios = collections.OrderedDict()
+            if not hasattr(self,'nonzero_ratios'):
+                self.nonzero_ratios = collections.OrderedDict()
 
             for layer in self.model.layers_w_kernel:
                 self.nonzero_ratios[layer.name] = []
 
-        for layer in self.model.layers_w_kernel:
+            for layer in self.model.layers_w_kernel:
+                non_zero = tf.math.count_nonzero(layer.record_output, dtype=tf.float32)
+                non_zero_r = non_zero / tf.cast(tf.reduce_prod(layer.record_output.shape),tf.float32)
 
-            non_zero = tf.math.count_nonzero(layer.record_output, dtype=tf.float32)
-            non_zero_r = non_zero / tf.cast(tf.reduce_prod(layer.record_output.shape),tf.float32)
+                non_zero_r_m = tf.reduce_mean(non_zero_r)
 
-            non_zero_r_m = tf.reduce_mean(non_zero_r)
+                self.nonzero_ratios[layer.name].append(non_zero_r_m)
 
-            self.nonzero_ratios[layer.name].append(non_zero_r_m)
-
-            #print(layer.name)
-            #print(non_zero_r_m)
-
-
-        #
-        print('')
-        print('mean activation, kernel, bias')
-        for layer in self.model.layers_w_kernel:
-
-            n_m = tf.reduce_mean(self.nonzero_ratios[layer.name])
-            a_m = tf.reduce_mean(layer.record_output)
-            k_m = tf.reduce_mean(layer.kernel)
-            b_m = tf.reduce_mean(layer.bias)
-
-            print('{:<8}: nonzero - {:.4f}, act - {:.4f}, kernel - {:.4f}, bias - {:.4f}'.format(layer.name,n_m,a_m,k_m,b_m))
+                #print(layer.name)
+                #print(non_zero_r_m)
 
 
-    # early stop inference
-    if self.conf.early_stop_search:
-        #print(self.model)
-        idx_acc = self.model.metrics_names.index('acc')
-        acc=self.model.metrics[idx_acc].result().numpy()
-        #print('debug early stop inference')
-        #print(acc)
-        #print(self.conf.early_stop_search_acc)
+            #
+            print('')
+            print('mean activation, kernel, bias')
+            for layer in self.model.layers_w_kernel:
 
-        if acc < self.conf.early_stop_search_acc:
-            assert False
+                n_m = tf.reduce_mean(self.nonzero_ratios[layer.name])
+                a_m = tf.reduce_mean(layer.record_output)
+                k_m = tf.reduce_mean(layer.kernel)
+                b_m = tf.reduce_mean(layer.bias)
+
+                print('{:<8}: nonzero - {:.4f}, act - {:.4f}, kernel - {:.4f}, bias - {:.4f}'.format(layer.name,n_m,a_m,k_m,b_m))
+
+
+        # early stop inference
+        if self.conf.early_stop_search:
+            #print(self.model)
+            idx_acc = self.model.metrics_names.index('acc')
+            acc=self.model.metrics[idx_acc].result().numpy()
+            #print('debug early stop inference')
+            #print(acc)
+            #print(self.conf.early_stop_search_acc)
+
+            if acc < self.conf.early_stop_search_acc:
+                assert False
 
 # TODO: move to model.py
 def collect_record_output(self):
@@ -498,62 +506,63 @@ def postproc(self,logs):
     postproc_sel[self.model.nn_mode](self,logs)
 
 def postproc_ann(self,logs):
-    #
-    if self.conf.f_write_stat:
-        lib_snn.weight_norm.save_act_stat(self)
-        return
 
-    if self.f_vth_set_and_norm:
-        lib_snn.calibration.vth_set_and_norm(self)
+    if self.conf.mode=='inference':
+        #
+        if self.conf.f_write_stat:
+            lib_snn.weight_norm.save_act_stat(self)
+            return
 
-
-
-    # TODO
-    if (not self.conf.full_test) and conf._run_for_visual_debug:
-    #dnn_snn_compare=True
-    #if (not self.conf.full_test) and dnn_snn_compare:
-        #idx=7
-        plot_dnn_act(self)
-        #plot_act_dist(self)
-        #pass
+        if self.f_vth_set_and_norm:
+            lib_snn.calibration.vth_set_and_norm(self)
 
 
-    #
-    if False:
-        print('non zero ratio in ann act (postproc)')
-        #for layer in self.layers_w_kernel:
-        for layer in self.model.layers_w_kernel:
 
-            if isinstance(layer, lib_snn.layers.Conv2D):
-                axis = [1, 2, 3]
-            elif isinstance(layer, lib_snn.layers.Dense):
-                axis = [1]
-            else:
-                assert False
+        # TODO
+        if (not self.conf.full_test) and conf._run_for_visual_debug:
+        #dnn_snn_compare=True
+        #if (not self.conf.full_test) and dnn_snn_compare:
+            #idx=7
+            plot_dnn_act(self)
+            #plot_act_dist(self)
+            #pass
 
-            non_zero = tf.math.count_nonzero(layer.record_output, dtype=tf.float32, axis=axis)
-            non_zero_r = non_zero / tf.cast(tf.reduce_prod(layer.record_output.shape[1:]),tf.float32)
+        #
+        if False:
+            print('non zero ratio in ann act (postproc)')
+            #for layer in self.layers_w_kernel:
+            for layer in self.model.layers_w_kernel:
 
-            non_zero_r_m = tf.reduce_mean(non_zero_r)
+                if isinstance(layer, lib_snn.layers.Conv2D):
+                    axis = [1, 2, 3]
+                elif isinstance(layer, lib_snn.layers.Dense):
+                    axis = [1]
+                else:
+                    assert False
 
-            print(layer.name)
-            print(non_zero_r_m)
+                non_zero = tf.math.count_nonzero(layer.record_output, dtype=tf.float32, axis=axis)
+                non_zero_r = non_zero / tf.cast(tf.reduce_prod(layer.record_output.shape[1:]),tf.float32)
 
-    if False:
-        print('plot nonzero ratio')
-        figs, axes = plt.subplots(5, 5, figsize=(12,10))
-        for layer in self.model.layers_w_kernel:
-            axe = axes.flatten()[layer.depth]
+                non_zero_r_m = tf.reduce_mean(non_zero_r)
 
-            nonzero = self.nonzero_ratios[layer.name]
-            axe.plot(nonzero)
+                print(layer.name)
+                print(non_zero_r_m)
 
-            #(n, bins, patches) = axe.hist(act, bins=bins)
-            axe.axhline(y=tf.reduce_mean(nonzero),color='r')
-            #axe.set_ylim([0, n[10]])
-            axe.set_title(layer.name)
+        if False:
+            print('plot nonzero ratio')
+            figs, axes = plt.subplots(5, 5, figsize=(12,10))
+            for layer in self.model.layers_w_kernel:
+                axe = axes.flatten()[layer.depth]
 
-        plt.show()
+                nonzero = self.nonzero_ratios[layer.name]
+                axe.plot(nonzero)
+
+                #(n, bins, patches) = axe.hist(act, bins=bins)
+                axe.axhline(y=tf.reduce_mean(nonzero),color='r')
+                #axe.set_ylim([0, n[10]])
+                axe.set_title(layer.name)
+
+            plt.show()
 
 
 #
@@ -718,6 +727,7 @@ def plot_dnn_act(self, layers=None, idx=None):
 
 
 def postproc_snn(self, logs):
+
     #
     # TODO: to be updated
     #postproc_snn_sel={
@@ -727,14 +737,16 @@ def postproc_snn(self, logs):
     #}
     #postproc_snn_sel[self.model.run_mode](self)
 
-    #
-    spike_count_epoch_end(self,0,logs)
 
     #if self.conf.train:
     if self.conf.mode=='train' or self.conf.mode=='load_and_train':
         postproc_snn_train(self)
     else:
         postproc_snn_infer(self)
+
+        #
+        #spike_count_epoch_end(self,0,logs)
+        spike_count_epoch_end(self,self.epoch,logs)
 
 def postproc_snn_infer(self):
     # results
@@ -824,6 +836,7 @@ def postproc_epoch_train_ann(self,epoch,logs):
     pass
 
 def postproc_epoch_train_snn(self,epoch,logs):
+    pass
     spike_count_epoch_end(self,epoch,logs)
 
 
@@ -848,7 +861,6 @@ def spike_count_batch_end(self):
     #if not hasattr(self,'spike_count_total'):
     #    self.spike_count_total = 0
 
-
     #
     strategy = tf.distribute.get_strategy()
     if isinstance(strategy,tf.distribute.OneDeviceStrategy):
@@ -865,8 +877,6 @@ def spike_count_batch_end(self):
             self.spike_count_total += spike_count
 
 def spike_count_epoch_end(self,epoch,logs):
-
-
 
     training = K.learning_phase()
     if training:
