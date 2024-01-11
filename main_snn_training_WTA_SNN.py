@@ -120,6 +120,7 @@ with dist_strategy.scope():
     # visualization - activation
     #
     if False:
+    #if True:
         psp_mode = True
         import keras
         import matplotlib.pyplot as plt
@@ -145,5 +146,5 @@ with dist_strategy.scope():
 
         act = act_model.predict(img)
 
-        plt.matxhow(act[0][0,:,:,2])
+        plt.matshow(act[0][0,:,:,2])
 

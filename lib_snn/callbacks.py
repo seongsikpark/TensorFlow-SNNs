@@ -134,6 +134,9 @@ class SNNLIB(tf.keras.callbacks.Callback):
         self.model_ann = model_ann
 
         #
+        self.epoch = 0
+
+        #
         self.total_num_neurons = 0
 
         self.f_skip_bn=False
@@ -202,20 +205,18 @@ class SNNLIB(tf.keras.callbacks.Callback):
         # reset
         lib_snn.proc.reset(self)
 
-    def on_test_end(self, logs=None):
+    def on_test_end(self, logs):
         #if not self.conf.train:
-        if self.conf.mode=='inference':
-            lib_snn.proc.postproc(self, logs)
+        lib_snn.proc.postproc(self, logs)
 
-    def on_test_batch_begin(self, batch, logs=None):
+    def on_test_batch_begin(self, batch, logs):
         #print('on_test_batch_begin')
         lib_snn.proc.preproc_batch(self)
 
-    def on_test_batch_end(self, batch, logs=None):
+    def on_test_batch_end(self, batch, logs):
         #print('on_test_batch_end')
         #if not self.conf.train:
-        if self.conf.mode=='inference':
-            lib_snn.proc.postproc_batch_test(self)
+        lib_snn.proc.postproc_batch_test(self, batch, logs)
 
 
 

@@ -23,7 +23,7 @@ from config import config
 conf = config.flags
 
 #
-conf.debug_mode = True
+#conf.debug_mode = True
 #conf.verbose_snn_train = True
 #conf.verbose_visual = True
 
@@ -45,15 +45,17 @@ conf.debug_mode = True
 #conf.root_model_load='./models_ckpt_WTA-SNN'
 
 #
-#conf.learning_rate = 0.1
-#conf.lmb = 1.0E-2
+conf.learning_rate = 0.1
+conf.lmb = 1.0E-4
+#conf.optimizer = 'ADAMW'
+#conf.lr_schedule = None
 
 #
 #conf.train_epoch = 90
 #conf.step_decay_epoch = 30
 #conf.train_epoch = 10
 #conf.train_epoch = 10
-conf.num_train_data = 1000
+#conf.num_train_data = 1000
 #conf.idx_test_data=0
 #conf.num_test_data=1
 
@@ -94,8 +96,8 @@ conf.leak_const_init = 0.9
 
 
 # WTA-SNN
-if True:
-#if False:
+#if True:
+if False:
     conf.reg_spike_out = True
     conf.reg_spike_out_const = 3E-6
     conf.reg_spike_out_alpha = 4
