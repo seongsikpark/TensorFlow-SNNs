@@ -55,8 +55,8 @@ with dist_strategy.scope():
     callbacks_train, callbacks_test = \
         callbacks.callbacks_snn_train(model,train_ds_num,valid_ds,test_ds_num)
 
-    if True:
-    #if False:
+    #if True:
+    if False:
         if config.train:
             print('Train mode')
 
@@ -119,9 +119,10 @@ with dist_strategy.scope():
     #
     # visualization - activation
     #
-    if False:
-    #if True:
-        psp_mode = True
+    #if False:
+    if True:
+        #psp_mode = True
+        psp_mode = False
         import keras
         import matplotlib.pyplot as plt
 
@@ -146,5 +147,83 @@ with dist_strategy.scope():
 
         act = act_model.predict(img)
 
-        plt.matshow(act[0][0,:,:,2])
+        plt.matshow(act[1][0,:,:,3])
 
+
+
+    # visualization - spike count
+    #if False:
+    if True:
+        result = model.evaluate(test_ds.take(1), callbacks=callbacks_test)
+        sc = []
+        for layer in model.layers_w_neuron:
+            if isinstance(layer.act,lib_snn.neurons.Neuron):
+                sc.append(layer.act.spike_count_int)
+
+
+
+
+    # XAI - integrated gradients
+    # batch size should be m_steps+1
+    if False:
+    #if True:
+
+        import matplotlib.pyplot as plt
+
+        [imgs, labels], = test_ds.take(1)
+
+        #sample_idx=6   # horse -> good
+        sample_idx=10   # horse -> good example
+        #sample_idx=30   # ? -> good
+        #sample_idx=40   # -> good
+        #sample_idx=50   # -> good
+
+
+        img = imgs[sample_idx]
+        label = labels[sample_idx]
+
+        baseline = tf.random.uniform(shape=img.shape,minval=0,maxval=1)
+
+
+        m_steps = 99
+        #m_steps = 50
+        #label_decoded=386
+        label_decoded = tf.argmax(label)
+
+        #image_processed = tf.expand_dims(img,axis=0)
+        img_exp = tf.expand_dims(img,axis=0)
+        ig_attribution = lib_snn.xai.integrated_gradients(model=model,
+                                                          baseline=baseline,
+                                                          images=img,
+                                                          target_class_idxs=label_decoded,
+                                                          m_steps=m_steps)
+
+        #_ = lib_snn.xai.plot_image_attributions(baseline,img_processed,ig_attribution)
+
+
+        # 5. Get the gradients of the last layer for the predicted label
+        grads = lib_snn.integrated_gradients.get_gradients(model,img_exp,top_pred_idx=label_decoded)
+
+        #
+        vis = lib_snn.integrated_gradients.GradVisualizer()
+
+        vis.visualize(
+            image=img,
+            gradients=grads[0].numpy(),
+            integrated_gradients=ig_attribution.numpy(),
+            clip_above_percentile=99,
+            clip_below_percentile=0
+        )
+
+
+        vis.visualize(
+            image=img,
+            gradients=grads[0].numpy(),
+            integrated_gradients=ig_attribution.numpy(),
+            clip_above_percentile=95,
+            clip_below_percentile=28,
+            morphological_cleanup=True,
+            outlines=True
+        )
+
+        plt.show()
