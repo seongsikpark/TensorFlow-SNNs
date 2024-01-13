@@ -17,6 +17,7 @@ from datasets.augmentation_cifar import cutmix
 
 
 from config import config
+conf = config.flags
 
 
 
@@ -26,8 +27,9 @@ def load(dataset_name,batch_size,input_size,input_size_pre_crop_ratio,num_class,
     dataset_name = dataset_name.lower()
 
     num_class = num_class
-    #batch_size_train = conf.batch_size
-    #batch_size_inference = conf.batch_size_inf
+    batch_size = conf.batch_size
+    batch_size_inference = conf.batch_size_inf
+
     input_size = input_size
     input_size_pre_crop_ratio = input_size_pre_crop_ratio
 
@@ -161,7 +163,8 @@ def load(dataset_name,batch_size,input_size,input_size_pre_crop_ratio,num_class,
     valid_ds = valid_ds.map(
         lambda image, label: resize_with_crop(image, label, dataset_name, input_size, input_size_pre_crop_ratio, num_class, input_prec_mode,preprocessor_input),
         num_parallel_calls=num_parallel)
-    valid_ds = valid_ds.batch(batch_size,drop_remainder=True)
+    #valid_ds = valid_ds.batch(batch_size,drop_remainder=True)
+    valid_ds = valid_ds.batch(batch_size_inference,drop_remainder=True)
     valid_ds = valid_ds.prefetch(num_parallel)
 
     # data-based weight normalization (DNN-to-SNN conversion)

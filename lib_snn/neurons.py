@@ -757,6 +757,14 @@ class Neuron(tf.keras.layers.Layer):
             self.update_spike_trace(t,spike)
             ##pass
 
+
+        # WTA-SNN analysis
+        if False:
+        #if True:
+            if self.loc == 'HID':
+                cond = tf.math.logical_or(self.spike_count_int==t, self.spike_count_int==tf.constant(1,shape=self.spike_count_int.shape,dtype=tf.float32))
+                out_ret = tf.where(cond,out_ret,tf.zeros(shape=out_ret.shape))
+
         #return out_ret, grad
         return out_ret
 
@@ -2063,10 +2071,10 @@ class Neuron(tf.keras.layers.Layer):
         #fire = fire + noise
 
         # deletion noise
-        noise_pr = 0.05
-        rand = tf.random.uniform(fire.shape, minval=0.0, maxval=1.0)
-        f_noise_del = tf.less(rand, tf.constant(noise_pr, shape=fire.shape))
-        fire = tf.where(f_noise_del,tf.zeros(fire.shape),fire)
+        #noise_pr = 0.05
+        #rand = tf.random.uniform(fire.shape, minval=0.0, maxval=1.0)
+        #f_noise_del = tf.less(rand, tf.constant(noise_pr, shape=fire.shape))
+        #fire = tf.where(f_noise_del,tf.zeros(fire.shape),fire)
 
 
         return fire, vmem_fire

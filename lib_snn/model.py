@@ -42,6 +42,8 @@ from lib_snn.sim import glb_t
 #from lib_snn.sim import glb_plot_gradient_beta
 
 
+
+
 from config import config
 conf = config.flags
 
@@ -422,6 +424,8 @@ class Model(tf.keras.Model):
                 assert False
 
 
+        # debug
+        self.h_lab_tot_glb=[0]*10
     #def init_graph(self, inputs, outputs,**kwargs):
         #super(Model, self).__init__(inputs=inputs,outputs=outputs,**kwargs)
 
@@ -1799,6 +1803,7 @@ class Model(tf.keras.Model):
         f_grad_accum=False
         #f_grad_accum=True
 
+
         if f_grad_accum:
             for t in range_ts:
                 #with tf.GradientTape(persistent=True) as tape:
@@ -1988,6 +1993,17 @@ class Model(tf.keras.Model):
                     with tf.GradientTape() as tape:
                         y_pred = self(x, training=True)
                         loss = self.compute_loss(x, y, y_pred, sample_weight)
+
+                        lab=tf.argmax(y,axis=-1)
+                        h_lab = np.histogram(lab)
+                        print("")
+                        #print(h_lab[0])
+                        self.h_lab_tot_glb = self.h_lab_tot_glb + h_lab[0]
+                        #print(self.h_lab_tot_glb)
+                        sum = tf.reduce_sum(self.h_lab_tot_glb)
+                        print((self.h_lab_tot_glb/sum).numpy())
+                        print("")
+
 
                     self._validate_target_and_loss(y, loss)
                     # Run backwards pass.
