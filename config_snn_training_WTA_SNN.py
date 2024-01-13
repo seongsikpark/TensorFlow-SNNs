@@ -29,20 +29,23 @@ conf = config.flags
 
 
 #
-#conf.mode='inference'
+conf.mode='inference'
 ##conf.batch_size_inf=100
 #conf.batch_size=400
 #conf.batch_size=200
 #conf.batch_size=300
 #conf.batch_size=180
 #conf.batch_size=120
+#conf.batch_size=51
 #conf.batch_size=1
+
+#conf.batch_size_inf = 51
 
 #conf.time_step=2
 #conf.name_model_load='./models/VGG16_AP_CIFAR100/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-z'
 
 
-#conf.root_model_load='./models_ckpt_WTA-SNN'
+conf.root_model_load='./models_ckpt_WTA-SNN'
 
 #
 conf.learning_rate = 0.1
@@ -96,8 +99,8 @@ conf.leak_const_init = 0.9
 
 
 # WTA-SNN
-#if True:
-if False:
+if True:
+#if False:
     conf.reg_spike_out = True
     conf.reg_spike_out_const = 3E-6
     conf.reg_spike_out_alpha = 4
