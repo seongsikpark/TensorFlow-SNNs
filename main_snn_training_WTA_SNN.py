@@ -119,8 +119,8 @@ with dist_strategy.scope():
     #
     # visualization - activation
     #
-    #if False:
-    if True:
+    if False:
+    #if True:
         #psp_mode = True
         psp_mode = False
         import keras
@@ -152,16 +152,67 @@ with dist_strategy.scope():
 
 
     # visualization - spike count
-    #if False:
-    if True:
+    if False:
+    #if True:
+        import keras
+        import matplotlib.pyplot as plt
+        import numpy as np
+
         result = model.evaluate(test_ds.take(1), callbacks=callbacks_test)
         sc = []
+        layer_names = []
         for layer in model.layers_w_neuron:
             if isinstance(layer.act,lib_snn.neurons.Neuron):
                 sc.append(layer.act.spike_count_int)
+                layer_names.append(layer.name)
+
+        a = sc[13]
+        plt.matshow(a[0,:,:,0])
+
+        images_per_row = 16
+
+        for layer_name, layer_sc in zip(layer_names,sc):
+            n_features = layer_sc.shape[-1]
+            size = layer_sc.shape[1]
+
+            n_cols = n_features // images_per_row
+            if n_cols == 0: # n_in
+                continue
+
+            if len(layer_sc.shape) == 2:    # fc_layers
+                continue
 
 
+            display_grid = np.zeros(((size+1)*n_cols-1,images_per_row*(size+1)-1))
 
+            #
+            for col in range(n_cols):
+                for row in range(images_per_row):
+                    #
+                    channel_index = col * images_per_row + row
+                    channel_image = layer_sc[0,:,:,channel_index].numpy().copy()
+
+                    # normalization
+                    if channel_image.sum() != 0:
+                        channel_image -= channel_image.mean()
+                        channel_image /= channel_image.std()
+                        channel_image *= 64
+                        channel_image += 128
+                    channel_image = np.clip(channel_image,0,255).astype("uint8")
+
+                    display_grid[
+                        col * (size+1):(col+1)*size + col,
+                        row * (size+1):(row+1)*size + row] = channel_image
+
+            #
+            scale = 1./size
+            plt.figure(figsize=(scale*display_grid.shape[1],
+                                scale*display_grid.shape[0]))
+            plt.title(layer_name)
+            plt.grid(False)
+            plt.axis("off")
+
+            plt.imshow(display_grid, aspect="auto", cmap="viridis")
 
     # XAI - integrated gradients
     # batch size should be m_steps+1
@@ -227,3 +278,6 @@ with dist_strategy.scope():
         )
 
         plt.show()
+
+
+    # adversarial attack - FGSM

@@ -41,9 +41,8 @@ conf.mode='inference'
 
 #conf.batch_size_inf = 51
 
-#conf.time_step=2
+conf.time_step=4
 #conf.name_model_load='./models/VGG16_AP_CIFAR100/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-z'
-
 
 conf.root_model_load='./models_ckpt_WTA-SNN'
 
@@ -97,10 +96,19 @@ conf.adaptive_vth_scale = 1.2
 conf.leak_const_init = 0.9
 #conf.leak_const_train = True
 
+# normal
+conf.name_model_load="./models_ckpt_WTA-SNN/VGG16_AP_CIFAR10/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s"
+
+mode='NORMAL'
+#mode='WTA-SNN'
+mode='SIM-S'
+#mode='SIM-A'
 
 # WTA-SNN
-if True:
+#if True:
 #if False:
+if mode=='WTA-SNN':
+    conf.name_model_load='./models_ckpt_WTA-SNN/VGG16_AP_CIFAR10/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s_r-sc-sm-3e-06_4'
     conf.reg_spike_out = True
     conf.reg_spike_out_const = 3E-6
     conf.reg_spike_out_alpha = 4
@@ -110,11 +118,11 @@ if True:
     conf.reg_spike_out_sc_sm=True
     #conf.reg_spike_out_sc_sq=True
     conf.reg_spike_out_norm = True
-
-
+elif mode=='SIM-S':
 # spike reg - similar spike
 #if True:
-if False:
+#if False:
+    conf.name_model_load='./models_ckpt_WTA-SNN/VGG16_AP_CIFAR10/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s_r-sc-nwta-sm-0.06_4'
     conf.reg_spike_out = True
     conf.reg_spike_out_const = 6E-2
     conf.reg_spike_out_alpha = 4
@@ -124,11 +132,11 @@ if False:
     conf.reg_spike_out_sc_sm=True
     #conf.reg_spike_out_sc_sq=True
     conf.reg_spike_out_norm = True
-
-
+elif mode=='SIM-A':
 # spike reg - similar acc
 #if True:
-if False:
+#if False:
+    conf.name_model_load='./models_ckpt_WTA-SNN/VGG16_AP_CIFAR10/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s_r-sc-nwta-sm-3e-06_4'
     conf.reg_spike_out = True
     conf.reg_spike_out_const = 3E-6
     conf.reg_spike_out_alpha = 4

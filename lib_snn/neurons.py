@@ -1925,6 +1925,13 @@ class Neuron(tf.keras.layers.Layer):
 
     def run_type_in(self, inputs, vmem, t, training):
         #print('run_type_in')
+        #
+        #noise = tf.random.normal(shape=inputs.shape,mean=0,stddev=0.1)
+        #noise = tf.random.uniform(shape=inputs.shape,minval=tf.reduce_min(inputs),maxval=tf.reduce_max(inputs))
+        #noise = tf.random.uniform(shape=inputs.shape,minval=0,maxval=1)
+        #inputs = inputs + noise
+
+        #
         spike, vmem_gen = self.input_spike_gen(inputs, vmem, t)
         #self.count_spike(t)
         return spike, vmem_gen
@@ -2071,7 +2078,7 @@ class Neuron(tf.keras.layers.Layer):
         #fire = fire + noise
 
         # deletion noise
-        #noise_pr = 0.05
+        #noise_pr = 0.01
         #rand = tf.random.uniform(fire.shape, minval=0.0, maxval=1.0)
         #f_noise_del = tf.less(rand, tf.constant(noise_pr, shape=fire.shape))
         #fire = tf.where(f_noise_del,tf.zeros(fire.shape),fire)
