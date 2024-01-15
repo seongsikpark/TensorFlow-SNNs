@@ -1994,15 +1994,16 @@ class Model(tf.keras.Model):
                         y_pred = self(x, training=True)
                         loss = self.compute_loss(x, y, y_pred, sample_weight)
 
-                        lab=tf.argmax(y,axis=-1)
-                        h_lab = np.histogram(lab)
-                        print("")
+                        #
+                        #lab=tf.argmax(y,axis=-1)
+                        #h_lab = np.histogram(lab)
+                        #print("")
                         #print(h_lab[0])
-                        self.h_lab_tot_glb = self.h_lab_tot_glb + h_lab[0]
-                        #print(self.h_lab_tot_glb)
-                        sum = tf.reduce_sum(self.h_lab_tot_glb)
-                        print((self.h_lab_tot_glb/sum).numpy())
-                        print("")
+                        #self.h_lab_tot_glb = self.h_lab_tot_glb + h_lab[0]
+                        ##print(self.h_lab_tot_glb)
+                        #sum = tf.reduce_sum(self.h_lab_tot_glb)
+                        #print((self.h_lab_tot_glb/sum).numpy())
+                        #print("")
 
 
                     self._validate_target_and_loss(y, loss)
