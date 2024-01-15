@@ -101,7 +101,7 @@ conf.name_model_load="./models_ckpt_WTA-SNN/VGG16_AP_CIFAR10/ep-300_bat-100_opt-
 
 mode='NORMAL'
 #mode='WTA-SNN'
-mode='SIM-S'
+#mode='SIM-S'
 #mode='SIM-A'
 
 # WTA-SNN
