@@ -87,7 +87,7 @@ conf.leak_const_init = 0.9
 #if False:
 if True:
     conf.reg_spike_out=True
-    conf.reg_spike_out_const=1E-4
+    conf.reg_spike_out_const=1E-6
     conf.reg_spike_out_alpha=0
     conf.reg_spike_out_sc=True
     conf.reg_spike_out_sc_wta=False
