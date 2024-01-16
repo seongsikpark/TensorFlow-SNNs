@@ -1809,20 +1809,22 @@ def l2_norm(x,name):
 
     def grad(upstream):
         dy_dx = tf.multiply(x,tf.math.rsqrt(tf.reduce_sum(tf.square(x))))
-        condition = tf.equal(tf.math.count_nonzero(x,dtype=tf.int32), tf.math.reduce_prod(x.shape))
+        condition = tf.math.count_nonzero(x,dtype=tf.int32)==0
         ret_grad = tf.where(condition, tf.zeros(upstream.shape),upstream*dy_dx)
 
 
         #if True:
-        if False:
-            print(name)
+        #if False:
+        if conf.verbose_snn_train:
+            print('l2_norm - {:}'.format(name))
 
             var = x
             print('{:} - max {:.3g}, min {:.3g}, mean {:.3g}, std {:.3g}, non_zero {:.3g}'
                   .format('inputs',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var),tf.math.count_nonzero(var,dtype=tf.int32)/tf.math.reduce_prod(var.shape)))
 
-            print(condition)
-            print(ret_grad)
+            #print(condition)
+            #print(tf.reduce_mean(ret_grad))
+
             var = upstream
             print('{:} - max {:.3g}, min {:.3g}, mean {:.3g}, std {:.3g}'
                   .format('y_backprop',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var)))
