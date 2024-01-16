@@ -1,6 +1,7 @@
 
 import lib_snn
 from config import config
+conf = config.flags
 
 import tensorflow as tf
 
@@ -31,7 +32,9 @@ def callbacks_snn_train(model,train_ds_num,valid_ds,test_ds_num):
     cb_model_checkpoint = lib_snn.callbacks.ModelCheckpointResume(
         filepath=filepath_save + '/ep-{epoch:04d}.hdf5',
         save_weight_only=True,
-        save_best_only=True,
+        #save_best_only=True,
+        save_best_only=conf.save_best_model_only,
+        save_freq=conf.save_model_freq_epoch,
         monitor=monitor_cri,
         verbose=1,
         best=best,

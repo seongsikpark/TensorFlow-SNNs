@@ -9,10 +9,10 @@ import os
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,2"
 #os.environ["CUDA_VISIBLE_DEVICES"]="4,7"
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
-#os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
+os.environ["CUDA_VISIBLE_DEVICES"]="5"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3,4,5,6,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
+#os.environ["CUDA_VISIBLE_DEVICES"]="0,4"
 #os.environ["CUDA_VISIBLE_DEVICES"]="2,3,4,5,6,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="2,3,6,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="4,5,6,7"
@@ -39,30 +39,22 @@ conf = config.flags
 #conf.name_model_load='./models/VGG16_AP_CIFAR100/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-z'
 
 
-#conf.root_model_load='./models_ckpt_WTA-SNN'
+#
+#conf.learning_rate = 0.01
 
 #
-conf.learning_rate = 0.001
-conf.lmb = 1.0E-5
-conf.optimizer = 'ADAM'
-conf.lr_schedule = None
-
-#
-#conf.train_epoch = 90
-#conf.step_decay_epoch = 30
+#conf.train_epoch = 120
+#conf.step_decay_epoch = 40
 #conf.train_epoch = 10
 #conf.train_epoch = 10
 #conf.num_train_data = 10000
 
-
-#conf.model='VGG11'
-conf.model='VGG16'
 #conf.model='ResNet20'
 #conf.model='ResNet32'
 
 #conf.dataset='CIFAR100'
 #conf.dataset='ImageNet'
-conf.dataset='CIFAR10_DVS'
+#conf.dataset='CIFAR10_DVS'
 
 
 conf.pooling_vgg = 'avg'
@@ -93,41 +85,21 @@ conf.leak_const_init = 0.9
 
 #
 if False:
-#if True:
-    if True:
-    #if False:
-        conf.reg_spike_out = True
-        conf.reg_spike_out_const = 3E-6
-        conf.reg_spike_out_alpha = 4
-        conf.reg_spike_out_sc=True
-        #conf.reg_spike_out_sc_wta=False
-        # conf.reg_spike_out_sc_train=True
-        conf.reg_spike_out_sc_sm=True
-        #conf.reg_spike_out_sc_sq=True
-        conf.reg_spike_out_norm = True
+    conf.reg_spike_out=True
+    conf.reg_spike_out_const=8E-6
+    conf.reg_spike_out_alpha=6
+    conf.reg_spike_out_sc=True
+    #conf.reg_spike_out_sc_wta=False
+    #conf.reg_spike_out_sc_train=True
+    conf.reg_spike_out_sc_sm=True
+    #conf.reg_spike_out_sc_sq=True
+    conf.reg_spike_out_norm=True
 
-        #
-        ##conf.reg_psp=True
-        conf.reg_psp_const = 1E-3
-        conf.reg_psp_eps = 1E-10
-        conf.reg_psp_min = True
-    else:
-        conf.reg_spike_out=True
-        conf.reg_spike_out_const=1E-6
-        conf.reg_spike_out_alpha=0
-        #conf.reg_spike_out_sc=True
-        #conf.reg_spike_out_sc_wta=False
-        #conf.reg_spike_out_sc_train=True
-        #conf.reg_spike_out_sc_sm=True
-        #conf.reg_spike_out_sc_sq=True
-        conf.reg_spike_out_norm=True
-
-        #
-        #conf.reg_psp=True
-        conf.reg_psp_const=1E-3
-        conf.reg_psp_eps=1E-10
-        conf.reg_psp_min=True
-
+    #
+    #conf.reg_psp=True
+    conf.reg_psp_const=1E-3
+    conf.reg_psp_eps=1E-10
+    conf.reg_psp_min=False
 
 
 
