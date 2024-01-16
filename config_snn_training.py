@@ -9,7 +9,7 @@ import os
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,2"
 #os.environ["CUDA_VISIBLE_DEVICES"]="4,7"
-os.environ["CUDA_VISIBLE_DEVICES"]="5"
+os.environ["CUDA_VISIBLE_DEVICES"]="4"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3,4,5,6,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,4"
@@ -89,8 +89,8 @@ if True:
     conf.reg_spike_out=True
     conf.reg_spike_out_const=1E-4
     conf.reg_spike_out_alpha=0
-    #conf.reg_spike_out_sc=True
-    #conf.reg_spike_out_sc_wta=False
+    conf.reg_spike_out_sc=True
+    conf.reg_spike_out_sc_wta=False
     #conf.reg_spike_out_sc_train=True
     #conf.reg_spike_out_sc_sm=True
     #conf.reg_spike_out_sc_sq=True
