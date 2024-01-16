@@ -65,7 +65,7 @@ def batch_normalization(x,
                         offset,
                         scale,
                         variance_epsilon,
-                        name=None):
+                        name):
     r"""Batch normalization.
 
     Normalizes a tensor by `mean` and `variance`, and applies (optionally) a
@@ -171,6 +171,12 @@ def batch_normalization(x,
         #if False:
         #if True:
         if conf.verbose_snn_train:
+            print(name)
+
+            var = x
+            print('{:} - max {:.3g}, min {:.3g}, mean {:.3g}, std {:.3g}, non_zero {:.3g}'
+                  .format('x',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var),tf.math.count_nonzero(var,dtype=tf.int32)/tf.math.reduce_prod(var.shape)))
+
             var = y_backprop
             print('{:} - max {:.3g}, min {:.3g}, mean {:.3g}, std {:.3g}'
                   .format('y_backprop',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var)))
@@ -233,10 +239,11 @@ def batch_normalization(x,
 
 
         #return dx, dstop(mean), dstop(variance), doffset, dscale, dstop(variance_epsilon)
-        return dx, None, None, doffset, dscale, None
+        return dx, None, None, doffset, dscale, None, None
 
 
-    with ops.name_scope(name, "batchnorm", [x, mean, variance, scale, offset]):
+    #with ops.name_scope(name, "batchnorm", [x, mean, variance, scale, offset]):
+    with ops.name_scope(None, "batchnorm", [x, mean, variance, scale, offset]):
         #inv = math_ops.rsqrt(variance + variance_epsilon)
         #dev = math_ops.rsqrt(variance + variance_epsilon)
         #if scale is not None:
