@@ -55,8 +55,8 @@ with dist_strategy.scope():
     callbacks_train, callbacks_test = \
         callbacks.callbacks_snn_train(model,train_ds_num,valid_ds,test_ds_num)
 
-    #if True:
-    if False:
+    if True:
+    #if False:
         if config.train:
             print('Train mode')
 

@@ -400,7 +400,8 @@ flags.DEFINE_string('pooling_resnet_imagenet_pre', 'max', 'max or avg, for ResNe
 # Directories
 ################
 flags.DEFINE_bool('save_best_model_only', True, 'save best model only')
-flags.DEFINE_integer('save_model_freq_epoch', 10, 'save model frequency in epoch when save_model_best_only==False')
+flags.DEFINE_integer('save_model_freq_epoch', -1, 'save model frequency in epoch when save_model_best_only==False')
+flags.DEFINE_integer('save_models_max_to_keep', 1, 'save models max to keep')
 
 flags.DEFINE_string('root_tensorboard', './tensorboard/', 'root - tensorboard')
 

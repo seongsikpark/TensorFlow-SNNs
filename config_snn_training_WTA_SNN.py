@@ -9,7 +9,7 @@ import os
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,2"
 #os.environ["CUDA_VISIBLE_DEVICES"]="4,7"
-os.environ["CUDA_VISIBLE_DEVICES"]="5"
+os.environ["CUDA_VISIBLE_DEVICES"]="4"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3,4,5,6,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
@@ -57,6 +57,12 @@ conf = config.flags
 #conf.step_decay_epoch = 30
 #conf.train_epoch = 10
 #conf.train_epoch = 10
+#conf.save_best_model_only=False
+#conf.save_model_freq_epoch=10*500
+#conf.save_models_max_to_keep=100
+
+
+#
 #conf.num_train_data = 1000
 #conf.idx_test_data=0
 #conf.num_test_data=1
