@@ -1,6 +1,7 @@
 
 import lib_snn
 from config import config
+conf = config.flags
 
 import tensorflow as tf
 
@@ -27,18 +28,26 @@ def callbacks_snn_train(model,train_ds_num,valid_ds,test_ds_num):
     else:
         best = None
 
+    save_freq=conf.save_model_freq_epoch
+    if save_freq < 0:
+        save_freq = 'epoch'
+
+
     # model checkpoint save and resume
     cb_model_checkpoint = lib_snn.callbacks.ModelCheckpointResume(
         filepath=filepath_save + '/ep-{epoch:04d}.hdf5',
         save_weight_only=True,
-        save_best_only=True,
+        #save_best_only=True,
+        save_best_only=conf.save_best_model_only,
+        save_freq=save_freq,
         monitor=monitor_cri,
         verbose=1,
         best=best,
         log_dir=path_tensorboard,
         # tensorboard_writer=cb_tensorboard._writers['train']
     )
-    cb_manage_saved_model = lib_snn.callbacks.ManageSavedModels(filepath=filepath_save)
+    cb_manage_saved_model = lib_snn.callbacks.ManageSavedModels(filepath=filepath_save,
+                                                                max_to_keep=conf.save_models_max_to_keep)
     cb_tensorboard = tf.keras.callbacks.TensorBoard(log_dir=path_tensorboard, update_freq='epoch')
 
     cb_libsnn = lib_snn.callbacks.SNNLIB(config.flags,config.filepath_load,train_ds_num,test_ds_num)
