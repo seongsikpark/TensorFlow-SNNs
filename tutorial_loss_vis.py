@@ -3,10 +3,10 @@
 
 import os
 
-# GPU setting
-os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-#os.environ["CUDA_VISIBLE_DEVICES"]="0,4"
-os.environ["CUDA_VISIBLE_DEVICES"]="6"
+## GPU setting
+#os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+##os.environ["CUDA_VISIBLE_DEVICES"]="0,4"
+#os.environ["CUDA_VISIBLE_DEVICES"]="6"
 
 import tensorflow as tf
 import tensorflow_datasets as tfds
@@ -116,24 +116,46 @@ else:
 training_hist = [model.get_weights()]
 
 collect_weights = callbacks.LambdaCallback(
-    on_epoch_end=(
-        lambda batch, logs: training_hist.append(model.get_weights())
-    )
+    on_epoch_end=lambda batch, logs: training_hist.append(model.get_weights()) if (batch%10)==0 else (None)
 )
+
+
+filepath_save='./models_tmp'
+monitor_cri=config.monitor_cri
+best=None
+path_tensorboard='./tensorboard'
+
+
+# model checkpoint save and resume
+cb_model_checkpoint = lib_snn.callbacks.ModelCheckpointResume(
+    filepath=filepath_save + '/ep-{epoch:04d}.hdf5',
+    save_weight_only=True,
+    save_best_only=True,
+    monitor=monitor_cri,
+    verbose=1,
+    best=best,
+    log_dir=path_tensorboard,
+    # tensorboard_writer=cb_tensorboard._writers['train']
+)
+cb_manage_saved_model = lib_snn.callbacks.ManageSavedModels(filepath=filepath_save)
+cb_tensorboard = tf.keras.callbacks.TensorBoard(log_dir=path_tensorboard, update_freq='epoch')
+
 
 
 cb_libsnn = lib_snn.callbacks.SNNLIB(conf,config.filepath_load,test_ds_num,None)
 callbacks_train = []
 #if save_model:
-    #callbacks_train.append(cb_model_checkpoint)
-    #callbacks_train.append(cb_manage_saved_model)
+#callbacks_train.append(cb_model_checkpoint)
+#callbacks_train.append(cb_manage_saved_model)
 callbacks_train.append(cb_libsnn)
+callbacks_train.append(cb_model_checkpoint)
 #callbacks_train.append(cb_tensorboard)
 callbacks_train.append(collect_weights)
 
 #history = model.fit(train_ds, validation_data=valid_ds, epochs=10, callbacks=[collect_weights])
 history = model.fit(train_ds, validation_data=valid_ds, epochs=conf.train_epoch, callbacks=callbacks_train)
 #history = model.fit(train_ds, validation_data=valid_ds, epochs=10)
+
 
 #
 train_batch, = train_ds.take(1)

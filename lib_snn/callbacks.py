@@ -72,8 +72,8 @@ class ModelCheckpointResume(tf.keras.callbacks.ModelCheckpoint):
                 ** kwargs):
 
         #if save_freq is not 'epoch':
-        if save_freq != 'epoch':
-            assert False, 'only supported save_freq=epoch'
+        #if save_freq != 'epoch':
+        #    assert False, 'only supported save_freq=epoch'
 
         super(ModelCheckpointResume, self).__init__(
             filepath=filepath,
@@ -183,6 +183,7 @@ class SNNLIB(tf.keras.callbacks.Callback):
         # spike count
         self.list_spike_count = collections.OrderedDict()
         self.spike_count_total = 0
+        self.spike_count_total_best = 0
 
 
 

@@ -2053,6 +2053,7 @@ class Model(tf.keras.Model):
                 #print(grads_accum_and_vars)
 
 
+                #nan_test = [tf.reduce_any(tf.math.is_nan(grad_accum)) for grad_accum in grads_accum]
                 nan_test = [tf.reduce_any(tf.math.is_nan(grad_accum)) for grad_accum in grads_accum]
                 #if tf.reduce_any(nan_test):
                 #if tf.executing_eagerly() and tf.reduce_any(nan_test):
@@ -2065,10 +2066,11 @@ class Model(tf.keras.Model):
                         self.print_snn_train(grads_accum_and_vars)
 
                     #if tf.reduce_any(nan_test) or (loss > 100):
-                    if tf.reduce_any(nan_test) or (loss > 1000):
-                        print(loss)
+                    #if tf.reduce_any(nan_test) or (loss > 1000):
+                    #if tf.reduce_any(nan_test):
+                    if tf.math.is_nan(loss):
+                        print('loss - {:}'.format(loss))
                         print(tf.reduce_any(nan_test))
-                        #print('here')
                         assert False
 
 

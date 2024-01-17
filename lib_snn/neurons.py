@@ -7,6 +7,8 @@ np.set_printoptions(linewidth=np.inf)
 import tensorflow as tf
 from keras import backend
 
+import lib_snn
+
 from lib_snn.sim import glb
 
 from lib_snn.sim import glb_t
@@ -334,6 +336,10 @@ class Neuron(tf.keras.layers.Layer):
     #@tf.custom_gradient
     #def call(self ,inputs ,t, training):
     def call(self, inputs, training=None):
+
+        if conf.verbose_snn_train:
+        #if True:
+            self.inputs = inputs
         #t = tf.constant(glb_t.t)
         t = glb_t.t
         #print('neuron call')
@@ -683,9 +689,11 @@ class Neuron(tf.keras.layers.Layer):
 
                     #
                     if conf.reg_spike_out_norm:
-                        sc_loss = conf.reg_spike_out_const * tf.norm(self.out * sc_rate,ord=2)
+                        #sc_loss = tf.norm(self.out * sc_rate,ord=2)
+                        sc_loss = lib_snn.layers.l2_norm(self.out*sc_rate,self.name)
                     else:
-                        sc_loss = conf.reg_spike_out_const*tf.reduce_mean(self.out * sc_rate)
+                        sc_loss = tf.reduce_mean(self.out * sc_rate)
+                    sc_loss = sc_loss*conf.reg_spike_out_const
 
                     self.add_loss(sc_loss)
                     #self.add_loss(conf.reg_spike_out_const*tf.reduce_mean(self.out * (self.reg_spike_out_b-sc_norm*self.reg_spike_out_a)))
@@ -697,7 +705,9 @@ class Neuron(tf.keras.layers.Layer):
                     # old - previous work
                     if conf.reg_spike_out_norm:
                         # sc_loss = tf.norm(self.out, ord=1)
-                        sc_loss = tf.norm(self.out,ord=2)
+                        #sc_loss = tf.norm(self.out,ord=2)
+                        #sc_loss = tf.sqrt(tf.reduce_sum(tf.square(self.out))+1.0E-10)
+                        sc_loss = lib_snn.layers.l2_norm(self.out,self.name)
                     else:
                         sc_loss = tf.reduce_mean(self.out)
 
@@ -1458,7 +1468,7 @@ class Neuron(tf.keras.layers.Layer):
             spike = tf.where(f_fire, vth, self.zeros)
 
         def grad(upstream):
-            # TODO: parameterize
+            # todo: parameterize
             a=0.5
             #a=1.0
             #cond_1=tf.math.less_equal(tf.math.abs(vmem-vth),a)
@@ -1474,6 +1484,33 @@ class Neuron(tf.keras.layers.Layer):
             #do_du = tf.where(cond,vmem-vth+a,tf.zeros(cond.shape))
 
             grad_ret = upstream*do_du
+
+
+            if conf.verbose_snn_train:
+            #if True:
+                print(self.name)
+
+                y_backprop = upstream
+                dx = grad_ret
+
+                var = self.inputs
+                print('{:} - max {:.3g}, min {:.3g}, mean {:.3g}, std {:.3g}, non_zero {:.3g}'
+                      .format('inputs',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var),tf.math.count_nonzero(var,dtype=tf.int32)/tf.math.reduce_prod(var.shape)))
+
+                var = spike
+                print('{:} - max {:.3g}, min {:.3g}, mean {:.3g}, std {:.3g}, non_zero {:.3g}'
+                      .format('spikes',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var),tf.math.count_nonzero(var,dtype=tf.int32)/tf.math.reduce_prod(var.shape)))
+
+                var = y_backprop
+                print('{:} - max {:.3g}, min {:.3g}, mean {:.3g}, std {:.3g}'
+                      .format('y_backprop',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var)))
+
+                var = dx
+                print('{:} - max {:.3g}, min {:.3g}, mean {:.3g}, std {:.3g}'
+                      .format('dx',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var)))
+
+                print('')
+
 
             return grad_ret
 
@@ -1925,6 +1962,13 @@ class Neuron(tf.keras.layers.Layer):
 
     def run_type_in(self, inputs, vmem, t, training):
         #print('run_type_in')
+        #
+        #noise = tf.random.normal(shape=inputs.shape,mean=0,stddev=0.1)
+        #noise = tf.random.uniform(shape=inputs.shape,minval=tf.reduce_min(inputs),maxval=tf.reduce_max(inputs))
+        #noise = tf.random.uniform(shape=inputs.shape,minval=0,maxval=1)
+        #inputs = inputs + noise
+
+        #
         spike, vmem_gen = self.input_spike_gen(inputs, vmem, t)
         #self.count_spike(t)
         return spike, vmem_gen
@@ -2071,7 +2115,7 @@ class Neuron(tf.keras.layers.Layer):
         #fire = fire + noise
 
         # deletion noise
-        #noise_pr = 0.05
+        #noise_pr = 0.01
         #rand = tf.random.uniform(fire.shape, minval=0.0, maxval=1.0)
         #f_noise_del = tf.less(rand, tf.constant(noise_pr, shape=fire.shape))
         #fire = tf.where(f_noise_del,tf.zeros(fire.shape),fire)
