@@ -896,7 +896,8 @@ def spike_count_batch_end(self):
 
 def spike_count_epoch_end(self,epoch,logs):
 
-    training = K.learning_phase()
+    #training = K.learning_phase()
+    training = self.conf.mode=='train'
     if training:
         num_data = self.train_ds_num
     else:
