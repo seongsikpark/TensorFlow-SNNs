@@ -764,7 +764,7 @@ def postproc_snn(self, logs):
 
         #
         #spike_count_epoch_end(self,0,logs)
-        spike_count_epoch_end(self,self.epoch,logs)
+        spike_count_epoch_end(self,self.epoch,logs,self.test_ds_num)
 
 def postproc_snn_infer(self):
     # results
@@ -855,7 +855,7 @@ def postproc_epoch_train_ann(self,epoch,logs):
 
 def postproc_epoch_train_snn(self,epoch,logs):
     pass
-    spike_count_epoch_end(self,epoch,logs)
+    spike_count_epoch_end(self,epoch,logs,self.train_ds_num)
 
 
 ########################################
@@ -894,14 +894,15 @@ def spike_count_batch_end(self):
             self.list_spike_count[name] += spike_count
             self.spike_count_total += spike_count
 
-def spike_count_epoch_end(self,epoch,logs):
+def spike_count_epoch_end(self,epoch,logs,num_ds):
 
-    #training = K.learning_phase()
-    training = self.conf.mode=='train'
-    if training:
-        num_data = self.train_ds_num
-    else:
-        num_data = self.test_ds_num
+    #training = K.learning_phase()  -> epoch end - training False
+    #training = self.conf.mode=='train'
+    #if training:
+        #num_data = self.train_ds_num
+    #else:
+        #num_data = self.test_ds_num
+    num_data = num_ds
 
     for neuron in self.model.layers_w_neuron:
         self.list_spike_count[neuron.name]/=num_data
