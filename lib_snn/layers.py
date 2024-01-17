@@ -418,7 +418,6 @@ class Layer():
             else:
                 output = super().call(input)
 
-
             # regularization
             #if False:
             #if True and self.depth > 1:

@@ -78,7 +78,7 @@ def preproc(self):
                 #print(idx_n)
                 #spike = neuron.act.out
                 spike = neuron.act.spike_count_int
-                spike = 1e-4 * spike
+                spike = 1e-5 * spike
                 #self.model.add_loss(lambda spike: tf.reduce_mean(0.01*spike))
                 #self.model.add_loss(functools.partial(tf.reduce_mean,spike))
                 neuron.act.add_loss(functools.partial(tf.reduce_mean,spike))
