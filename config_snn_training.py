@@ -9,7 +9,7 @@ import os
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,2"
 #os.environ["CUDA_VISIBLE_DEVICES"]="4,7"
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="3"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3,4,5,6,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
@@ -39,13 +39,11 @@ conf = config.flags
 #conf.name_model_load='./models/VGG16_AP_CIFAR100/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-z'
 
 
-#conf.root_model_load='./models_ckpt_WTA-SNN'
-
 #
-conf.learning_rate = 0.001
+conf.learning_rate = 0.4
 conf.lmb = 1.0E-5
-conf.optimizer = 'ADAM'
-conf.lr_schedule = None
+#conf.optimizer='ADAM'
+#conf.lr_schedule=None
 
 #
 #conf.train_epoch = 90
@@ -53,7 +51,6 @@ conf.lr_schedule = None
 #conf.train_epoch = 10
 #conf.train_epoch = 10
 #conf.num_train_data = 10000
-
 
 #conf.model='VGG11'
 conf.model='VGG16'
