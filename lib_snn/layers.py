@@ -418,7 +418,6 @@ class Layer():
             else:
                 output = super().call(input)
 
-
             # regularization
             #if False:
             #if True and self.depth > 1:
@@ -471,7 +470,6 @@ class Layer():
                     #print(e)
                     #self.add_loss(0.01*e)
                     self.add_loss(conf.reg_syn_in_const*e)
-
 
 
             return output
