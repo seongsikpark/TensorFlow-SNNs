@@ -55,8 +55,8 @@ with dist_strategy.scope():
     callbacks_train, callbacks_test = \
         callbacks.callbacks_snn_train(model,train_ds_num,valid_ds,test_ds_num)
 
-    if True:
-    #if False:
+    #if True:
+    if False:
         if config.train:
             print('Train mode')
 
@@ -152,8 +152,8 @@ with dist_strategy.scope():
 
 
     # visualization - spike count
-    if False:
-    #if True:
+    #if False:
+    if True:
         import keras
         import matplotlib.pyplot as plt
         import numpy as np
@@ -221,6 +221,8 @@ with dist_strategy.scope():
 
             plt.imshow(display_grid, aspect="auto", cmap="viridis")
 
+
+            # channel intensity
             # image
             stat_image= False
             if stat_image:
@@ -262,8 +264,13 @@ with dist_strategy.scope():
 
         [imgs, labels], = test_ds.take(1)
 
+        #sample_idx=0   #
+        sample_idx=11   #
+
         #sample_idx=6   # horse -> good
-        sample_idx=10   # horse -> good example
+        #sample_idx=7   # airplane
+        #sample_idx=8   # cat or dog
+        #sample_idx=10   # horse -> good example
         #sample_idx=30   # ? -> good
         #sample_idx=40   # -> good
         #sample_idx=50   # -> good

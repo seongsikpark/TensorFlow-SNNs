@@ -9,7 +9,7 @@ import os
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,2"
 #os.environ["CUDA_VISIBLE_DEVICES"]="4,7"
-os.environ["CUDA_VISIBLE_DEVICES"]="4"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3,4,5,6,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
@@ -29,7 +29,7 @@ conf = config.flags
 
 
 #
-#conf.mode='inference'
+conf.mode='inference'
 ##conf.batch_size_inf=100
 #conf.batch_size=400
 #conf.batch_size=200
@@ -44,7 +44,7 @@ conf = config.flags
 #conf.time_step=4
 #conf.name_model_load='./models/VGG16_AP_CIFAR100/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-z'
 
-#conf.root_model_load='./models_ckpt_WTA-SNN'
+conf.root_model_load='./models_ckpt_WTA-SNN'
 
 #
 #conf.learning_rate = 0.1
@@ -102,19 +102,35 @@ conf.adaptive_vth_scale = 1.2
 conf.leak_const_init = 0.9
 #conf.leak_const_train = True
 
-# normal
-#conf.name_model_load="./models_ckpt_WTA-SNN/VGG16_AP_CIFAR10/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s"
 
-mode='NORMAL'
-#mode='WTA-SNN'
+#
+#conf.reg_spike_out = True
+#conf.reg_spike_out_const = 1E-6
+#conf.reg_spike_out_alpha = 4
+#conf.reg_spike_out_sc=True
+#conf.reg_spike_out_sc_wta=False
+## conf.reg_spike_out_sc_train=True
+#conf.reg_spike_out_sc_sm=True
+##conf.reg_spike_out_sc_sq=True
+#conf.reg_spike_out_norm = True
+
+
+# trained model
+#mode='NORMAL'
+#mode='WTA-SNN_1'
+#mode='WTA-SNN_2'
+mode='SIM-A'
 #mode='SIM-S'
-#mode='SIM-A'
 
 # WTA-SNN
 #if True:
 #if False:
-if mode=='WTA-SNN':
-    conf.name_model_load='./models_ckpt_WTA-SNN/VGG16_AP_CIFAR10/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s_r-sc-sm-3e-06_4'
+
+if mode=='NORMAL':
+    conf.name_model_load="./models_ckpt_WTA-SNN/VGG16_AP_CIFAR10/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s"
+
+elif mode=='WTA-SNN_1':
+    #conf.name_model_load='./models_ckpt_WTA-SNN/VGG16_AP_CIFAR10/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s_r-sc-sm-5e-06_4'
     conf.reg_spike_out = True
     conf.reg_spike_out_const = 3E-6
     conf.reg_spike_out_alpha = 4
@@ -124,27 +140,22 @@ if mode=='WTA-SNN':
     conf.reg_spike_out_sc_sm=True
     #conf.reg_spike_out_sc_sq=True
     conf.reg_spike_out_norm = True
-elif mode=='SIM-S':
-# spike reg - similar spike
-#if True:
-#if False:
-    conf.name_model_load='./models_ckpt_WTA-SNN/VGG16_AP_CIFAR10/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s_r-sc-nwta-sm-0.06_4'
+elif mode=='WTA-SNN_2':
+    #conf.name_model_load='./models_ckpt_WTA-SNN/VGG16_AP_CIFAR10/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s_r-sc-sm-2e-05_4'
     conf.reg_spike_out = True
-    conf.reg_spike_out_const = 6E-2
+    conf.reg_spike_out_const = xxx
     conf.reg_spike_out_alpha = 4
     conf.reg_spike_out_sc=True
-    conf.reg_spike_out_sc_wta=False
+    #conf.reg_spike_out_sc_wta=False
     # conf.reg_spike_out_sc_train=True
     conf.reg_spike_out_sc_sm=True
     #conf.reg_spike_out_sc_sq=True
     conf.reg_spike_out_norm = True
 elif mode=='SIM-A':
-# spike reg - similar acc
-#if True:
-#if False:
-    conf.name_model_load='./models_ckpt_WTA-SNN/VGG16_AP_CIFAR10/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s_r-sc-nwta-sm-3e-06_4'
+    # spike reg - similar spike
+    #conf.name_model_load='./models_ckpt_WTA-SNN/VGG16_AP_CIFAR10/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s_r-sc-nwta-sm-2e-05_4'
     conf.reg_spike_out = True
-    conf.reg_spike_out_const = 3E-6
+    conf.reg_spike_out_const = 2E-5
     conf.reg_spike_out_alpha = 4
     conf.reg_spike_out_sc=True
     conf.reg_spike_out_sc_wta=False
@@ -152,45 +163,22 @@ elif mode=='SIM-A':
     conf.reg_spike_out_sc_sm=True
     #conf.reg_spike_out_sc_sq=True
     conf.reg_spike_out_norm = True
+elif mode=='SIM-S':
+    # spike reg - similar acc
+    conf.name_model_load='./models_ckpt_WTA-SNN/VGG16_AP_CIFAR10/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s_r-sc-nwta-sm-0.3_4'
+    conf.reg_spike_out = True
+    conf.reg_spike_out_const = xxx
+    conf.reg_spike_out_alpha = 4
+    conf.reg_spike_out_sc=True
+    conf.reg_spike_out_sc_wta=False
+    # conf.reg_spike_out_sc_train=True
+    conf.reg_spike_out_sc_sm=True
+    #conf.reg_spike_out_sc_sq=True
+    conf.reg_spike_out_norm = True
+else:
+    assert False
 
 
-
-#
-if False:
-#if True:
-    if True:
-    #if False:
-        conf.reg_spike_out = True
-        conf.reg_spike_out_const = 6E-2
-        conf.reg_spike_out_alpha = 4
-        conf.reg_spike_out_sc=True
-        conf.reg_spike_out_sc_wta=False
-        # conf.reg_spike_out_sc_train=True
-        conf.reg_spike_out_sc_sm=True
-        #conf.reg_spike_out_sc_sq=True
-        conf.reg_spike_out_norm = True
-
-        #
-        ##conf.reg_psp=True
-        conf.reg_psp_const = 1E-3
-        conf.reg_psp_eps = 1E-10
-        conf.reg_psp_min = True
-    else:
-        conf.reg_spike_out=True
-        conf.reg_spike_out_const=1E-6
-        conf.reg_spike_out_alpha=0
-        #conf.reg_spike_out_sc=True
-        #conf.reg_spike_out_sc_wta=False
-        #conf.reg_spike_out_sc_train=True
-        #conf.reg_spike_out_sc_sm=True
-        #conf.reg_spike_out_sc_sq=True
-        conf.reg_spike_out_norm=True
-
-        #
-        #conf.reg_psp=True
-        conf.reg_psp_const=1E-3
-        conf.reg_psp_eps=1E-10
-        conf.reg_psp_min=True
 
 
 
