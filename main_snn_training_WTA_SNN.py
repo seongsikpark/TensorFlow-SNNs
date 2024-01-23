@@ -152,8 +152,8 @@ with dist_strategy.scope():
 
 
     # visualization - spike count
-    #if False:
-    if True:
+    if False:
+    #if True:
         import keras
         import matplotlib.pyplot as plt
         import numpy as np
