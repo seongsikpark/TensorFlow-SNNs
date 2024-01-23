@@ -116,10 +116,10 @@ conf.leak_const_init = 0.9
 
 
 # trained model
-#mode='NORMAL'
+mode='NORMAL'
 #mode='WTA-SNN_1'
 #mode='WTA-SNN_2'
-mode='SIM-A'
+#mode='SIM-A'
 #mode='SIM-S'
 
 # WTA-SNN
