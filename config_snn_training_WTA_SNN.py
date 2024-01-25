@@ -127,7 +127,8 @@ mode='NORMAL'
 #if False:
 
 if mode=='NORMAL':
-    conf.name_model_load="./models_ckpt_WTA-SNN/VGG16_AP_CIFAR10/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s"
+    #conf.name_model_load="./models_ckpt_WTA-SNN/VGG16_AP_CIFAR10/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s"
+    pass
 
 elif mode=='WTA-SNN_1':
     #conf.name_model_load='./models_ckpt_WTA-SNN/VGG16_AP_CIFAR10/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s_r-sc-sm-5e-06_4'
@@ -143,7 +144,7 @@ elif mode=='WTA-SNN_1':
 elif mode=='WTA-SNN_2':
     #conf.name_model_load='./models_ckpt_WTA-SNN/VGG16_AP_CIFAR10/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s_r-sc-sm-2e-05_4'
     conf.reg_spike_out = True
-    conf.reg_spike_out_const = xxx
+    conf.reg_spike_out_const = 1E-5
     conf.reg_spike_out_alpha = 4
     conf.reg_spike_out_sc=True
     #conf.reg_spike_out_sc_wta=False
@@ -165,9 +166,9 @@ elif mode=='SIM-A':
     conf.reg_spike_out_norm = True
 elif mode=='SIM-S':
     # spike reg - similar acc
-    conf.name_model_load='./models_ckpt_WTA-SNN/VGG16_AP_CIFAR10/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s_r-sc-nwta-sm-0.3_4'
+    #conf.name_model_load='./models_ckpt_WTA-SNN/VGG16_AP_CIFAR10/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s_r-sc-nwta-sm-0.3_4'
     conf.reg_spike_out = True
-    conf.reg_spike_out_const = xxx
+    conf.reg_spike_out_const = 2.4E-1
     conf.reg_spike_out_alpha = 4
     conf.reg_spike_out_sc=True
     conf.reg_spike_out_sc_wta=False
