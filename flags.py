@@ -772,6 +772,10 @@ flags.DEFINE_bool('reg_spike_out_sc_wta',True,'regularization - spike out * spik
 flags.DEFINE_bool('reg_spike_out_sc_train',False,'regularization - spike out * spike_count (norm), coefficient train')
 flags.DEFINE_bool('reg_spike_out_sc_sm',False,'regularization - spike out * spike_count (norm), softmax normalization')
 flags.DEFINE_bool('reg_spike_out_sc_sq',False,'regularization - spike out * spike_count (norm), squre')
+flags.DEFINE_string('trained_model_reg_spike','NORMAL','NORMAL, WTA_1, WTA_2, SIM_A, SIM_S')
+flags.DEFINE_bool('reg_spike_vis_fmap_sc',False,'regularization - spike, visualization, fmap of integrated spi')
+
+
 
 # regularization - postsynaptic potential (PSP)
 flags.DEFINE_bool('reg_psp',False,'regularization - psp - entropy')
