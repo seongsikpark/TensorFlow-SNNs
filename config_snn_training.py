@@ -9,8 +9,13 @@ import os
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,2"
 #os.environ["CUDA_VISIBLE_DEVICES"]="4,7"
-#os.environ["CUDA_VISIBLE_DEVICES"]="4"
-os.environ["CUDA_VISIBLE_DEVICES"]="4,5"
+#os.environ["CUDA_VISIBLE_DEVICES"]="6"
+os.environ["CUDA_VISIBLE_DEVICES"]="6,7"
+#os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3,4,5,6,7"
+#os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
+#os.environ["CUDA_VISIBLE_DEVICES"]="0,4"
+#os.environ["CUDA_VISIBLE_DEVICES"]="2,3,4,5,6,7"
+#os.environ["CUDA_VISIBLE_DEVICES"]="2,3,6,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="4,5,6,7"
 
 
@@ -29,28 +34,28 @@ conf = config.flags
 #conf.batch_size=400
 conf.batch_size=200
 #conf.batch_size=300
-#conf.batch_size=180
-#conf.batch_size=120
+#conf.batch_size=150
+#conf.batch_size=50
+#conf.batch_size=90
 #conf.time_step=2
 #conf.name_model_load='./models/VGG16_AP_CIFAR100/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-z'
 
 
 #
 #conf.learning_rate = 0.2
-#conf.lmb = 1.0E-5
+#conf.lmb = 1E-5
 
 #
 conf.train_epoch = 90
 conf.step_decay_epoch = 30
 #conf.train_epoch = 10
-#conf.train_epoch = 10
-#conf.num_train_data = 10000
+conf.num_train_data = 200
 
 #conf.model='ResNet20'
 conf.model='ResNet32'
 
 #conf.dataset='CIFAR100'
-conf.dataset='ImageNet'
+#conf.dataset='ImageNet'
 #conf.dataset='CIFAR10_DVS'
 
 
@@ -82,8 +87,9 @@ conf.leak_const_init = 0.9
 
 #
 if False:
-    if False:
-    #if True:
+#if True:
+    if True:
+    #if False:
         conf.reg_spike_out = True
         conf.reg_spike_out_const = 9E-2
         conf.reg_spike_out_alpha = 4
