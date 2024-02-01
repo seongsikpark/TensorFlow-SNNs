@@ -48,10 +48,10 @@ def model_builder(
     images = data_batch[0]
     labels = data_batch[1]
 
-    #batch_size = config.batch_size
+    batch_size = config.batch_size
     #image_shape = lib_snn.utils_vis.image_shape_vis(model_name, dataset_name)
 
-    batch_size = images.shape[0]
+    #batch_size = images.shape[0]
     image_shape = images.shape[1:]
 
     # train

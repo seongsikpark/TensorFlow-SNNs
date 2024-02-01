@@ -50,7 +50,9 @@ def VGG16(
     if conf.nn_mode=='ANN':
         dropout_conv_r = [0.2, 0.2, 0.0]      # DNN training
     elif conf.nn_mode=='SNN':
-        #dropout_conv_r = [0.2, 0.2, 0.0]      # SNN training
+        #dropout_conv_r = [0.5, 0.5, 0.0]      # SNN training
+        #dropout_conv_r = [0.25, 0.25, 0.25]      # SNN training
+        #dropout_conv_r = [0.3, 0.3, 0.3]      # SNN training
         #dropout_conv_r = [0.25, 0.25, 0.25]      # SNN training
         dropout_conv_r = [0.0, 0.0, 0.0]      # SNN training
     else:
