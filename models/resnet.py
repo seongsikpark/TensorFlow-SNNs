@@ -496,6 +496,14 @@ def ResNet152(input_shape, conf, include_top, weights, classes, **kwargs):
                   weights=weights, classes=classes, **kwargs)
 
 
+#
+def ResNet19(input_shape, conf, include_top, weights, classes, **kwargs):
+    _initial_channels = 128
+    initial_channels = kwargs.pop('initial_channels', _initial_channels)
+    num_blocks = [3,3,2]
+    return ResNet(input_shape=input_shape, block=block_basic, initial_channels=initial_channels,
+                  num_blocks=num_blocks, conf=conf, include_top=include_top,
+                  weights=weights, classes=classes, **kwargs)
 
 
 #
