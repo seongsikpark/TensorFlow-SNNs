@@ -5,7 +5,7 @@ model='ResNet19'
 dataset='CIFAR10'
 
 
-reg_spike_out_consts=(1E-7 2E-7 3E-7 4E-7 5E-7 6E-7 7E-7 8E-7 9E-7 1E-6 2E-6 3E-6 4E-6 5E-6 6E-6 7E-6 8E-6 9E-6 1E-5)
+reg_spike_out_consts=(1E-7 3E-7 5E-7 7E-7 1E-6 3E-6 5E-6 7E-6 1E-5 3E-5 5E-5 7E-5 1E-4 3E-4 5E-4 7E-4 1E-3)
 
 
 for ((i_reg_sout_c=0;i_reg_sout_c<${#reg_spike_out_consts[@]};i_reg_sout_c++)) do
