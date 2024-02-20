@@ -15,12 +15,19 @@ import lib_snn
 import datasets
 import callbacks
 
+#
+from tqdm import tqdm
 
 #
 from config import config
 conf = config.flags
 
+#
+import warnings
 
+import logging
+logger = logging.getLogger()
+old_level_logger = logger.level
 
 ########################################
 # configuration
@@ -371,6 +378,7 @@ with dist_strategy.scope():
     # grad_cam, vanilla gradient
     #if False:
     if True:
+        logger.setLevel(100)
         import keras
         from lib_snn import grad_cam
         import matplotlib.pyplot as plt
@@ -390,31 +398,23 @@ with dist_strategy.scope():
             stats_min = []
             stats_std = []
 
-        test_ds_a_batch = test_ds.take(1)
-        [imgs, labels], = test_ds_a_batch
 
-        #sample_idx=0   #
-        #sample_idx=1   #
-        sample_idx=10   #
-        #sample_idx=6   #
-        #sample_idx=9   #
 
         batch_size = 100
         input_shape = (32, 32, 3)
         classes = 10
 
+
+
+
         #model_builder = keras.applications.vgg16.VGG16
         #last_conv_layer_name = "conv1"
-        #last_conv_layer_name = "conv2"
-        #last_conv_layer_name = "conv5_2"
 
         # the local path to our target image
 
         # display(Image(img_path))
-
         # prepare image
         #img_array = preprocess_input(grad_cam.get_image_array(img_path, size=img_size))
-
 
         # save directory - saliency map
         # plt.savefig('./result_fig_ig_neuron_input/' + fname)
@@ -430,7 +430,7 @@ with dist_strategy.scope():
         # plt.savefig('./result_fig_grad_cam_syn_out/' + fname)
         # plt.savefig('./result_fig_grad_cam_syn_out_mean_t/' + fname)
         # plt.savefig('./result_fig_grad_cam_neuron_input/' + fname)
-        save_dir = './result_smap_ga_neuron-mean-t'
+        save_dir = './result_smap_ga_neuron-mean-t_all'
         #save_dir = './result_smap_ga_neuron'
         #save_dir = './result_smap_ig_neuron-mean-t'
         #save_dir = './result_smap_ig_neuron'
@@ -438,105 +438,112 @@ with dist_strategy.scope():
         os.makedirs(save_dir,exist_ok=True)
 
 
-        # grad_cam
-        for sample_idx in range(0,100):
-        #for sample_idx in [0,1,2,3,4,5,6,7,31,34]:
-        #for sample_idx in [0, 1, 2]:
+        #for batch in test_ds:
+        #for batch_idx in range(1,2):
+        for batch_idx in tqdm(range(0,100)):
+            test_ds_a_batch = test_ds.skip(batch_idx).take(1)
+            [imgs, labels], = test_ds_a_batch
 
-            stats = []
+            # grad_cam
+            for sample_idx in range(0,100):
+            #for sample_idx in [0,1,2,3,4,5,6,7,31,34]:
+            #for sample_idx in [0, 1, 2]:
 
-            img = imgs[sample_idx]
-            label = labels[sample_idx]
-            img_one = tf.expand_dims(img, axis=0)
+                stats = []
 
-            range = tf.range(0.01,1.01,delta=0.01)
-            range = tf.expand_dims(range,axis=-1)
-            range = tf.expand_dims(range,axis=-1)
-            range = tf.expand_dims(range,axis=-1)
-            img_array = tf.expand_dims(img, axis=0)
-            img_array = tf.multiply(range,img_array)
+                img = imgs[sample_idx]
+                label = labels[sample_idx]
+                img_one = tf.expand_dims(img, axis=0)
 
-            #model = keras.Model(inputs=model.input, outputs=model.output)
-            #model = lib_snn.model.Model(model.inputs, model.output, batch_size, input_shape, classes, conf)
+                interpolated_img = tf.range(0.01,1.01,delta=0.01)
+                interpolated_img = tf.expand_dims(interpolated_img,axis=-1)
+                interpolated_img = tf.expand_dims(interpolated_img,axis=-1)
+                interpolated_img = tf.expand_dims(interpolated_img,axis=-1)
+                img_array = tf.expand_dims(img, axis=0)
+                img_array = tf.multiply(interpolated_img,img_array)
 
-            model.layers[-1].activation = None
-            #preds = model.predict(img_one)
-            #preds = model.predict(img_one)
-            #preds = model(img_one)
-            #preds = model(img_array)
-            model.init_snn()
-            model.reset()
-            preds = model.predict(test_ds_a_batch)
-            model.reset()
-            pred_index = tf.argmax(preds[-1])
+                #model = keras.Model(inputs=model.input, outputs=model.output)
+                #model = lib_snn.model.Model(model.inputs, model.output, batch_size, input_shape, classes, conf)
 
-            #fm = []
-            #layer_names = []
+                model.layers[-1].activation = None
+                #preds = model.predict(img_one)
+                #preds = model.predict(img_one)
+                #preds = model(img_one)
+                #preds = model(img_array)
+                model.init_snn()
+                model.reset()
+                preds = model.predict(test_ds_a_batch)
+                model.reset()
+                pred_index = tf.argmax(preds[-1])
 
-            figs_h, axes_h = plt.subplots(4, 4, figsize=(12,10))
-            layer_idx = 0
+                #fm = []
+                #layer_names = []
 
-            #
-            #neuron_mode = False
-            neuron_mode = True
+                figs_h, axes_h = plt.subplots(4, 4, figsize=(12,10))
+                layer_idx = 0
 
-            def condition(layer, neuron_mode):
-                if neuron_mode:
-                    return hasattr(layer, 'act') and isinstance(layer.act, lib_snn.neurons.Neuron) and layer.name != 'n_in' \
-                            and len(layer.act.out.read(0).shape) == 4
-                else:
-                    return isinstance(layer, lib_snn.layers.Conv2D)
+                #
+                #neuron_mode = False
+                neuron_mode = True
 
-            for layer in model.layers:
-                if condition(layer,neuron_mode):
-                    # print(layer.name)
-                    model.reset()
-                    last_conv_layer_name = layer.name
-                    heatmap = grad_cam.make_gradcam_heatmap_snn(img_array, model, last_conv_layer_name, neuron_mode,
-                                                                pred_index=pred_index)
-                    #fm.append(heatmap)
-                    #layer_names.append(layer.name)
+                def condition(layer, neuron_mode):
+                    if neuron_mode:
+                        return hasattr(layer, 'act') and isinstance(layer.act, lib_snn.neurons.Neuron) and layer.name != 'n_in' \
+                                and len(layer.act.out.read(0).shape) == 4
+                    else:
+                        return isinstance(layer, lib_snn.layers.Conv2D)
 
-                    axe = axes_h[layer_idx // 4, layer_idx % 4]
-                    hm = axe.matshow(heatmap)
-                    figs_h.colorbar(hm, ax=axe)
+                for layer in model.layers:
+                    if condition(layer,neuron_mode):
+                        # print(layer.name)
+                        model.reset()
+                        last_conv_layer_name = layer.name
+                        heatmap = grad_cam.make_gradcam_heatmap_snn(img_array, model, last_conv_layer_name, neuron_mode,
+                                                                    pred_index=pred_index)
+                        #fm.append(heatmap)
+                        #layer_names.append(layer.name)
 
-                    layer_idx = layer_idx + 1
+                        axe = axes_h[layer_idx // 4, layer_idx % 4]
 
-                    # print
-                    if save_stat:
-                        mean_heatmap = tf.reduce_mean(heatmap).numpy()
-                        max_heatmap = tf.reduce_max(heatmap).numpy()
-                        min_heatmap = tf.reduce_min(heatmap).numpy()
-                        std_heatmap = tf.math.reduce_std(heatmap).numpy()
-                        #print("{:} - mean: {:.3e}, max: {:.3e}, min: {:.3e}, std : {:.3e}".format(last_conv_layer_name, mean_heatmap, max_heatmap, min_heatmap, std_heatmap))
-                        stat = [mean_heatmap,max_heatmap,min_heatmap,std_heatmap]
-                        stats.append(stat)
+                        hm = axe.matshow(heatmap)
+                        figs_h.colorbar(hm, ax=axe)
 
+                        layer_idx = layer_idx + 1
 
-                axes_h[layer_idx // 4, layer_idx % 4].matshow(img)
-
-            if save_imgs:
-                fname = 'heatmap_'+mode+'_'+str(sample_idx)+'.png'
-                plt.savefig(save_dir + '/' + fname)
+                        # print
+                        if save_stat:
+                            mean_heatmap = tf.reduce_mean(heatmap).numpy()
+                            max_heatmap = tf.reduce_max(heatmap).numpy()
+                            min_heatmap = tf.reduce_min(heatmap).numpy()
+                            std_heatmap = tf.math.reduce_std(heatmap).numpy()
+                            #print("{:} - mean: {:.3e}, max: {:.3e}, min: {:.3e}, std : {:.3e}".format(last_conv_layer_name, mean_heatmap, max_heatmap, min_heatmap, std_heatmap))
+                            stat = [mean_heatmap,max_heatmap,min_heatmap,std_heatmap]
+                            stats.append(stat)
 
 
-            if save_stat:
-                mean_l = [stat[0] for stat in stats]
-                max_l = [stat[1] for stat in stats]
-                min_l = [stat[2] for stat in stats]
-                std_l = [stat[3] for stat in stats]
+                    axes_h[layer_idx // 4, layer_idx % 4].matshow(img)
 
-                mean_layers = tf.reduce_mean(mean_l).numpy()
-                max_layers = tf.reduce_mean(max_l).numpy()
-                min_layers = tf.reduce_mean(min_l).numpy()
-                std_layers = tf.reduce_mean(std_l).numpy()
-                stats_sample.append([mean_layers,max_layers,min_layers,std_layers])
+                if save_imgs:
+                    fname = 'heatmap_'+mode+'_'+str(sample_idx)+'.png'
+                    plt.savefig(save_dir + '/' + fname)
 
-                stats_mean.append(mean_l)
-                stats_max.append(max_l)
-                stats_min.append(min_l)
-                stats_std.append(std_l)
+
+                if save_stat:
+                    mean_l = [stat[0] for stat in stats]
+                    max_l = [stat[1] for stat in stats]
+                    min_l = [stat[2] for stat in stats]
+                    std_l = [stat[3] for stat in stats]
+
+                    mean_layers = tf.reduce_mean(mean_l).numpy()
+                    max_layers = tf.reduce_mean(max_l).numpy()
+                    min_layers = tf.reduce_mean(min_l).numpy()
+                    std_layers = tf.reduce_mean(std_l).numpy()
+                    stats_sample.append([mean_layers,max_layers,min_layers,std_layers])
+
+                    stats_mean.append(mean_l)
+                    stats_max.append(max_l)
+                    stats_min.append(min_l)
+                    stats_std.append(std_l)
 
 
         if save_stat:
@@ -555,3 +562,6 @@ with dist_strategy.scope():
 
             df = pd.DataFrame(stats_std)
             df.to_excel(save_dir+'/'+mode+'_std.xlsx')
+
+        #
+        logger.setLevel(old_level_logger)
