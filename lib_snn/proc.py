@@ -96,6 +96,8 @@ def reset(self):
     if self.conf.mode=='inference':
         spike_count_epoch_init(self)
 
+    self.model.reset()
+
 
 #
 def reset_batch_ann(self):

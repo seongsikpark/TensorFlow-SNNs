@@ -1803,7 +1803,6 @@ class Model(tf.keras.Model):
         f_grad_accum=False
         #f_grad_accum=True
 
-
         if f_grad_accum:
             for t in range_ts:
                 #with tf.GradientTape(persistent=True) as tape:
@@ -1990,6 +1989,7 @@ class Model(tf.keras.Model):
                 else:
                     #sample_weight = data_adapter.unpack_x_y_sample_weight(data)
                     # Run forward pass.
+                    #with tf.GradientTape(persistent=True) as tape:
                     with tf.GradientTape() as tape:
                         y_pred = self(x, training=True)
                         loss = self.compute_loss(x, y, y_pred, sample_weight)
@@ -2429,7 +2429,7 @@ class Model(tf.keras.Model):
 
 
     #
-    def init_snn(self, model_ann):
+    def init_snn(self, model_ann=None):
 
         #
         #self.set_layers_w_neuron()
@@ -2624,6 +2624,13 @@ class Model(tf.keras.Model):
     ###########################################################
     # reset snn
     ###########################################################
+
+    #
+    def reset(self):
+
+        if conf.nn_mode == 'SNN':
+            self.reset_snn()
+
     #
     def reset_snn_run(self):
         self.total_spike_count=np.zeros([self.num_accuracy_time_point,len(self.list_layer_name)+1])
@@ -3210,7 +3217,6 @@ class Model(tf.keras.Model):
         #self.model.get_layer('conv1').set_weights(pre_model.get_layer('vgg16').get_layer('block1_conv1').get_weights())
 
 
-
     ###########################################################
     # run internal graph - SNN, temporal first
     # based on _run_internal_graph() function in keras.engine.functional.py
@@ -3253,11 +3259,11 @@ class Model(tf.keras.Model):
         # sspark
         # SNN training, temporal first
         #if self.conf.nn_mode=='SNN' and not self.conf.snn_training_spatial_first:
-        #if False:
-        #if True:
         for depth in depth_keys:
             nodes = nodes_by_depth[depth]
             for node in nodes:
+                layer_name = node.layer.name
+                tensor_array_name='out_arr'+layer_name
                 if node.is_input:
 
                     _input = tensor_dict[x_id][0]
@@ -3267,7 +3273,7 @@ class Model(tf.keras.Model):
                         size=self.conf.time_step,
                         element_shape=_input.shape,
                         clear_after_read=False,
-                        tensor_array_name='out_arr')
+                        tensor_array_name=tensor_array_name)
 
                     glb_t.reset()
                     for t in range(1,self.conf.time_step+1):
@@ -3315,7 +3321,7 @@ class Model(tf.keras.Model):
                             size=self.conf.time_step,
                             element_shape=_layer_out.shape,
                             clear_after_read=False,
-                            tensor_array_name='out_arr')
+                            tensor_array_name=tensor_array_name)
 
                         glb_t.reset()
                         for t in range(1,self.conf.time_step+1):
@@ -3339,7 +3345,157 @@ class Model(tf.keras.Model):
                                     size=self.conf.time_step,
                                     element_shape=_layer_out.shape,
                                     clear_after_read=False,
-                                    tensor_array_name='out_arr')
+                                    tensor_array_name=tensor_array_name)
+
+                            layer_out = layer_out.write(t-1,_layer_out)
+
+                            glb_t()
+
+                #for x_id, y in zip(node.flat_output_ids, tf.nest.flatten(layer_out.read(self.conf.time_step-1))):
+                for x_id, y in zip(node.flat_output_ids, tf.nest.flatten(layer_out)):
+                    tensor_dict[x_id] = [y] * tensor_usage_count[x_id]
+
+        output_tensors = []
+        for x in self.outputs:
+            x_id = str(id(x))
+            assert x_id in tensor_dict, 'Could not compute output ' + str(x)
+            #output_tensors.append(tensor_dict[x_id].pop())
+
+            output_tensors.append(tensor_dict[x_id].pop().read(self.conf.time_step-1))
+
+        return tf.nest.pack_sequence_as(self._nested_outputs, output_tensors)
+
+
+
+    ###########################################################
+    # run internal graph - SNN, temporal first
+    # based on _run_internal_graph() function in keras.engine.functional.py
+    ###########################################################
+    def _run_internal_graph_snn_t_first_bck(self, inputs, training=None, mask=None):
+        """ run internal graph - SNN, temporal first
+            Computes output tensors for new inputs.
+
+        # Note:
+            - Can be run on non-Keras tensors.
+
+        Args:
+            inputs: Tensor or nested structure of Tensors.
+            training: Boolean learning phase.
+            mask: (Optional) Tensor or nested structure of Tensors.
+
+        Returns:
+            output_tensors
+        """
+        inputs = self._flatten_to_reference_inputs(inputs)
+        if mask is None:
+            masks = [None] * len(inputs)
+        else:
+            masks = self._flatten_to_reference_inputs(mask)
+        for input_t, mask in zip(inputs, masks):
+            input_t._keras_mask = mask
+
+        # Dictionary mapping reference tensors to computed tensors.
+        tensor_dict = {}
+        tensor_usage_count = self._tensor_usage_count
+        for x, y in zip(self.inputs, inputs):
+            y = self._conform_to_reference_input(y, ref_input=x)
+            x_id = str(id(x))
+            tensor_dict[x_id] = [y] * tensor_usage_count[x_id]
+
+        nodes_by_depth = self._nodes_by_depth
+        depth_keys = list(nodes_by_depth.keys())
+        depth_keys.sort(reverse=True)
+
+        # sspark
+        # SNN training, temporal first
+        #if self.conf.nn_mode=='SNN' and not self.conf.snn_training_spatial_first:
+        for depth in depth_keys:
+            nodes = nodes_by_depth[depth]
+            for node in nodes:
+                layer_name = node.layer.name
+                tensor_array_name='out_arr'+layer_name
+                if node.is_input:
+
+                    _input = tensor_dict[x_id][0]
+                    #args, kwargs = node.map_arguments(tensor_dict)
+                    layer_out = tf.TensorArray(
+                        dtype=tf.float32,
+                        size=self.conf.time_step,
+                        element_shape=_input.shape,
+                        clear_after_read=False,
+                        tensor_array_name=tensor_array_name)
+
+                    glb_t.reset()
+                    for t in range(1,self.conf.time_step+1):
+                        if conf.input_data_time_dim:    # event data
+                            _input_t = _input[:,t-1,:,:,:]
+                        else:   # static image
+                            _input_t = _input
+                        layer_out = layer_out.write(t-1,_input)
+                        glb_t()
+
+                    #continue  # Input tensors already exist.
+
+                else:
+
+                    #
+                    #print(node.layer)
+
+                    if any(t_id not in tensor_dict for t_id in node.flat_input_ids):
+                        assert False
+                        continue  # Node is not computable, try skipping.
+
+                    #layer_in = layer_out
+
+                    args, kwargs = node.map_arguments(tensor_dict)
+                    layer_in = args[0]
+                    #print(layer_in)
+
+                    f_temporal_reduction = False
+                    #
+                    layers_temporal_reduction = []
+                    layers_temporal_reduction.append(lib_snn.layers.BatchNormalization)
+                    #layers_temporal_reduction.append(lib_snn.layers.MaxPool2D)
+                    #layers_temporal_reduction.append(lib_snn.layers.AveragePooling2D)
+
+                    if type(node.layer) in layers_temporal_reduction:
+                        f_temporal_reduction = True
+
+                    if f_temporal_reduction:
+                        _layer_in = tf.reduce_mean(layer_in.stack(),axis=0)
+                        _layer_out = node.layer(_layer_in)
+
+                        #
+                        layer_out = tf.TensorArray(
+                            dtype=tf.float32,
+                            size=self.conf.time_step,
+                            element_shape=_layer_out.shape,
+                            clear_after_read=False,
+                            tensor_array_name=tensor_array_name)
+
+                        glb_t.reset()
+                        for t in range(1,self.conf.time_step+1):
+                            layer_out= layer_out.write(t-1,_layer_out)
+
+                            glb_t()
+                    else:
+                        glb_t.reset()
+                        for t in range(1,self.conf.time_step+1):
+
+                            if isinstance(layer_in,list) :
+                                _layer_in = [_layer_in.read(t-1) for _layer_in in layer_in]
+                            else:
+                                _layer_in = layer_in.read(t-1)
+
+                            _layer_out = node.layer(_layer_in)
+
+                            if t-1==0:
+                                layer_out = tf.TensorArray(
+                                    dtype=tf.float32,
+                                    size=self.conf.time_step,
+                                    element_shape=_layer_out.shape,
+                                    clear_after_read=False,
+                                    tensor_array_name=tensor_array_name)
 
                             layer_out = layer_out.write(t-1,_layer_out)
 

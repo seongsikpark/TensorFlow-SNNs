@@ -7,7 +7,7 @@
 import os
 #os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="5"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,2"
 #os.environ["CUDA_VISIBLE_DEVICES"]="4,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,4"
@@ -93,12 +93,12 @@ conf.leak_const_init = 0.9
 
 
 #
-if False:
-#if True:
+#if False:
+if True:
     if True:
         #if False:
         conf.reg_spike_out=True
-        conf.reg_spike_out_const=2.75E-5
+        conf.reg_spike_out_const=3E-6
         conf.reg_spike_out_alpha=4
         conf.reg_spike_out_sc=True
         #conf.reg_spike_out_sc_wta=False
