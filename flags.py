@@ -795,5 +795,9 @@ flags.DEFINE_integer('time_dim_size',1,'time dimension size')
 
 
 #
+flags.DEFINE_bool('debug_neuron_input',False,'debug neuron input - neuron.inputs (TensorArray)')
+flags.DEFINE_bool('debug_syn_output',False,'debug synapse output - layer._outputs (TensorArray)')
+
+#
 conf=flags.FLAGS
 conf(sys.argv)
