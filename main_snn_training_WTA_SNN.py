@@ -385,8 +385,11 @@ with dist_strategy.scope():
 
         from config_snn_training_WTA_SNN import mode
 
-        #save_imgs = False
-        save_imgs = True
+        save_imgs = False
+        #save_imgs = True
+
+        #show_imgs = True
+        show_imgs = False
 
         save_stat = True
 
@@ -481,8 +484,9 @@ with dist_strategy.scope():
                 #fm = []
                 #layer_names = []
 
-                figs_h, axes_h = plt.subplots(4, 4, figsize=(12,10))
-                layer_idx = 0
+                if show_imgs:
+                    figs_h, axes_h = plt.subplots(4, 4, figsize=(12,10))
+                    layer_idx = 0
 
                 #
                 #neuron_mode = False
@@ -505,12 +509,11 @@ with dist_strategy.scope():
                         #fm.append(heatmap)
                         #layer_names.append(layer.name)
 
-                        axe = axes_h[layer_idx // 4, layer_idx % 4]
-
-                        hm = axe.matshow(heatmap)
-                        figs_h.colorbar(hm, ax=axe)
-
-                        layer_idx = layer_idx + 1
+                        if show_imgs:
+                            axe = axes_h[layer_idx // 4, layer_idx % 4]
+                            hm = axe.matshow(heatmap)
+                            figs_h.colorbar(hm, ax=axe)
+                            layer_idx = layer_idx + 1
 
                         # print
                         if save_stat:
@@ -523,7 +526,8 @@ with dist_strategy.scope():
                             stats.append(stat)
 
 
-                    axes_h[layer_idx // 4, layer_idx % 4].matshow(img)
+                    if show_imgs:
+                        axes_h[layer_idx // 4, layer_idx % 4].matshow(img)
 
                 if save_imgs:
                     fname = 'heatmap_'+mode+'_'+str(sample_idx)+'.png'
@@ -551,19 +555,19 @@ with dist_strategy.scope():
             if save_stat:
 
                 df = pd.DataFrame(stats_sample,columns=['mean','max','min','std'])
-                df.to_excel(save_dir+'/'+mode+'b-'+str(batch_idx)+'.xlsx')
+                df.to_excel(save_dir+'/'+mode+'_b-'+str(batch_idx)+'.xlsx')
 
                 df = pd.DataFrame(stats_mean)
-                df.to_excel(save_dir+'/'+mode+'b-'+str(batch_idx)+'_mean.xlsx')
+                df.to_excel(save_dir+'/'+mode+'_b-'+str(batch_idx)+'_mean.xlsx')
 
                 df = pd.DataFrame(stats_min)
-                df.to_excel(save_dir+'/'+mode+'b-'+str(batch_idx)+'_min.xlsx')
+                df.to_excel(save_dir+'/'+mode+'_b-'+str(batch_idx)+'_min.xlsx')
 
                 df = pd.DataFrame(stats_max)
-                df.to_excel(save_dir+'/'+mode+'b-'+str(batch_idx)+'_max.xlsx')
+                df.to_excel(save_dir+'/'+mode+'_b-'+str(batch_idx)+'_max.xlsx')
 
                 df = pd.DataFrame(stats_std)
-                df.to_excel(save_dir+'/'+mode+'b-'+str(batch_idx)+'_std.xlsx')
+                df.to_excel(save_dir+'/'+mode+'_b-'+str(batch_idx)+'_std.xlsx')
 
         #
         logger.setLevel(old_level_logger)
