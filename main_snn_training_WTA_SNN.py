@@ -23,7 +23,7 @@ from config import config
 conf = config.flags
 
 #
-import warnings
+import pandas as pd
 
 import logging
 logger = logging.getLogger()
@@ -390,13 +390,7 @@ with dist_strategy.scope():
 
         save_stat = True
 
-        if save_stat:
-            stats = []
-            stats_sample = []
-            stats_mean = []
-            stats_max = []
-            stats_min = []
-            stats_std = []
+
 
 
 
@@ -439,8 +433,16 @@ with dist_strategy.scope():
 
 
         #for batch in test_ds:
-        #for batch_idx in range(1,2):
+        #for batch_idx in tqdm(range(0,2)):
         for batch_idx in tqdm(range(0,100)):
+
+            if save_stat:
+                stats_sample = []
+                stats_mean = []
+                stats_max = []
+                stats_min = []
+                stats_std = []
+
             test_ds_a_batch = test_ds.skip(batch_idx).take(1)
             [imgs, labels], = test_ds_a_batch
 
@@ -546,22 +548,22 @@ with dist_strategy.scope():
                     stats_std.append(std_l)
 
 
-        if save_stat:
-            import pandas as pd
-            df = pd.DataFrame(stats_sample,columns=['mean','max','min','std'])
-            df.to_excel(save_dir+'/'+mode+'.xlsx')
+            if save_stat:
 
-            df = pd.DataFrame(stats_mean)
-            df.to_excel(save_dir+'/'+mode+'_mean.xlsx')
+                df = pd.DataFrame(stats_sample,columns=['mean','max','min','std'])
+                df.to_excel(save_dir+'/'+mode+'b-'+str(batch_idx)+'.xlsx')
 
-            df = pd.DataFrame(stats_min)
-            df.to_excel(save_dir+'/'+mode+'_min.xlsx')
+                df = pd.DataFrame(stats_mean)
+                df.to_excel(save_dir+'/'+mode+'b-'+str(batch_idx)+'_mean.xlsx')
 
-            df = pd.DataFrame(stats_max)
-            df.to_excel(save_dir+'/'+mode+'_max.xlsx')
+                df = pd.DataFrame(stats_min)
+                df.to_excel(save_dir+'/'+mode+'b-'+str(batch_idx)+'_min.xlsx')
 
-            df = pd.DataFrame(stats_std)
-            df.to_excel(save_dir+'/'+mode+'_std.xlsx')
+                df = pd.DataFrame(stats_max)
+                df.to_excel(save_dir+'/'+mode+'b-'+str(batch_idx)+'_max.xlsx')
+
+                df = pd.DataFrame(stats_std)
+                df.to_excel(save_dir+'/'+mode+'b-'+str(batch_idx)+'_std.xlsx')
 
         #
         logger.setLevel(old_level_logger)
