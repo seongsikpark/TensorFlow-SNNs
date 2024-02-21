@@ -121,7 +121,7 @@ conf.debug_syn_output=True
 # trained model
 mode=conf.trained_model_reg_spike
 #mode='NORMAL'
-mode='WTA-1'
+#mode='WTA-1'
 #mode='WTA-2'
 #mode='SIM-A'
 #mode='SIM-S'
