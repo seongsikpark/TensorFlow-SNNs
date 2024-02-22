@@ -434,10 +434,12 @@ with dist_strategy.scope():
 
         os.makedirs(save_dir,exist_ok=True)
 
-
+        batch_index = conf.sm_batch_index
         #for batch in test_ds:
         #for batch_idx in tqdm(range(0,2)):
-        for batch_idx in tqdm(range(0,100)):
+        #for batch_idx in tqdm(range(0,100)):
+        #for batch_idx in tqdm(range(10, 20)):
+        for batch_idx in tqdm(range(batch_index,batch_index+1)):
 
             if save_stat:
                 stats_sample = []
