@@ -456,8 +456,8 @@ with dist_strategy.scope():
             [imgs, labels], = test_ds_a_batch
 
             # grad_cam
-            #for sample_idx in range(0,100):
-            for sample_idx in [2]:
+            for sample_idx in range(0,100):
+            #for sample_idx in [2]:
             #for sample_idx in [0,1,2,3,4,5,6,7,31,34]:
             #for sample_idx in [0, 1, 2]:
 
