@@ -9,7 +9,7 @@ import os
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,2"
 #os.environ["CUDA_VISIBLE_DEVICES"]="4,7"
-os.environ["CUDA_VISIBLE_DEVICES"]="5"
+os.environ["CUDA_VISIBLE_DEVICES"]="4"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3,4,5,6,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
@@ -118,10 +118,12 @@ conf.leak_const_init = 0.9
 #conf.debug_neuron_input=True
 conf.debug_syn_output=True
 
+conf.sm_batch_index=1
+
 # trained model
 mode=conf.trained_model_reg_spike
-#mode='NORMAL'
-mode='WTA-1'
+mode='NORMAL'
+#mode='WTA-1'
 #mode='WTA-2'
 #mode='SIM-A'
 #mode='SIM-S'

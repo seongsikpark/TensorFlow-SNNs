@@ -29,7 +29,7 @@
 
 
 
-for ((i=16;i<100;i++)) do
+for ((i=0;i<100;i++)) do
     python main_snn_training_WTA_SNN.py \
       -sm_batch_index=${i}
 done

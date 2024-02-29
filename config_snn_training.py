@@ -60,7 +60,7 @@ conf.model='ResNet19'
 #conf.model='ResNet32'
 
 #conf.dataset='CIFAR100'
-conf.dataset='ImageNet'
+#conf.dataset='ImageNet'
 #conf.dataset='CIFAR10_DVS'
 
 
@@ -96,10 +96,10 @@ if True:
     if True:
     #if False:
         conf.reg_spike_out = True
-        conf.reg_spike_out_const = 7E-2
+        conf.reg_spike_out_const = 1E-6
         conf.reg_spike_out_alpha = 4
         conf.reg_spike_out_sc=True
-        conf.reg_spike_out_sc_wta=False
+        #conf.reg_spike_out_sc_wta=False
         # conf.reg_spike_out_sc_train=True
         conf.reg_spike_out_sc_sm=True
         #conf.reg_spike_out_sc_sq=True

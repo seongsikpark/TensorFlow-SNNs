@@ -427,10 +427,14 @@ with dist_strategy.scope():
         # plt.savefig('./result_fig_grad_cam_syn_out/' + fname)
         # plt.savefig('./result_fig_grad_cam_syn_out_mean_t/' + fname)
         # plt.savefig('./result_fig_grad_cam_neuron_input/' + fname)
-        save_dir = './result_smap_ga_neuron-mean-t_all'
+        #
+        #save_dir = './result_smap_ga_neuron-mean-t_all'
         #save_dir = './result_smap_ga_neuron'
+        #save_dir = './result_smap_ga_neuron_all'
         #save_dir = './result_smap_ig_neuron-mean-t'
         #save_dir = './result_smap_ig_neuron'
+        #save_dir = './result_smap_ig_neuron_all'
+        save_dir = './result_smap_ig_neuron_scnorm_all'
 
         os.makedirs(save_dir,exist_ok=True)
 
@@ -452,7 +456,8 @@ with dist_strategy.scope():
             [imgs, labels], = test_ds_a_batch
 
             # grad_cam
-            for sample_idx in range(0,100):
+            #for sample_idx in range(0,100):
+            for sample_idx in [2]:
             #for sample_idx in [0,1,2,3,4,5,6,7,31,34]:
             #for sample_idx in [0, 1, 2]:
 
