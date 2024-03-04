@@ -74,8 +74,8 @@ def make_gradcam_heatmap_snn(img_array, model, last_conv_layer_name, neuron_mode
     normalize=False
 
     #
-    #integrated_gradient=False
-    integrated_gradient=True
+    integrated_gradient=False
+    #integrated_gradient=True
 
     #
     #mean_t = True
@@ -171,11 +171,17 @@ def make_gradcam_heatmap_snn(img_array, model, last_conv_layer_name, neuron_mode
 
 
                 #ga = tf.reduce_mean([ga0,ga1,ga2,ga3],axis=0)
-                ga = tf.reduce_sum([ga0,ga1,ga2,ga3],axis=0)
+                #ga = tf.reduce_sum([ga0,ga1,ga2,ga3],axis=0)
                 if spike_count_norm:
-                    sc = tf.reduce_sum([a0,a1,a2,a3])
-                    ga = ga / sc
+                    #sc = tf.reduce_sum([a0,a1,a2,a3])
+                    ga0 = ga0/tf.reduce_sum(a0)
+                    ga1 = ga1/tf.reduce_sum(a1)
+                    ga2 = ga2/tf.reduce_sum(a2)
+                    ga3 = ga3/tf.reduce_sum(a3)
+
+                    ga = tf.reduce_sum([ga0, ga1, ga2, ga3], axis=0)
                 else:
+                    ga = tf.reduce_sum([ga0,ga1,ga2,ga3],axis=0)
                     ga = ga / 4
             else:
                 a = tf.reduce_sum([a0,a1,a2,a3],axis=0)
@@ -187,7 +193,7 @@ def make_gradcam_heatmap_snn(img_array, model, last_conv_layer_name, neuron_mode
                     g = g / sc
                 else:
                     a = a / 4
-                    a = g / 4
+                    g = g / 4
 
                 ga = g*a
 

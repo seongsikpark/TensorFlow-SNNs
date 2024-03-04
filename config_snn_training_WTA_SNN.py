@@ -118,7 +118,7 @@ conf.leak_const_init = 0.9
 #conf.debug_neuron_input=True
 conf.debug_syn_output=True
 
-conf.sm_batch_index=1
+#conf.sm_batch_index=1
 
 # trained model
 mode=conf.trained_model_reg_spike

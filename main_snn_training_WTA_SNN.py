@@ -431,10 +431,11 @@ with dist_strategy.scope():
         #save_dir = './result_smap_ga_neuron-mean-t_all'
         #save_dir = './result_smap_ga_neuron'
         #save_dir = './result_smap_ga_neuron_all'
+        save_dir = './result_smap_ga_neuron_scnorm_all'
         #save_dir = './result_smap_ig_neuron-mean-t'
         #save_dir = './result_smap_ig_neuron'
         #save_dir = './result_smap_ig_neuron_all'
-        save_dir = './result_smap_ig_neuron_scnorm_all'
+        #save_dir = './result_smap_ig_neuron_scnorm_all'
 
         os.makedirs(save_dir,exist_ok=True)
 
