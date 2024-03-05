@@ -192,6 +192,7 @@ class Layer():
                 #if not self.input_spec.ndim is None:
                     #self.input_spec = InputSpec(ndim=self.input_spec.ndim+1)
 
+
     #
     def build(self, input_shapes):
         # super(Conv2D,self).build(input_shapes)
@@ -309,6 +310,28 @@ class Layer():
             #self.out = tf.TensorArray(dtype=tf.float32,
                         #size=self.conf.time_step,element_shape=self.output_shape_fixed_batch,clear_after_read=False)
 
+
+        # integrated output
+        # only for Conv2D
+        if hasattr(self, 'f_output_integ'):
+            if self.f_output_integ:
+                self.output_integ = tf.zeros(shape=self.output_shape_fixed_batch,name=self.name+'_output_integ')
+
+
+        #
+        # integrated output
+        # only for Conv2D
+        #if conf.debug_syn_output:
+        if hasattr(self, 'f_output_t'):
+            if self.f_output_t:
+                self._outputs = tf.TensorArray(
+                    dtype=tf.float32,
+                    size=conf.time_step,
+                    element_shape=self.output_shape_fixed_batch,
+                    clear_after_read=False,
+                    tensor_array_name='outputs')
+
+
         #
         #self.built = True
         #print('build layer - done')
@@ -395,8 +418,6 @@ class Layer():
 
             return out_arr
         else:
-
-
             #self._expects_training_arg = ('training' in method_arg_spec.args or
             #                              method_arg_spec.varkw is not None)
             #self._expects_mask_arg = ('mask' in method_arg_spec.args or
@@ -419,8 +440,6 @@ class Layer():
                 output = super().call(input)
 
             # regularization
-            #if False:
-            #if True and self.depth > 1:
             if conf.reg_psp and self.depth > 1:
                 #print('reg_psp: {:}'.format(self.name))
                 lib_snn.layers.reg_psp(self,output)
@@ -471,6 +490,14 @@ class Layer():
                     #self.add_loss(0.01*e)
                     self.add_loss(conf.reg_syn_in_const*e)
 
+            #if conf.debug_syn_output:
+            if hasattr(self, 'f_output_t'):
+                if self.f_output_t:
+                    t = glb_t.t
+                    #t=1
+                    self._outputs = self._outputs.write(t - 1, output)
+
+                    #output = self._outputs.read(t-1)
 
             return output
 
@@ -611,10 +638,6 @@ class Layer():
         else:
             if self.en_snn:
                 n = self.act(b, glb_t.t, training)
-
-                # test - sspark, 221205
-                # act + noise
-
 
                 if self.last_layer and (not (self.act_dnn is None)):
                     # softmax
@@ -849,6 +872,13 @@ class Layer():
 
             #print('{}: {} - {}'.format(glb_t.t,self.depth,tf.reduce_mean(self.act_snn.out)))
 
+        #
+        if hasattr(self, 'f_output_integ'):
+            if self.f_output_integ:
+                if glb.t == 0:
+                    self.output_integ = ret
+                else:
+                    self.output_integ = self.output_integ + ret
 
 
         return ret
@@ -1084,7 +1114,6 @@ class Conv2D(Layer, layers_new.conv.Conv2D):
 
         Layer.__init__(self, use_bn, activation, kwargs=kwargs)
 
-        #tf.keras.layers.Conv2D.__init__(
         layers_new.conv.Conv2D.__init__(
             self,
             filters=filters,
@@ -1110,6 +1139,12 @@ class Conv2D(Layer, layers_new.conv.Conv2D):
         Layer.index += 1
         self.depth = Layer.index
         self.synapse=True
+
+        # integrated output
+        self.f_output_integ = False
+        #self.f_output_integ = True
+        self.f_output_t = conf.debug_syn_output
+
 
 
 # DepthwiseConv2D

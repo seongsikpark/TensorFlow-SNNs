@@ -337,9 +337,10 @@ class Neuron(tf.keras.layers.Layer):
     #def call(self ,inputs ,t, training):
     def call(self, inputs, training=None):
 
+
+
         if conf.verbose_snn_train:
-        #if True:
-            self.inputs = inputs
+            self.inputs_t = inputs
         #t = tf.constant(glb_t.t)
         t = glb_t.t
         #print('neuron call')
@@ -351,7 +352,7 @@ class Neuron(tf.keras.layers.Layer):
         #assert self.init_done, 'should call init() before start simulation'
 
         #self.vmem_pre = self.vmem
-        self.vmem_pre = self.vmem.read(t-1)
+        #self.vmem_pre = self.vmem.read(t-1)
 
         #
         #def grad(upstream, variables=None):
@@ -499,11 +500,6 @@ class Neuron(tf.keras.layers.Layer):
                 # self.dL_du_t1_prev = dL_du_t1
                 self.dL_du_t1_prev.assign(dL_du_t1)
 
-            # print('here')
-            # print(self.name)
-            # print(upstream)
-            # print(self.out)
-
             #return grad_ret, tf.stop_gradient(t), tf.stop_gradient(training)
             return grad_ret, tf.stop_gradient(training)
 
@@ -537,7 +533,7 @@ class Neuron(tf.keras.layers.Layer):
         #out = run_type[self.n_type](inputs, training)
         #out = run_type[self.loc](inputs, t, training)
         spike, vmem = run_type[self.loc](inputs, vmem_prev_t, t, training)
-        out_ret = spike
+        #out_ret = spike
 
         #self.t = t
         #print(conf.time_step)
@@ -572,13 +568,17 @@ class Neuron(tf.keras.layers.Layer):
         #print(self.vmem)
         #self.out.assign(spike)
         #self.vmem.assign(vmem)
-        self.out = spike
+
         #self.vmem = vmem
         #print(self.name)
         #print(self.vmem)
         self.vmem = self.vmem.write(t-1,vmem)
+        #self.out = spike
+        self.out = self.out.write(t-1,spike)
+        out_ret = self.out.read(t-1)
 
-        self.count_spike(t)
+
+        self.count_spike(t,spike)
 
         #
         if conf.f_record_first_spike_time:
@@ -690,9 +690,9 @@ class Neuron(tf.keras.layers.Layer):
                     #
                     if conf.reg_spike_out_norm:
                         #sc_loss = tf.norm(self.out * sc_rate,ord=2)
-                        sc_loss = lib_snn.layers.l2_norm(self.out*sc_rate,self.name)
+                        sc_loss = lib_snn.layers.l2_norm(spike*sc_rate,self.name)
                     else:
-                        sc_loss = tf.reduce_mean(self.out * sc_rate)
+                        sc_loss = tf.reduce_mean(spike*sc_rate)
                     sc_loss = sc_loss*conf.reg_spike_out_const
 
                     self.add_loss(sc_loss)
@@ -774,6 +774,11 @@ class Neuron(tf.keras.layers.Layer):
             if self.loc == 'HID':
                 cond = tf.math.logical_or(self.spike_count_int==t, self.spike_count_int==tf.constant(1,shape=self.spike_count_int.shape,dtype=tf.float32))
                 out_ret = tf.where(cond,out_ret,tf.zeros(shape=out_ret.shape))
+
+
+        # neuron input analysis
+        if conf.debug_neuron_input:
+            self.inputs = self.inputs.write(t - 1, inputs)
 
         #return out_ret, grad
         return out_ret
@@ -894,7 +899,27 @@ class Neuron(tf.keras.layers.Layer):
                 backend.set_value(self.out, tf.zeros(self.dim, dtype=tf.float32))
         #backend.set_value(self.out, tf.zeros(self.dim, dtype=tf.float32))
 
-        self.out = tf.zeros(self.dim, dtype=tf.float32)
+
+        #if True:
+        if False:
+            self.out = tf.zeros(self.dim, dtype=tf.float32)
+        else:
+            self.out= tf.TensorArray(
+                dtype=tf.float32,
+                size=conf.time_step,
+                element_shape=self.dim,
+                clear_after_read=False,
+                tensor_array_name='out')
+
+        #
+        if conf.debug_neuron_input:
+            self.inputs= tf.TensorArray(
+                dtype=tf.float32,
+                size=conf.time_step,
+                element_shape=self.dim,
+                clear_after_read=False,
+                tensor_array_name='input')
+
 
     def reset_vth(self):
         #self.vth.assign(self.vth_init)
@@ -1493,7 +1518,7 @@ class Neuron(tf.keras.layers.Layer):
                 y_backprop = upstream
                 dx = grad_ret
 
-                var = self.inputs
+                var = self.inputs_t
                 print('{:} - max {:.3g}, min {:.3g}, mean {:.3g}, std {:.3g}, non_zero {:.3g}'
                       .format('inputs',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var),tf.math.count_nonzero(var,dtype=tf.int32)/tf.math.reduce_prod(var.shape)))
 
@@ -1914,18 +1939,18 @@ class Neuron(tf.keras.layers.Layer):
                                        self.refractory)
 
     #
-    def count_spike(self, t):
+    def count_spike(self, t, spike):
         {
             'TEMPORAL': self.count_spike_temporal
-        }.get(self.neural_coding, self.count_spike_default)(t)
+        }.get(self.neural_coding, self.count_spike_default)(t,spike)
 
-    def count_spike_default(self, t):
+    def count_spike_default(self, t, spike):
         # self.spike_count_int = tf.where(self.f_fire,self.spike_count_int+1.0,self.spike_count_int)
         # self.spike_count = tf.add(self.spike_count, self.out)
 
         #self.spike_count_int.assign(tf.where(self.f_fire, self.spike_count_int + 1.0, self.spike_count_int))
         self.spike_count_int.assign(tf.where(self.f_fire, self.spike_count_int + 1.0, self.spike_count_int))
-        self.spike_count.assign(tf.add(self.spike_count, self.out))
+        self.spike_count.assign(tf.add(self.spike_count, spike))
 
         #print('out')
         #print(self.out)
@@ -1934,8 +1959,9 @@ class Neuron(tf.keras.layers.Layer):
         #print(self.spike_count)
         #print(self.out)
 
-    def count_spike_temporal(self, t):
-        self.spike_count_int = tf.add(self.spike_count_int, self.out)
+    def count_spike_temporal(self, t, spike):
+        #self.spike_count_int = tf.add(self.spike_count_int, self.out)
+        self.spike_count_int = tf.add(self.spike_count_int, spike)
         self.spike_count = tf.where(self.f_fire, tf.add(self.spike_count, self.vth), self.spike_count_int)
 
         if conf.f_record_first_spike_time:

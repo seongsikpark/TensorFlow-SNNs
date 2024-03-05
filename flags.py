@@ -795,5 +795,10 @@ flags.DEFINE_integer('time_dim_size',1,'time dimension size')
 
 
 #
+flags.DEFINE_bool('debug_neuron_input',False,'debug neuron input - neuron.inputs (TensorArray)')
+flags.DEFINE_bool('debug_syn_output',False,'debug synapse output - layer._outputs (TensorArray)')
+flags.DEFINE_integer('sm_batch_index',0,'saliency map - test batch index')
+
+#
 conf=flags.FLAGS
 conf(sys.argv)
