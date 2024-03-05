@@ -24,6 +24,10 @@ from models.resnet import ResNet32V2
 from models.resnet import ResNet44V2
 from models.resnet import ResNet56V2
 
+# sew
+from models.resnet import ResNet20_SEW
+
+
 
 from models.mobilenet_v2 import MobileNetV2
 
@@ -58,6 +62,7 @@ model_sel_sc = {
     'ResNet44V2': ResNet44V2,
     'ResNet50V2': ResNet50V2,
     'ResNet56V2': ResNet56V2,
+    'ResNet20_SEW': ResNet20_SEW,
     'MobileNetV2': MobileNetV2,
     'EfficientNetV2S': EfficientNetV2S,
     'EfficientNetV2M': EfficientNetV2M,
