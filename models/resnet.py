@@ -49,7 +49,7 @@ WEIGHTS_HASHES = {
 
 
 #
-def block_basic(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
+def block_basic(x, filters, kernel_size=3, stride=1, conv_shortcut=True, sew=False, name=None):
     """A residual block.
 
     Args:
@@ -68,29 +68,24 @@ def block_basic(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=No
     # bn_axis = 3  # 'channels_last' only
 
     if conv_shortcut:
-        #shortcut = lib_snn.layers.Conv2D(filters, 1, strides=stride, use_bn=True, activation=None, name=name + '_conv0')(x)
-        #shortcut = lib_snn.layers.Conv2D(filters, 1, strides=stride, name=name + '_conv0',kernel_initializer='zeros')(x)
         shortcut = lib_snn.layers.Conv2D(filters, 1, strides=stride, name=name + '_conv0')(x)
         shortcut = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name=name+'_conv0_bn')(shortcut)
     else:
-        #shortcut = x
         shortcut = lib_snn.layers.Identity(name=name + '_conv0_i') (x)
-        #shortcut = lib_snn.layers.Conv2D(1,1,strides=1,use_bn=False,activation=None,name=name+'_conv0_i',kernel_initializer='ones',trainable=False)(x)
 
-    #x = lib_snn.layers.Conv2D(filters, kernel_size, strides=stride, padding='SAME', use_bn=True, activation='relu',name=name + '_conv1')(x)
     x = lib_snn.layers.Conv2D(filters, kernel_size, strides=stride, padding='SAME', name=name + '_conv1')(x)
     x = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name=name+'_conv1_bn')(x)
     x = lib_snn.activations.Activation(act_type=act_type,name=name+'_conv1_n')(x)
 
-    #x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation='relu',name=name + '_conv2')(x)
-    #x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation=None,name=name + '_conv2')(x)
     x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', name=name + '_conv2')(x)
     x = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name=name+'_conv2_bn')(x)
 
-    #x = lib_snn.layers.Add(use_bn=False, activation='relu', name=name + '_out')([shortcut, x])
-    #print([shortcut, x])
-    x = lib_snn.layers.Add(name=name + '_out')([shortcut, x])
-    x = lib_snn.activations.Activation(act_type=act_type,name=name+'_out_n')(x)
+    if sew: # spike-element-wise block
+        x = lib_snn.activations.Activation(act_type=act_type,name=name+'_out_n')(x)
+        x = lib_snn.layers.Add(name=name + '_out')([shortcut, x])
+    else:
+        x = lib_snn.layers.Add(name=name + '_out')([shortcut, x])
+        x = lib_snn.activations.Activation(act_type=act_type,name=name+'_out_n')(x)
 
     return x
 
@@ -167,55 +162,11 @@ def block_bottleneck(x, filters, kernel_size=3, stride=1, conv_shortcut=True, na
     return x
 
 #
-#
-#
-#def block_basic(x, filters, kernel_size=3, stride=1, conv_shortcut=True, name=None):
-#    """A residual block.
-#
-#    Args:
-#      x: input tensor.
-#      filters: integer, filters of the bottleneck layer.
-#      kernel_size: default 3, kernel size of the bottleneck layer.
-#      stride: default 1, stride of the first layer.
-#      conv_shortcut: default True, use convolution shortcut if True,
-#          otherwise identity shortcut.
-#      name: string, block label.
-#
-#    Returns:
-#      Output tensor for the residual block.
-#    """
-#    # bn_axis = 3 if backend.image_data_format() == 'channels_last' else 1
-#    # bn_axis = 3  # 'channels_last' only
-#
-#    if conv_shortcut:
-#        shortcut = lib_snn.layers.Conv2D(filters, 1, strides=stride, name=name + '_conv0',kernel_initializer='zeros')(x)
-#        shortcut = lib_snn.layers_new.BatchNormalization(en_tdbn=tdbn,name=name+'_conv0_bn')(shortcut)
-#    else:
-#        #shortcut = x
-#        shortcut = lib_snn.layers.Identity(name=name + '_conv0_i') (x)
-#        #shortcut = lib_snn.layers.Conv2D(1,1,strides=1,use_bn=False,activation=None,name=name+'_conv0_i',kernel_initializer='ones',trainable=False)(x)
-#
-#    #x = lib_snn.layers.Conv2D(filters, kernel_size, strides=stride, padding='SAME', use_bn=True, activation='relu',name=name + '_conv1')(x)
-#    x = lib_snn.layers.Conv2D(filters, kernel_size, strides=stride, padding='SAME', name=name + '_conv1')(x)
-#    x = lib_snn.layers_new.BatchNormalization(en_tdbn=tdbn,name=name+'_conv1_bn')(x)
-#    x = lib_snn.activations.Activation(act_type=act_type,name=name+'conv1_n')(x)
-#
-#
-#    #x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', use_bn=True, activation=None,name=name + '_conv2')(x)
-#    x = lib_snn.layers.Conv2D(filters, kernel_size, padding='SAME', name=name + '_conv2')(x)
-#    x = lib_snn.layers_new.BatchNormalization(en_tdbn=tdbn,name=name+'_conv2_bn')(x)
-#
-#
-#    #x = lib_snn.layers.Add(use_bn=False, activation='relu', name=name + '_out')([shortcut, x])
-#    #x = lib_snn.layers.Add(name=name + '_out')([shortcut, x])
-#    x = lib_snn.activations.Activation(act_type=act_type,name=name+'_out_n')(x)
-#
-#    return x
 
 
 
 # keras, resnet.py based
-def stack1(x, filters, block, num_block, stride=2, name=None):
+def stack1(x, filters, block, num_block, stride=2, sew=False, name=None):
     """A set of stacked residual blocks.
 
     Args:
@@ -228,30 +179,11 @@ def stack1(x, filters, block, num_block, stride=2, name=None):
     Returns:
       Output tensor for the stacked blocks.
     """
-    x = block(x, filters, stride=stride, name=name + '_block1')
+    x = block(x, filters, stride=stride, sew=sew, name=name + '_block1')
     for i in range(2, num_block + 1):
-        x = block(x, filters, conv_shortcut=False, name=name + '_block' + str(i))
+        x = block(x, filters, conv_shortcut=False, sew=sew, name=name + '_block' + str(i))
     return x
 
-
-## keras, resnet.py based
-#def ResNet50(include_top=True,
-#             weights='imagenet',
-#             input_tensor=None,
-#             input_shape=None,
-#             pooling=None,
-#             classes=1000,
-#             **kwargs):
-#    """Instantiates the ResNet50 architecture."""
-#
-#    def stack_fn(x):
-#        x = stack1(x, 64, 3, stride1=1, name='conv2')
-#        x = stack1(x, 128, 4, name='conv3')
-#        x = stack1(x, 256, 6, name='conv4')
-#        return stack1(x, 512, 3, name='conv5')
-#
-#    return ResNet(stack_fn, False, True, 'resnet50', include_top, weights,
-#                  input_tensor, input_shape, pooling, classes, **kwargs)
 
 # TODO - class
 """Instantiates the ResNet, ResNetV2, and ResNeXt architecture.
@@ -322,6 +254,7 @@ def ResNet(
     pooling=None,
     classes=1000,
     classifier_activation='softmax',
+    sew=False,          # spike-element-wise
     **kwargs):
 
     data_format = conf.data_format
@@ -391,14 +324,14 @@ def ResNet(
 
 
     if cifar_stack:
-        x = stack1(x, initial_channels, block, num_blocks[0], stride=1, name='conv2')
-        x = stack1(x, initial_channels*2, block, num_blocks[1], name='conv3')
-        x = stack1(x, initial_channels*4, block, num_blocks[2], name='conv4')
+        x = stack1(x, initial_channels, block, num_blocks[0], stride=1, sew=sew, name='conv2')
+        x = stack1(x, initial_channels*2, block, num_blocks[1], sew=sew, name='conv3')
+        x = stack1(x, initial_channels*4, block, num_blocks[2], sew=sew, name='conv4')
     else:
-        x = stack1(x, initial_channels, block, num_blocks[0], stride=1, name='conv2')
-        x = stack1(x, initial_channels*2, block, num_blocks[1], name='conv3')
-        x = stack1(x, initial_channels*4, block, num_blocks[2], name='conv4')
-        x = stack1(x, initial_channels*8, block, num_blocks[3], name='conv5')
+        x = stack1(x, initial_channels, block, num_blocks[0], stride=1, sew=sew, name='conv2')
+        x = stack1(x, initial_channels*2, block, num_blocks[1], sew=sew, name='conv3')
+        x = stack1(x, initial_channels*4, block, num_blocks[2], sew=sew, name='conv4')
+        x = stack1(x, initial_channels*8, block, num_blocks[3], sew=sew, name='conv5')
 
 
     if preact:
@@ -604,3 +537,16 @@ def ResNet56V2(input_shape, conf, include_top, weights, classes, **kwargs):
     return ResNet(preact=True, input_shape=input_shape, block=block_basic, initial_channels=initial_channels,
                   num_blocks=num_blocks, conf=conf, include_top=include_top,
                   weights=weights, classes=classes, **kwargs)
+
+
+
+########################################
+## spike-element-wise (sew) block
+########################################
+def ResNet20_SEW(input_shape, conf, include_top, weights, classes, **kwargs):
+    _initial_channels = 64
+    initial_channels = kwargs.pop('initial_channels', _initial_channels)
+    num_blocks = [3,3,3]
+    return ResNet(input_shape=input_shape, block=block_basic, initial_channels=initial_channels,
+                  num_blocks=num_blocks, conf=conf, include_top=include_top,
+                  weights=weights, classes=classes, sew=True, **kwargs)
