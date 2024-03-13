@@ -608,10 +608,14 @@ with dist_strategy.scope():
         w = model.get_layer('conv1').kernel
         wc = tf.reshape(w, shape=[3 * 3 * 3, 64])
         wc_l1 = tf.reduce_sum(tf.abs(wc), axis=[0])
+        wc_l2 = tf.sqrt(tf.reduce_sum(tf.square(wc), axis=[0]))
+        wc_l = wc_l2
+        #wc_l = wc_l1
         wct = tf.transpose(wc)
-        wc_l1 = tf.expand_dims(wc_l1, -1)
-        wc_l1_mat = wc_l1 * tf.transpose(wc_l1)
-        mc = tf.abs(wct @ wc) / wc_l1_mat
+        wc_l = tf.expand_dims(wc_l, -1)
+        wc_l_mat = wc_l * tf.transpose(wc_l)
+        mc = tf.abs(wct @ wc) / wc_l_mat
+        mc = tf.linalg.set_diag(mc, tf.zeros(shape=(64)))
         print(tf.reduce_mean(mc))
         print(tf.reduce_max(mc))
 
