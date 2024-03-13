@@ -119,6 +119,7 @@ conf.leak_const_init = 0.9
 conf.debug_syn_output=True
 
 #conf.sm_batch_index=1
+#conf.reg_spike_vis_fmap_sc=True
 
 # trained model
 mode=conf.trained_model_reg_spike
@@ -159,7 +160,7 @@ elif mode=='WTA-2':
     #conf.reg_spike_out_sc_sq=True
     conf.reg_spike_out_norm = True
 elif mode=='SIM-A':
-    # spike reg - similar spike
+    # spike reg - similar acc
     #conf.name_model_load='./models_ckpt_WTA-SNN/VGG16_AP_CIFAR10/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s_r-sc-nwta-sm-2e-05_4'
     conf.reg_spike_out = True
     conf.reg_spike_out_const = 2E-5
@@ -171,7 +172,7 @@ elif mode=='SIM-A':
     #conf.reg_spike_out_sc_sq=True
     conf.reg_spike_out_norm = True
 elif mode=='SIM-S':
-    # spike reg - similar acc
+    # spike reg - similar spike
     #conf.name_model_load='./models_ckpt_WTA-SNN/VGG16_AP_CIFAR10/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s_r-sc-nwta-sm-0.3_4'
     conf.reg_spike_out = True
     conf.reg_spike_out_const = 2.4E-1
