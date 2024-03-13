@@ -632,7 +632,7 @@ with dist_strategy.scope():
         sct = tf.transpose(sc,perm=[0,2,1])
         sc_l_mat = sc_l @ tf.transpose(sc_l,perm=[0,2,1])
         mc = tf.math.divide_no_nan(tf.abs(sct @ sc),sc_l_mat)
-        mc = tf.linalg.set_diag(mc, tf.zeros(shape=(64)))
+        mc = tf.linalg.set_diag(mc, tf.zeros(shape=(100,64)))
         print(tf.reduce_mean(mc))
         print(tf.reduce_max(mc))
         print(tf.reduce_mean(tf.reduce_max(mc,axis=[1,2])))
