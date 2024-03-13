@@ -605,19 +605,38 @@ with dist_strategy.scope():
         input_shape = (32, 32, 3)
         classes = 10
 
+        #
+        result = model.evaluate(test_ds.take(1), callbacks=callbacks_test)
+
+        #
         w = model.get_layer('conv1').kernel
         wc = tf.reshape(w, shape=[3 * 3 * 3, 64])
-        wc_l1 = tf.reduce_sum(tf.abs(wc), axis=[0])
         wc_l2 = tf.sqrt(tf.reduce_sum(tf.square(wc), axis=[0]))
         wc_l = wc_l2
         #wc_l = wc_l1
         wct = tf.transpose(wc)
         wc_l = tf.expand_dims(wc_l, -1)
-        wc_l_mat = wc_l * tf.transpose(wc_l)
+        wc_l_mat = wc_l @ tf.transpose(wc_l)
         mc = tf.abs(wct @ wc) / wc_l_mat
         mc = tf.linalg.set_diag(mc, tf.zeros(shape=(64)))
         print(tf.reduce_mean(mc))
         print(tf.reduce_max(mc))
+
+
+        #
+        sc = model.get_layer('n_conv1').act.spike_count
+        sc = tf.reshape(sc, shape=[100,32*32, 64])
+        sc_l2 = tf.sqrt(tf.reduce_sum(tf.square(sc), axis=[1]))
+        sc_l = sc_l2
+        sc_l = tf.expand_dims(sc_l,-1)
+        sct = tf.transpose(sc,perm=[0,2,1])
+        sc_l_mat = sc_l @ tf.transpose(sc_l,perm=[0,2,1])
+        mc = tf.math.divide_no_nan(tf.abs(sct @ sc),sc_l_mat)
+        mc = tf.linalg.set_diag(mc, tf.zeros(shape=(64)))
+        print(tf.reduce_mean(mc))
+        print(tf.reduce_max(mc))
+        print(tf.reduce_mean(tf.reduce_max(mc,axis=[1,2])))
+
 
 
         assert False
