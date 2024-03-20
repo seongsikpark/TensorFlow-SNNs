@@ -30,6 +30,12 @@ conf = config.flags
 
 
 #
+#conf.save_best_model_only=False
+#conf.save_model_freq_epoch=5000       # iterations
+#conf.root_model_save='./models_ckpt_e10'
+#conf.save_models_max_to_keep=300
+
+#
 #conf.mode='inference'
 ##conf.batch_size_inf=100
 #conf.batch_size=400
@@ -53,14 +59,14 @@ conf = config.flags
 #conf.step_decay_epoch = 50
 #conf.train_epoch = 10
 #conf.train_epoch = 10
-#conf.num_train_data = 10000
+#conf.num_train_data = 1000
 
 #conf.model='VGG11'
-#conf.model='VGG16'
+conf.model='VGG16'
 #conf.model='ResNet19'
 #conf.model='ResNet20'
 #conf.model='ResNet32'
-conf.model='ResNet20_SEW'   # spike-element-wise block
+#conf.model='ResNet20_SEW'   # spike-element-wise block
 
 
 #conf.dataset='CIFAR100'
@@ -100,10 +106,10 @@ if False:
     if True:
         #if False:
         conf.reg_spike_out=True
-        conf.reg_spike_out_const=3E-7
+        conf.reg_spike_out_const=5E-2
         conf.reg_spike_out_alpha=4
         conf.reg_spike_out_sc=True
-        #conf.reg_spike_out_sc_wta=False
+        conf.reg_spike_out_sc_wta=False
         #conf.reg_spike_out_sc_train=True
         conf.reg_spike_out_sc_sm=True
         #conf.reg_spike_out_sc_sq=True

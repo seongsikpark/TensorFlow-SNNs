@@ -14,6 +14,10 @@ from config import config
 
 from lib_snn import config_glb
 
+
+from config import config
+conf = config.flags
+
 class ManageSavedModels(tf.keras.callbacks.Callback):
     def __init__(self,
                  filepath,
@@ -66,7 +70,7 @@ class ModelCheckpointResume(tf.keras.callbacks.ModelCheckpoint):
                 mode = 'auto',
                 save_freq = 'epoch',
                 options = None,
-                best = None,
+                best = 0,
                 tensorboard_writer = None,
                 log_dir = None,
                 ** kwargs):
@@ -86,8 +90,11 @@ class ModelCheckpointResume(tf.keras.callbacks.ModelCheckpoint):
             options=options,
             **kwargs)
 
-        if best is not None:
-            self.best = best
+        #if best is not None:
+            #self.best = best
+        self.best = best
+
+
 
         #tf.summary.create_file_writer()
 
@@ -98,6 +105,17 @@ class ModelCheckpointResume(tf.keras.callbacks.ModelCheckpoint):
     def on_epoch_end(self, epoch, logs=None):
 
         super(ModelCheckpointResume, self).on_epoch_end(epoch=epoch,logs=logs)
+
+        #if self.best is None:
+        #    self.best = 0
+
+        if not conf.save_best_model_only:
+            current = logs.get(self.monitor)
+            if current is None:
+                assert False
+            else:
+                if self.monitor_op(current, self.best):
+                    self.best = current
 
         #print(self.best)
         tf.summary.scalar('best_val_acc', data=self.best, step=epoch)

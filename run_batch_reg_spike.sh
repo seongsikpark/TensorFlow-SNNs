@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/basverbose_snn_trainh
 
 #
 #source ../00_SNN/venv/bin/activate

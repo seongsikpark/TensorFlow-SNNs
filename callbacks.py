@@ -26,7 +26,8 @@ def callbacks_snn_train(model,train_ds_num,valid_ds,test_ds_num):
         best = result[idx_monitor_cri]
         print('previous best result - {}'.format(best))
     else:
-        best = None
+        #best = None
+        best = 0
 
     save_freq=conf.save_model_freq_epoch
     if save_freq < 0:
