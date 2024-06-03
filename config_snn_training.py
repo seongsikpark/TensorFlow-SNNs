@@ -43,14 +43,14 @@ conf = config.flags
 #conf.batch_size=300
 #conf.batch_size=180
 #conf.batch_size=120
-#conf.time_step=2
+#conf.time_step=10
 #conf.name_model_load='./models/VGG16_AP_CIFAR100/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-z'
 
 
 #
-#conf.learning_rate = 0.2
-#conf.lmb = 1E-4
-#conf.time_step = 4
+conf.learning_rate = 0.02
+conf.lmb = 1E-2
+conf.time_step = 4
 #conf.optimizer = 'ADAM'
 #conf.lr_schedule = None
 
@@ -62,16 +62,16 @@ conf = config.flags
 #conf.num_train_data = 1000
 
 #conf.model='VGG11'
-conf.model='VGG16'
+#conf.model='VGG16'
 #conf.model='ResNet19'
-#conf.model='ResNet20'
+conf.model='ResNet20'
 #conf.model='ResNet32'
 #conf.model='ResNet20_SEW'   # spike-element-wise block
 
 
 #conf.dataset='CIFAR100'
 #conf.dataset='ImageNet'
-#conf.dataset='CIFAR10_DVS'
+conf.dataset='CIFAR10_DVS'
 
 
 conf.pooling_vgg = 'avg'
@@ -101,15 +101,15 @@ conf.leak_const_init = 0.9
 
 
 #
-if False:
-#if True:
+#if False:
+if True:
     if True:
         #if False:
         conf.reg_spike_out=True
-        conf.reg_spike_out_const=5E-2
+        conf.reg_spike_out_const=1E-6
         conf.reg_spike_out_alpha=4
         conf.reg_spike_out_sc=True
-        conf.reg_spike_out_sc_wta=False
+        #conf.reg_spike_out_sc_wta=False
         #conf.reg_spike_out_sc_train=True
         conf.reg_spike_out_sc_sm=True
         #conf.reg_spike_out_sc_sq=True

@@ -14,7 +14,8 @@ import lib_snn
 from absl import flags
 conf = flags.FLAGS
 
-tdbn = conf.mode=='train' and conf.nn_mode=='SNN' and conf.tdbn
+#tdbn = conf.mode=='train' and conf.nn_mode=='SNN' and conf.tdbn
+tdbn = conf.nn_mode=='SNN' and conf.tdbn
 
 
 #

@@ -144,34 +144,39 @@ def as_frames(
     # (frame, x, y, color)
     idxs = tf.concat([idxs_frame,coords],1)
 
-    images = tf.tensor_scatter_nd_update(images,idxs,colors)
+    #images = tf.tensor_scatter_nd_update(images,idxs,colors)
+    images = tf.tensor_scatter_nd_add(images,idxs,colors)
 
     # resize image
     #s=32
     #crop_size = 36
+
+    #s=32
+    #crop_size = 36
+
     s=48
-    crop_size = 52
+    crop_size = 54
     #crop_size = 50
+
 
     if augmentation:
         image_resize_size = crop_size
     else:
         image_resize_size = s
+
     #images=tf.image.resize(images,(image_resize_size,image_resize_size),method='lanczos3')   # VGG, ResNet
     #images=tf.image.resize(images,(image_resize_size,image_resize_size),method='bilinear')   # VGG, ResNet
     images=tf.image.resize(images,(s,s),method='bilinear')   # VGG, ResNet
 
-
     if augmentation:
-        images = tf.image.pad_to_bounding_box(images, 1, 1, crop_size, crop_size)  # zero padding
+        #images=tf.image.resize(images,(crop_size,crop_size),method='bilinear')   # VGG, ResNet
+        images = tf.image.pad_to_bounding_box(images, 3, 3, crop_size, crop_size)  # zero padding
         #images = tf.image.resize(images, (s, s))
         #images = tf.image.random_crop(images, (num_frames,crop_size,crop_size,3))    # random crop
         #images=tf.image.resize(images,(crop_size,crop_size),method='lanczos3')   # VGG, ResNet
         images = tf.image.random_crop(images, (num_frames,s,s,2))    # random crop
         images=tf.image.random_flip_left_right(images)
         images=tf.image.random_flip_up_down(images)
-
-
 
     # one-hot vectorization - label
     labels = tf.one_hot(labels, num_class)
