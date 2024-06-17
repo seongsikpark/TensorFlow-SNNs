@@ -7,7 +7,8 @@
 import os
 #os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="7"
+os.environ["CUDA_VISIBLE_DEVICES"]="4"
+#os.environ["CUDA_VISIBLE_DEVICES"]="4,5,6,7"
 
 
 #
@@ -22,7 +23,7 @@ conf = config.flags
 #
 #conf.save_best_model_only=False
 #conf.save_model_freq_epoch=5000       # iterations
-##conf.root_model_save='./models_ckpt_e10'
+#conf.root_model_save='./models_ckpt_e10'
 #conf.save_models_max_to_keep=300
 
 #
@@ -34,8 +35,8 @@ conf = config.flags
 #conf.batch_size=180
 #conf.batch_size=120
 #conf.time_step=2
-#conf.name_model_load='./models_ckpt/VGG16_AP_CIFAR10/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s_r-sc-nwta-sm-0.4_4'
-#conf.name_model_load='./models_ckpt/ResNet20_CIFAR10/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s_r-sc-nwta-sm-0.007_4'
+#conf.name_model_load='./models/VGG16_AP_CIFAR100/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-z'
+
 
 #
 #conf.learning_rate = 0.1
@@ -105,7 +106,7 @@ if True:
         #conf.reg_spike_out_sc_sq=True
         conf.reg_spike_out_norm=True
 
-        conf.reg_spike_out_sc_sm_wo_tmp=True
+        reg_spike_out_sc_sm_wo_spa=True
 
         #
         #conf.reg_psp=True
