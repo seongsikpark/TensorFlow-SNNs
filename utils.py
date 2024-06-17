@@ -1131,6 +1131,8 @@ def set_file_path(batch_size):
 
                 if conf.reg_spike_out_sc_sm:
                     reg_spike_str += '-sm'
+                    if conf.reg_spike_out_sc_sm_wo_tmp:
+                        reg_spike_str += '-wo-t'
 
                 if conf.reg_spike_out_sc_sq:
                     reg_spike_str += '-sq'

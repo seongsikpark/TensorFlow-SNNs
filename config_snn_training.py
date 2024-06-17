@@ -7,17 +7,7 @@
 import os
 #os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
-#os.environ["CUDA_VISIBLE_DEVICES"]="0,2"
-#os.environ["CUDA_VISIBLE_DEVICES"]="4,7"
-#os.environ["CUDA_VISIBLE_DEVICES"]="0,4"
-#os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
-#os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3,4,5,6,7"
-#os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
-#os.environ["CUDA_VISIBLE_DEVICES"]="0,4"
-#os.environ["CUDA_VISIBLE_DEVICES"]="2,3,4,5,6,7"
-#os.environ["CUDA_VISIBLE_DEVICES"]="2,3,6,7"
-#os.environ["CUDA_VISIBLE_DEVICES"]="4,5,6,7"
+os.environ["CUDA_VISIBLE_DEVICES"]="7"
 
 
 #
@@ -32,7 +22,7 @@ conf = config.flags
 #
 #conf.save_best_model_only=False
 #conf.save_model_freq_epoch=5000       # iterations
-#conf.root_model_save='./models_ckpt_e10'
+##conf.root_model_save='./models_ckpt_e10'
 #conf.save_models_max_to_keep=300
 
 #
@@ -43,14 +33,14 @@ conf = config.flags
 #conf.batch_size=300
 #conf.batch_size=180
 #conf.batch_size=120
-#conf.time_step=10
-#conf.name_model_load='./models/VGG16_AP_CIFAR100/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-z'
-
+#conf.time_step=2
+#conf.name_model_load='./models_ckpt/VGG16_AP_CIFAR10/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s_r-sc-nwta-sm-0.4_4'
+#conf.name_model_load='./models_ckpt/ResNet20_CIFAR10/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s_r-sc-nwta-sm-0.007_4'
 
 #
-conf.learning_rate = 0.02
-conf.lmb = 1E-2
-conf.time_step = 4
+#conf.learning_rate = 0.1
+#conf.lmb = 1E-3
+#conf.time_step = 4
 #conf.optimizer = 'ADAM'
 #conf.lr_schedule = None
 
@@ -62,16 +52,16 @@ conf.time_step = 4
 #conf.num_train_data = 1000
 
 #conf.model='VGG11'
-#conf.model='VGG16'
+conf.model='VGG16'
 #conf.model='ResNet19'
-conf.model='ResNet20'
+#conf.model='ResNet20'
 #conf.model='ResNet32'
 #conf.model='ResNet20_SEW'   # spike-element-wise block
 
 
 #conf.dataset='CIFAR100'
 #conf.dataset='ImageNet'
-conf.dataset='CIFAR10_DVS'
+#conf.dataset='CIFAR10_DVS'
 
 
 conf.pooling_vgg = 'avg'
@@ -106,7 +96,7 @@ if True:
     if True:
         #if False:
         conf.reg_spike_out=True
-        conf.reg_spike_out_const=1E-6
+        conf.reg_spike_out_const=3E-6
         conf.reg_spike_out_alpha=4
         conf.reg_spike_out_sc=True
         #conf.reg_spike_out_sc_wta=False
@@ -114,6 +104,8 @@ if True:
         conf.reg_spike_out_sc_sm=True
         #conf.reg_spike_out_sc_sq=True
         conf.reg_spike_out_norm=True
+
+        conf.reg_spike_out_sc_sm_wo_tmp=True
 
         #
         #conf.reg_psp=True

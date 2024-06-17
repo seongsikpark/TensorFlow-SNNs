@@ -653,6 +653,11 @@ class Neuron(tf.keras.layers.Layer):
                             sc = tf.math.divide_no_nan(self.spike_count,conf.reg_spike_out_alpha) # temperature
                             #sc = self.spike_count
                         #print(sc)
+
+                        if conf.reg_spike_out_sc_sm_wo_tmp:
+                            sc = tf.math.divide_no_nan(spike,conf.reg_spike_out_alpha) # temperature
+
+
                         sc_norm = tf.keras.layers.Softmax(axis=reduce_axis)(sc)
                         #sc_norm = tf.nn.softmax(sc,axis=reduce_axis)
                         #print(sc_norm)

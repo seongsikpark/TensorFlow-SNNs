@@ -551,3 +551,4 @@ def ResNet20_SEW(input_shape, conf, include_top, weights, classes, **kwargs):
     return ResNet(input_shape=input_shape, block=block_basic, initial_channels=initial_channels,
                   num_blocks=num_blocks, conf=conf, include_top=include_top,
                   weights=weights, classes=classes, sew=True, **kwargs)
+
