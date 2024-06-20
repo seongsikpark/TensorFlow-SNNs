@@ -106,7 +106,7 @@ if True:
         #conf.reg_spike_out_sc_sq=True
         conf.reg_spike_out_norm=True
 
-        reg_spike_out_sc_sm_wo_spa=True
+        reg_spike_out_sc_sm_wo_tmp=True
 
         #
         #conf.reg_psp=True
