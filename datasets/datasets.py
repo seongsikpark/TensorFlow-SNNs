@@ -11,6 +11,7 @@ from models.imagenet_input_preprocessor import preprocessor_input_imagenet
 
 preprocess_input_others = tf.keras.applications.imagenet_utils.preprocess_input
 
+
 # label - one-hot
 
 #def load(model_name,dataset_name,batch_size,input_size,train_type,train,conf,num_parallel_call):

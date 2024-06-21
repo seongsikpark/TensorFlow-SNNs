@@ -14,7 +14,8 @@ import lib_snn
 from absl import flags
 conf = flags.FLAGS
 
-tdbn = conf.mode=='train' and conf.nn_mode=='SNN' and conf.tdbn
+#tdbn = conf.mode=='train' and conf.nn_mode=='SNN' and conf.tdbn
+tdbn = conf.nn_mode=='SNN' and conf.tdbn
 
 
 #
@@ -550,3 +551,4 @@ def ResNet20_SEW(input_shape, conf, include_top, weights, classes, **kwargs):
     return ResNet(input_shape=input_shape, block=block_basic, initial_channels=initial_channels,
                   num_blocks=num_blocks, conf=conf, include_top=include_top,
                   weights=weights, classes=classes, sew=True, **kwargs)
+

@@ -7,16 +7,7 @@
 import os
 #os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
-#os.environ["CUDA_VISIBLE_DEVICES"]="0,2"
-#os.environ["CUDA_VISIBLE_DEVICES"]="4,7"
-#os.environ["CUDA_VISIBLE_DEVICES"]="0,4"
-#os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
-#os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3,4,5,6,7"
-#os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
-#os.environ["CUDA_VISIBLE_DEVICES"]="0,4"
-#os.environ["CUDA_VISIBLE_DEVICES"]="2,3,4,5,6,7"
-#os.environ["CUDA_VISIBLE_DEVICES"]="2,3,6,7"
+os.environ["CUDA_VISIBLE_DEVICES"]="4"
 #os.environ["CUDA_VISIBLE_DEVICES"]="4,5,6,7"
 
 
@@ -48,8 +39,8 @@ conf = config.flags
 
 
 #
-#conf.learning_rate = 0.2
-#conf.lmb = 1E-4
+#conf.learning_rate = 0.1
+#conf.lmb = 1E-3
 #conf.time_step = 4
 #conf.optimizer = 'ADAM'
 #conf.lr_schedule = None
@@ -101,19 +92,21 @@ conf.leak_const_init = 0.9
 
 
 #
-if False:
-#if True:
+#if False:
+if True:
     if True:
         #if False:
         conf.reg_spike_out=True
-        conf.reg_spike_out_const=5E-2
+        conf.reg_spike_out_const=3E-6
         conf.reg_spike_out_alpha=4
         conf.reg_spike_out_sc=True
-        conf.reg_spike_out_sc_wta=False
+        #conf.reg_spike_out_sc_wta=False
         #conf.reg_spike_out_sc_train=True
         conf.reg_spike_out_sc_sm=True
         #conf.reg_spike_out_sc_sq=True
         conf.reg_spike_out_norm=True
+
+        reg_spike_out_sc_sm_wo_tmp=True
 
         #
         #conf.reg_psp=True

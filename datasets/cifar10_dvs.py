@@ -9,6 +9,10 @@ from datasets.events.image import as_frames
 from datasets.events.image import as_frame
 from events_tfds.vis.anim import animate_frames
 
+
+
+from datasets.augmentation_cifar import cutmix
+
 import tensorflow as tf
 
 import matplotlib.pyplot as plt
@@ -71,7 +75,24 @@ def load():
     #assert False
 
     #train_ds = train_ds.map(lambda events,labels: as_frame(events,labels,shape=image_shape))
+
+    #
     train_ds = train_ds.map(lambda events,labels: as_frames(events,labels,shape=image_shape,num_frames=num_frames,augmentation=True))
+    # todo - cutmix
+#    if config.flags.data_aug_mix == 'mixup' or config.flags.data_aug_mix == 'cutmix':
+#        train_ds_1 = train_ds.map(lambda events,labels: as_frames(events,labels,shape=image_shape,num_frames=num_frames,augmentation=True))
+#        train_ds_2 = train_ds.map(lambda events,labels: as_frames(events,labels,shape=image_shape,num_frames=num_frames,augmentation=True))
+#        train_ds = tf.data.Dataset.zip((train_ds_1, train_ds_2))
+#        #train_ds_num = train_ds_1_num
+#
+#        train_ds = train_ds.map(
+#            lambda train_ds_1, train_ds_2: cutmix(train_ds_1, train_ds_2, dataset_name, input_size, input_size_pre_crop_ratio,
+#                                                  num_class, 1.0, input_prec_mode,preprocessor_input),
+#            num_parallel_calls=num_parallel)
+#    else:
+#        #train_ds, train_ds_num = default_load_train()
+#        train_ds = train_ds.map(lambda events,labels: as_frames(events,labels,shape=image_shape,num_frames=num_frames,augmentation=True))
+
     train_ds = train_ds.batch(batch_size)
     train_ds = train_ds.prefetch(num_parallel)
 
