@@ -77,6 +77,10 @@ def load():
     #train_ds = train_ds.map(lambda events,labels: as_frame(events,labels,shape=image_shape))
 
     #
+    #cifa10_dvs_img_size = conf.cifar10_dvs_img_size
+    #cifar10_dvs_crop_img_size = conf.cifkhh
+
+    #
     train_ds = train_ds.map(lambda events,labels: as_frames(events,labels,shape=image_shape,num_frames=num_frames,augmentation=True))
     # todo - cutmix
 #    if config.flags.data_aug_mix == 'mixup' or config.flags.data_aug_mix == 'cutmix':

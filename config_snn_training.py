@@ -7,7 +7,7 @@
 import os
 #os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="4"
+os.environ["CUDA_VISIBLE_DEVICES"]="7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="4,5,6,7"
 
 
@@ -53,7 +53,8 @@ conf = config.flags
 #conf.num_train_data = 1000
 
 #conf.model='VGG11'
-conf.model='VGG16'
+#conf.model='VGG16'
+conf.model='VGG_SPECK'  # VGG for Speck HW
 #conf.model='ResNet19'
 #conf.model='ResNet20'
 #conf.model='ResNet32'
@@ -62,7 +63,11 @@ conf.model='VGG16'
 
 #conf.dataset='CIFAR100'
 #conf.dataset='ImageNet'
-#conf.dataset='CIFAR10_DVS'
+conf.dataset='CIFAR10_DVS'
+
+#
+conf.cifar10_dvs_img_size = 64
+conf.cifar10_dvs_crop_img_size = 72
 
 
 conf.pooling_vgg = 'avg'
@@ -92,8 +97,8 @@ conf.leak_const_init = 0.9
 
 
 #
-#if False:
-if True:
+if False:
+#if True:
     if True:
         #if False:
         conf.reg_spike_out=True
@@ -106,6 +111,7 @@ if True:
         #conf.reg_spike_out_sc_sq=True
         conf.reg_spike_out_norm=True
 
+        reg_spike_out_sc_sm_wo_spa=True
         reg_spike_out_sc_sm_wo_tmp=True
 
         #

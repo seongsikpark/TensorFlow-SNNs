@@ -794,6 +794,8 @@ flags.DEFINE_bool('spike_trace_debug',False,'debug spike trace - record')
 # DVS
 flags.DEFINE_bool('input_data_time_dim',False,'input data has time dimension')
 flags.DEFINE_integer('time_dim_size',1,'time dimension size')
+flags.DEFINE_integer('cifar10_dvs_img_size',48,'cifar10-dvs: img size')
+flags.DEFINE_integer('cifar10_dvs_crop_img_size',54,'cifar10-dvs: img size (before crop, w/ padded)')
 
 
 #
