@@ -40,7 +40,7 @@ conf = config.flags
 
 #
 #conf.learning_rate = 0.1
-#conf.lmb = 1E-3
+conf.lmb = 1E-3
 #conf.time_step = 4
 #conf.optimizer = 'ADAM'
 #conf.lr_schedule = None
@@ -66,8 +66,8 @@ conf.model='VGG_SPECK'  # VGG for Speck HW
 conf.dataset='CIFAR10_DVS'
 
 #
-conf.cifar10_dvs_img_size = 64
-conf.cifar10_dvs_crop_img_size = 72
+conf.cifar10_dvs_img_size = 32
+conf.cifar10_dvs_crop_img_size = 36
 
 
 conf.pooling_vgg = 'avg'
