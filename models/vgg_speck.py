@@ -70,7 +70,7 @@ def VGG_SPECK(
     channels = initial_channels
 
     #
-    n_dim_cls = 64
+    n_dim_cls = 256
 
     #
     k_init = 'glorot_uniform'
