@@ -378,6 +378,12 @@ def preproc_epoch_train_ann(self, epoch):
 def preproc_epoch_train_snn(self, epoch):
     spike_count_epoch_init(self)
 
+    # test
+    #if epoch % 100==0 and epoch != 0:
+    ##if epoch>0:
+        #for layer in self.model.layers_w_neuron:
+            #layer.act.reg_spike_out_const.__mul__(10)
+
 
 
 #

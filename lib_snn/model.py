@@ -284,7 +284,7 @@ class Model(tf.keras.Model):
                 self.get_layer('conv5_2').set_n_pre_post(n_conv5_1,n_conv5_2)
                 #self.get_layer('fc1').set_n_pre_post(n_conv5_2,n_fc1)
                 self.get_layer('fc2').set_n_pre_post(n_fc1,n_fc2)
-            elif conf.model=='ResNet20':
+            elif conf.model=='ResNet20' or conf.model=='ResNet19':
 
                 n_conv1_conv = self.get_layer('conv1_conv_n')
 
