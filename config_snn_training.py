@@ -7,7 +7,7 @@
 import os
 #os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 
 #
@@ -19,7 +19,7 @@ conf = config.flags
 #conf.verbose_snn_train = True
 
 #
-conf.exp_set_name='stdp_gscale'
+#conf.exp_set_name='stdp_gscale'
 
 #
 #conf.save_best_model_only=False
@@ -98,12 +98,12 @@ conf.leak_const_init = 0.9
 
 
 #
-if False:
-#if True:
+#if False:
+if True:
     if True:
         #if False:
         conf.reg_spike_out=True
-        conf.reg_spike_out_const=1E-5
+        conf.reg_spike_out_const=2E-7
         conf.reg_spike_out_alpha=4
         conf.reg_spike_out_sc=True
         #conf.reg_spike_out_sc_wta=False

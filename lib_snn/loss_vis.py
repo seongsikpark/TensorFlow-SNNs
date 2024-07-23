@@ -115,9 +115,12 @@ class LossSurface(object):
         self._outputs = outputs
         #self.ds = ds
 
+        self.grid_min=-1.5
+        self.grid_max=1.5
+
     def compile(self, range, points, coords):
-        a_grid = tf.linspace(-1.0, 1.0, num=points) ** 3 * range
-        b_grid = tf.linspace(-1.0, 1.0, num=points) ** 3 * range
+        a_grid = tf.linspace(self.grid_min, self.grid_max, num=points) ** 3 * range
+        b_grid = tf.linspace(self.grid_min, self.grid_max, num=points) ** 3 * range
         loss_grid = np.empty([len(a_grid),len(b_grid)])
 
         for i, a in enumerate(a_grid):
@@ -148,7 +151,8 @@ class LossSurface(object):
             levels = tf.exp(tf.linspace(tf.math.log(min_loss,),tf.math.log(max_loss),num=levels))
 
             # Contour plot
-            cs = ax.contour(xs,ys,zs,levels=levels,cmap='magma',linewidths=0.75,
+            #cs = ax.contour(xs,ys,zs,levels=levels,cmap='magma',linewidths=0.75,
+            cs = ax.contour(xs,ys,zs,levels=levels,linewidths=0.75,
                             norm=matplotlib.colors.LogNorm(vmin=min_loss,vmax=max_loss*2.0))
             ax.clabel(cs, inline=True, fontsize=8, fmt="%1.2f")
 

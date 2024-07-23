@@ -24,6 +24,12 @@ conf = config.flags
 
 #
 import pandas as pd
+import numpy as np
+
+
+# for loss_vis
+from lib_snn import loss_vis
+from keras import callbacks as keras_callbacks
 
 import logging
 logger = logging.getLogger()
@@ -71,8 +77,8 @@ with dist_strategy.scope():
     callbacks_train, callbacks_test = \
         callbacks.callbacks_snn_train(model,train_ds_num,valid_ds,test_ds_num)
 
-    #if True:
-    if False:
+    if True:
+    #if False:
         if config.train:
             print('Train mode')
 
@@ -113,6 +119,20 @@ with dist_strategy.scope():
         from absl import flags
         conf = flags.FLAGS
 
+        from config_snn_training_WTA_SNN import mode
+
+        save_dir= './result_spike_count_layer_test'
+        os.makedirs(save_dir, exist_ok=True)
+
+        #save_dir = os.path.join(save_dir_root,conf.model_dataset_name)
+
+        #os.makedirs(save_dir, exist_ok=True)
+
+        #
+        result = model.evaluate(test_ds.take(1), callbacks=callbacks_test)
+
+
+        #
         l_n = []
         l_sc = []
         for layer in model.layers_w_neuron:
@@ -128,8 +148,9 @@ with dist_strategy.scope():
 
         df = pd.DataFrame({'name':l_n,'0':a_sc[0],'1':a_sc[1],'2':a_sc[2],'3':a_sc[3],'4':a_sc[4]})
 
-
-        df.to_excel(config.config_name+".xlsx")
+        save_file_name=save_dir+'/'+'spike_count_'+config.model_dataset_name+'_'+mode+".xlsx"
+        print('save file: ' + save_file_name)
+        df.to_excel(save_file_name)
 
 
     #
@@ -583,8 +604,9 @@ with dist_strategy.scope():
 
 
     # mutual coherence
-    #if False:
-    if True:
+    # cross correlation
+    if False:
+    #if True:
         logger.setLevel(100)
         import keras
         from lib_snn import grad_cam
@@ -592,48 +614,95 @@ with dist_strategy.scope():
 
         from config_snn_training_WTA_SNN import mode
 
-        #save_imgs = False
-        save_imgs = True
+        save_imgs = False
+        #save_imgs = True
 
         #show_imgs = True
         show_imgs = False
 
-        #save_stat = True
-        save_stat = False
+        save_stat = True
+        #save_stat = False
 
         batch_size = 100
         input_shape = (32, 32, 3)
         classes = 10
 
 
-        # mc - kernel
-        #if False:
-        if True:
-            w = model.get_layer('conv1').kernel
-            wc = tf.reshape(w, shape=[3 * 3 * 3, 64])
-            wc_l2 = tf.sqrt(tf.reduce_sum(tf.square(wc), axis=[0]))
-            wc_l = wc_l2
-            #wc_l = wc_l1
-            wct = tf.transpose(wc)
-            wc_l = tf.expand_dims(wc_l, -1)
-            wc_l_mat = wc_l @ tf.transpose(wc_l)
-            mc = tf.abs(wct @ wc) / wc_l_mat
-            mc_no_diag = tf.linalg.set_diag(mc, tf.zeros(shape=(64)))
-            print(tf.reduce_mean(mc_no_diag))
-            print(tf.reduce_max(mc_no_diag))
-
-        #
-        stats_max = []
-
         # save directory
         if save_imgs or save_stat:
-            save_dir = './result_encoding_layer_mc'
+            #save_dir = './result_encoding_layer_mc'
+            save_dir = './result_layer_mc'
             os.makedirs(save_dir, exist_ok=True)
+
+
+        # mc - kernel
+        if False:
+        #if True:
+            layers_kernel_mean = []
+            layers_kernel_max = []
+            layers_kernel_name = []
+
+            for layer in model.layers:
+                if isinstance(layer, lib_snn.layers.Conv2D):
+                    #w = model.get_layer('conv1').kernel
+                    w = layer.kernel
+                    #wc = tf.reshape(w, shape=[3 * 3 * 3, 64])
+                    wc = tf.reshape(w, shape=[-1,w.shape[-1]])
+                    wc_l2 = tf.sqrt(tf.reduce_sum(tf.square(wc), axis=[0]))
+                    wc_l = wc_l2
+                    #wc_l = wc_l1
+                    wct = tf.transpose(wc)
+                    wc_l = tf.expand_dims(wc_l, -1)
+                    wc_l_mat = wc_l @ tf.transpose(wc_l)
+                    mc = tf.abs(wct @ wc) / wc_l_mat
+                    mc_no_diag = tf.linalg.set_diag(mc, tf.zeros(shape=(w.shape[-1])))
+                    mc_mean = tf.reduce_mean(mc_no_diag).numpy()
+                    mc_max = tf.reduce_max(mc_no_diag).numpy()
+
+                    #print(layer.name)
+                    #print(tf.reduce_mean(mc_no_diag))
+                    #print(tf.reduce_max(mc_no_diag))
+                    #print()
+
+                    layers_kernel_mean.append(mc_mean)
+                    layers_kernel_max.append(mc_max)
+                    layers_kernel_name.append(layer.name)
+
+            df_k = pd.DataFrame(columns=layers_kernel_name)
+            df_k.loc[0] = layers_kernel_mean
+            df_k.loc[1] = layers_kernel_max
+            df_k.to_excel(save_dir + '/' + mode + '_mc_kernel.xlsx')
+
 
         #batch_index = conf.sm_batch_index
         #batch_index = 0
-        # for batch in test_ds:
-        for batch_idx in tqdm(range(0,1)):
+
+        #
+        range_batch = range(0,100)
+        len_range_batch = len(range_batch)
+
+        batch_size = conf.batch_size
+        num_entry = batch_size*len_range_batch
+
+        layers = []
+        layers_name = []
+
+        for layer in model.layers:
+            if isinstance(layer, lib_snn.activations.Activation):
+                if isinstance(layer.act, lib_snn.neurons.Neuron):
+                    layers.append(layer)
+                    layers_name.append(layer.name)
+
+        len_layers = len(layers)
+
+
+        df_max = pd.DataFrame(np.zeros((num_entry,len_layers)), columns=layers_name)
+        df_mean = pd.DataFrame(np.zeros((num_entry,len_layers)), columns=layers_name)
+
+
+        #
+        for batch_idx in tqdm(range_batch):
+        #for batch_idx in tqdm(range(0,1)):
         #for batch_idx in tqdm(range(0,100)):
         # for batch_idx in tqdm(range(10, 20)):
         #for batch_idx in tqdm(range(batch_index, batch_index + 1)):
@@ -641,40 +710,73 @@ with dist_strategy.scope():
             test_ds_a_batch = test_ds.skip(batch_idx).take(1)
             result = model.evaluate(test_ds_a_batch, callbacks=callbacks_test)
 
+
             # mc - encoded spike (spike feature map)
-            sc = model.get_layer('n_conv1').act.spike_count
-            sc = tf.reshape(sc, shape=[100,32*32, 64])
-            sc_l2 = tf.sqrt(tf.reduce_sum(tf.square(sc), axis=[1]))
-            sc_l = sc_l2
-            sc_l = tf.expand_dims(sc_l,-1)
-            sct = tf.transpose(sc,perm=[0,2,1])
-            sc_l_mat = sc_l @ tf.transpose(sc_l,perm=[0,2,1])
-            mc_sc = tf.math.divide_no_nan(tf.abs(sct @ sc),sc_l_mat)
-            mc_sc_no_diag = tf.linalg.set_diag(mc_sc, tf.zeros(shape=(100,64)))
+            #for layer in model.layers:
+            #    if isinstance(layer, lib_snn.activations.Activation):
+            #        if isinstance(layer.act, lib_snn.neurons.Neuron):
+            for layer in layers:
+                stats_max = []
+                stats_mean = []
 
-            #mc_sc_mean_sample = tf.reduce_mean(mc_sc,axis=[1,2])
-            mc_sc_max_sample = tf.reduce_max(mc_sc_no_diag,axis=[1,2])
+                #sc = model.get_layer('n_conv1').act.spike_count
+                _sc = layer.act.spike_count
+                #sc = tf.reshape(sc, shape=[100,32*32, 64])
+                sc = tf.reshape(_sc, shape=[100,-1, _sc.shape[-1]])
+                sc_l2 = tf.sqrt(tf.reduce_sum(tf.square(sc), axis=[1]))
+                sc_l = sc_l2
+                sc_l = tf.expand_dims(sc_l,-1)
+                sct = tf.transpose(sc,perm=[0,2,1])
+                sc_l_mat = sc_l @ tf.transpose(sc_l,perm=[0,2,1])
+                mc_sc = tf.math.divide_no_nan(tf.abs(sct @ sc),sc_l_mat)
+                mc_sc_no_diag = tf.linalg.set_diag(mc_sc, tf.zeros(shape=(100,sc.shape[-1])))
 
-            if save_stat:
-                stats_max.extend(mc_sc_max_sample.numpy())
+                #mc_sc_mean_sample = tf.reduce_mean(mc_sc_no_diag,axis=[1,2])
+                mc_sc_mean_sample = tf.reduce_sum(mc_sc_no_diag,axis=[1,2])
+                mc_sc_no_diag_non_zero = tf.cast(tf.math.count_nonzero(mc_sc_no_diag,axis=[1,2]),tf.float32)
+                mc_sc_mean_sample = mc_sc_mean_sample / mc_sc_no_diag_non_zero
+                mc_sc_max_sample = tf.reduce_max(mc_sc_no_diag,axis=[1,2])
 
-            #
-            if save_stat:
-                df = pd.DataFrame(stats_max, columns=['mc-max'])
-                mean_mc_sc_max = tf.reduce_mean(stats_max)
-                df = df.append(pd.Series({"mc-max":mean_mc_sc_max.numpy()}, index=df.columns, name='mean'))
-                df.to_excel(save_dir + '/' + mode + '_mc.xlsx')
+                #print(layer.name)
+                #print(tf.reduce_mean(mc_sc_no_diag))
+                #print(tf.reduce_max(mc_sc_no_diag))
+                #print()
 
-            if save_imgs:
+                if save_stat:
+                    stats_max.extend(mc_sc_max_sample.numpy())
+                    stats_mean.extend(mc_sc_mean_sample.numpy())
+
                 #
-                fname_w = 'heatmap_' + mode + '_mc_w.png'
-                plt.imshow(mc_no_diag)
-                plt.savefig(save_dir + '/' + fname_w)
+                if save_stat:
+                    #df = pd.DataFrame(stats_max, columns=['mc-max'])
+                    #df = pd.DataFrame(stats_max, columns=[layer.name])
+                    #df[layer.name]=stats_max
+                    df_max.loc[batch_idx*batch_size:(batch_idx+1)*batch_size-1,layer.name]=stats_max
+                    df_mean.loc[batch_idx*batch_size:(batch_idx+1)*batch_size-1,layer.name]=stats_mean
 
-                for sample_idx in range(0, 100):
-                    fname_sc = 'heatmap_' + mode + '_' + str(sample_idx) + '_mc_sc.png'
-                    plt.imshow(mc_sc_no_diag[sample_idx])
-                    plt.savefig(save_dir + '/' + fname_sc)
+                    #mean_mc_sc_max = tf.reduce_mean(stats_max)
+                    #df = df.append(pd.Series({"mc-max":mean_mc_sc_max.numpy()}, index=df.columns, name='mean'))
+                    #df.to_excel(save_dir + '/' + mode + '_mc.xlsx')
+
+                if save_imgs:
+                    #
+                    fname_w = 'heatmap_' + mode + '_mc_w.png'
+                    plt.imshow(mc_no_diag)
+                    plt.savefig(save_dir + '/' + fname_w)
+
+                    for sample_idx in range(0, 100):
+                        fname_sc = 'heatmap_' + mode + '_' + str(sample_idx) + '_mc_sc.png'
+                        plt.imshow(mc_sc_no_diag[sample_idx])
+                        plt.savefig(save_dir + '/' + fname_sc)
+
+        #
+        df_max.loc['mean']=df_max.mean()
+        df_mean.loc['mean']=df_mean.mean()
+
+        #
+        df_max.to_excel(save_dir + '/' + mode + '_mc_max.xlsx')
+        df_mean.to_excel(save_dir + '/' + mode + '_mc_mean.xlsx')
+
 
 
         assert False
@@ -824,3 +926,206 @@ with dist_strategy.scope():
 
             #
             logger.setLevel(old_level_logger)
+
+
+
+    # Loss landscape
+    #if True:
+    if False:
+        if False:
+            training_hist_w = [model.get_weights()]
+
+            collect_weights = keras_callbacks.LambdaCallback(
+                on_epoch_end=lambda epoch, logs: training_hist_w.append(model.get_weights()) if (epoch%1)==0 else (None)
+            )
+            callbacks_train.append(collect_weights)
+
+
+            model.summary()
+            #train_steps_per_epoch = train_ds_num/batch_size
+            train_epoch = config.flags.train_epoch
+            init_epoch = config.init_epoch
+            train_histories = model.fit(train_ds, epochs=train_epoch, steps_per_epoch=train_steps_per_epoch,
+                                        initial_epoch=init_epoch, validation_data=valid_ds, callbacks=callbacks_train)
+
+
+            #
+            train_batch, = train_ds.take(1)
+            x = train_batch[0]
+            y = train_batch[1]
+
+            #
+            pcoords = loss_vis.PCACoordinates(training_hist_w)
+            loss_surface = loss_vis.LossSurface(model,x,y)
+            #loss_surface = loss_vis.LossSurface(model,train_ds)
+            #loss_surface.compile(points=30,coords=pcoords,range=0.4)
+            loss_surface.compile(points=10,coords=pcoords,range=0.1)
+            #
+            ax = loss_surface.plot(dpi=150)
+            loss_vis.plot_training_path(pcoords, training_hist_w, ax)
+
+            plt.show()
+
+
+        path_w_root = './models_ckpt_WTA-SNN_e10/VGG16_AP_CIFAR10/'
+
+        # normal
+        #path_model='ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s/'
+        # SIM-S
+        #path_model='ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s_r-sc-nwta-sm-0.24_4/'
+        # SIM-A
+        #path_model='ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s_r-sc-nwta-sm-2e-05_4/'
+        # WTA-1
+        path_model='ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s_r-sc-sm-3e-06_4/'
+
+        #
+        path_w = path_w_root+path_model
+
+        for i in range(10, 301, 10):
+            trained_epoch = 'ep-'+f"{i:04}"
+            model.load_weights(path_w+trained_epoch+'.hdf5')
+
+
+            if i==10:
+                train_hist_w=[model.get_weights()]
+            else:
+                train_hist_w.append(model.get_weights())
+
+        #
+        train_batch, = train_ds.take(1)
+        x = train_batch[0]
+        y = train_batch[1]
+
+
+        #
+        pcoords = loss_vis.PCACoordinates(train_hist_w)
+        loss_surface = loss_vis.LossSurface(model,x,y)
+        #loss_surface = loss_vis.LossSurface(model,train_ds)
+        #loss_surface.compile(points=30,coords=pcoords,range=0.4)
+        loss_surface.compile(points=30,coords=pcoords,range=0.1)
+        #
+        ax = loss_surface.plot(dpi=150)
+        loss_vis.plot_training_path(pcoords, train_hist_w, ax)
+
+        plt.show()
+
+
+
+    # feature - channels
+    # implicit inhibition
+    if False:
+    #if True:
+        logger.setLevel(100)
+        import keras
+        import matplotlib.pyplot as plt
+
+        from config_snn_training_WTA_SNN import mode
+
+        save_imgs = False
+        #save_imgs = True
+
+        #show_imgs = True
+        show_imgs = False
+
+        save_stat = True
+        #save_stat = False
+
+        batch_size = 100
+        input_shape = (32, 32, 3)
+        classes = 10
+
+
+        # save directory
+        if save_imgs or save_stat:
+            save_dir = './result_feature_ch'
+            os.makedirs(save_dir, exist_ok=True)
+
+        #
+        range_batch = range(0,100)
+        len_range_batch = len(range_batch)
+
+        batch_size = conf.batch_size
+        num_entry = batch_size*len_range_batch
+
+        layers = []
+        layers_name = []
+
+        for layer in model.layers:
+            if isinstance(layer, lib_snn.activations.Activation):
+                if isinstance(layer.act, lib_snn.neurons.Neuron):
+                    layers.append(layer)
+                    layers_name.append(layer.name)
+
+        len_layers = len(layers)
+
+
+        df_feat = pd.DataFrame(np.zeros((num_entry,len_layers)), columns=layers_name)
+        df_feat_std = pd.DataFrame(np.zeros((num_entry,len_layers)), columns=layers_name)
+        df_feat_mean = pd.DataFrame(np.zeros((num_entry,len_layers)), columns=layers_name)
+
+
+        #
+        for batch_idx in tqdm(range_batch):
+            #for batch_idx in tqdm(range(0,1)):
+            #for batch_idx in tqdm(range(0,100)):
+            # for batch_idx in tqdm(range(10, 20)):
+            #for batch_idx in tqdm(range(batch_index, batch_index + 1)):
+
+            test_ds_a_batch = test_ds.skip(batch_idx).take(1)
+            result = model.evaluate(test_ds_a_batch, callbacks=callbacks_test)
+
+
+            # mc - encoded spike (spike feature map)
+            #for layer in model.layers:
+            #    if isinstance(layer, lib_snn.activations.Activation):
+            #        if isinstance(layer.act, lib_snn.neurons.Neuron):
+            for layer in layers:
+                list_feature_nonz = []
+                list_feature_std = []
+                list_feature_mean = []
+
+                #sc = model.get_layer('n_conv1').act.spike_count
+                _sc = layer.act.spike_count
+                #sc = tf.reshape(sc, shape=[100,32*32, 64])
+                sc = tf.reshape(_sc, shape=[100,-1, _sc.shape[-1]])
+
+                feature_nonz = tf.math.count_nonzero(tf.reduce_sum(sc,axis=[1]),axis=[1])
+                num_feature = sc.shape[-1]
+                feature_nonz = feature_nonz/num_feature
+                feature_nonz = tf.expand_dims(feature_nonz,-1)
+
+                feature_std = tf.math.reduce_std(sc,axis=[1])
+                feature_std = tf.reduce_sum(feature_std,axis=[1])/tf.cast(tf.math.count_nonzero(feature_std,axis=[1]),tf.float32)
+
+                feature_mean = tf.reduce_sum(sc,axis=[1])
+                feature_mean = tf.reduce_sum(feature_mean,axis=[1])/tf.cast(tf.math.count_nonzero(feature_mean,axis=[1]),tf.float32)
+
+                if save_stat:
+                    list_feature_nonz.extend(feature_nonz.numpy())
+                    list_feature_std.extend(feature_std.numpy())
+                    list_feature_mean.extend(feature_mean.numpy())
+
+                    df_feat.loc[batch_idx*batch_size:(batch_idx+1)*batch_size-1,layer.name]=list_feature_nonz
+                    df_feat_std.loc[batch_idx*batch_size:(batch_idx+1)*batch_size-1,layer.name]=list_feature_std
+                    df_feat_mean.loc[batch_idx*batch_size:(batch_idx+1)*batch_size-1,layer.name]=list_feature_mean
+
+                if save_imgs:
+                    #
+                    fname_w = 'heatmap_' + mode + '_mc_w.png'
+                    plt.imshow(mc_no_diag)
+                    plt.savefig(save_dir + '/' + fname_w)
+
+                    for sample_idx in range(0, 100):
+                        fname_sc = 'heatmap_' + mode + '_' + str(sample_idx) + '_mc_sc.png'
+                        plt.imshow(mc_sc_no_diag[sample_idx])
+                        plt.savefig(save_dir + '/' + fname_sc)
+
+        #
+        df_feat.loc['mean']=df_feat.mean()
+        df_feat_std.loc['mean']=df_feat_std.mean()
+        df_feat_mean.loc['mean']=df_feat_mean.mean()
+
+        #
+        df_feat.to_excel(save_dir + '/nonz_'+conf.model+'_' + mode + '.xlsx')
+        df_feat_std.to_excel(save_dir + '/std_'+conf.model+'_' + mode + '.xlsx')
+        df_feat_mean.to_excel(save_dir + '/mean_'+conf.model+'_' + mode + '.xlsx')
