@@ -186,7 +186,6 @@ def stack1(x, filters, block, num_block, stride=2, sew=False, name=None):
     return x
 
 
-# TODO - class
 """Instantiates the ResNet, ResNetV2, and ResNeXt architecture.
 
 Args:
@@ -273,7 +272,10 @@ def ResNet(
 
     bn_axis = 3
 
+    #
+    add_dense_layer = kwargs.pop('add_dense_layer', None)   # for ResNet19, 17 (in SNN)
 
+    #
     img_input = tf.keras.layers.Input(shape=input_shape, batch_size=batch_size)
     #img_input = tf.keras.layers.InputLayer(shape=input_shape, batch_size=batch_size)
     x = lib_snn.layers.InputGenLayer(name='in')(img_input)
@@ -325,14 +327,21 @@ def ResNet(
 
 
     if cifar_stack:
-        x = stack1(x, initial_channels, block, num_blocks[0], stride=1, sew=sew, name='conv2')
-        x = stack1(x, initial_channels*2, block, num_blocks[1], sew=sew, name='conv3')
-        x = stack1(x, initial_channels*4, block, num_blocks[2], sew=sew, name='conv4')
+        channels=initial_channels
+        x = stack1(x, channels, block, num_blocks[0], stride=1, sew=sew, name='conv2')
+        channels = channels*2
+        x = stack1(x, channels, block, num_blocks[1], sew=sew, name='conv3')
+        channels = channels*2
+        x = stack1(x, channels, block, num_blocks[2], sew=sew, name='conv4')
     else:
-        x = stack1(x, initial_channels, block, num_blocks[0], stride=1, sew=sew, name='conv2')
-        x = stack1(x, initial_channels*2, block, num_blocks[1], sew=sew, name='conv3')
-        x = stack1(x, initial_channels*4, block, num_blocks[2], sew=sew, name='conv4')
-        x = stack1(x, initial_channels*8, block, num_blocks[3], sew=sew, name='conv5')
+        channels=initial_channels
+        x = stack1(x, channels, block, num_blocks[0], stride=1, sew=sew, name='conv2')
+        channels = channels*2
+        x = stack1(x, channels, block, num_blocks[1], sew=sew, name='conv3')
+        channels = channels*2
+        x = stack1(x, channels, block, num_blocks[2], sew=sew, name='conv4')
+        channels = channels*2
+        x = stack1(x, channels, block, num_blocks[3], sew=sew, name='conv5')
 
 
     if preact:
@@ -344,6 +353,8 @@ def ResNet(
         x = lib_snn.layers.GlobalAveragePooling2D(name='avg_pool')(x)
         #x = tf.keras.layers.Dense(classes, activation=classifier_activation, name='predictions')(x)
         #x = lib_snn.layers.Dense(classes, activation=classifier_activation, use_bn=False, last_layer=True, name='predictions')(x)
+        if add_dense_layer:
+            x = lib_snn.layers.Dense(channels/2, name='fc1')(x)
         x = lib_snn.layers.Dense(classes, last_layer=True, name='predictions')(x)
         x = lib_snn.activations.Activation(act_type=act_type_out,loc='OUT',name='predictions_n')(x)
         if conf.nn_mode=='SNN':
