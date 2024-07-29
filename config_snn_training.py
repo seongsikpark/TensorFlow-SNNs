@@ -56,7 +56,7 @@ conf = config.flags
 #conf.model='VGG11'
 #conf.model='VGG16'
 #conf.model='VGG_SPECK'  # VGG for Speck HW
-conf.model='ResNet19'
+#conf.model='ResNet19'
 #conf.model='ResNet20'
 #conf.model='ResNet32'
 #conf.model='ResNet20_SEW'   # spike-element-wise block
@@ -67,8 +67,8 @@ conf.model='ResNet19'
 #conf.dataset='CIFAR10_DVS'
 
 #
-conf.cifar10_dvs_img_size = 32
-conf.cifar10_dvs_crop_img_size = 36
+#conf.cifar10_dvs_img_size = 32
+#conf.cifar10_dvs_crop_img_size = 36
 
 
 conf.pooling_vgg = 'avg'
@@ -103,7 +103,7 @@ if True:
     if True:
         #if False:
         conf.reg_spike_out=True
-        conf.reg_spike_out_const=2E-7
+        conf.reg_spike_out_const=3E-6
         conf.reg_spike_out_alpha=4
         conf.reg_spike_out_sc=True
         #conf.reg_spike_out_sc_wta=False
@@ -111,6 +111,9 @@ if True:
         conf.reg_spike_out_sc_sm=True
         #conf.reg_spike_out_sc_sq=True
         conf.reg_spike_out_norm=True
+
+        #conf.reg_spike_out_sc_sm_wo_tmp=True
+        conf.reg_spike_out_sc_sm_wo_spa=True
 
         #
         #conf.reg_psp=True

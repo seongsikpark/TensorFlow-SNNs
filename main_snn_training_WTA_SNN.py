@@ -77,8 +77,8 @@ with dist_strategy.scope():
     callbacks_train, callbacks_test = \
         callbacks.callbacks_snn_train(model,train_ds_num,valid_ds,test_ds_num)
 
-    if True:
-    #if False:
+    #if True:
+    if False:
         if config.train:
             print('Train mode')
 
@@ -312,7 +312,7 @@ with dist_strategy.scope():
 
     # XAI - integrated gradients
     # batch size should be m_steps+1
-    if False:
+    #if False:
     #if True:
 
         import matplotlib.pyplot as plt
@@ -397,8 +397,8 @@ with dist_strategy.scope():
 
 
     # grad_cam, vanilla gradient
-    if False:
-    #if True:
+    #if False:
+    if True:
         logger.setLevel(100)
         import keras
         from lib_snn import grad_cam
@@ -406,16 +406,18 @@ with dist_strategy.scope():
 
         from config_snn_training_WTA_SNN import mode
 
-        #save_imgs = False
-        save_imgs = True
+        save_imgs = False
+        #save_imgs = True
 
-        show_imgs = True
-        #show_imgs = False
+        #show_imgs = True
+        show_imgs = False
 
         save_stat = True
 
 
-
+        # normalize heatmap with firing rate proportion of layers
+        #f_norm_fr_layer = True
+        f_norm_fr_layer = False
 
 
         batch_size = 100
@@ -423,6 +425,10 @@ with dist_strategy.scope():
         classes = 10
 
 
+        if conf.model=='VGG16':
+            subplot_w, subplot_h = 4, 4
+        elif conf.model=='ResNet20':
+            subplot_w, subplot_h = 4, 5
 
 
         #model_builder = keras.applications.vgg16.VGG16
@@ -456,10 +462,28 @@ with dist_strategy.scope():
         #save_dir = './result_smap_ig_neuron-mean-t'
         #save_dir = './result_smap_ig_neuron'
         #save_dir = './result_smap_ig_neuron_all'
-        save_dir = './result_smap_ig_neuron_scnorm_all_new'
+        #save_dir = './result_smap_ig_neuron_scnorm_all_new'
+
+        #save_dir = './result_smap_ig_neuron_scnorm_all_new'
+
+
+        # 240725
+        #save_dir = './result_smap_internal_influence'
+        #save_dir = './result_amap_cond_n_scnorm'
+        save_dir = './result_amap_cond_n'
+        #save_dir = './result_amap_cond_n_norm_fr'
+        #save_dir = './result_amap_cond_n_scnorm_norm_fr_all'
+        #save_dir = './result_amap_cond_n_scnorm_all'
+        #save_dir = './result_amap_cond_n_scnorm_ng_all'
+
 
         os.makedirs(save_dir,exist_ok=True)
 
+
+        #
+        save_idx=0
+
+        #
         batch_index = conf.sm_batch_index
         #for batch in test_ds:
         #for batch_idx in tqdm(range(0,2)):
@@ -473,15 +497,19 @@ with dist_strategy.scope():
                 stats_max = []
                 stats_min = []
                 stats_std = []
+                stats_cv = []
 
             test_ds_a_batch = test_ds.skip(batch_idx).take(1)
             [imgs, labels], = test_ds_a_batch
 
             # grad_cam
             for sample_idx in range(0,100):
-            #for sample_idx in [2]:
+            #for sample_idx in [0]:
             #for sample_idx in [0,1,2,3,4,5,6,7,31,34]:
             #for sample_idx in [0, 1, 2]:
+
+                sc_layer = []
+                heatmap_layers = []
 
                 stats = []
 
@@ -513,9 +541,7 @@ with dist_strategy.scope():
                 #fm = []
                 #layer_names = []
 
-                if show_imgs:
-                    figs_h, axes_h = plt.subplots(4, 4, figsize=(12,10))
-                    layer_idx = 0
+
 
                 #
                 #neuron_mode = False
@@ -538,11 +564,8 @@ with dist_strategy.scope():
                         #fm.append(heatmap)
                         #layer_names.append(layer.name)
 
-                        if show_imgs:
-                            axe = axes_h[layer_idx // 4, layer_idx % 4]
-                            hm = axe.matshow(heatmap)
-                            figs_h.colorbar(hm, ax=axe)
-                            layer_idx = layer_idx + 1
+                        if show_imgs or save_imgs:
+                            heatmap_layers.append(heatmap)
 
                         # print
                         if save_stat:
@@ -550,16 +573,38 @@ with dist_strategy.scope():
                             max_heatmap = tf.reduce_max(heatmap).numpy()
                             min_heatmap = tf.reduce_min(heatmap).numpy()
                             std_heatmap = tf.math.reduce_std(heatmap).numpy()
+                            cv_heatmap = std_heatmap/mean_heatmap
                             #print("{:} - mean: {:.3e}, max: {:.3e}, min: {:.3e}, std : {:.3e}".format(last_conv_layer_name, mean_heatmap, max_heatmap, min_heatmap, std_heatmap))
-                            stat = [mean_heatmap,max_heatmap,min_heatmap,std_heatmap]
+                            stat = [mean_heatmap,max_heatmap,min_heatmap,std_heatmap,cv_heatmap]
                             stats.append(stat)
 
+                        sc_layer.append(tf.reduce_sum(layer.act.spike_count).numpy())
 
-                    if show_imgs:
-                        axes_h[layer_idx // 4, layer_idx % 4].matshow(img)
+                #sc_layer_total = tf.reduce_sum(sc_layer)
+                norm_fr_layer = tf.keras.utils.normalize(sc_layer,order=1)[0]
+
+                # plot heatmaps
+                if show_imgs or save_imgs:
+                    figs_h, axes_h = plt.subplots(subplot_h, subplot_w, figsize=(12,10))
+                    layer_idx = 0
+
+                    for layer in model.layers:
+                        if condition(layer,neuron_mode):
+
+                            axe = axes_h[layer_idx // subplot_w, layer_idx % subplot_w]
+                            heatmap=heatmap_layers[layer_idx]
+                            if f_norm_fr_layer:
+                                heatmap = heatmap*norm_fr_layer[layer_idx]
+                            hm = axe.matshow(heatmap)
+                            figs_h.colorbar(hm, ax=axe)
+                            layer_idx = layer_idx + 1
+
+
+                if show_imgs or save_imgs:
+                    axes_h[layer_idx // subplot_w, layer_idx % subplot_w].matshow(img)
 
                 if save_imgs:
-                    fname = 'heatmap_'+mode+'_'+str(sample_idx)+'.png'
+                    fname = 'heatmap_'+mode+'_'+str(sample_idx+batch_idx*100)+'.png'
                     plt.savefig(save_dir + '/' + fname)
 
 
@@ -568,22 +613,33 @@ with dist_strategy.scope():
                     max_l = [stat[1] for stat in stats]
                     min_l = [stat[2] for stat in stats]
                     std_l = [stat[3] for stat in stats]
+                    cv_l = [stat[4] for stat in stats]
+
+                    if f_norm_fr_layer:
+                    #if False:
+                        mean_l = tf.math.multiply(mean_l,norm_fr_layer).numpy()
+                        max_l = tf.math.multiply(max_l,norm_fr_layer).numpy()
+                        min_l = tf.math.multiply(min_l,norm_fr_layer).numpy()
+                        std_l = tf.math.multiply(std_l,norm_fr_layer).numpy()
+                        cv_l = tf.math.multiply(cv_l,norm_fr_layer).numpy()
 
                     mean_layers = tf.reduce_mean(mean_l).numpy()
                     max_layers = tf.reduce_mean(max_l).numpy()
                     min_layers = tf.reduce_mean(min_l).numpy()
                     std_layers = tf.reduce_mean(std_l).numpy()
-                    stats_sample.append([mean_layers,max_layers,min_layers,std_layers])
+                    cv_layers = tf.reduce_mean(cv_l).numpy()
+                    stats_sample.append([mean_layers,max_layers,min_layers,std_layers,cv_layers])
 
                     stats_mean.append(mean_l)
                     stats_max.append(max_l)
                     stats_min.append(min_l)
                     stats_std.append(std_l)
+                    stats_cv.append(cv_l)
 
 
             if save_stat:
 
-                df = pd.DataFrame(stats_sample,columns=['mean','max','min','std'])
+                df = pd.DataFrame(stats_sample,columns=['mean','max','min','std','cv'])
                 df.to_excel(save_dir+'/'+mode+'_b-'+str(batch_idx)+'.xlsx')
 
                 df = pd.DataFrame(stats_mean)
@@ -597,6 +653,9 @@ with dist_strategy.scope():
 
                 df = pd.DataFrame(stats_std)
                 df.to_excel(save_dir+'/'+mode+'_b-'+str(batch_idx)+'_std.xlsx')
+
+                df = pd.DataFrame(stats_cv)
+                df.to_excel(save_dir+'/'+mode+'_b-'+str(batch_idx)+'_cv.xlsx')
 
         #
         logger.setLevel(old_level_logger)

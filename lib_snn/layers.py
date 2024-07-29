@@ -1242,6 +1242,10 @@ class Dense(Layer, layers_new.dense.Dense):
         self.depth = Layer.index
         self.synapse=True
 
+        # integrated output
+        self.f_output_integ = False
+        #self.f_output_integ = True
+        self.f_output_t = conf.debug_syn_output
 
 #
 class Add(Layer, tf.keras.layers.Add):
