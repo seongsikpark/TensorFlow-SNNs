@@ -90,6 +90,9 @@ def make_gradcam_heatmap_snn(img_array, model, last_conv_layer_name, neuron_mode
     spike_count_norm = True
     #spike_count_norm = False
 
+    # positive gradient
+    positive_grad=True
+    #positive_grad=False
 
     # norm gradient
     norm_grad = True
@@ -142,6 +145,10 @@ def make_gradcam_heatmap_snn(img_array, model, last_conv_layer_name, neuron_mode
             g0 = tape.gradient(class_channel, source_layer.act.out.read(0))
             #g0 = tape.gradient(class_channel, source_layer.act.inputs.read(0))
 
+            # positive gradient
+            if positive_grad:
+                g0 = tf.maximum(g0,0)
+
             # norm grad
             if norm_grad:
                 g0 = g0/tf.reduce_max(g0,axis=[1,2,3],keepdims=True)
@@ -156,6 +163,10 @@ def make_gradcam_heatmap_snn(img_array, model, last_conv_layer_name, neuron_mode
             g1 = tape.gradient(class_channel, source_layer.act.out.read(1))
             #g1 = tape.gradient(class_channel, source_layer.act.inputs.read(1))
 
+            # positive gradient
+            if positive_grad:
+                g1 = tf.maximum(g1,0)
+
             # norm grad
             if norm_grad:
                 g1 = g1/tf.reduce_max(g1,axis=[1,2,3],keepdims=True)
@@ -169,6 +180,10 @@ def make_gradcam_heatmap_snn(img_array, model, last_conv_layer_name, neuron_mode
             g2 = tape.gradient(class_channel, source_layer.act.out.read(2))
             #g2 = tape.gradient(class_channel, source_layer.act.inputs.read(2))
 
+            # positive gradient
+            if positive_grad:
+                g2 = tf.maximum(g2,0)
+
             # norm grad
             if norm_grad:
                 g2 = g2/tf.reduce_max(g2,axis=[1,2,3],keepdims=True)
@@ -181,6 +196,10 @@ def make_gradcam_heatmap_snn(img_array, model, last_conv_layer_name, neuron_mode
 
             g3 = tape.gradient(class_channel, source_layer.act.out.read(3))
             #g3 = tape.gradient(class_channel, source_layer.act.inputs.read(3))
+
+            # positive gradient
+            if positive_grad:
+                g3 = tf.maximum(g3,0)
 
             # norm grad
             if norm_grad:
@@ -196,6 +215,7 @@ def make_gradcam_heatmap_snn(img_array, model, last_conv_layer_name, neuron_mode
             a1 = source_layer.act.out.read(1)[-1]
             a2 = source_layer.act.out.read(2)[-1]
             a3 = source_layer.act.out.read(3)[-1]
+
 
             #
             if not mean_t:
@@ -357,8 +377,8 @@ def make_gradcam_heatmap_snn(img_array, model, last_conv_layer_name, neuron_mode
 
         heatmap = tf.multiply(grads,last_conv_layer_output[-1])
 
-
-    heatmap = tf.maximum(heatmap,0)
+    # only positive
+    #heatmap = tf.maximum(heatmap,0)
     #heatmap = tf.reduce_mean(heatmap,axis=0)
 
     # dimension reduce - channel
