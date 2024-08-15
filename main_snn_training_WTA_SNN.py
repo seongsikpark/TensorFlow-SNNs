@@ -470,7 +470,8 @@ with dist_strategy.scope():
         # 240725
         #save_dir = './result_smap_internal_influence'
         #save_dir = './result_amap_cond_n_scnorm'
-        save_dir = './result_amap_cond_n'
+        save_dir = './result_amap_cond_n_scnorm_pg'
+        #save_dir = './result_amap_cond_n'
         #save_dir = './result_amap_cond_n_norm_fr'
         #save_dir = './result_amap_cond_n_scnorm_norm_fr_all'
         #save_dir = './result_amap_cond_n_scnorm_all'
@@ -503,7 +504,7 @@ with dist_strategy.scope():
             [imgs, labels], = test_ds_a_batch
 
             # grad_cam
-            for sample_idx in range(0,100):
+            for sample_idx in range(0,10):
             #for sample_idx in [0]:
             #for sample_idx in [0,1,2,3,4,5,6,7,31,34]:
             #for sample_idx in [0, 1, 2]:
