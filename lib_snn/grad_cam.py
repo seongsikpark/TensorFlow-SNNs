@@ -98,6 +98,10 @@ def make_gradcam_heatmap_snn(img_array, model, last_conv_layer_name, neuron_mode
     #norm_grad = True
     norm_grad = False
 
+    # heatmap norm
+    norm_heatmap = True
+    #norm_heatmap = False
+
     #
     batch_size = 100
     input_shape = (32,32,3)
@@ -381,6 +385,8 @@ def make_gradcam_heatmap_snn(img_array, model, last_conv_layer_name, neuron_mode
     heatmap = tf.maximum(heatmap,0)
     #heatmap = tf.reduce_mean(heatmap,axis=0)
 
+    if norm_heatmap:
+        heatmap = tf.math.divide_no_nan(heatmap,tf.reduce_max(heatmap,axis=[0,1]))
     # dimension reduce - channel
     heatmap = tf.reduce_mean(heatmap,axis=-1)
     heatmap = tf.squeeze(heatmap)
