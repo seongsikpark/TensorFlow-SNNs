@@ -649,14 +649,6 @@ class Model(tf.keras.Model):
 
         # return tensor - [batch, time, output]
 
-        #range_ts = range(1, self.conf.time_step + 1)
-        #range_ts = range(1, int(self.conf.time_step/2.0) + 1)
-
-        #range_ts = range(1, self.conf.time_step + 1)
-        #range_ts = range(1, int(self.conf.time_step/2) + 1)
-        #range_ts = range(1, 1+ 1)
-
-
         self.time_axis=0
         if self.conf.snn_training_spatial_first:
             if training:
@@ -700,17 +692,6 @@ class Model(tf.keras.Model):
         #else:   # temporal first - new
         #elif False:
         elif True:
-
-
-            #
-            #inputs_e = tf.TensorArray(
-            #                dtype=inputs.dtype,
-            #                size=self.conf.time_step,
-            #                element_shape=inputs.shape,
-            #                tensor_array_name='layer_in')
-#
-#            for t_in_write in range_ts:
-#                inputs_e=inputs_e.write(t_in_write-1,inputs)
 
             #
             y_pred = self._run_internal_graph_snn_t_first(inputs, training=training, mask=mask)

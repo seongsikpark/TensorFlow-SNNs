@@ -470,7 +470,8 @@ with dist_strategy.scope():
         # 240725
         #save_dir = './result_smap_internal_influence'
         #save_dir = './result_amap_cond_n_scnorm'
-        save_dir = './result_amap_cond_n_scnorm_new'
+        #save_dir = './result_amap_cond_n_scnorm_new'
+        save_dir = './result_amap_cond_n_norm-sc-hm'
         #save_dir = './result_amap_cond_n'
         #save_dir = './result_amap_cond_n_norm_fr'
         #save_dir = './result_amap_cond_n_scnorm_norm_fr_all'
