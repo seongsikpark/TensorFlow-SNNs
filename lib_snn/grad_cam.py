@@ -91,12 +91,12 @@ def make_gradcam_heatmap_snn(img_array, model, last_conv_layer_name, neuron_mode
     #spike_count_norm = False
 
     # positive gradient
-    positive_grad=True
-    #positive_grad=False
+    #positive_grad=True
+    positive_grad=False
 
     # norm gradient
-    norm_grad = True
-    #norm_grad = False
+    #norm_grad = True
+    norm_grad = False
 
     #
     batch_size = 100
@@ -378,7 +378,7 @@ def make_gradcam_heatmap_snn(img_array, model, last_conv_layer_name, neuron_mode
         heatmap = tf.multiply(grads,last_conv_layer_output[-1])
 
     # only positive
-    #heatmap = tf.maximum(heatmap,0)
+    heatmap = tf.maximum(heatmap,0)
     #heatmap = tf.reduce_mean(heatmap,axis=0)
 
     # dimension reduce - channel
