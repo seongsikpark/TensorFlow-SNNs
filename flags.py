@@ -803,6 +803,11 @@ flags.DEFINE_bool('debug_neuron_input',False,'debug neuron input - neuron.inputs
 flags.DEFINE_bool('debug_syn_output',False,'debug synapse output - layer._outputs (TensorArray)')
 flags.DEFINE_integer('sm_batch_index',0,'saliency map - test batch index')
 
+
+# hebbian learning
+flags.DEFINE_enum('train_algo_snn', 'gradient', ['gradient', 'hebbian', 'stdp', 'conversion'], 'SNN training algorithm')
+
+
 #
 conf=flags.FLAGS
 conf(sys.argv)

@@ -14,7 +14,7 @@ trained_models_reg_spike=('NORMAL')
 #trained_models_reg_spike=('WTA-1' 'WTA-2' 'SIM-A' 'SIM-S')
 
 
-for ((i_sm_batch_index=10;i_sm_batch_index<20;i_sm_batch_index++)) do
+for ((i_sm_batch_index=0;i_sm_batch_index<10;i_sm_batch_index++)) do
     for ((i_train_model=0;i_train_model<${#trained_models_reg_spike[@]};i_train_model++)) do
         trained_model_reg_spike=${trained_models_reg_spike[$i_train_model]}
 
