@@ -1763,6 +1763,19 @@ class Model(tf.keras.Model):
         return self.compute_metrics(x, y, y_pred, sample_weight)
 
     def train_step_snn(self, data):
+
+
+        ret = {
+            'gradient': self.train_step_snn_gradient,
+            'hebbian': self.train_step_snn,
+            #'stdp': ,
+            #'conversion':
+        }[self.conf.train_algo_snn](data)
+
+        return ret
+
+
+    def train_step_snn_gradient(self, data):
         x, y, sample_weight = data_adapter.unpack_x_y_sample_weight(data)
         #print(data)
         #print(x)
@@ -2106,6 +2119,17 @@ class Model(tf.keras.Model):
 
         return self.compute_metrics(x, y, y_pred, sample_weight)
         #return ret
+
+
+    def train_step_snn_hebbian(self, data):
+
+
+        ret
+
+
+        assert False
+
+        return ret
 
     # TODO: move other part
     def record_acc_spike_time_point(self,inputs,outputs):
