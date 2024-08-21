@@ -7,7 +7,7 @@
 import os
 #os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 
 #
@@ -56,8 +56,8 @@ conf = config.flags
 #conf.model='VGG11'
 #conf.model='VGG16'
 #conf.model='VGG_SPECK'  # VGG for Speck HW
-#conf.model='ResNet19'
-conf.model='ResNet20'
+conf.model='ResNet19'
+#conf.model='ResNet20'
 #conf.model='ResNet32'
 #conf.model='ResNet20_SEW'   # spike-element-wise block
 
@@ -98,8 +98,8 @@ conf.leak_const_init = 0.9
 
 
 #
-#if False:
-if True:
+if False:
+#if True:
     if True:
         #if False:
         conf.reg_spike_out=True
