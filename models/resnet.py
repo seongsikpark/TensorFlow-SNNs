@@ -355,6 +355,7 @@ def ResNet(
         #x = lib_snn.layers.Dense(classes, activation=classifier_activation, use_bn=False, last_layer=True, name='predictions')(x)
         if add_dense_layer:
             x = lib_snn.layers.Dense(channels/2, name='fc1')(x)
+            x = lib_snn.activations.Activation(act_type=act_type,name='fc1_n')(x)
         x = lib_snn.layers.Dense(classes, last_layer=True, name='predictions')(x)
         x = lib_snn.activations.Activation(act_type=act_type_out,loc='OUT',name='predictions_n')(x)
         if conf.nn_mode=='SNN':
@@ -448,7 +449,7 @@ def ResNet19(input_shape, conf, include_top, weights, classes, **kwargs):
     num_blocks = [3,3,2]
     return ResNet(input_shape=input_shape, block=block_basic, initial_channels=initial_channels,
                   num_blocks=num_blocks, conf=conf, include_top=include_top,
-                  weights=weights, classes=classes, **kwargs)
+                  weights=weights, classes=classes, add_dense_layer=True, **kwargs)
 
 
 #
