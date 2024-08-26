@@ -91,8 +91,8 @@ def make_gradcam_heatmap_snn(img_array, model, last_conv_layer_name, neuron_mode
     spike_count_norm = False
 
     # positive gradient
-    positive_grad=True
-    #positive_grad=False
+    #positive_grad=True
+    positive_grad=False
 
     # norm gradient
     #norm_grad = True
