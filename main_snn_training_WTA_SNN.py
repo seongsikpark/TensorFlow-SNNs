@@ -406,13 +406,14 @@ with dist_strategy.scope():
 
         from config_snn_training_WTA_SNN import mode
 
-        save_imgs = False
-        #save_imgs = True
+        #save_imgs = False
+        save_imgs = True
 
         #show_imgs = True
         show_imgs = False
 
-        save_stat = True
+        #save_stat = True
+        save_stat = False
 
 
         # normalize heatmap with firing rate proportion of layers
@@ -474,6 +475,7 @@ with dist_strategy.scope():
         #save_dir = './result_amap_cond_n_norm-sc-hm'
         #save_dir = './result_amap_cond_n_norm-hm'
         save_dir = './result_amap_cond_n_norm-hm-schm'
+        save_dir = './result_amap_cond_n_norm-hm-schm_img'
         #save_dir = './result_amap_cond_n'
         #save_dir = './result_amap_cond_n_norm_fr'
         #save_dir = './result_amap_cond_n_scnorm_norm_fr_all'
