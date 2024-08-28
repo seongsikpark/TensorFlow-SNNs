@@ -67,8 +67,8 @@ conf.root_model_load='/home/sspark/models_WTA_SNN_TMP/models_ckpt_WTA-SNN'
 
 
 #conf.model='VGG11'
-conf.model='VGG16'
-#conf.model='ResNet20'
+#conf.model='VGG16'
+conf.model='ResNet20'
 #conf.model='ResNet32'
 
 #conf.dataset='CIFAR100'
