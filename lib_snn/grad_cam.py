@@ -99,8 +99,8 @@ def make_gradcam_heatmap_snn(img_array, model, last_conv_layer_name, neuron_mode
     norm_grad = False
 
     # heatmap norm
-    norm_heatmap = True
-    #norm_heatmap = False
+    #norm_heatmap = True
+    norm_heatmap = False
 
     # spike count norm - heatmap
     sc_norm_hp=True
@@ -387,10 +387,11 @@ def make_gradcam_heatmap_snn(img_array, model, last_conv_layer_name, neuron_mode
 
     # only positive
     heatmap = tf.maximum(heatmap,0)
-    #heatmap = tf.reduce_mean(heatmap,axis=0)
 
     if norm_heatmap:
         heatmap = tf.math.divide_no_nan(heatmap,tf.reduce_max(heatmap,axis=[0,1]))
+    else:
+        heatmap = tf.reduce_mean(heatmap,axis=0)
 
     if sc_norm_hp:
         a = tf.reduce_sum([a0,a1,a2,a3],axis=0)
