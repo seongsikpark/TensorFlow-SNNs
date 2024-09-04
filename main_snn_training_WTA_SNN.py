@@ -474,7 +474,8 @@ with dist_strategy.scope():
         #save_dir = './result_amap_cond_n_scnorm_new'
         #save_dir = './result_amap_cond_n_norm-sc-hm'
         #save_dir = './result_amap_cond_n_norm-hm'
-        save_dir = './result_amap_cond_n_norm-hm-schm'
+        #save_dir = './result_amap_cond_n_norm-hm-schm'
+        save_dir = './result_amap_cond_n_norm-schm'
         #save_dir = './result_amap_cond_n_norm-hm-schm_img'
 
         #save_dir = './result_amap_cond_n'
