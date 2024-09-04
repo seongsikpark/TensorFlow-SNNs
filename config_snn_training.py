@@ -48,10 +48,10 @@ conf = config.flags
 #conf.num_train_data = 10000
 
 #conf.model='VGG11'
-conf.model='VGG16'
+#conf.model='VGG16'
 #conf.model='ResNet18'
 #conf.model='ResNet19'
-#conf.model='ResNet20'
+conf.model='ResNet20'
 #conf.model='ResNet32'
 #conf.model='ResNet20_SEW'   # spike-element-wise block
 
@@ -93,7 +93,7 @@ if True:
     if True:
         #if False:
         conf.reg_spike_out=True
-        conf.reg_spike_out_const=1E-7
+        conf.reg_spike_out_const=2.5E-7
         conf.reg_spike_out_alpha=4
         #conf.reg_spike_out_sc=True
         conf.reg_spike_out_sc=False
