@@ -776,6 +776,7 @@ flags.DEFINE_string('trained_model_reg_spike','NORMAL','NORMAL, WTA_1, WTA_2, SI
 flags.DEFINE_bool('reg_spike_vis_fmap_sc',False,'regularization - spike, visualization, fmap of integrated spi')
 flags.DEFINE_bool('reg_spike_out_sc_sm_wo_tmp',False,'regularization - sc sm w/o temporal info (use spike output)')
 flags.DEFINE_bool('reg_spike_out_sc_sm_wo_spa',False,'regularization - sc sm w/o spatial info from other neurons in a layer')
+flags.DEFINE_bool('reg_spike_out_ind_s',False,'regularization - spike independent')
 
 
 

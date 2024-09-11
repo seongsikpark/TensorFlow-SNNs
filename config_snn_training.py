@@ -7,7 +7,7 @@
 import os
 os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1"
 
 
@@ -51,7 +51,7 @@ conf = config.flags
 #conf.model='VGG16'
 #conf.model='ResNet18'
 #conf.model='ResNet19'
-conf.model='ResNet20'
+#conf.model='ResNet20'
 #conf.model='ResNet32'
 #conf.model='ResNet20_SEW'   # spike-element-wise block
 
@@ -93,19 +93,22 @@ if True:
     if True:
         #if False:
         conf.reg_spike_out=True
-        conf.reg_spike_out_const=2.5E-7
+        conf.reg_spike_out_const=5E-6
         conf.reg_spike_out_alpha=4
-        #conf.reg_spike_out_sc=True
-        conf.reg_spike_out_sc=False
+        conf.reg_spike_out_sc=True
+        #conf.reg_spike_out_sc=False
         #conf.reg_spike_out_sc_wta=False
         #conf.reg_spike_out_sc_train=True
-        #conf.reg_spike_out_sc_sm=True
+        conf.reg_spike_out_sc_sm=True
         #conf.reg_spike_out_sc_sq=True
         conf.reg_spike_out_norm=True
+        conf.reg_spike_out_ind_s=True
 
         #
         #conf.reg_spike_out_sc_sm_wo_tmp=True
         #conf.reg_spike_out_sc_sm_wo_spa=True
+
+
 
         #
         #conf.reg_psp=True
