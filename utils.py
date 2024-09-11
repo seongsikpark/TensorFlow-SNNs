@@ -1142,8 +1142,8 @@ def set_file_path(batch_size):
                 if conf.reg_spike_out_sc_train:
                     reg_spike_str+='-t'
 
-                if conf.reg_spike_out_ind_s:
-                    reg_spike_str+='-ind_s'
+                if conf.reg_spike_out_inv_s:
+                    reg_spike_str+='-inv_s-'+str(conf.reg_spike_out_inv_s_const)
 
             else:
                 reg_spike_str+='so'
