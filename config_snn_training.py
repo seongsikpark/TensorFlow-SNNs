@@ -93,7 +93,7 @@ if True:
     if True:
         #if False:
         conf.reg_spike_out=True
-        conf.reg_spike_out_const=5E-6
+        conf.reg_spike_out_const=4E-6
         conf.reg_spike_out_alpha=4
         conf.reg_spike_out_sc=True
         #conf.reg_spike_out_sc=False
@@ -102,7 +102,8 @@ if True:
         conf.reg_spike_out_sc_sm=True
         #conf.reg_spike_out_sc_sq=True
         conf.reg_spike_out_norm=True
-        conf.reg_spike_out_ind_s=True
+        conf.reg_spike_out_inv_s=True
+        conf.reg_spike_out_inv_s_const=1.0
 
         #
         #conf.reg_spike_out_sc_sm_wo_tmp=True
