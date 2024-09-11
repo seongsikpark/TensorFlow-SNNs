@@ -700,11 +700,16 @@ class Neuron(tf.keras.layers.Layer):
                         sc_rate = tf.square(sc_rate)
 
                     #
+                    if conf.reg_spike_out_ind_s:
+                        sc_loss = sc_rate
+                    else:
+                        sc_loss = spike*sc_rate
+
                     if conf.reg_spike_out_norm:
                         #sc_loss = tf.norm(self.out * sc_rate,ord=2)
-                        sc_loss = lib_snn.layers.l2_norm(spike*sc_rate,self.name)
+                        sc_loss = lib_snn.layers.l2_norm(sc_loss,self.name)
                     else:
-                        sc_loss = tf.reduce_mean(spike*sc_rate)
+                        sc_loss = tf.reduce_mean(sc_loss)
                     sc_loss = sc_loss*conf.reg_spike_out_const
 
                     self.add_loss(sc_loss)
