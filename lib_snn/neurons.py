@@ -675,6 +675,7 @@ class Neuron(tf.keras.layers.Layer):
                             sc_rate = sc_norm
 
                     else:
+                        assert False # conf.reg_spike_out_alpha
                         #self.add_loss(conf.reg_spike_out_const * tf.reduce_mean(self.out * self.spike_count / tf.reduce_max(self.spike_count)))
                         sc_norm = tf.math.divide_no_nan(self.spike_count,tf.reduce_max(self.spike_count,axis=reduce_axis,keepdims=True))
                         #self.add_loss(conf.reg_spike_out_const*tf.reduce_mean(self.out * (1-sc_norm+eps)))
@@ -698,6 +699,9 @@ class Neuron(tf.keras.layers.Layer):
 
                     if conf.reg_spike_out_sc_sq:
                         sc_rate = tf.square(sc_rate)
+
+                    #
+                    sc_rate = sc_rate*conf.reg_spike_rate_alpha
 
                     #
                     if conf.reg_spike_out_inv_s:
