@@ -406,14 +406,14 @@ with dist_strategy.scope():
 
         from config_snn_training_WTA_SNN import mode
 
-        save_imgs = False
-        #save_imgs = True
+        #save_imgs = False
+        save_imgs = True
 
         #show_imgs = True
         show_imgs = False
 
-        save_stat = True
-        #save_stat = False
+        #save_stat = True
+        save_stat = False
 
 
         # normalize heatmap with firing rate proportion of layers
@@ -473,10 +473,9 @@ with dist_strategy.scope():
         #save_dir = './result_amap_cond_n_scnorm'
         #save_dir = './result_amap_cond_n_scnorm_new'
         #save_dir = './result_amap_cond_n_norm-sc-hm'
-        #save_dir = './result_amap_cond_n_norm-hm'
-        save_dir = '../02_SNN_training/result_amap_cond_n_norm-hm'
+        #save_dir = '../02_SNN_training/result_amap_cond_n_norm-hm'
         #save_dir = '../02_SNN_training/result_amap_cond_n_norm-hm_r20'
-        #save_dir = '../02_SNN_training/result_amap_cond_n_norm-hm_img'
+        save_dir = '../02_SNN_training/result_amap_cond_n_norm-hm_img'
         #save_dir = './result_amap_cond_n_norm-hm-schm'
         #save_dir = './result_amap_cond_n_norm-schm'
         #save_dir = './result_amap_cond_n_norm-hm-schm_img'
@@ -516,6 +515,7 @@ with dist_strategy.scope():
             # grad_cam
             for sample_idx in range(0,100):
             #for sample_idx in [0]:
+            #for sample_idx in [34]:
             #for sample_idx in [0,1,2,3,4,5,6,7,31,34]:
             #for sample_idx in [0, 1, 2]:
 
@@ -607,12 +607,16 @@ with dist_strategy.scope():
                             if f_norm_fr_layer:
                                 heatmap = heatmap*norm_fr_layer[layer_idx]
                             hm = axe.matshow(heatmap)
+                            hm.axes.xaxis.set_visible(False)
+                            hm.axes.yaxis.set_visible(False)
                             figs_h.colorbar(hm, ax=axe)
                             layer_idx = layer_idx + 1
 
 
                 if show_imgs or save_imgs:
                     axes_h[layer_idx // subplot_w, layer_idx % subplot_w].matshow(img)
+                    axes_h[layer_idx // subplot_w, layer_idx % subplot_w].xaxis.set_visible(False)
+                    axes_h[layer_idx // subplot_w, layer_idx % subplot_w].yaxis.set_visible(False)
 
                 if save_imgs:
                     fname = 'heatmap_'+mode+'_'+str(sample_idx+batch_idx*100)+'.png'
