@@ -1125,6 +1125,10 @@ def set_file_path(batch_size):
         if conf.reg_spike_out:
             if conf.reg_spike_out_sc:
                 reg_spike_str += 'sc'
+                if conf.reg_spike_out_norm:
+                    reg_spike_str+='-n'
+                elif conf.reg_spike_out_norm_sq:
+                    reg_spike_str+='-nsq'
 
                 if not conf.reg_spike_out_sc_wta:
                     reg_spike_str += '-nwta'
@@ -1149,6 +1153,8 @@ def set_file_path(batch_size):
                 reg_spike_str+='so'
                 if conf.reg_spike_out_norm:
                     reg_spike_str+='-n'
+                elif conf.reg_spike_out_norm_sq:
+                    reg_spike_str+='-nsq'
 
             config_name += reg_spike_str+'-'+str(conf.reg_spike_out_const)+'_'+str(conf.reg_spike_out_alpha)
             #config_name += '_r-so-'+str(conf.reg_spike_out_const)+'_'+str(conf.reg_spike_out_alpha)
