@@ -768,6 +768,7 @@ flags.DEFINE_float('reg_spike_out_const',7E-3,'regularization - spike count cons
 flags.DEFINE_float('reg_spike_out_alpha',0,'regularization - spike count alpha')
 flags.DEFINE_float('reg_spike_rate_alpha',1,'regularization - coeffiient of regularization')
 flags.DEFINE_bool('reg_spike_out_norm',False,'regularization - spike output in neuron - norm based (L2,prev work)')
+flags.DEFINE_bool('reg_spike_out_norm_sq',False,'regularization - spike output in neuron - norm based (L2 sqaure,prev work)')
 flags.DEFINE_bool('reg_spike_out_sc',False,'regularization - spike out * spike_count (norm)')
 flags.DEFINE_bool('reg_spike_out_sc_wta',True,'regularization - spike out * spike_count (norm), winner-take-all')
 flags.DEFINE_bool('reg_spike_out_sc_train',False,'regularization - spike out * spike_count (norm), coefficient train')
@@ -779,7 +780,6 @@ flags.DEFINE_bool('reg_spike_out_sc_sm_wo_tmp',False,'regularization - sc sm w/o
 flags.DEFINE_bool('reg_spike_out_sc_sm_wo_spa',False,'regularization - sc sm w/o spatial info from other neurons in a layer')
 flags.DEFINE_bool('reg_spike_out_inv_s',False,'regularization - spike inversion')
 flags.DEFINE_bool('reg_spike_out_inv_s_const',False,'regularization - spike inversion const')
-
 
 
 # regularization - postsynaptic potential (PSP)
