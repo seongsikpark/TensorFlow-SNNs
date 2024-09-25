@@ -7,7 +7,7 @@
 import os
 os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="4"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1"
 
 
@@ -95,7 +95,7 @@ if True:
         conf.reg_spike_out=True
         conf.reg_spike_out_const=3E-6
         conf.reg_spike_out_alpha=4  # temperature
-        #conf.reg_spike_rate_alpha=1.2E-0  # coefficient of reg. rate
+        #conf.reg_spike_rate_alpha=8E-1  # coefficient of reg. rate
         conf.reg_spike_out_sc=True
         #conf.reg_spike_out_sc=False
         #conf.reg_spike_out_sc_wta=False
