@@ -628,6 +628,10 @@ class Neuron(tf.keras.layers.Layer):
         #if True:
         #if False:
         if conf.reg_spike_out:
+
+
+            assert not(conf.reg_spike_out_norm and conf.reg_spike_out_norm_sq)
+
             #if self.loc != 'IN':
             if self.loc == 'HID':
 
@@ -712,6 +716,8 @@ class Neuron(tf.keras.layers.Layer):
                     if conf.reg_spike_out_norm:
                         #sc_loss = tf.norm(self.out * sc_rate,ord=2)
                         sc_loss = lib_snn.layers.l2_norm(sc_loss,self.name)
+                    elif conf.reg_spike_out_norm_sq:
+                        sc_loss = tf.reduce_mean(tf.math.square(spike))
                     else:
                         sc_loss = tf.reduce_mean(sc_loss)
                     sc_loss = sc_loss*conf.reg_spike_out_const
@@ -729,6 +735,8 @@ class Neuron(tf.keras.layers.Layer):
                         #sc_loss = tf.norm(self.out,ord=2)
                         #sc_loss = tf.sqrt(tf.reduce_sum(tf.square(self.out))+1.0E-10)
                         sc_loss = lib_snn.layers.l2_norm(spike,self.name)
+                    elif conf.reg_spike_out_norm_sq:
+                        sc_loss = tf.reduce_mean(tf.math.square(spike))
                     else:
                         assert False
                         sc_loss = tf.reduce_mean(self.out)
