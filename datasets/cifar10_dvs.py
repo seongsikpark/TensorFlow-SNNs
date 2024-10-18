@@ -49,15 +49,6 @@ def load():
 
     #train_ds = train_ds.map(lambda events, labels: as_frame())
 
-    # tf tensor version test
-    if False:
-    #if True:
-        for events, labels in train_ds:
-            #frames = as_frames(**{k: v.numpy() for k, v in events.items()}, num_frames=20)
-            coords = events['coords']
-            polarity = events['polarity']
-            frame = as_frame(events,labels)
-            #print(labels.numpy())
 
     num_frames = conf.time_step
     conf.time_dim_size = num_frames
@@ -79,6 +70,16 @@ def load():
     #
     #cifa10_dvs_img_size = conf.cifar10_dvs_img_size
     #cifar10_dvs_crop_img_size = conf.cifkhh
+
+    # tf tensor version test
+    if False:
+    #if True:
+        for events, labels in train_ds:
+            #frames = as_frames(**{k: v.numpy() for k, v in events.items()}, num_frames=20)
+            coords = events['coords']
+            polarity = events['polarity']
+            frame = as_frames(events,labels,shape=image_shape,num_frames=num_frames,augmentation=True)
+            #print(labels.numpy())
 
     #
     train_ds = train_ds.map(lambda events,labels: as_frames(events,labels,shape=image_shape,num_frames=num_frames,augmentation=True))

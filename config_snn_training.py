@@ -35,6 +35,10 @@ conf = config.flags
 #conf.train_epoch = 90
 #conf.step_decay_epoch = 30
 
+# cifar10-dvs config
+conf.learning_rate = 0.1
+conf.lmb = 1E-3
+
 #
 #conf.learning_rate = 0.04
 #conf.lmb = 1E-3
@@ -48,7 +52,7 @@ conf = config.flags
 #conf.num_train_data = 10000
 
 #conf.model='VGG11'
-#conf.model='VGG16'
+conf.model='VGG16'
 #conf.model='ResNet18'
 #conf.model='ResNet19'
 #conf.model='ResNet20'
@@ -58,7 +62,7 @@ conf = config.flags
 
 #conf.dataset='CIFAR100'
 #conf.dataset='ImageNet'
-#conf.dataset='CIFAR10_DVS'
+conf.dataset='CIFAR10_DVS'
 
 
 conf.pooling_vgg = 'avg'
@@ -88,22 +92,22 @@ conf.leak_const_init = 0.9
 
 
 #
-#if False:
-if True:
+if False:
+#if True:
     if True:
         #if False:
         conf.reg_spike_out=True
-        conf.reg_spike_out_const=3E-6
+        conf.reg_spike_out_const=1E-3
         conf.reg_spike_out_alpha=4  # temperature
         #conf.reg_spike_rate_alpha=8E-1  # coefficient of reg. rate
-        conf.reg_spike_out_sc=True
+        #conf.reg_spike_out_sc=True
         #conf.reg_spike_out_sc=False
         #conf.reg_spike_out_sc_wta=False
         #conf.reg_spike_out_sc_train=True
-        conf.reg_spike_out_sc_sm=True
+        #conf.reg_spike_out_sc_sm=True
         #conf.reg_spike_out_sc_sq=True
-        conf.reg_spike_out_norm=False
-        conf.reg_spike_out_norm_sq=True
+        conf.reg_spike_out_norm=True
+        #conf.reg_spike_out_norm_sq=True
 
         #
         #conf.reg_spike_out_sc_sm_wo_tmp=True
