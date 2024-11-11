@@ -7,7 +7,7 @@
 import os
 os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="0,2"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1"
 
 
@@ -31,9 +31,9 @@ conf = config.flags
 #conf.name_model_load='./models/VGG16_AP_CIFAR100/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-z'
 
 # imagenet config - ResNet18 (2 GPU)
-#conf.batch_size=200
-#conf.train_epoch = 90
-#conf.step_decay_epoch = 30
+conf.batch_size=200
+conf.train_epoch = 90
+conf.step_decay_epoch = 30
 
 #
 #conf.learning_rate = 0.04
@@ -48,17 +48,17 @@ conf = config.flags
 #conf.num_train_data = 10000
 
 #conf.model='VGG11'
-conf.model='VGG16'
+#conf.model='VGG16'
 #conf.model='ResNet18'
 #conf.model='ResNet19'
 #conf.model='ResNet20'
 #conf.model='ResNet32'
-#conf.model='ResNet34'
+conf.model='ResNet34'
 #conf.model='ResNet20_SEW'   # spike-element-wise block
 
 
 #conf.dataset='CIFAR100'
-#conf.dataset='ImageNet'
+conf.dataset='ImageNet'
 #conf.dataset='CIFAR10_DVS'
 
 
