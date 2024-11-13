@@ -119,7 +119,7 @@ model_dataset = conf.model+'_'+conf.dataset
 mode=conf.trained_model_reg_spike
 #mode='NORMAL'
 #mode='WTA-1'
-#mode='WTA-2'
+#mode='WTA-A'
 #mode='SIM-A'
 #mode='SIM-S'
 #mode='custom'
@@ -142,10 +142,10 @@ if conf.mode == 'inference' :
             conf.reg_spike_out_sc_sm=True
             #conf.reg_spike_out_sc_sq=True
             conf.reg_spike_out_norm = True
-        elif mode=='WTA-2':
+        elif mode=='WTA-A':
             #conf.name_model_load='./models_ckpt_WTA-SNN/VGG16_AP_CIFAR10/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s_r-sc-sm-2e-05_4'
             conf.reg_spike_out = True
-            conf.reg_spike_out_const = 1E-5
+            conf.reg_spike_out_const = 5.5E-6
             conf.reg_spike_out_alpha = 4
             conf.reg_spike_out_sc=True
             conf.reg_spike_out_sc_sm=True
