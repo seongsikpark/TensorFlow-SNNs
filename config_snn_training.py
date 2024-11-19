@@ -76,7 +76,7 @@ conf.n_reset_type = 'reset_to_zero'
 
 conf.vth_rand_static = False
 #conf.vth_rand_static = True
-conf.vth_init = 0.5
+conf.n_init_vth = 0.5
 
 #conf.vrest_rand_static = False
 conf.vrest_rand_static = True
