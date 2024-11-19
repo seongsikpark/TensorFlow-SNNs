@@ -103,7 +103,12 @@ def get_latest_saved_model(path):
     latest_model = list_dir_sorted_by_name[-1]
     #latest_model = list_dir_sorted[-1]
 
-    return latest_model
+    if conf.load_model_epoch:
+        load_model = 'ep-'+str(conf.load_model_epoch).zfill(4)+'.hdf5'
+    else:
+        load_model = latest_model
+
+    return load_model
 
 
 ##############################################################

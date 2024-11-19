@@ -1653,8 +1653,8 @@ class Neuron(tf.keras.layers.Layer):
                         vmem_ret = tf.where(f_no_spike,vmem,vrest)
 
                         def grad(upstream):
-                            dvmem = tf.where(f_no_spike, tf.zeros(shape=spike.shape), -vmem)
-                            #dvmem = tf.where(f_no_spike, tf.zeros(shape=spike.shape), -(vmem-vrest))
+                            #dvmem = tf.where(f_no_spike, tf.zeros(shape=spike.shape), -vmem)
+                            dvmem = tf.where(f_no_spike, tf.zeros(shape=spike.shape), -(vmem-vrest))
                             #dvmem = tf.where(f_no_spike, tf.zeros(shape=spike.shape), -self.vth)
                             #dvmem = tf.where(f_no_spike, tf.ones(shape=spike.shape), -vmem)
                             #dvmem = tf.where(f_no_spike, tf.ones(shape=spike.shape), -self.vth)

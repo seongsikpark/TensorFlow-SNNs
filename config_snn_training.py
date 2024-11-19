@@ -7,7 +7,7 @@
 import os
 os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="2"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1"
 
 
@@ -70,18 +70,21 @@ conf.pooling_vgg = 'avg'
 conf.nn_mode = 'SNN'
 #conf.nn_mode = 'ANN'
 
-conf.n_reset_type = 'reset_by_sub'
-#conf.n_reset_type = 'reset_to_zero'
+#conf.n_reset_type = 'reset_by_sub'
+conf.n_reset_type = 'reset_to_zero'
 
 
 conf.vth_rand_static = False
-conf.vrest = 0.0
+#conf.vth_rand_static = True
+conf.vth_init = 0.5
+
 #conf.vrest_rand_static = False
-#conf.vrest_rand_static = True
+conf.vrest_rand_static = True
+conf.vrest = 0.0
 
 #conf.adaptive_vth = False
 #conf.adaptive_vth = True
-conf.adaptive_vth_scale = 1.2
+conf.adaptive_vth_scale = 1.1
 
 #conf.use_bn=False
 
@@ -92,8 +95,8 @@ conf.leak_const_init = 0.9
 
 
 #
-#if False:
-if True:
+if False:
+#if True:
     if True:
         #if False:
         conf.reg_spike_out=True

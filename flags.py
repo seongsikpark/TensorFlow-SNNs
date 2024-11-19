@@ -410,6 +410,7 @@ flags.DEFINE_string('root_model_save', './models_ckpt', 'root model save')
 #flags.DEFINE_string('root_model_load', '/home/sspark/Projects/00_SNN/models', 'root model load')
 flags.DEFINE_string('root_model_load', './models_ckpt', 'root model load')
 #flags.DEFINE_string('root_model_load', '/home/sspark/Models/CNN', 'root model load')
+flags.DEFINE_integer('load_model_epoch',None,'load model trained epoch')
 
 #
 flags.DEFINE_string('name_model_load','','default - root_model_load/model_dataset/conf')
