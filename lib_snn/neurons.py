@@ -187,7 +187,7 @@ class Neuron(tf.keras.layers.Layer):
 
         if conf.vth_rand_static:
             #self.vth_init = tf.random.uniform(shape=self.dim,minval=0.1,maxval=1.0,dtype=tf.float32,name='vth_init')
-            self.vth_init = tf.random.normal(shape=self.dim,mean=conf.n_init_vth,stddev=0.1,name='vth_init')
+            self.vth_init = tf.random.normal(shape=self.dim,mean=conf.n_init_vth,stddev=conf.n_init_vth_std,name='vth_init')
         else:
             self.vth_init = tf.constant(init_vth, shape=self.dim, dtype=tf.float32, name='vth_init')
 
@@ -200,7 +200,7 @@ class Neuron(tf.keras.layers.Layer):
         #
         if conf.vrest_rand_static:
             #self.vrest = tf.random.normal(shape=self.vth.shape,mean=conf.vrest,stddev=0.1)
-            self.vrest = tf.random.normal(shape=self.dim,mean=conf.vrest,stddev=0.1)
+            self.vrest = tf.random.normal(shape=self.dim,mean=conf.vrest,stddev=conf.vrest_std)
         else:
             self.vrest = tf.constant(conf.vrest,shape=self.dim)
         #self.vrest = tf.random.normal(shape=self.vth.shape,mean=-0.1,stddev=0.1)
@@ -1652,9 +1652,19 @@ class Neuron(tf.keras.layers.Layer):
                         vrest = self.vrest
                         vmem_ret = tf.where(f_no_spike,vmem,vrest)
 
+                        # grad clip
+                        if conf.reset_to_zero_grad_clip:
+                            vth = self.vth.read(t-1)
+                            vmem_clip = tf.clip_by_value(vmem,tf.zeros(shape=vmem.shape),vth)
+                            du_do = -vmem_clip
+                        else:
+                            du_do = -(vmem-vrest)
+
                         def grad(upstream):
+                            dvmem = tf.where(f_no_spike, tf.zeros(shape=spike.shape), du_do)
                             #dvmem = tf.where(f_no_spike, tf.zeros(shape=spike.shape), -vmem)
-                            dvmem = tf.where(f_no_spike, tf.zeros(shape=spike.shape), -(vmem-vrest))
+                            #dvmem = tf.where(f_no_spike, tf.zeros(shape=spike.shape), -vmem_clip)
+                            #dvmem = tf.where(f_no_spike, tf.zeros(shape=spike.shape), -(vmem-vrest))
                             #dvmem = tf.where(f_no_spike, tf.zeros(shape=spike.shape), -self.vth)
                             #dvmem = tf.where(f_no_spike, tf.ones(shape=spike.shape), -vmem)
                             #dvmem = tf.where(f_no_spike, tf.ones(shape=spike.shape), -self.vth)
@@ -1664,6 +1674,8 @@ class Neuron(tf.keras.layers.Layer):
                             return dvmem, dspike
 
                         return vmem_ret, grad
+
+
                     vmem = func_reset_to_zero(vmem, spike)
 
                 else:

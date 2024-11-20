@@ -812,6 +812,12 @@ flags.DEFINE_integer('sm_batch_index',0,'saliency map - test batch index')
 flags.DEFINE_enum('train_algo_snn', 'gradient', ['gradient', 'hebbian', 'stdp', 'conversion'], 'SNN training algorithm')
 
 
+# reset_to_zero
+flags.DEFINE_bool('reset_to_zero_grad_clip',False,'reset_to_zero - grad clip (du_do)')
+
+flags.DEFINE_float('n_init_vth_std', 0.1, 'initial value of vth - std for static random init')
+flags.DEFINE_float('vrest_std', 0.1, 'initial value of vrest - std for static random init')
+
 #
 conf=flags.FLAGS
 conf(sys.argv)

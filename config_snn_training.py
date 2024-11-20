@@ -7,7 +7,7 @@
 import os
 os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="2"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1"
 
 
@@ -77,14 +77,18 @@ conf.n_reset_type = 'reset_to_zero'
 conf.vth_rand_static = False
 #conf.vth_rand_static = True
 conf.n_init_vth = 0.5
+conf.n_init_vth_std = 0.01
 
-#conf.vrest_rand_static = False
-conf.vrest_rand_static = True
-conf.vrest = 0.0
+conf.vrest_rand_static = False
+#conf.vrest_rand_static = True
+conf.vrest_std = 0.01
 
-#conf.adaptive_vth = False
+conf.adaptive_vth = False
 #conf.adaptive_vth = True
 conf.adaptive_vth_scale = 1.1
+
+conf.reset_to_zero_grad_clip = False
+#conf.reset_to_zero_grad_clip = True
 
 #conf.use_bn=False
 
