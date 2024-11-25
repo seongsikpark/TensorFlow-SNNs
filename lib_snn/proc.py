@@ -878,8 +878,9 @@ def postproc_snn(self, logs):
         #spike_count_epoch_end(self,0,logs)
         spike_count_epoch_end(self,self.epoch,logs,self.test_ds_num)
 
-    if conf.debug_grad:
-        gradient_epoch_end(self)
+    #if conf.debug_grad: # only for debug
+    if False:
+        gradient_epoch_end(self,self.epoch)
 
 
 def postproc_snn_infer(self):
@@ -1034,19 +1035,26 @@ def spike_count_epoch_end(self,epoch,logs,num_ds):
         if logs['val_acc'] == logs['best_val_acc']:
             self.spike_count_total_best = self.spike_count_total
 
-        tf.summary.scalar('bset_s_count', data=self.spike_count_total_best, step=epoch)
         logs['best_s_count'] = self.spike_count_total_best
 
+        with self.writer.as_default():
+            tf.summary.scalar('bset_s_count', data=self.spike_count_total_best, step=epoch)
+            self.writer.flush()
 
 
-def gradient_epoch_end(self):
+def gradient_epoch_end(self,epoch):
     #print('here')
     #for layer in self.model.layers:
     #    print(layer.name)
 
 
-    print('')
-    print('gradients')
+    #print('')
+    #print('gradients')
+
+    g_mean_list = []
+    g_max_list = []
+    g_min_list = []
+    g_std_list = []
 
     for gv in self.model.grads_and_vars:
         g = gv[0]
@@ -1058,11 +1066,32 @@ def gradient_epoch_end(self):
         g_std = tf.math.reduce_std(g)
         #if name == 'conv1/kernel:0':
         #    print("{:} - mean: {:e}, max: {:e}, min: {:e}, std: {:e}".format(name, g_mean, g_max, g_min, g_std))
-        print("{:} - mean: {:e}, max: {:e}, min: {:e}, std: {:e}".format(name, g_mean, g_max, g_min, g_std))
+        if False:
+            print("{:} - mean: {:e}, max: {:e}, min: {:e}, std: {:e}".format(name, g_mean, g_max, g_min, g_std))
 
-    print('')
+        #with self.writer.as_default():
+        #    tf.summary.scalar('grad_mean_'+name, data=g_mean, step=epoch)
+        #    self.writer.flush()
 
-    pass
+        g_mean_list.append(g_mean)
+        g_max_list.append(g_max)
+        g_min_list.append(g_min)
+        g_std_list.append(g_std)
+
+
+    #
+    grad_mean_mean = tf.reduce_mean(g_mean_list)
+    grad_mean_max = tf.reduce_mean(g_max_list)
+    grad_mean_min = tf.reduce_mean(g_min_list)
+    grad_mean_std = tf.reduce_mean(g_std_list)
+
+    with self.writer.as_default():
+        tf.summary.scalar('grad_mean', data=grad_mean_mean, step=epoch)
+        tf.summary.scalar('grad_max', data=grad_mean_max, step=epoch)
+        tf.summary.scalar('grad_min', data=grad_mean_min, step=epoch)
+        tf.summary.scalar('grad_std', data=grad_mean_std, step=epoch)
+        self.writer.flush()
+
 
 
 #

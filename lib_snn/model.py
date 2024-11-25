@@ -426,6 +426,10 @@ class Model(tf.keras.Model):
 
         # debug
         self.h_lab_tot_glb=[0]*10
+
+        if conf.debug_grad:
+            self.writer = tf.summary.create_file_writer(config.path_tensorboard)
+
     #def init_graph(self, inputs, outputs,**kwargs):
         #super(Model, self).__init__(inputs=inputs,outputs=outputs,**kwargs)
 
@@ -437,6 +441,8 @@ class Model(tf.keras.Model):
         #out = self.call_ann(img_input,training=False)
         #self._is_graph_network = True
         #self._init_graph_network(inputs=img_input,outputs=out)
+
+
 
 
     # TODO: move this function
@@ -2026,17 +2032,24 @@ class Model(tf.keras.Model):
                 #
                 self.optimizer.apply_gradients(grads_accum_and_vars)
 
-                # for debug
-                if conf.debug_grad:
-                    self.grads_and_vars = grads_accum_and_vars
+                # only for debug mode
+                #if conf.debug_grad:
+                #    self.grads_and_vars = grads_accum_and_vars
 
                 # print gradients
+                if conf.debug_grad:
                 #if True:
-                if False:
-                    print('')
-                    print('gradients')
+                #if False:
+                    #print('')
+                    #print('gradients')
 
-                    for gv in grads_accumuand_vars:
+                    g_mean_list = []
+                    g_max_list = []
+                    g_min_list = []
+                    g_std_list = []
+
+
+                    for gv in grads_accum_and_vars:
                         g = gv[0]
                         v = gv[1]
                         name = v.name
@@ -2046,13 +2059,31 @@ class Model(tf.keras.Model):
                         g_std = tf.math.reduce_std(g)
                         #if name == 'conv1/kernel:0':
                         #    print("{:} - mean: {:e}, max: {:e}, min: {:e}, std: {:e}".format(name, g_mean, g_max, g_min, g_std))
-                        print("{:} - mean: {:e}, max: {:e}, min: {:e}, std: {:e}".format(name, g_mean, g_max, g_min, g_std))
+                        #print("{:} - mean: {:e}, max: {:e}, min: {:e}, std: {:e}".format(name, g_mean, g_max, g_min, g_std))
 
-                    print('')
+                        g_mean_list.append(g_mean)
+                        g_max_list.append(g_max)
+                        g_min_list.append(g_min)
+                        g_std_list.append(g_std)
+
+                    #
+                    grad_mean_mean = tf.reduce_mean(g_mean_list)
+                    grad_mean_max = tf.reduce_mean(g_max_list)
+                    grad_mean_min = tf.reduce_mean(g_min_list)
+                    grad_mean_std = tf.reduce_mean(g_std_list)
+
+                    with self.writer.as_default(step=self._train_counter):
+                        tf.summary.scalar('grad_mean_iter', data=grad_mean_mean)
+                        tf.summary.scalar('grad_max_iter', data=grad_mean_max)
+                        tf.summary.scalar('grad_min_iter', data=grad_mean_min)
+                        tf.summary.scalar('grad_std_iter', data=grad_mean_std)
+
+                        self.writer.flush()
 
                 #
-                #print('gradients')
-                #print(grads_accum_and_vars)
+                #print(self._train_counter)
+                #current_step = int(self.optimizer.iterations)
+                #print(current_step)
 
 
                 #nan_test = [tf.reduce_any(tf.math.is_nan(grad_accum)) for grad_accum in grads_accum]

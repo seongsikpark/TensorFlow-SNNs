@@ -95,16 +95,16 @@ conf.reset_to_zero_grad_clip = False
 
 
 #
+conf.exp_set_name='neuro_dev'
 #conf.root_model_save = "./models_ckpt_e10"
 #conf.save_model_freq_epoch = 10
-#conf.save_model=False
+conf.save_model=False
 
-#conf.f_gradient_epoch_end=True
 
-#conf.num_train_data = 100
-#conf.train_epoch= 1
+#conf.num_train_data = 300
+#conf.train_epoch= 3
 
-#conf.debug_grad = True
+conf.debug_grad = True
 
 #
 config.set()
