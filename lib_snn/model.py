@@ -1737,6 +1737,10 @@ class Model(tf.keras.Model):
         #optimizer = keras.optimizers.optimizer_v2.optimizer_v2.OptimizerV2
         self.optimizer.apply_gradients(grads_and_vars, name=name)
 
+        # for debug
+        if conf.debug_grad:
+            self.grads_and_vars = grads_and_vars
+
 
         if self.conf.debug_mode:
 
@@ -2021,6 +2025,10 @@ class Model(tf.keras.Model):
 
                 #
                 self.optimizer.apply_gradients(grads_accum_and_vars)
+
+                # for debug
+                if conf.debug_grad:
+                    self.grads_and_vars = grads_accum_and_vars
 
                 # print gradients
                 #if True:

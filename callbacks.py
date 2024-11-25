@@ -29,7 +29,8 @@ def callbacks_snn_train(model,train_ds_num,valid_ds,test_ds_num):
         #best = None
         best = 0
 
-    save_freq=conf.save_model_freq_epoch
+    #save_freq=conf.save_model_freq_epoch
+    save_freq=conf.save_model_freq_iter
     if save_freq < 0:
         save_freq = 'epoch'
 

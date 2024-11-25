@@ -483,7 +483,6 @@ def postproc_batch_test(self, batch, logs):
             visualization_fmap_spike(self,batch)
 
 
-
 #
 def visualization_fmap_spike(self,batch):
     import keras
@@ -879,6 +878,10 @@ def postproc_snn(self, logs):
         #spike_count_epoch_end(self,0,logs)
         spike_count_epoch_end(self,self.epoch,logs,self.test_ds_num)
 
+    if conf.debug_grad:
+        gradient_epoch_end(self)
+
+
 def postproc_snn_infer(self):
     # results
     #cal_results(self)
@@ -1007,6 +1010,8 @@ def spike_count_batch_end(self):
             self.list_spike_count[name] += spike_count
             self.spike_count_total += spike_count
 
+
+
 def spike_count_epoch_end(self,epoch,logs,num_ds):
 
     #training = K.learning_phase()  -> epoch end - training False
@@ -1033,6 +1038,31 @@ def spike_count_epoch_end(self,epoch,logs,num_ds):
         logs['best_s_count'] = self.spike_count_total_best
 
 
+
+def gradient_epoch_end(self):
+    #print('here')
+    #for layer in self.model.layers:
+    #    print(layer.name)
+
+
+    print('')
+    print('gradients')
+
+    for gv in self.model.grads_and_vars:
+        g = gv[0]
+        v = gv[1]
+        name = v.name
+        g_mean = tf.reduce_mean(g)
+        g_max = tf.reduce_max(g)
+        g_min = tf.reduce_min(g)
+        g_std = tf.math.reduce_std(g)
+        #if name == 'conv1/kernel:0':
+        #    print("{:} - mean: {:e}, max: {:e}, min: {:e}, std: {:e}".format(name, g_mean, g_max, g_min, g_std))
+        print("{:} - mean: {:e}, max: {:e}, min: {:e}, std: {:e}".format(name, g_mean, g_max, g_min, g_std))
+
+    print('')
+
+    pass
 
 
 #

@@ -401,6 +401,7 @@ flags.DEFINE_string('pooling_resnet_imagenet_pre', 'max', 'max or avg, for ResNe
 ################
 flags.DEFINE_bool('save_best_model_only', True, 'save best model only')
 flags.DEFINE_integer('save_model_freq_epoch', -1, 'save model frequency in epoch when save_model_best_only==False')
+flags.DEFINE_integer('save_model_freq_iter', -1, 'save model frequency in iteration when save_model_best_only==False')
 flags.DEFINE_integer('save_models_max_to_keep', 1, 'save models max to keep')
 
 flags.DEFINE_string('root_tensorboard', './tensorboard/', 'root - tensorboard')
@@ -817,6 +818,13 @@ flags.DEFINE_bool('reset_to_zero_grad_clip',False,'reset_to_zero - grad clip (du
 
 flags.DEFINE_float('n_init_vth_std', 0.1, 'initial value of vth - std for static random init')
 flags.DEFINE_float('vrest_std', 0.1, 'initial value of vrest - std for static random init')
+
+
+#
+#flags.DEFINE_bool('f_gradient_batch_end',False,'analyse gradient at batch end')
+#flags.DEFINE_bool('f_gradient_epoch_end',False,'analyse gradient at epoch end')
+
+flags.DEFINE_bool('debug_grad',False,'debug gradient - requires more memory to hold grad_and_vars')
 
 #
 conf=flags.FLAGS
