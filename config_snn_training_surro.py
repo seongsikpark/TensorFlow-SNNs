@@ -52,10 +52,10 @@ conf = config.flags
 #conf.num_train_data = 10000
 
 #conf.model='VGG11'
-#conf.model='VGG16'
+conf.model='VGG16'
 #conf.model='ResNet18'
 #conf.model='ResNet19'
-conf.model='ResNet20'
+#conf.model='ResNet20'
 #conf.model='ResNet32'
 #conf.model='ResNet20_SEW'   # spike-element-wise block
 
@@ -70,35 +70,18 @@ conf.pooling_vgg = 'avg'
 conf.nn_mode = 'SNN'
 #conf.nn_mode = 'ANN'
 
-#conf.n_reset_type = 'reset_by_sub'
-conf.n_reset_type = 'reset_to_zero'
 
-
-conf.vth_rand_static = False
-conf.vth_rand_static = True
-conf.n_init_vth = 0.5
-conf.n_init_vth_std = 0.001
-
-conf.vrest_rand_static = False
-conf.vrest_rand_static = True
-conf.vrest_std = 0.007
-
-conf.adaptive_vth = False
-conf.adaptive_vth = True
-conf.adaptive_vth_scale = 1.1
-
-conf.reset_to_zero_grad_clip = False
-conf.reset_to_zero_grad_clip = True
 
 #
-#if False:
-if True:
-    conf.root_model_save = "./models_ckpt_e10"
-    conf.save_best_model_only=False
-    conf.save_model_freq_iter = 10*500
-    conf.save_models_max_to_keep = 40
+conf.fire_surro_grad_func = 'boxcar'
 
-    conf.mode = 'inference'
+conf.surro_grad_alpha = 0.5
+#conf.surro_grad_beth =
+
+conf.debug_surro_grad = True
+
+conf.exp_set_name='surro_grad'
+conf.save_model = False
 
 #
 config.set()

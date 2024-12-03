@@ -826,6 +826,14 @@ flags.DEFINE_float('vrest_std', 0.1, 'initial value of vrest - std for static ra
 
 flags.DEFINE_bool('debug_grad',False,'debug gradient - requires more memory to hold grad_and_vars')
 
+########################################
+# surrogate gradient parameters
+########################################
+flags.DEFINE_enum('fire_surro_grad_func', 'boxcar', ['boxcar', 'sigmoid', 'nonlin'], 'surrogate gardient function of fire function')
+flags.DEFINE_float('surro_grad_alpha', 0.5, 'surro gradient - const alpha')
+flags.DEFINE_float('surro_grad_beth', 0.5, 'surro gradient - const beta')
+flags.DEFINE_bool('debug_surro_grad',False,'debug suurogate gradient - surrogate gradient of spike fire function')
+
 #
 conf=flags.FLAGS
 conf(sys.argv)

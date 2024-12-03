@@ -15,4 +15,4 @@ conf.nn_mode = 'SNN'
 conf.n_reset_type = 'reset_by_sub'
 #conf.n_reset_type = 'reset_to_zero'
 
-conf.n_type = 'IF'
+conf.n_type = 'LIF'

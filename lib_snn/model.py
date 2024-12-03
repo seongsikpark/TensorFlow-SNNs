@@ -47,6 +47,11 @@ from lib_snn.sim import glb_t
 from config import config
 conf = config.flags
 
+
+# train counter - iteration
+train_counter = tf.Variable(0, trainable=False, dtype=tf.int64, name="train_counter")
+
+
 class Model(tf.keras.Model):
     count=0
     def __init__(self, inputs, outputs, batch_size, input_shape, num_class, conf, **kwargs):
@@ -1687,6 +1692,9 @@ class Model(tf.keras.Model):
         if self.conf.verbose_visual:
             import matplotlib.pyplot as plt
             plt.show()
+
+        # update train_counter
+        train_counter.assign_add(1)
 
         return ret
 
