@@ -1554,8 +1554,8 @@ class Neuron(tf.keras.layers.Layer):
             iter_count=lib_snn.model.train_counter
             if conf.debug_surro_grad:
 
-                if iter_count%conf.debug_surro_grad_per_iter == 0:
 
+                if False:
                     #
                     grad_mean = tf.reduce_mean(grad_ret)
                     grad_max = tf.reduce_mean(grad_ret)
@@ -1574,6 +1574,41 @@ class Neuron(tf.keras.layers.Layer):
                         tf.summary.histogram(self.name+'_vmem',vmem)
 
                         self.writer.flush()
+
+                if True:
+                    def write_surro_grad(grad_ret,du_do,vmem):
+
+                        #
+                        grad_mean = tf.reduce_mean(grad_ret)
+                        grad_max = tf.reduce_mean(grad_ret)
+                        grad_min = tf.reduce_mean(grad_ret)
+                        grad_std = tf.reduce_mean(grad_ret)
+
+                        #with self.writer.as_default(step=self._train_counter):
+                        with self.writer.as_default(step=iter_count):
+                            tf.summary.scalar(self.name+'_grad_mean_iter', data=grad_mean)
+                            tf.summary.scalar(self.name+'_grad_max_iter', data=grad_max)
+                            tf.summary.scalar(self.name+'_grad_min_iter', data=grad_min)
+                            tf.summary.scalar(self.name+'_grad_std_iter', data=grad_std)
+
+                            tf.summary.histogram(self.name+'_grad',grad_ret)
+                            tf.summary.histogram(self.name+'_du_do',du_do)
+                            tf.summary.histogram(self.name+'_vmem',vmem)
+
+                            self.writer.flush()
+
+                        #return tf.constant(0)
+
+                    def do_nothing():
+                        return tf.constant(1)
+
+
+                    condition=tf.equal(tf.math.floormod(iter_count,conf.debug_surro_grad_per_iter),0)
+                    #dummy=tf.cond(condition,lambda: write_surro_grad(self,grad_ret,du_do,vmem), lambda: do_nothing)
+                    tf.cond(condition,
+                            lambda: tf.py_function(write_surro_grad, [grad_ret,du_do,vmem],[]),
+                            lambda: tf.no_op())
+
 
 
 

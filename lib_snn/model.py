@@ -49,8 +49,8 @@ conf = config.flags
 
 
 # train counter - iteration
-#train_counter = tf.Variable(0, trainable=False, dtype=tf.int64, name="train_counter")
-train_counter = 0
+train_counter = tf.Variable(0, trainable=False, dtype=tf.int64, name="train_counter")
+#train_counter = 0
 
 
 class Model(tf.keras.Model):
@@ -1695,9 +1695,9 @@ class Model(tf.keras.Model):
             plt.show()
 
         # update train_counter
-        global train_counter
-        #train_counter.assign_add(1)
-        train_counter = train_counter+1
+        #global train_counter
+        train_counter.assign_add(1)
+        #train_counter = train_counter+1
 
         return ret
 
