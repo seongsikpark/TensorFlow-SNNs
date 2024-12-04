@@ -53,7 +53,7 @@ import layers_new
 class Layer():
     index = None    # layer index count starts from InputGenLayer
 
-    def __init__(self, use_bn, activation, last_layer=False, kwargs=None):
+    def __init__(self, use_bn=False, activation=None, last_layer=False, kwargs=None):
         #
         self.depth = -1
 

@@ -95,8 +95,6 @@ class ModelCheckpointResume(tf.keras.callbacks.ModelCheckpoint):
             #self.best = best
         self.best = best
 
-
-
         #tf.summary.create_file_writer()
 
         #print('ModelCheckpointResume - init - previous best: '.format(self.best))
@@ -133,16 +131,14 @@ class TensorboardBestValAcc(tf.keras.callbacks.Callback):
         super(TensorboardBestValAcc, self).__init__(**kwargs)
 
     def on_epoch_begin(self, epoch, logs=None):
-        #print('on_epoch_begin')
-        #print(logs)
-        pass
+        print('on_epoch_begin')
+        print(logs)
 
     def on_epoch_end(self, epoch, logs=None):
-        #print('best val_acc')
+        print('best val_acc')
         #print(cb_model_checkpoint.best)
-        #print(self.best_val_acc)
-        #print(logs)
-        pass
+        print(self.best_val_acc)
+        print(logs)
 
 #
 class SNNLIB(tf.keras.callbacks.Callback):
@@ -271,15 +267,6 @@ class SNNLIB(tf.keras.callbacks.Callback):
         lib_snn.proc.postproc_epoch_train(self,epoch,logs)
 
 
-class LearningRateTracker(keras.callbacks.Callback):
-    def on_epoch_end(self, epoch, logs=None):
-        optimizer = self.model.optimizer
-        _lr = tf.keras.backend.get_value(optimizer.lr)
-        print('')
-        #print(epoch+1)
-        #print(_lr)
-        #print(_lr.learning_rate)
-        print('Epoch: {:} - Learning rate: {:.3f}'.format(epoch+1, _lr))
 
 #
 class DNNtoSNN(tf.keras.callbacks.Callback):

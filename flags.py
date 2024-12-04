@@ -808,6 +808,13 @@ flags.DEFINE_integer('sm_batch_index',0,'saliency map - test batch index')
 flags.DEFINE_enum('train_algo_snn', 'gradient', ['gradient', 'hebbian', 'stdp', 'conversion'], 'SNN training algorithm')
 
 
+# NAS
+
+# max trial, lr
+flags.DEFINE_integer('max_trial', 1, 'trial num')
+flags.DEFINE_float('lr', 0.1, 'initial learning rate')
+
+
 #
 conf=flags.FLAGS
 conf(sys.argv)

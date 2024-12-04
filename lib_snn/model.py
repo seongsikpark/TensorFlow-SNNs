@@ -41,15 +41,13 @@ from lib_snn.sim import glb_t
 #from lib_snn.sim import glb_plot_gradient_gamma
 #from lib_snn.sim import glb_plot_gradient_beta
 
-
-
-
 from config import config
 conf = config.flags
 
+
 class Model(tf.keras.Model):
     count=0
-    def __init__(self, inputs, outputs, batch_size, input_shape, num_class, conf, **kwargs):
+    def __init__(self, inputs, outputs, batch_size, input_shape, num_class, conf_legacy, **kwargs):
     #def __init__(self, batch_size, input_shape, data_format, num_class, conf, **kwargs):
 
         #print("lib_SNN - Layer - init")
@@ -438,6 +436,13 @@ class Model(tf.keras.Model):
         #self._is_graph_network = True
         #self._init_graph_network(inputs=img_input,outputs=out)
 
+#    # build new
+#    def build(self, input_shapes):
+#        assert False
+#        super(Model, self).build(input_shapes)
+#
+#        if self.en_snn:
+#            self.spike_max_pool_setup()
 
     # TODO: move this function
     def spike_max_pool_setup(self):
@@ -1983,7 +1988,6 @@ class Model(tf.keras.Model):
                 else:
                     #sample_weight = data_adapter.unpack_x_y_sample_weight(data)
                     # Run forward pass.
-                    #with tf.GradientTape(persistent=True) as tape:
                     with tf.GradientTape() as tape:
                         y_pred = self(x, training=True)
                         loss = self.compute_loss(x, y, y_pred, sample_weight)
@@ -2664,7 +2668,6 @@ class Model(tf.keras.Model):
 
         # sptr
         self.reset_snn_sptr()
-
 
     #
     def reset_snn_neuron(self):

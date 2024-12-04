@@ -278,10 +278,13 @@ cb_model_checkpoint = lib_snn.callbacks.ModelCheckpointResume(
     # tensorboard_writer=cb_tensorboard._writers['train']
 )
 
+cb_tensorboard = tf.keras.callbacks.TensorBoard(log_dir=path_tensorboard, update_freq='epoch')
+
 #callbacks_train, callbacks_test = callbacks.callbacks_snn_train(model,train_ds_num,valid_ds,test_ds_num)
 #callbacks = callbacks_train
 callbacks=[]
 callbacks.append(cb_model_checkpoint)
+callbacks.append(cb_tensorboard)
 
 
 #
