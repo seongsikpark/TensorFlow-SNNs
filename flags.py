@@ -401,6 +401,7 @@ flags.DEFINE_string('pooling_resnet_imagenet_pre', 'max', 'max or avg, for ResNe
 ################
 flags.DEFINE_bool('save_best_model_only', True, 'save best model only')
 flags.DEFINE_integer('save_model_freq_epoch', -1, 'save model frequency in epoch when save_model_best_only==False')
+flags.DEFINE_integer('save_model_freq_iter', -1, 'save model frequency in iteration when save_model_best_only==False')
 flags.DEFINE_integer('save_models_max_to_keep', 1, 'save models max to keep')
 
 flags.DEFINE_string('root_tensorboard', './tensorboard/', 'root - tensorboard')
@@ -410,6 +411,7 @@ flags.DEFINE_string('root_model_save', './models_ckpt', 'root model save')
 #flags.DEFINE_string('root_model_load', '/home/sspark/Projects/00_SNN/models', 'root model load')
 flags.DEFINE_string('root_model_load', './models_ckpt', 'root model load')
 #flags.DEFINE_string('root_model_load', '/home/sspark/Models/CNN', 'root model load')
+flags.DEFINE_integer('load_model_epoch',None,'load model trained epoch')
 
 #
 flags.DEFINE_string('name_model_load','','default - root_model_load/model_dataset/conf')
@@ -766,7 +768,9 @@ flags.DEFINE_bool('fine_tune_quant',False,'fine tuning - quantization')
 flags.DEFINE_bool('reg_spike_out',False,'regularization - spike output in neuron')
 flags.DEFINE_float('reg_spike_out_const',7E-3,'regularization - spike count const')
 flags.DEFINE_float('reg_spike_out_alpha',0,'regularization - spike count alpha')
+flags.DEFINE_float('reg_spike_rate_alpha',1,'regularization - coeffiient of regularization')
 flags.DEFINE_bool('reg_spike_out_norm',False,'regularization - spike output in neuron - norm based (L2,prev work)')
+flags.DEFINE_bool('reg_spike_out_norm_sq',False,'regularization - spike output in neuron - norm based (L2 sqaure,prev work)')
 flags.DEFINE_bool('reg_spike_out_sc',False,'regularization - spike out * spike_count (norm)')
 flags.DEFINE_bool('reg_spike_out_sc_wta',True,'regularization - spike out * spike_count (norm), winner-take-all')
 flags.DEFINE_bool('reg_spike_out_sc_train',False,'regularization - spike out * spike_count (norm), coefficient train')
@@ -776,7 +780,8 @@ flags.DEFINE_string('trained_model_reg_spike','NORMAL','NORMAL, WTA_1, WTA_2, SI
 flags.DEFINE_bool('reg_spike_vis_fmap_sc',False,'regularization - spike, visualization, fmap of integrated spi')
 flags.DEFINE_bool('reg_spike_out_sc_sm_wo_tmp',False,'regularization - sc sm w/o temporal info (use spike output)')
 flags.DEFINE_bool('reg_spike_out_sc_sm_wo_spa',False,'regularization - sc sm w/o spatial info from other neurons in a layer')
-
+flags.DEFINE_bool('reg_spike_out_inv_s',False,'regularization - spike inversion')
+flags.DEFINE_bool('reg_spike_out_inv_s_const',False,'regularization - spike inversion const')
 
 
 # regularization - postsynaptic potential (PSP)
@@ -808,11 +813,34 @@ flags.DEFINE_integer('sm_batch_index',0,'saliency map - test batch index')
 flags.DEFINE_enum('train_algo_snn', 'gradient', ['gradient', 'hebbian', 'stdp', 'conversion'], 'SNN training algorithm')
 
 
-# NAS
 
+# NAS
 # max trial, lr
 flags.DEFINE_integer('max_trial', 1, 'trial num')
 flags.DEFINE_float('lr', 0.1, 'initial learning rate')
+
+
+# reset_to_zero
+flags.DEFINE_bool('reset_to_zero_grad_clip',False,'reset_to_zero - grad clip (du_do)')
+
+flags.DEFINE_float('n_init_vth_std', 0.1, 'initial value of vth - std for static random init')
+flags.DEFINE_float('vrest_std', 0.1, 'initial value of vrest - std for static random init')
+
+
+#
+#flags.DEFINE_bool('f_gradient_batch_end',False,'analyse gradient at batch end')
+#flags.DEFINE_bool('f_gradient_epoch_end',False,'analyse gradient at epoch end')
+
+flags.DEFINE_bool('debug_grad',False,'debug gradient - requires more memory to hold grad_and_vars')
+
+########################################
+# surrogate gradient parameters
+########################################
+flags.DEFINE_enum('fire_surro_grad_func', 'boxcar', ['boxcar', 'sigmoid', 'nonlin'], 'surrogate gardient function of fire function')
+flags.DEFINE_float('surro_grad_alpha', 0.5, 'surro gradient - const alpha')
+flags.DEFINE_float('surro_grad_beth', 0.5, 'surro gradient - const beta')
+flags.DEFINE_bool('debug_surro_grad',False,'debug suurogate gradient - surrogate gradient of spike fire function')
+flags.DEFINE_integer('debug_surro_grad_per_iter',100,'debug suurogate gradient print iter')
 
 
 #

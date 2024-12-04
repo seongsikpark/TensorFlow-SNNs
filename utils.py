@@ -103,7 +103,12 @@ def get_latest_saved_model(path):
     latest_model = list_dir_sorted_by_name[-1]
     #latest_model = list_dir_sorted[-1]
 
-    return latest_model
+    if conf.load_model_epoch:
+        load_model = 'ep-'+str(conf.load_model_epoch).zfill(4)+'.hdf5'
+    else:
+        load_model = latest_model
+
+    return load_model
 
 
 ##############################################################
@@ -1126,6 +1131,10 @@ def set_file_path(batch_size):
         if conf.reg_spike_out:
             if conf.reg_spike_out_sc:
                 reg_spike_str += 'sc'
+                if conf.reg_spike_out_norm:
+                    reg_spike_str+='-n'
+                elif conf.reg_spike_out_norm_sq:
+                    reg_spike_str+='-nsq'
 
                 if not conf.reg_spike_out_sc_wta:
                     reg_spike_str += '-nwta'
@@ -1142,10 +1151,16 @@ def set_file_path(batch_size):
 
                 if conf.reg_spike_out_sc_train:
                     reg_spike_str+='-t'
+
+                if conf.reg_spike_out_inv_s:
+                    reg_spike_str+='-inv_s-'+str(conf.reg_spike_out_inv_s_const)
+
             else:
                 reg_spike_str+='so'
                 if conf.reg_spike_out_norm:
                     reg_spike_str+='-n'
+                elif conf.reg_spike_out_norm_sq:
+                    reg_spike_str+='-nsq'
 
             config_name += reg_spike_str+'-'+str(conf.reg_spike_out_const)+'_'+str(conf.reg_spike_out_alpha)
             #config_name += '_r-so-'+str(conf.reg_spike_out_const)+'_'+str(conf.reg_spike_out_alpha)

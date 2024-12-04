@@ -155,6 +155,11 @@ class Neuron(tf.keras.layers.Layer):
             #self.reg_spike_out_b = self.add_weight(shape=[],initializer="ones",trainable=True,name=self.name+'_reg_s_b')
 
 
+        # debug surrogate grad
+        if conf.debug_surro_grad:
+            self.writer = tf.summary.create_file_writer(config.path_tensorboard)
+
+
     def build(self, input_shapes):
         #print('neuron build - {}'.format(self.name))
         super().build(input_shapes)
@@ -187,7 +192,7 @@ class Neuron(tf.keras.layers.Layer):
 
         if conf.vth_rand_static:
             #self.vth_init = tf.random.uniform(shape=self.dim,minval=0.1,maxval=1.0,dtype=tf.float32,name='vth_init')
-            self.vth_init = tf.random.normal(shape=self.dim,mean=conf.n_init_vth,stddev=0.1,name='vth_init')
+            self.vth_init = tf.random.normal(shape=self.dim,mean=conf.n_init_vth,stddev=conf.n_init_vth_std,name='vth_init')
         else:
             self.vth_init = tf.constant(init_vth, shape=self.dim, dtype=tf.float32, name='vth_init')
 
@@ -200,7 +205,7 @@ class Neuron(tf.keras.layers.Layer):
         #
         if conf.vrest_rand_static:
             #self.vrest = tf.random.normal(shape=self.vth.shape,mean=conf.vrest,stddev=0.1)
-            self.vrest = tf.random.normal(shape=self.dim,mean=conf.vrest,stddev=0.1)
+            self.vrest = tf.random.normal(shape=self.dim,mean=conf.vrest,stddev=conf.vrest_std)
         else:
             self.vrest = tf.constant(conf.vrest,shape=self.dim)
         #self.vrest = tf.random.normal(shape=self.vth.shape,mean=-0.1,stddev=0.1)
@@ -628,6 +633,10 @@ class Neuron(tf.keras.layers.Layer):
         #if True:
         #if False:
         if conf.reg_spike_out:
+
+
+            assert not(conf.reg_spike_out_norm and conf.reg_spike_out_norm_sq)
+
             #if self.loc != 'IN':
             if self.loc == 'HID':
 
@@ -675,6 +684,7 @@ class Neuron(tf.keras.layers.Layer):
                             sc_rate = sc_norm
 
                     else:
+                        assert False # conf.reg_spike_out_alpha
                         #self.add_loss(conf.reg_spike_out_const * tf.reduce_mean(self.out * self.spike_count / tf.reduce_max(self.spike_count)))
                         sc_norm = tf.math.divide_no_nan(self.spike_count,tf.reduce_max(self.spike_count,axis=reduce_axis,keepdims=True))
                         #self.add_loss(conf.reg_spike_out_const*tf.reduce_mean(self.out * (1-sc_norm+eps)))
@@ -700,11 +710,21 @@ class Neuron(tf.keras.layers.Layer):
                         sc_rate = tf.square(sc_rate)
 
                     #
+                    sc_rate = sc_rate*conf.reg_spike_rate_alpha
+
+                    #
+                    if conf.reg_spike_out_inv_s:
+                        sc_loss = 1.0-conf.reg_spike_out_inv_s_const*spike
+                    else:
+                        sc_loss = spike*sc_rate
+
                     if conf.reg_spike_out_norm:
                         #sc_loss = tf.norm(self.out * sc_rate,ord=2)
-                        sc_loss = lib_snn.layers.l2_norm(spike*sc_rate,self.name)
+                        sc_loss = lib_snn.layers.l2_norm(sc_loss,self.name)
+                    elif conf.reg_spike_out_norm_sq:
+                        sc_loss = tf.reduce_mean(tf.math.square(spike))
                     else:
-                        sc_loss = tf.reduce_mean(spike*sc_rate)
+                        sc_loss = tf.reduce_mean(sc_loss)
                     sc_loss = sc_loss*conf.reg_spike_out_const
 
                     self.add_loss(sc_loss)
@@ -720,6 +740,8 @@ class Neuron(tf.keras.layers.Layer):
                         #sc_loss = tf.norm(self.out,ord=2)
                         #sc_loss = tf.sqrt(tf.reduce_sum(tf.square(self.out))+1.0E-10)
                         sc_loss = lib_snn.layers.l2_norm(spike,self.name)
+                    elif conf.reg_spike_out_norm_sq:
+                        sc_loss = tf.reduce_mean(tf.math.square(spike))
                     else:
                         assert False
                         sc_loss = tf.reduce_mean(self.out)
@@ -1507,7 +1529,7 @@ class Neuron(tf.keras.layers.Layer):
 
         def grad(upstream):
             # todo: parameterize
-            a=0.5
+            #a=0.5
             #a=1.0
             #cond_1=tf.math.less_equal(tf.math.abs(vmem-vth),a)
 
@@ -1515,17 +1537,83 @@ class Neuron(tf.keras.layers.Layer):
             #cond_1=tf.math.less_equal(tf.math.abs(vmem-vth),a)
             #cond=cond_1
 
-            cond_lower=tf.math.greater_equal(vmem,vth-a)
-            cond_upper=tf.math.less_equal(vmem,vth+a)
+            # boxcar
+            width_h = conf.surro_grad_alpha
+            cond_lower=tf.math.greater_equal(vmem,vth-width_h)
+            cond_upper=tf.math.less_equal(vmem,vth+width_h)
             cond = tf.math.logical_and(cond_lower,cond_upper)
-            do_du = tf.where(cond,tf.ones(cond.shape),tf.zeros(cond.shape))
-            #do_du = tf.where(cond,vmem-vth+a,tf.zeros(cond.shape))
+            h = tf.constant(1/(2*width_h),shape=cond.shape)
+            #du_do = tf.where(cond,tf.ones(cond.shape),tf.zeros(cond.shape))
+            du_do = tf.where(cond,h,tf.zeros(cond.shape))
+            #du_do = tf.where(cond,vmem-vth+a,tf.zeros(cond.shape))
 
-            grad_ret = upstream*do_du
+            grad_ret = upstream*du_do
+
+
+            # print gradients
+            iter_count=lib_snn.model.train_counter
+            if conf.debug_surro_grad:
+
+
+                if False:
+                    #
+                    grad_mean = tf.reduce_mean(grad_ret)
+                    grad_max = tf.reduce_mean(grad_ret)
+                    grad_min = tf.reduce_mean(grad_ret)
+                    grad_std = tf.reduce_mean(grad_ret)
+
+                    #with self.writer.as_default(step=self._train_counter):
+                    with self.writer.as_default(step=iter_count):
+                        tf.summary.scalar(self.name+'_grad_mean_iter', data=grad_mean)
+                        tf.summary.scalar(self.name+'_grad_max_iter', data=grad_max)
+                        tf.summary.scalar(self.name+'_grad_min_iter', data=grad_min)
+                        tf.summary.scalar(self.name+'_grad_std_iter', data=grad_std)
+
+                        tf.summary.histogram(self.name+'_grad',grad_ret)
+                        tf.summary.histogram(self.name+'_du_do',du_do)
+                        tf.summary.histogram(self.name+'_vmem',vmem)
+
+                        self.writer.flush()
+
+                if True:
+                    def write_surro_grad(grad_ret,du_do,vmem):
+
+                        #
+                        grad_mean = tf.reduce_mean(grad_ret)
+                        grad_max = tf.reduce_mean(grad_ret)
+                        grad_min = tf.reduce_mean(grad_ret)
+                        grad_std = tf.reduce_mean(grad_ret)
+
+                        #with self.writer.as_default(step=self._train_counter):
+                        with self.writer.as_default(step=iter_count):
+                            tf.summary.scalar(self.name+'_grad_mean_iter', data=grad_mean)
+                            tf.summary.scalar(self.name+'_grad_max_iter', data=grad_max)
+                            tf.summary.scalar(self.name+'_grad_min_iter', data=grad_min)
+                            tf.summary.scalar(self.name+'_grad_std_iter', data=grad_std)
+
+                            tf.summary.histogram(self.name+'_grad',grad_ret)
+                            tf.summary.histogram(self.name+'_du_do',du_do)
+                            tf.summary.histogram(self.name+'_vmem',vmem)
+
+                            self.writer.flush()
+
+                        #return tf.constant(0)
+
+                    def do_nothing():
+                        return tf.constant(1)
+
+
+                    condition=tf.equal(tf.math.floormod(iter_count,conf.debug_surro_grad_per_iter),0)
+                    #dummy=tf.cond(condition,lambda: write_surro_grad(self,grad_ret,du_do,vmem), lambda: do_nothing)
+                    tf.cond(condition,
+                            lambda: tf.py_function(write_surro_grad, [grad_ret,du_do,vmem],[]),
+                            lambda: tf.no_op())
+
+
 
 
             if conf.verbose_snn_train:
-            #if True:
+            #if true:
                 print(self.name)
 
                 y_backprop = upstream
@@ -1635,8 +1723,18 @@ class Neuron(tf.keras.layers.Layer):
                         vrest = self.vrest
                         vmem_ret = tf.where(f_no_spike,vmem,vrest)
 
+                        # grad clip
+                        if conf.reset_to_zero_grad_clip:
+                            vth = self.vth.read(t-1)
+                            vmem_clip = tf.clip_by_value(vmem,tf.zeros(shape=vmem.shape),vth)
+                            du_do = -vmem_clip
+                        else:
+                            du_do = -(vmem-vrest)
+
                         def grad(upstream):
-                            dvmem = tf.where(f_no_spike, tf.zeros(shape=spike.shape), -vmem)
+                            dvmem = tf.where(f_no_spike, tf.zeros(shape=spike.shape), du_do)
+                            #dvmem = tf.where(f_no_spike, tf.zeros(shape=spike.shape), -vmem)
+                            #dvmem = tf.where(f_no_spike, tf.zeros(shape=spike.shape), -vmem_clip)
                             #dvmem = tf.where(f_no_spike, tf.zeros(shape=spike.shape), -(vmem-vrest))
                             #dvmem = tf.where(f_no_spike, tf.zeros(shape=spike.shape), -self.vth)
                             #dvmem = tf.where(f_no_spike, tf.ones(shape=spike.shape), -vmem)
@@ -1647,6 +1745,8 @@ class Neuron(tf.keras.layers.Layer):
                             return dvmem, dspike
 
                         return vmem_ret, grad
+
+
                     vmem = func_reset_to_zero(vmem, spike)
 
                 else:

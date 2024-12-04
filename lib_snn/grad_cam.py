@@ -99,12 +99,12 @@ def make_gradcam_heatmap_snn(img_array, model, last_conv_layer_name, neuron_mode
     norm_grad = False
 
     # heatmap norm
-    #norm_heatmap = True
-    norm_heatmap = False
+    norm_heatmap = True
+    #norm_heatmap = False
 
     # spike count norm - heatmap
-    sc_norm_hp=True
-    #sc_norm_hp=False
+    #sc_norm_hp=True
+    sc_norm_hp=False
 
     #
     batch_size = 100

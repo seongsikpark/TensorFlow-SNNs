@@ -115,7 +115,8 @@ def as_frames(
     t_start = time[0]
     t_end = time[-1]
     if dt is None:
-        dt = int((t_end - t_start) // (num_frames - 1))
+        #dt = int((t_end - t_start) // (num_frames - 1))
+        dt = int((t_end - t_start) // num_frames)
     else:
         num_frames = (t_end - t_start) // dt + 1
 
@@ -139,6 +140,7 @@ def as_frames(
     colors = tf.where(tf.expand_dims(polarity,1),RED,GREEN)
 
     idxs_frame = tf.math.floordiv(tf.subtract(time,t_start),dt)
+    idxs_frame = tf.where(tf.equal(idxs_frame,num_frames),num_frames-1,idxs_frame)
     idxs_frame = tf.expand_dims(idxs_frame,axis=1)
 
     # (frame, x, y, color)

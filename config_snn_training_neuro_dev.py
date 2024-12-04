@@ -52,10 +52,10 @@ conf = config.flags
 #conf.num_train_data = 10000
 
 #conf.model='VGG11'
-conf.model='VGG16'
+#conf.model='VGG16'
 #conf.model='ResNet18'
 #conf.model='ResNet19'
-#conf.model='ResNet20'
+conf.model='ResNet20'
 #conf.model='ResNet32'
 #conf.model='ResNet20_SEW'   # spike-element-wise block
 
@@ -74,14 +74,14 @@ conf.nn_mode = 'SNN'
 conf.n_reset_type = 'reset_to_zero'
 
 
-#conf.vth_rand_static = False
+conf.vth_rand_static = False
 conf.vth_rand_static = True
 conf.n_init_vth = 0.5
-conf.n_init_vth_std = 0.005
+conf.n_init_vth_std = 0.001
 
-#conf.vrest_rand_static = False
+conf.vrest_rand_static = False
 conf.vrest_rand_static = True
-conf.vrest_std = 0.005
+conf.vrest_std = 0.007
 
 conf.adaptive_vth = False
 conf.adaptive_vth = True
@@ -90,67 +90,15 @@ conf.adaptive_vth_scale = 1.1
 conf.reset_to_zero_grad_clip = False
 conf.reset_to_zero_grad_clip = True
 
-#conf.use_bn=False
-
-#conf.n_init_vth = 0.3
-
-conf.leak_const_init = 0.9
-#conf.leak_const_train = True
-
-
 #
-if False:
-#if True:
-    if True:
-        #if False:
-        conf.reg_spike_out=True
-        conf.reg_spike_out_const=8E-2
-        conf.reg_spike_out_alpha=4  # temperature
-        #conf.reg_spike_rate_alpha=8E-1  # coefficient of reg. rate
-        conf.reg_spike_out_sc=True
-        conf.reg_spike_out_sc_wta=False
-        #conf.reg_spike_out_sc_train=True
-        conf.reg_spike_out_sc_sm=True
-        #conf.reg_spike_out_sc_sq=True
-        conf.reg_spike_out_norm=True
-        #conf.reg_spike_out_norm_sq=True
+#if False:
+if True:
+    conf.root_model_save = "./models_ckpt_e10"
+    conf.save_best_model_only=False
+    conf.save_model_freq_iter = 10*500
+    conf.save_models_max_to_keep = 40
 
-        #
-        #conf.reg_spike_out_sc_sm_wo_tmp=True
-        #conf.reg_spike_out_sc_sm_wo_spa=True
-
-
-
-        #
-        #conf.reg_psp=True
-        conf.reg_psp_const=1E-3
-        conf.reg_psp_eps=1E-10
-        conf.reg_psp_min=True
-    else:
-        conf.reg_spike_out=True
-        conf.reg_spike_out_const=5E-5
-        conf.reg_spike_out_alpha=0
-        #conf.reg_spike_out_sc=True
-        #conf.reg_spike_out_sc_wta=False
-        #conf.reg_spike_out_sc_train=True
-        #conf.reg_spike_out_sc_sm=True
-        #conf.reg_spike_out_sc_sq=True
-        conf.reg_spike_out_norm=True
-
-        #
-        #conf.reg_psp=True
-        conf.reg_psp_const=1E-3
-        conf.reg_psp_eps=1E-10
-        conf.reg_psp_min=True
-
-
-#
-#conf.grad_clipnorm = 3.0
-#conf.grad_clipnorm = 1.0
-
-#
-#conf.en_stdp_pathway = True
-conf.stdp_pathway_weight = 0.1
+    conf.mode = 'inference'
 
 #
 config.set()

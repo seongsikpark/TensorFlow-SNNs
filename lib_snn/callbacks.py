@@ -95,7 +95,7 @@ class ModelCheckpointResume(tf.keras.callbacks.ModelCheckpoint):
             #self.best = best
         self.best = best
 
-        #tf.summary.create_file_writer()
+        tf.summary.create_file_writer(log_dir)
 
         #print('ModelCheckpointResume - init - previous best: '.format(self.best))
 
@@ -208,6 +208,11 @@ class SNNLIB(tf.keras.callbacks.Callback):
         #self.run_for_compare_post_calib = False
 
 
+        # tensorboard log dir
+        self.log_dir = config.path_tensorboard
+        self.writer = tf.summary.create_file_writer(self.log_dir)
+
+
     #def build(self):
         #lib_snn.proc.set_init(self)
 
@@ -297,6 +302,10 @@ class DNNtoSNN(tf.keras.callbacks.Callback):
         #print(self.model.get_layer('conv1').kernel[0,0,0])
         #print(self.model.get_layer('conv1').bias)
 
+
+
+
+
 ########
 # callback test
 class CallbackTest(tf.keras.callbacks.Callback):
@@ -312,3 +321,6 @@ class CallbackTest(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         print('on_epoch_begin')
         print(logs)
+
+
+

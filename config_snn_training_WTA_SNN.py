@@ -9,7 +9,7 @@ import os
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,2"
 #os.environ["CUDA_VISIBLE_DEVICES"]="4,7"
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="2"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
 
 #
@@ -67,8 +67,8 @@ conf.root_model_load='/home/sspark/models_WTA_SNN_TMP/models_ckpt_WTA-SNN'
 
 
 #conf.model='VGG11'
-conf.model='VGG16'
-#conf.model='ResNet20'
+#conf.model='VGG16'
+conf.model='ResNet20'
 #conf.model='ResNet32'
 
 #conf.dataset='CIFAR100'
@@ -119,8 +119,9 @@ model_dataset = conf.model+'_'+conf.dataset
 mode=conf.trained_model_reg_spike
 #mode='NORMAL'
 #mode='WTA-1'
-#mode='WTA-2'
+#mode='WTA-A'
 #mode='SIM-A'
+#mode='SIM-A-NEW'
 #mode='SIM-S'
 #mode='custom'
 
@@ -142,10 +143,10 @@ if conf.mode == 'inference' :
             conf.reg_spike_out_sc_sm=True
             #conf.reg_spike_out_sc_sq=True
             conf.reg_spike_out_norm = True
-        elif mode=='WTA-2':
+        elif mode=='WTA-A':
             #conf.name_model_load='./models_ckpt_WTA-SNN/VGG16_AP_CIFAR10/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s_r-sc-sm-2e-05_4'
             conf.reg_spike_out = True
-            conf.reg_spike_out_const = 1E-5
+            conf.reg_spike_out_const = 5.5E-6
             conf.reg_spike_out_alpha = 4
             conf.reg_spike_out_sc=True
             conf.reg_spike_out_sc_sm=True
@@ -184,13 +185,28 @@ if conf.mode == 'inference' :
             conf.reg_spike_out_sc=True
             conf.reg_spike_out_sc_sm=True
             conf.reg_spike_out_norm = True
-        elif mode=='WTA-2':
-            assert False
+        elif mode=='WTA-A':
+            conf.reg_spike_out = True
+            conf.reg_spike_out_const = 7E-7
+            conf.reg_spike_out_alpha = 4
+            conf.reg_spike_out_sc=True
+            conf.reg_spike_out_sc_sm=True
+            conf.reg_spike_out_norm = True
         elif mode=='SIM-A':
             # spike reg - similar acc
             #conf.name_model_load="./models_ckpt_WTA-SNN/ResNet20_CIFAR10/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s_r-sc-nwta-sm-0.007_4'
             conf.reg_spike_out = True
             conf.reg_spike_out_const = 7E-3
+            conf.reg_spike_out_alpha = 4
+            conf.reg_spike_out_sc=True
+            conf.reg_spike_out_sc_wta=False
+            conf.reg_spike_out_sc_sm=True
+            conf.reg_spike_out_norm = True
+        elif mode=='SIM-A-NEW':
+            # spike reg - similar acc (new, 21 Nov)
+            #conf.name_model_load="./models_ckpt_WTA-SNN/ResNet20_CIFAR10/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-s_r-sc-nwta-sm-0.007_4'
+            conf.reg_spike_out = True
+            conf.reg_spike_out_const = 1E-2
             conf.reg_spike_out_alpha = 4
             conf.reg_spike_out_sc=True
             conf.reg_spike_out_sc_wta=False
