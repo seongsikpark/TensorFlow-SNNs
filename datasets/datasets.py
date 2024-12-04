@@ -1,6 +1,7 @@
 
 import tensorflow as tf
 
+import flags
 import lib_snn
 import datasets
 
@@ -18,10 +19,16 @@ preprocess_input_others = tf.keras.applications.imagenet_utils.preprocess_input
 def load():
 
     model_name = config.model_name
-    dataset_name = config.dataset_name
-    batch_size = config.batch_size
-    train_type = config.train_type
-    train = config.train
+    # dataset_name = config.dataset_name
+    # batch_size = config.batch_size
+    # train_type = config.train_type
+    # train = config.train
+    # model_name ="am/auto_model_30"
+    #model_name = flags.model_path
+    dataset_name = "CIFAR10"
+    batch_size = 100
+    train_type = "scratch"
+    train = True
 
     dataset_sel = {
         #'ImageNet': datasets.imagenet,

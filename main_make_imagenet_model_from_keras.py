@@ -105,7 +105,8 @@ from models import imagenet_utils
 
 # GPU setting
 #
-GPU_NUMBER=2
+# GPU_NUMBER=2
+GPU_NUMBER=5
 
 GPU_PARALLEL_RUN = 1
 #GPU_PARALLEL_RUN = 2

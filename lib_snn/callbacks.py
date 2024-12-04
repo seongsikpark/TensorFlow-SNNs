@@ -2,6 +2,7 @@ import collections
 import os
 import shutil
 
+import keras.callbacks
 import tensorflow as tf
 
 from tensorflow.python.keras.utils.io_utils import path_to_string
@@ -93,8 +94,6 @@ class ModelCheckpointResume(tf.keras.callbacks.ModelCheckpoint):
         #if best is not None:
             #self.best = best
         self.best = best
-
-
 
         tf.summary.create_file_writer(log_dir)
 
@@ -271,6 +270,7 @@ class SNNLIB(tf.keras.callbacks.Callback):
 
     def on_epoch_end(self, epoch, logs=None):
         lib_snn.proc.postproc_epoch_train(self,epoch,logs)
+
 
 
 #
