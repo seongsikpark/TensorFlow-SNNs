@@ -79,9 +79,13 @@ conf.surro_grad_alpha = 0.5
 #conf.surro_grad_beth =
 
 conf.debug_surro_grad = True
+conf.debug_surro_grad_per_iter = 100
 
-conf.exp_set_name='surro_grad'
+
+conf.exp_set_name='surro_grad_new'
 conf.save_model = False
+
+
 
 #
 config.set()

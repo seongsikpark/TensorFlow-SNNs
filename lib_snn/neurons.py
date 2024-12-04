@@ -1543,41 +1543,42 @@ class Neuron(tf.keras.layers.Layer):
             cond_upper=tf.math.less_equal(vmem,vth+width_h)
             cond = tf.math.logical_and(cond_lower,cond_upper)
             h = tf.constant(1/(2*width_h),shape=cond.shape)
-            #do_du = tf.where(cond,tf.ones(cond.shape),tf.zeros(cond.shape))
-            do_du = tf.where(cond,h,tf.zeros(cond.shape))
-            #do_du = tf.where(cond,vmem-vth+a,tf.zeros(cond.shape))
+            #du_do = tf.where(cond,tf.ones(cond.shape),tf.zeros(cond.shape))
+            du_do = tf.where(cond,h,tf.zeros(cond.shape))
+            #du_do = tf.where(cond,vmem-vth+a,tf.zeros(cond.shape))
 
-            grad_ret = upstream*do_du
+            grad_ret = upstream*du_do
 
 
             # print gradients
+            iter_count=lib_snn.model.train_counter
             if conf.debug_surro_grad:
-                #if True:
-                #if False:
-                #print('')
-                #print('gradients')
 
-                #
-                grad_mean = tf.reduce_mean(grad_ret)
-                grad_max = tf.reduce_mean(grad_ret)
-                grad_min = tf.reduce_mean(grad_ret)
-                grad_std = tf.reduce_mean(grad_ret)
+                if iter_count%conf.debug_surro_grad_per_iter == 0:
 
-                #with self.writer.as_default(step=self._train_counter):
-                with self.writer.as_default(step=lib_snn.model.train_counter):
-                    tf.summary.scalar(self.name+'_grad_mean_iter', data=grad_mean)
-                    tf.summary.scalar(self.name+'_grad_max_iter', data=grad_max)
-                    tf.summary.scalar(self.name+'_grad_min_iter', data=grad_min)
-                    tf.summary.scalar(self.name+'_grad_std_iter', data=grad_std)
+                    #
+                    grad_mean = tf.reduce_mean(grad_ret)
+                    grad_max = tf.reduce_mean(grad_ret)
+                    grad_min = tf.reduce_mean(grad_ret)
+                    grad_std = tf.reduce_mean(grad_ret)
 
-                    tf.summary.histogram('grad',grad_ret)
-                    tf.summary.histogram('vmem',vmem)
+                    #with self.writer.as_default(step=self._train_counter):
+                    with self.writer.as_default(step=iter_count):
+                        tf.summary.scalar(self.name+'_grad_mean_iter', data=grad_mean)
+                        tf.summary.scalar(self.name+'_grad_max_iter', data=grad_max)
+                        tf.summary.scalar(self.name+'_grad_min_iter', data=grad_min)
+                        tf.summary.scalar(self.name+'_grad_std_iter', data=grad_std)
 
-                    self.writer.flush()
+                        tf.summary.histogram(self.name+'_grad',grad_ret)
+                        tf.summary.histogram(self.name+'_du_do',du_do)
+                        tf.summary.histogram(self.name+'_vmem',vmem)
+
+                        self.writer.flush()
+
 
 
             if conf.verbose_snn_train:
-            #if True:
+            #if true:
                 print(self.name)
 
                 y_backprop = upstream
