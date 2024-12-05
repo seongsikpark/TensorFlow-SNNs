@@ -23,9 +23,8 @@ import datasets.preprocessing
 
 from config import config
 
-# model_name = config.model_name
-# dataset_name = config.dataset_name
-dataset_name = "CIFAR10"
+model_name = config.model_name
+dataset_name = config.dataset_name
 
 #
 #from config import conf
@@ -35,7 +34,6 @@ conf = flags.FLAGS
 
 from datasets.preprocessing import preprocessing_input_img
 
-model_name = conf.model_path
 #from tensorflow.python.keras.applications.imagenet_utils import preprocess_input as preprocess_input_others
 preprocess_input_others = tf.keras.applications.imagenet_utils.preprocess_input
 
