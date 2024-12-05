@@ -51,7 +51,7 @@ conf = config.flags
 #conf.train_epoch = 10
 #conf.num_train_data = 10000
 
-#conf.model='VGG11'
+conf.model='VGG11'
 #conf.model='VGG16'
 #conf.model='ResNet18'
 #conf.model='ResNet19'
@@ -62,7 +62,7 @@ conf = config.flags
 
 #conf.dataset='CIFAR100'
 #conf.dataset='ImageNet'
-#conf.dataset='CIFAR10_DVS'
+conf.dataset='CIFAR10_DVS'
 
 
 conf.pooling_vgg = 'avg'
@@ -70,8 +70,8 @@ conf.pooling_vgg = 'avg'
 conf.nn_mode = 'SNN'
 #conf.nn_mode = 'ANN'
 
-#conf.n_reset_type = 'reset_by_sub'
-conf.n_reset_type = 'reset_to_zero'
+conf.n_reset_type = 'reset_by_sub'
+#conf.n_reset_type = 'reset_to_zero'
 
 conf.vth_rand_static = False
 #conf.vth_rand_static = True
@@ -95,16 +95,16 @@ conf.reset_to_zero_grad_clip = False
 
 
 #
-conf.exp_set_name='neuro_dev'
-#conf.root_model_save = "./models_ckpt_e10"
-#conf.save_model_freq_epoch = 10
-conf.save_model=False
+##conf.exp_set_name='neuro_dev'
+##conf.root_model_save = "./models_ckpt_e10"
+##conf.save_model_freq_epoch = 10
+#conf.save_model=False
+#conf.debug_grad = True
+#
+#
+##conf.num_train_data = 300
+##conf.train_epoch= 3
 
-
-#conf.num_train_data = 300
-#conf.train_epoch= 3
-
-conf.debug_grad = True
 
 #
 config.set()
