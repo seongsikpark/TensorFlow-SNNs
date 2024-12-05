@@ -7,7 +7,7 @@
 import os
 os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="7"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1"
 
 
@@ -35,13 +35,11 @@ conf = config.flags
 #conf.train_epoch = 90
 #conf.step_decay_epoch = 30
 
-# cifar10-dvs config
-#conf.learning_rate = 0.1
-#conf.lmb = 1E-3
+
 
 #
-#conf.learning_rate = 0.04
-#conf.lmb = 1E-3
+conf.learning_rate = 0.01
+conf.lmb = 1E-3
 #conf.time_step = 10
 #conf.optimizer = 'ADAM'
 #conf.lr_schedule = None
@@ -60,9 +58,13 @@ conf.model='VGG16'
 #conf.model='ResNet20_SEW'   # spike-element-wise block
 
 
-#conf.dataset='CIFAR100'
+conf.dataset='CIFAR100'
 #conf.dataset='ImageNet'
 #conf.dataset='CIFAR10_DVS'
+
+# cifar10-dvs config for VGG16, ResNet20
+#conf.learning_rate = 0.1
+#conf.lmb = 1E-3
 
 
 conf.pooling_vgg = 'avg'
@@ -70,18 +72,18 @@ conf.pooling_vgg = 'avg'
 conf.nn_mode = 'SNN'
 #conf.nn_mode = 'ANN'
 
-#conf.n_reset_type = 'reset_by_sub'
-conf.n_reset_type = 'reset_to_zero'
+conf.n_reset_type = 'reset_by_sub'
+#conf.n_reset_type = 'reset_to_zero'
 
 
-#conf.vth_rand_static = False
+conf.vth_rand_static = False
 conf.vth_rand_static = True
 conf.n_init_vth = 0.5
-conf.n_init_vth_std = 0.005
+conf.n_init_vth_std = 0.001
 
-#conf.vrest_rand_static = False
+conf.vrest_rand_static = False
 conf.vrest_rand_static = True
-conf.vrest_std = 0.005
+conf.vrest_std = 0.007
 
 conf.adaptive_vth = False
 conf.adaptive_vth = True
