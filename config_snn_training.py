@@ -7,7 +7,7 @@
 import os
 os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1"
 
 
@@ -52,15 +52,15 @@ conf = config.flags
 #conf.num_train_data = 10000
 
 #conf.model='VGG11'
-#conf.model='VGG16'
+conf.model='VGG16'
 #conf.model='ResNet18'
 #conf.model='ResNet19'
-conf.model='ResNet20'
+#conf.model='ResNet20'
 #conf.model='ResNet32'
 #conf.model='ResNet20_SEW'   # spike-element-wise block
 
 
-conf.dataset='CIFAR100'
+#conf.dataset='CIFAR100'
 #conf.dataset='ImageNet'
 #conf.dataset='CIFAR10_DVS'
 
@@ -74,14 +74,14 @@ conf.nn_mode = 'SNN'
 conf.n_reset_type = 'reset_to_zero'
 
 
-conf.vth_rand_static = False
+#conf.vth_rand_static = False
 conf.vth_rand_static = True
 conf.n_init_vth = 0.5
-conf.n_init_vth_std = 0.001
+conf.n_init_vth_std = 0.005
 
-conf.vrest_rand_static = False
+#conf.vrest_rand_static = False
 conf.vrest_rand_static = True
-conf.vrest_std = 0.007
+conf.vrest_std = 0.005
 
 conf.adaptive_vth = False
 conf.adaptive_vth = True

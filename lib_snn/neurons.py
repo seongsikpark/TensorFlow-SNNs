@@ -155,6 +155,11 @@ class Neuron(tf.keras.layers.Layer):
             #self.reg_spike_out_b = self.add_weight(shape=[],initializer="ones",trainable=True,name=self.name+'_reg_s_b')
 
 
+        # debug surrogate grad
+        if conf.debug_surro_grad:
+            self.writer = tf.summary.create_file_writer(config.path_tensorboard)
+
+
     def build(self, input_shapes):
         #print('neuron build - {}'.format(self.name))
         super().build(input_shapes)
@@ -1524,7 +1529,7 @@ class Neuron(tf.keras.layers.Layer):
 
         def grad(upstream):
             # todo: parameterize
-            a=0.5
+            #a=0.5
             #a=1.0
             #cond_1=tf.math.less_equal(tf.math.abs(vmem-vth),a)
 
@@ -1532,17 +1537,83 @@ class Neuron(tf.keras.layers.Layer):
             #cond_1=tf.math.less_equal(tf.math.abs(vmem-vth),a)
             #cond=cond_1
 
-            cond_lower=tf.math.greater_equal(vmem,vth-a)
-            cond_upper=tf.math.less_equal(vmem,vth+a)
+            # boxcar
+            width_h = conf.surro_grad_alpha
+            cond_lower=tf.math.greater_equal(vmem,vth-width_h)
+            cond_upper=tf.math.less_equal(vmem,vth+width_h)
             cond = tf.math.logical_and(cond_lower,cond_upper)
-            do_du = tf.where(cond,tf.ones(cond.shape),tf.zeros(cond.shape))
-            #do_du = tf.where(cond,vmem-vth+a,tf.zeros(cond.shape))
+            h = tf.constant(1/(2*width_h),shape=cond.shape)
+            #du_do = tf.where(cond,tf.ones(cond.shape),tf.zeros(cond.shape))
+            du_do = tf.where(cond,h,tf.zeros(cond.shape))
+            #du_do = tf.where(cond,vmem-vth+a,tf.zeros(cond.shape))
 
-            grad_ret = upstream*do_du
+            grad_ret = upstream*du_do
+
+
+            # print gradients
+            iter_count=lib_snn.model.train_counter
+            if conf.debug_surro_grad:
+
+
+                if False:
+                    #
+                    grad_mean = tf.reduce_mean(grad_ret)
+                    grad_max = tf.reduce_mean(grad_ret)
+                    grad_min = tf.reduce_mean(grad_ret)
+                    grad_std = tf.reduce_mean(grad_ret)
+
+                    #with self.writer.as_default(step=self._train_counter):
+                    with self.writer.as_default(step=iter_count):
+                        tf.summary.scalar(self.name+'_grad_mean_iter', data=grad_mean)
+                        tf.summary.scalar(self.name+'_grad_max_iter', data=grad_max)
+                        tf.summary.scalar(self.name+'_grad_min_iter', data=grad_min)
+                        tf.summary.scalar(self.name+'_grad_std_iter', data=grad_std)
+
+                        tf.summary.histogram(self.name+'_grad',grad_ret)
+                        tf.summary.histogram(self.name+'_du_do',du_do)
+                        tf.summary.histogram(self.name+'_vmem',vmem)
+
+                        self.writer.flush()
+
+                if True:
+                    def write_surro_grad(grad_ret,du_do,vmem):
+
+                        #
+                        grad_mean = tf.reduce_mean(grad_ret)
+                        grad_max = tf.reduce_mean(grad_ret)
+                        grad_min = tf.reduce_mean(grad_ret)
+                        grad_std = tf.reduce_mean(grad_ret)
+
+                        #with self.writer.as_default(step=self._train_counter):
+                        with self.writer.as_default(step=iter_count):
+                            tf.summary.scalar(self.name+'_grad_mean_iter', data=grad_mean)
+                            tf.summary.scalar(self.name+'_grad_max_iter', data=grad_max)
+                            tf.summary.scalar(self.name+'_grad_min_iter', data=grad_min)
+                            tf.summary.scalar(self.name+'_grad_std_iter', data=grad_std)
+
+                            tf.summary.histogram(self.name+'_grad',grad_ret)
+                            tf.summary.histogram(self.name+'_du_do',du_do)
+                            tf.summary.histogram(self.name+'_vmem',vmem)
+
+                            self.writer.flush()
+
+                        #return tf.constant(0)
+
+                    def do_nothing():
+                        return tf.constant(1)
+
+
+                    condition=tf.equal(tf.math.floormod(iter_count,conf.debug_surro_grad_per_iter),0)
+                    #dummy=tf.cond(condition,lambda: write_surro_grad(self,grad_ret,du_do,vmem), lambda: do_nothing)
+                    tf.cond(condition,
+                            lambda: tf.py_function(write_surro_grad, [grad_ret,du_do,vmem],[]),
+                            lambda: tf.no_op())
+
+
 
 
             if conf.verbose_snn_train:
-            #if True:
+            #if true:
                 print(self.name)
 
                 y_backprop = upstream

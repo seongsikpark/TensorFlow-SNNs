@@ -22,6 +22,10 @@ import lib_snn
 
 #from config import conf
 #from config_common import conf
+
+# Ryu
+# from config import config
+# conf = config.flags
 from absl import flags
 conf = flags.FLAGS
 
@@ -34,6 +38,7 @@ from lib_snn.sim import glb_t
 # abstract class for DNN / SNN
 # Activation
 class Activation(keras.engine.base_layer.Layer):
+
     #index = None    # layer index count starts from InputGenLayer
 
     def __init__(self, act_type=None, loc='HID', **kwargs):
@@ -126,8 +131,8 @@ class Activation(keras.engine.base_layer.Layer):
             if self.act_type == 'softmax':
                 self.act = tf.keras.layers.Softmax(name=self.name)
             elif self.act_type in {'IF', 'LIF'}:
-                self.act = lib_snn.neurons.Neuron(self.output_shape_fixed_batch, self.conf, \
-                                              self.act_type, self.conf.neural_coding, self.depth, loc=self.loc, name=self.name)
+                self.act = lib_snn.neurons.Neuron(self.output_shape_fixed_batch, self.conf,
+                                                  self.act_type, self.conf.neural_coding, self.depth, loc=self.loc, name=self.name)
             else:
                 assert False, 'not supported activation type - {:}'.format(self.act_type)
 

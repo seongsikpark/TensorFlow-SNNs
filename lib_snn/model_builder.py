@@ -18,8 +18,6 @@ import utils
 
 import collections
 
-import functools
-
 
 def model_builder(
     num_class,
@@ -159,25 +157,6 @@ def model_builder(
     except KeyError:
         pass
 
-
-    # loss
-    if False:
-    #if True:
-        #for neuron in model.layers_w_neuron:
-        for layer in model.layers:
-            if isinstance(layer,lib_snn.activations.Activation) and isinstance(layer.act, lib_snn.neurons.Neuron):
-                #    #neuron.act.add_loss(lambda: tf.reduce_mean(neuron.act.spike_count_int))
-                #    #neuron.act.add_loss(lambda: tf.reduce_sum(neuron.act.spike_count_int))
-                neuron = layer
-                if neuron.act.loc=='HID':
-                    #print(neuron.name)
-                    #neuron.act.add_loss(functools.partial(tf.reduce_mean,spike))
-                    spike = 0.001*neuron.act.out
-                    neuron.act.add_loss(functools.partial(tf.reduce_mean,spike))
-                    #model.add_loss(lambda: tf.reduce_mean(0.001*neuron.act.out))
-
-        for layer in model.layers_w_kernel:
-            print(layer.name)
 
     # dummy
     #img_input = tf.keras.layers.Input(shape=image_shape, batch_size=batch_size)

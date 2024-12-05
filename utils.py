@@ -34,7 +34,7 @@ from absl import flags
 conf = flags.FLAGS
 
 #
-#from lib_snn import config_glb
+# from lib_snn import config_glb
 
 
 ##############################################################
@@ -1043,6 +1043,7 @@ def set_file_path(batch_size):
         root_model_load = conf.root_model_load
 
     root_model_save = conf.root_model_save
+
 
     #if conf.nn_mode=='SNN':
     #    root_model_load = os.path.join(root_model_load,'SNN')

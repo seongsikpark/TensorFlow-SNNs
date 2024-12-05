@@ -25,13 +25,14 @@ from keras import constraints
 from keras import initializers
 from keras import regularizers
 from keras.dtensor import utils
-#from keras.layers.convolutional.base_conv import Conv
+# from keras.layers.convolutional.base_conv import Conv
 from layers_new.base_conv import Conv
+from lib_snn import layers
 
 from tensorflow.python.util.tf_export import keras_export
 
 
-#@keras_export('keras.layers.Conv2D', 'keras.layers.Convolution2D')
+# @keras_export('keras.layers.Conv2D', 'keras.layers.Convolution2D')
 class Conv2D(Conv):
     """2D convolution layer (e.g. spatial convolution over images).
 
@@ -54,7 +55,7 @@ class Conv2D(Conv):
     >>> # size is 4.
     >>> input_shape = (4, 28, 28, 3)
     >>> x = tf.random.normal(input_shape)
-    >>> y = tf.keras.layers.Conv2D(
+    >>> y = layers.Conv2D(
     ... 2, 3, activation='relu', input_shape=input_shape[1:])(x)
     >>> print(y.shape)
     (4, 26, 26, 2)
@@ -62,7 +63,7 @@ class Conv2D(Conv):
     >>> # With `dilation_rate` as 2.
     >>> input_shape = (4, 28, 28, 3)
     >>> x = tf.random.normal(input_shape)
-    >>> y = tf.keras.layers.Conv2D(
+    >>> y = layers.Conv2D(
     ... 2, 3, activation='relu', dilation_rate=2, input_shape=input_shape[1:])(x)
     >>> print(y.shape)
     (4, 24, 24, 2)
@@ -70,7 +71,7 @@ class Conv2D(Conv):
     >>> # With `padding` as "same".
     >>> input_shape = (4, 28, 28, 3)
     >>> x = tf.random.normal(input_shape)
-    >>> y = tf.keras.layers.Conv2D(
+    >>> y = layers.Conv2D(
     ... 2, 3, activation='relu', padding="same", input_shape=input_shape[1:])(x)
     >>> print(y.shape)
     (4, 28, 28, 2)
@@ -78,7 +79,7 @@ class Conv2D(Conv):
     >>> # With extended batch shape [4, 7]:
     >>> input_shape = (4, 7, 28, 28, 3)
     >>> x = tf.random.normal(input_shape)
-    >>> y = tf.keras.layers.Conv2D(
+    >>> y = layers.Conv2D(
     ... 2, 3, activation='relu', input_shape=input_shape[2:])(x)
     >>> print(y.shape)
     (4, 7, 26, 26, 2)
@@ -196,3 +197,4 @@ class Conv2D(Conv):
 # Alias
 
 Convolution2D = Conv2D
+

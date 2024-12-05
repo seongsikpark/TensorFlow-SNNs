@@ -813,6 +813,13 @@ flags.DEFINE_integer('sm_batch_index',0,'saliency map - test batch index')
 flags.DEFINE_enum('train_algo_snn', 'gradient', ['gradient', 'hebbian', 'stdp', 'conversion'], 'SNN training algorithm')
 
 
+
+# NAS
+# max trial, lr
+flags.DEFINE_integer('max_trial', 1, 'trial num')
+flags.DEFINE_float('lr', 0.1, 'initial learning rate')
+
+
 # reset_to_zero
 flags.DEFINE_bool('reset_to_zero_grad_clip',False,'reset_to_zero - grad clip (du_do)')
 
@@ -825,6 +832,16 @@ flags.DEFINE_float('vrest_std', 0.1, 'initial value of vrest - std for static ra
 #flags.DEFINE_bool('f_gradient_epoch_end',False,'analyse gradient at epoch end')
 
 flags.DEFINE_bool('debug_grad',False,'debug gradient - requires more memory to hold grad_and_vars')
+
+########################################
+# surrogate gradient parameters
+########################################
+flags.DEFINE_enum('fire_surro_grad_func', 'boxcar', ['boxcar', 'sigmoid', 'nonlin'], 'surrogate gardient function of fire function')
+flags.DEFINE_float('surro_grad_alpha', 0.5, 'surro gradient - const alpha')
+flags.DEFINE_float('surro_grad_beth', 0.5, 'surro gradient - const beta')
+flags.DEFINE_bool('debug_surro_grad',False,'debug suurogate gradient - surrogate gradient of spike fire function')
+flags.DEFINE_integer('debug_surro_grad_per_iter',100,'debug suurogate gradient print iter')
+
 
 #
 conf=flags.FLAGS

@@ -41,15 +41,19 @@ from lib_snn.sim import glb_t
 #from lib_snn.sim import glb_plot_gradient_gamma
 #from lib_snn.sim import glb_plot_gradient_beta
 
-
-
-
 from config import config
 conf = config.flags
 
+
+
+# train counter - iteration
+train_counter = tf.Variable(0, trainable=False, dtype=tf.int64, name="train_counter")
+#train_counter = 0
+
+
 class Model(tf.keras.Model):
     count=0
-    def __init__(self, inputs, outputs, batch_size, input_shape, num_class, conf, **kwargs):
+    def __init__(self, inputs, outputs, batch_size, input_shape, num_class, conf_legacy, **kwargs):
     #def __init__(self, batch_size, input_shape, data_format, num_class, conf, **kwargs):
 
         #print("lib_SNN - Layer - init")
@@ -442,6 +446,13 @@ class Model(tf.keras.Model):
         #self._is_graph_network = True
         #self._init_graph_network(inputs=img_input,outputs=out)
 
+#    # build new
+#    def build(self, input_shapes):
+#        assert False
+#        super(Model, self).build(input_shapes)
+#
+#        if self.en_snn:
+#            self.spike_max_pool_setup()
 
 
 
@@ -1688,6 +1699,11 @@ class Model(tf.keras.Model):
             import matplotlib.pyplot as plt
             plt.show()
 
+        # update train_counter
+        #global train_counter
+        train_counter.assign_add(1)
+        #train_counter = train_counter+1
+
         return ret
 
     def train_step_ann(self, data):
@@ -1993,7 +2009,6 @@ class Model(tf.keras.Model):
                 else:
                     #sample_weight = data_adapter.unpack_x_y_sample_weight(data)
                     # Run forward pass.
-                    #with tf.GradientTape(persistent=True) as tape:
                     with tf.GradientTape() as tape:
                         y_pred = self(x, training=True)
                         loss = self.compute_loss(x, y, y_pred, sample_weight)
@@ -2703,7 +2718,6 @@ class Model(tf.keras.Model):
 
         # sptr
         self.reset_snn_sptr()
-
 
     #
     def reset_snn_neuron(self):
