@@ -67,7 +67,7 @@ def callbacks_snn_train(model,train_ds_num,valid_ds,test_ds_num):
     callbacks_train.append(cb_libsnn)
     callbacks_train.append(cb_tensorboard)
     ###
-    callbacks_train.append(cb_max)
+    #callbacks_train.append(cb_max)
 
     callbacks_test = []
     # TODO: move to parameters
