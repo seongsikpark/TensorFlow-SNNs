@@ -38,8 +38,8 @@ conf = config.flags
 
 
 #
-conf.learning_rate = 0.01
-conf.lmb = 1E-3
+conf.learning_rate = 1E-2
+conf.lmb = 1E-4
 #conf.time_step = 10
 #conf.optimizer = 'ADAM'
 #conf.lr_schedule = None
@@ -58,7 +58,7 @@ conf.model='VGG16'
 #conf.model='ResNet20_SEW'   # spike-element-wise block
 
 
-conf.dataset='CIFAR100'
+#conf.dataset='CIFAR100'
 #conf.dataset='ImageNet'
 #conf.dataset='CIFAR10_DVS'
 
@@ -77,20 +77,20 @@ conf.n_reset_type = 'reset_by_sub'
 
 
 conf.vth_rand_static = False
-conf.vth_rand_static = True
+#conf.vth_rand_static = True
 conf.n_init_vth = 0.5
 conf.n_init_vth_std = 0.001
 
 conf.vrest_rand_static = False
-conf.vrest_rand_static = True
+#conf.vrest_rand_static = True
 conf.vrest_std = 0.007
 
 conf.adaptive_vth = False
-conf.adaptive_vth = True
+#conf.adaptive_vth = True
 conf.adaptive_vth_scale = 1.1
 
 conf.reset_to_zero_grad_clip = False
-conf.reset_to_zero_grad_clip = True
+#conf.reset_to_zero_grad_clip = True
 
 #conf.use_bn=False
 
