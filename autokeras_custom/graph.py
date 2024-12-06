@@ -50,6 +50,7 @@ class Graph(graph.Graph):
         if train_mode == 'ANN':
             model = keras.Model(inputs, outputs)
         else:
+            input_shape=inputs[0].shape
             model = lib_snn.model.Model(inputs, outputs, batch_size, input_shape, num_class, None)
 
         return self._compile_keras_model(hp, model)

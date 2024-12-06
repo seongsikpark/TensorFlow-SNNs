@@ -434,6 +434,8 @@ class Model(tf.keras.Model):
         if conf.debug_grad:
             self.writer = tf.summary.create_file_writer(config.path_tensorboard)
 
+
+
     #def init_graph(self, inputs, outputs,**kwargs):
         #super(Model, self).__init__(inputs=inputs,outputs=outputs,**kwargs)
 
@@ -2474,6 +2476,7 @@ class Model(tf.keras.Model):
             self.block_norm_set_resnet()
 
 
+        #print('ABCD')
         if self.nn_mode=='ANN':
             self.init_ann()
         elif self.nn_mode == 'SNN':
@@ -2488,7 +2491,10 @@ class Model(tf.keras.Model):
 
 
     #
+    # TODO: remove the below dependency
+    # it should be called after compile
     def init_snn(self, model_ann=None):
+
 
         #
         #self.set_layers_w_neuron()

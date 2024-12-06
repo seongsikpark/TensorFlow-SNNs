@@ -84,7 +84,7 @@ def preproc(self):
                 neuron.act.add_loss(functools.partial(tf.reduce_mean,spike))
                 #neuron.act.add_loss(lambda: tf.reduce_mean(0.001*neuron.act.out)
 
-    self.init_done = True
+    #self.init_done = True
 
 
 # reset on test begin
@@ -93,7 +93,7 @@ def reset(self):
         if isinstance(metric,compile_utils.MetricsContainer):
             metric.reset_state()
 
-    if self.conf.mode=='inference':
+    if conf.mode=='inference':
         spike_count_epoch_init(self)
 
     self.model.reset()
@@ -109,7 +109,7 @@ def reset_batch_snn(self):
     #self.model.reset_snn_neuron()
     reset_snn_time_step(self)
 
-    if self.conf.calibration_vmem:
+    if conf.calibration_vmem:
         lib_snn.calibration.vmem_calibration(self)
 
 #
@@ -126,6 +126,8 @@ def set_init(self):
         #init_snn_run(self)
 
     self.model.init(self.model_ann)
+
+    reset_snn_time_step(self)
 
     # quantization fine tuning
 #    if self.conf.fine_tune_quant:
@@ -971,7 +973,6 @@ def postproc_epoch_train_ann(self,epoch,logs):
     pass
 
 def postproc_epoch_train_snn(self,epoch,logs):
-    pass
     spike_count_epoch_end(self,epoch,logs,self.train_ds_num)
 
 
@@ -1011,6 +1012,13 @@ def spike_count_batch_end(self):
             self.list_spike_count[name] += spike_count
             self.spike_count_total += spike_count
 
+
+def spike_count_batch_end_one_device(self):
+    for neuron in self.model.layers_w_neuron:
+        name = neuron.name
+        spike_count = tf.reduce_sum(neuron.act.spike_count_int)
+        self.list_spike_count[name] += spike_count
+        self.spike_count_total += spike_count
 
 
 def spike_count_epoch_end(self,epoch,logs,num_ds):

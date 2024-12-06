@@ -37,10 +37,17 @@ import numpy as np
 from autokeras_custom.engine import utils as tuner_utils_custom
 
 #
-from absl import flags
-conf = flags.FLAGS
+#from absl import flags
+#conf = flags.FLAGS
+from config import config
+conf = config.flags
+
+import lib_snn
+
+from lib_snn.sim import glb_t
 
 
+#class AutoTuner(keras_tuner.engine.tuner.Tuner):
 class AutoTuner(keras_tuner.engine.tuner.Tuner):
     """A Tuner class based on KerasTuner for AutoKeras.
 
@@ -111,7 +118,8 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
         return pipeline, dataset, validation_data
 
     def _build_and_fit_model(self, trial, *args, **kwargs):
-        model = self._try_build(trial.hyperparameters)
+        #model = self._try_build(trial.hyperparameters)
+        model = self.try_build(trial.hyperparameters)
         (
             pipeline,
             kwargs["x"],
@@ -213,7 +221,8 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
         # Populate initial search space.
         hp = self.oracle.get_space()
         self._prepare_model_build(hp, **fit_kwargs)
-        self._try_build(hp)
+        #self._try_build(hp)
+        self.try_build(hp)
         self.oracle.update_space(hp)
         # sspark
         #super().search(epochs=epochs, callbacks=new_callbacks, verbose=verbose, **fit_kwargs)
@@ -249,7 +258,7 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
             copied_fit_kwargs["verbose"] = verbose
             pipeline, model, history = self.final_fit(**copied_fit_kwargs)
         else:
-
+            assert False
             ''' original - old
             # TODO: Add return history functionality in Keras Tuner
             model = self.get_best_models()[0]
@@ -263,6 +272,7 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
             # TODO: parameterized
             copied_fit_kwargs["epochs"] = 200
 
+            self.hypermodel.set_fit_args(0, epochs=copied_fit_kwargs["epochs"])
             pipeline, model, history = self.final_fit(**copied_fit_kwargs)
             # sspark
             #pipeline, model, history = self.final_fit(**copied_fit_kwargs)
@@ -270,7 +280,11 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
             #pass
 
 
-        model.save(self.best_model_path)
+        #if conf.nn_mode=='SNN':
+        #    glb_t.reset()
+        #model.save(self.best_model_path)
+
+
         pipeline.save(self.best_pipeline_path)
         self._finished = True
         return history
@@ -309,7 +323,11 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
             # sspark
             if self.results_1st==None:
                 results = self.run_trial(trial, *fit_args, **fit_kwargs)
-                self.results_1st = copy.deepcopy(results)
+
+                # for SNN sim
+                #if conf.nn_mode=='SNN':
+                #    glb_t.reset()
+                #self.results_1st = copy.deepcopy(results)
             else:
                 if self.over_max_model:
                     results = copy.deepcopy(self.results_1st)
@@ -348,6 +366,10 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
     def create_trial(self):
 
         while True:
+            # for SNN sim
+            if conf.nn_mode=='SNN':
+                glb_t.reset()
+
             #
             trial = self.oracle.create_trial(self.tuner_id)
 
@@ -417,9 +439,13 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
         #
         if self.max_model_size_new:
 
+            if conf.nn_mode=='SNN':
+                glb_t.reset()
+
             hp = trial.hyperparameters
             #self._try_build(hp)
             model = self._build_hypermodel(hp)
+            model.init()
 
             params = [keras.backend.count_params(p) for p in model.trainable_weights]
             model_size = int(np.sum(params))
@@ -443,6 +469,18 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
 
 
         return trial
+
+    def on_trial_begin(self,trial):
+        """Called at the beginning of a trial.
+
+        Args:
+            trial: A `Trial` instance.
+        """
+        if self.logger:
+            self.logger.register_trial(trial.trial_id, trial.get_state())
+        self._display.on_trial_begin(self.oracle.get_trial(trial.trial_id))
+
+
 
     # sspark
     # based on keras_tuner.engine.base_tuner.on_trial_end
@@ -481,6 +519,13 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
             #tf.keras.callbacks.EarlyStopping
         ]
 
+    def try_build(self, hp):
+
+        if conf.nn_mode=='SNN':
+            glb_t.reset()
+
+        return self._try_build(hp)
+
     def _get_best_trial_epochs(self):
         best_trial = self.oracle.get_best_trials(1)[0]
         # steps counts from 0, so epochs = step + 1.
@@ -489,7 +534,12 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
     def _build_best_model(self):
         best_trial = self.oracle.get_best_trials(1)[0]
         best_hp = best_trial.hyperparameters
-        return self._try_build(best_hp)
+
+
+
+        #return self._try_build(best_hp)
+        return self.try_build(best_hp)
+
 
     def final_fit(self, **kwargs):
         best_trial = self.oracle.get_best_trials(1)[0]
@@ -513,6 +563,80 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
         )
         return pipeline, model, history
 
+
+
+    def run_trial(self, trial, *args, **kwargs):
+        """Evaluates a set of hyperparameter values.
+
+        This method is called multiple times during `search` to build and
+        evaluate the models with different hyperparameters and return the
+        objective value.
+
+        Example:
+
+        You can use it with `self.hypermodel` to build and fit the model.
+
+        ```python
+        def run_trial(self, trial, *args, **kwargs):
+            hp = trial.hyperparameters
+            model = self.hypermodel.build(hp)
+            return self.hypermodel.fit(hp, model, *args, **kwargs)
+        ```
+
+        You can also use it as a black-box optimizer for anything.
+
+        ```python
+        def run_trial(self, trial, *args, **kwargs):
+            hp = trial.hyperparameters
+            x = hp.Float("x", -2.0, 2.0)
+            y = x * x + 2 * x + 1
+            return y
+        ```
+
+        Args:
+            trial: A `Trial` instance that contains the information needed to
+                run this trial. Hyperparameters can be accessed via
+                `trial.hyperparameters`.
+            *args: Positional arguments passed by `search`.
+            **kwargs: Keyword arguments passed by `search`.
+
+        Returns:
+            A `History` object, which is the return value of `model.fit()`, a
+            dictionary, a float, or a list of one of these types.
+
+            If return a dictionary, it should be a dictionary of the metrics to
+            track. The keys are the metric names, which contains the
+            `objective` name. The values should be the metric values.
+
+            If return a float, it should be the `objective` value.
+
+            If evaluating the model for multiple times, you may return a list
+            of results of any of the types above. The final objective value is
+            the average of the results in the list.
+        """
+        # Not using `ModelCheckpoint` to support MultiObjective.
+        # It can only track one of the metrics to save the best model.
+        model_checkpoint = tuner_utils.SaveBestEpoch(
+            objective=self.oracle.objective,
+            filepath=self._get_checkpoint_fname(trial.trial_id),
+        )
+        original_callbacks = kwargs.pop("callbacks", [])
+
+        # Run the training process multiple times.
+        histories = []
+        for execution in range(self.executions_per_trial):
+            copied_kwargs = copy.copy(kwargs)
+            callbacks = self._deepcopy_callbacks(original_callbacks)
+            self._configure_tensorboard_dir(callbacks, trial, execution)
+            callbacks.append(tuner_utils_custom.TunerCallback(self, trial))
+            # Only checkpoint the best epoch across all executions.
+            callbacks.append(model_checkpoint)
+            copied_kwargs["callbacks"] = callbacks
+            obj_value = self._build_and_fit_model(trial, *args, **copied_kwargs)
+
+            histories.append(obj_value)
+        return histories
+
     @property
     def best_model_path(self):
         return os.path.join(self.project_dir, "best_model")
@@ -528,3 +652,6 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
     @property
     def max_trials(self):
         return self.oracle.max_trials
+
+
+

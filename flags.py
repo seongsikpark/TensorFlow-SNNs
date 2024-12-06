@@ -818,7 +818,9 @@ flags.DEFINE_enum('train_algo_snn', 'gradient', ['gradient', 'hebbian', 'stdp', 
 # max trial, lr
 flags.DEFINE_integer('max_trial', 1, 'trial num')
 flags.DEFINE_float('lr', 0.1, 'initial learning rate')
-
+flags.DEFINE_string('model_path', 'model', 'save model path')
+flags.DEFINE_integer('train_epoch_search', 150, 'train epoch search')
+flags.DEFINE_integer('step_decay_epoch_search', 50, 'train epoch search')
 
 # reset_to_zero
 flags.DEFINE_bool('reset_to_zero_grad_clip',False,'reset_to_zero - grad clip (du_do)')

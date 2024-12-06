@@ -49,7 +49,7 @@ else:
     # act_type = 'LIF'
     # act_type_out = conf.n_type
 
-tdbn_first_layer = conf.nn_mode == 'SNN' and conf.input_spike_mode == 'POISSON' and conf.tdbn
+#tdbn_first_layer = conf.nn_mode == 'SNN' and conf.input_spike_mode == 'POISSON' and conf.tdbn
 tdbn = conf.nn_mode == 'SNN' and conf.tdbn
 
 
@@ -164,12 +164,12 @@ class DenseBlock(block_module.Block):
             if conf.nn_mode == 'ANN':
                 output_node = layers.Dense(units)(output_node)
                 if use_batchnorm:
-                    output_node = layers.BatchNormalization()(output_node)
+                    output_node = layers.BatchNormalization(en_tdbn=tdbn)(output_node)
                 output_node = layers.ReLU()(output_node)
             else:
                 output_node = lib_snn.layers.Dense(units, kernel_initializer='glorot_uniform')(output_node)
-                output_node = lib_snn.layers.BatchNormalizations(en_tdbn=tdbn)(output_node)
-                output_node = lib_snn.activations.Activations(act_type=act_type)(output_node)
+                output_node = lib_snn.layers.BatchNormalization(en_tdbn=tdbn)(output_node)
+                output_node = lib_snn.activations.Activation(act_type=act_type,loc='OUT')(output_node)
             if utils.add_to_hp(self.dropout, hp) > 0:
                 output_node = layers.Dropout(utils.add_to_hp(self.dropout, hp))(
                     output_node
@@ -309,7 +309,8 @@ class ConvBlock(block_module.Block):
         num_blocks: Optional[Union[int, hyperparameters.Choice]] = None,
         num_layers: Optional[Union[int, hyperparameters.Choice]] = None,
         filters: Optional[Union[int, hyperparameters.Choice]] = None,
-        max_pooling: Optional[bool] = None,
+        #max_pooling: Optional[bool] = None,
+        pooling: Optional[bool] = None,
         separable: Optional[bool] = None,
         dropout: Optional[Union[float, hyperparameters.Choice]] = None,
         # sspark
@@ -341,7 +342,8 @@ class ConvBlock(block_module.Block):
             ),
             int,
         )
-        self.max_pooling = max_pooling
+        #self.max_pooling = max_pooling
+        self.pooling = pooling
         self.separable = separable
         self.dropout = utils.get_hyperparameter(
             dropout,
@@ -363,7 +365,7 @@ class ConvBlock(block_module.Block):
                 "num_blocks": io_utils.serialize_block_arg(self.num_blocks),
                 "num_layers": io_utils.serialize_block_arg(self.num_layers),
                 "filters": io_utils.serialize_block_arg(self.filters),
-                "max_pooling": self.max_pooling,
+                "pooling": self.pooling,
                 "separable": self.separable,
                 "dropout": io_utils.serialize_block_arg(self.dropout),
                 "use_batchnorm": self.use_batchnorm,
@@ -398,10 +400,18 @@ class ConvBlock(block_module.Block):
         else:
             conv = layer_utils.get_conv(input_node.shape)
 
-        max_pooling = self.max_pooling
-        if max_pooling is None:
-            max_pooling = hp.Boolean("max_pooling", default=True)
-        pool = layer_utils.get_max_pooling(input_node.shape)
+        #max_pooling = self.max_pooling
+        #if max_pooling is None:
+        #    max_pooling = hp.Boolean("max_pooling", default=True)
+        #pool_layer = layer_utils.get_max_pooling(input_node.shape)
+
+        # pooling
+        if self.pooling=='max':
+            pool_layer = lib_snn.layers.MaxPool2D
+        elif self.pooling=='avg':
+            pool_layer = lib_snn.layers.AveragePooling2D
+        else:
+            assert False
 
         #
         use_batchnorm = self.use_batchnorm
@@ -426,14 +436,14 @@ class ConvBlock(block_module.Block):
                         #activation="relu",
                     )(output_node)
                     if use_batchnorm:
-                        output_node = layers.BatchNormalization()(output_node)
+                        output_node = layers.BatchNormalization(en_tdbn=tdbn)(output_node)
                     output_node = layers.ReLU()(output_node)
                     if j < num_layers-1:
                         if utils.add_to_hp(self.dropout, hp) > 0:
                             output_node = layers.Dropout(utils.add_to_hp(self.dropout, hp))(output_node)
 
-                if max_pooling:
-                    output_node = pool(
+                if self.pooling:
+                    output_node = pool_layer(
                         #kernel_size - 1,
                         (2,2), (2,2),
                         # sspark
@@ -442,25 +452,29 @@ class ConvBlock(block_module.Block):
                     )(output_node)
             else:
                 for j in range(utils.add_to_hp(self.num_layers, hp)):
+                    kernel_size = utils.add_to_hp(self.kernel_size, hp, "kernel_size_{i}_{j}".format(i=i,j=j))
                     filters = utils.add_to_hp(self.filters, hp, "filters_{i}_{j}".format(i=i, j=j))
                     # for tdbn_first_layer
                     if j == 0 and i == 0:
                         output_node = lib_snn.layers.Conv2D(filters, kernel_size=kernel_size,
-                                                            padding=self._get_padding(kernel_size, output_node)
+                                                            #padding=self._get_padding(kernel_size, output_node)
+                                                            padding='same'
                                                             )(output_node)
-                        output_node = lib_snn.layers.BatchNormalizations(en_tdbn=tdbn_first_layer)(output_node)
-                        output_node = lib_snn.activations.Activations(act_type=act_type)(output_node)
+                        output_node = lib_snn.layers.BatchNormalization(en_tdbn=tdbn)(output_node)
+                        output_node = lib_snn.activations.Activation(act_type=act_type)(output_node)
                     else:
                         output_node = lib_snn.layers.Conv2D(filters, kernel_size=kernel_size,
-                                                            padding=self._get_padding(kernel_size, output_node)
+                                                            #padding=self._get_padding(kernel_size, output_node)
+                                                            padding='same'
                                                             )(output_node)
-                        output_node = lib_snn.layers.BatchNormalizations(en_tdbn=tdbn)(output_node)
-                        output_node = lib_snn.activations.Activations(act_type=act_type)(output_node)
-                if max_pooling:
-                    output_node = lib_snn.layers.MaxPool2D(pool_size=(2, 2),
-                                                           strides=(2, 2),
-                                                           padding=self._get_padding(kernel_size - 1, output_node),
-                                                           )(output_node)
+                        output_node = lib_snn.layers.BatchNormalization(en_tdbn=tdbn)(output_node)
+                        output_node = lib_snn.activations.Activation(act_type=act_type)(output_node)
+                if self.pooling:
+                    output_node = pool_layer(pool_size=(2, 2),
+                                               strides=(2, 2),
+                                               #padding=self._get_padding(kernel_size - 1, output_node),
+                                                padding='valid'
+                                               )(output_node)
                     # output_node = lib_snn.layers.AveragePooling2D(
                     #                                     kernel_size - 1,
                     #                                     padding=self._get_padding(kernel_size - 1, output_node)
