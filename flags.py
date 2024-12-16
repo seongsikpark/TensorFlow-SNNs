@@ -833,6 +833,39 @@ flags.DEFINE_float('vrest_std', 0.1, 'initial value of vrest - std for static ra
 
 flags.DEFINE_bool('debug_grad',False,'debug gradient - requires more memory to hold grad_and_vars')
 
+#yc
+
+flags.DEFINE_bool('n_conv1_spike_count',False,'')
+flags.DEFINE_bool('all_layer_spike_count',False,'')
+flags.DEFINE_string('all_layer_SC_dir','./all_layer_SC','')
+flags.DEFINE_string('SEL_en','base','')
+flags.DEFINE_string('SEL_model_dataset','V16_C10','')
+flags.DEFINE_string('SEL_num','1','')
+flags.DEFINE_bool('low_test',False,'')
+#H-direct
+flags.DEFINE_bool('adaptive_vth_SEL',False,'adaptive vth spiking encoding layer')
+flags.DEFINE_float('adaptive_dec_vth_scale',0.9,'adaptive vth scale')
+flags.DEFINE_float('adaptive_inc_vth_scale',1.1,'adaptive vth scale')
+flags.DEFINE_bool('reg_psp_SEL',False,'regularization - psp - entropy')
+flags.DEFINE_bool('reg_psp_SEL_BN',False,'regularization - psp - BN')
+flags.DEFINE_bool('reg_psp_SEL_BN_const',False,'regularization - psp - BN_const')
+flags.DEFINE_bool('reg_psp_SEL_BN_ratio',False,'regularization - psp - BN_ratio')
+flags.DEFINE_float('reg_psp_SEL_const',1,'regularization - psp - entropy_SEL')
+flags.DEFINE_float('reg_psp_SEL_BN_gamma_const',0.65,'regularization - psp - BN_gamma_const')
+flags.DEFINE_float('reg_psp_SEL_BN_gamma_rate',1,'regularization - psp - BN_gamma_add_loss_rate')
+flags.DEFINE_float('reg_psp_SEL_BN_beta_const',0.6,'regularization - psp - BN_beta_const')
+flags.DEFINE_float('reg_psp_SEL_BN_beta_rate',1,'regularization - psp - BN_beta_add_loss_rate')
+flags.DEFINE_float('reg_psp_SEL_BN_ratio_value',1,'regularization - psp - BN_beta_add_loss_rate')
+flags.DEFINE_float('reg_psp_SEL_BN_ratio_rate',1,'regularization - psp - BN_beta_add_loss_rate')
+# RMP-loss
+
+flags.DEFINE_bool('rmp_en',False,'rmp-loss enable')
+flags.DEFINE_float('rmp_k',0.1,'controls the amplitude of regularization for rmp')
+
+# IM-loss
+
+flags.DEFINE_bool('im_en',False,'im-loss enable')
+flags.DEFINE_float('im_k',0.1,'controls the amplitude of regularization for im')
 ########################################
 # surrogate gradient parameters
 ########################################

@@ -30,8 +30,12 @@ from models.resnet import ResNet56V2
 # sew
 from models.resnet import ResNet20_SEW
 
+#ms
+from models.resnet import ResNet34_MS
+from models.resnet import ResNet18_MS
+from models.resnet import ResNet32_MS
 
-
+from models.spikformer import spikformer
 from models.mobilenet_v2 import MobileNetV2
 
 from models.efficientnet_v2 import EfficientNetV2S
@@ -67,10 +71,14 @@ model_sel_sc = {
     'ResNet50V2': ResNet50V2,
     'ResNet56V2': ResNet56V2,
     'ResNet20_SEW': ResNet20_SEW,
+    'ResNet34_MS': ResNet34_MS,
+    'ResNet32_MS': ResNet32_MS,
+    'ResNet18_MS': ResNet18_MS,
     'MobileNetV2': MobileNetV2,
     'EfficientNetV2S': EfficientNetV2S,
     'EfficientNetV2M': EfficientNetV2M,
     'EfficientNetV2L': EfficientNetV2L,
+    'Spikformer':spikformer
 }
 
 
