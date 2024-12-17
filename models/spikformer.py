@@ -212,7 +212,7 @@ def spikformer(
         B, H, W, C = tf.shape(x)[0], tf.shape(x)[1], tf.shape(x)[2], tf.shape(x)[3]
         x = tf.reshape(x, [-1, H, W, C])  # T*B, H, W, C
         syn_c1 = lib_snn.layers.Conv2D(embed_dims //8, kernel_size=3, padding='SAME', use_bn=use_bn_feat,kernel_initializer=k_init, name='sps_conv1')(x)
-        norm_c1 = tf.reshape(lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='sps_bn1')(syn_c1), [ B, -1, H, W])
+        norm_c1 = tf.reshape(lib_snn.layers.BatchNormalization(en_tdbn=tdbn_first_layer,name='sps_bn1')(syn_c1), [ B, -1, H, W])
         a_c1 = tf.reshape(lib_snn.activations.Activation(act_type=act_type,name='sps_lif1')(norm_c1), [-1, H, W, embed_dims // 8])
 
         syn_c2 = lib_snn.layers.Conv2D(embed_dims // 4, kernel_size=3, padding='SAME', use_bn=use_bn_feat, kernel_initializer=k_init, name='sps_conv2')(a_c1)
@@ -256,7 +256,8 @@ def spikformer(
 
     x = tf.keras.layers.GlobalAveragePooling1D()(x)
 
-    output_tensor = lib_snn.layers.Dense(classes, last_layer=True, kernel_initializer=k_init,name='predictions')(x) if classes > 0 else x
+    output_tensor = lib_snn.layers.Dense(classes, last_layer=True, kernel_initializer=k_init,name='predictions')(x)
+    a_p = lib_snn.activations.Activation(act_type='softmax',loc='OUT',name='n_predictions')(output_tensor)
     a_p = lib_snn.activations.Activation(act_type='softmax',name='a_predictions')(output_tensor)
     model = lib_snn.model.Model(input_tensor, a_p, batch_size, input_shape, classes, conf, name=model_name)
     return model
