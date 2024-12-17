@@ -111,84 +111,81 @@ def spikformer(
     tdbn_first_layer = conf.nn_mode=='SNN' and conf.input_spike_mode=='POISSON' and conf.tdbn
     tdbn = conf.nn_mode=='SNN' and conf.tdbn
 
+    def mlp(x, in_features, hidden_features=None, out_features=None):
+        out_features = out_features or in_features
+        hidden_features = hidden_features or in_features
+        B, N, C = tf.shape(x)[0], tf.shape(x)[1], tf.shape(x)[2]
+        # x_ = tf.reshape(x, [B,N,C])
+        x = lib_snn.layers.Dense(hidden_features, kernel_initializer=k_init, name='MLP_fc1_' + str(name_num))(x)
+        # x = tf.transpose(x, perm=[0,2,1])
+        x = lib_snn.layers.BatchNormalization(en_tdbn=tdbn, name='MLP_bn_fc1_' + str(name_num))(x)
+        # x = tf.transpose(x, perm=[0,2,1])
+        # x = tf.reshape(x, [B, N, hidden_features])
+        x = lib_snn.activations.Activation(act_type=act_type, name='MLP_n_fc1_' + str(name_num))(x)
 
+        x = tf.reshape(x, [B, N, hidden_features])
+        x = lib_snn.layers.Dense(out_features, kernel_initializer=k_init, name='MLP_fc2_' + str(name_num))(x)
+        # x = tf.transpose(x, perm=[0,2,1])
+        x = lib_snn.layers.BatchNormalization(en_tdbn=tdbn, name='MLP_bn_fc2_' + str(name_num))(x)
+        # x = tf.transpose(x, perm=[0,2,1])
+        # x = tf.reshape(x, [B, N, out_features])
+        x = lib_snn.activations.Activation(act_type=act_type, name='MLP_n_fc2_' + str(name_num))(x)
 
+        return x
 
+    def ssa(x, dim, num_heads=12, qkv_bias=False, qk_scale=None, attn_drop=0., proj_drop=0., sr_ratio=1):
+
+        assert dim % num_heads ==0, f"dim {dim} should be divisible by num_heads {num_heads}."
+        B, N, C = tf.shape(x)[0], tf.shape(x)[1], tf.shape(x)[2]
+        scale = 0.125
+        x_for_qkv = tf.reshape(x, [ B, N, C])
+
+        q_linear_out = lib_snn.layers.Dense(dim,kernel_initializer=k_init, name='q_fc'+str(name_num))(x_for_qkv)
+        # q_linear_out = tf.transpose(q_linear_out, perm=[0, 2, 1])
+        q_linear_out = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='q_bn'+str(name_num))(q_linear_out)
+        # q_linear_out = tf.transpose(q_linear_out, perm=[0, 2, 1])
+        # q_linear_out = tf.reshape(q_linear_out, [ B, N, C])
+        q_linear_out = lib_snn.activations.Activation(act_type=act_type, name='ssa_q_lif'+str(name_num))(q_linear_out)
+        q = tf.reshape(q_linear_out,  [B, N, num_heads, C // num_heads])
+        q = tf.transpose(q, perm=[0, 2,1, 3,])  # Rearrange dimensions
+
+        k_linear_out = lib_snn.layers.Dense(dim,kernel_initializer=k_init, name='k_fc'+str(name_num))(x_for_qkv)
+        # k_linear_out = tf.transpose(k_linear_out, perm=[0, 2, 1])
+        k_linear_out = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='k_bn'+str(name_num))(k_linear_out)
+        # k_linear_out = tf.transpose(k_linear_out, perm=[0, 2, 1])
+        # k_linear_out = tf.reshape(k_linear_out, [ B, N, C])
+        k_linear_out = lib_snn.activations.Activation(act_type=act_type, name='ssa_k_lif'+str(name_num))(k_linear_out)
+        k = tf.reshape(k_linear_out, [ B, N, num_heads, C // num_heads])
+        k = tf.transpose(k, perm=[0,2, 1, 3])
+
+        v_linear_out = lib_snn.layers.Dense(dim,kernel_initializer=k_init, name='v_fc'+str(name_num))(x_for_qkv)
+        # v_linear_out = tf.transpose(v_linear_out, perm=[0, 2, 1])
+        v_linear_out = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='v_bn'+str(name_num))(v_linear_out)
+        # v_linear_out = tf.transpose(v_linear_out, perm=[0, 2, 1])
+        # v_linear_out = tf.reshape(v_linear_out, [ B, N, C])
+        v_linear_out = lib_snn.activations.Activation(act_type=act_type, name='ssa_v_lif'+str(name_num))(v_linear_out)
+        v = tf.reshape(v_linear_out, [ B, N, num_heads, C // num_heads])
+        v = tf.transpose(v, perm=[0, 2, 1, 3])
+
+        attn = tf.matmul(q, k, transpose_b=True) * scale
+        x = tf.matmul(attn, v)
+
+        x = tf.transpose(x, perm=[0, 1, 2, 3 ])  # [T, B, N, num_heads, head_dim]
+        x = tf.reshape(x, [ B, N, C])  # Combine head_dim and num_heads
+        x = lib_snn.activations.Activation(act_type=act_type, name='ssa_att_lif'+str(name_num))(x)
+
+        x = tf.reshape(x, [ B, N, C])  # Flatten T and B axes
+        x = lib_snn.layers.Dense(dim,kernel_initializer=k_init, name='proj_fc'+str(name_num))(x)
+        x = tf.transpose(x, perm=[0, 2, 1])  # Transpose for BatchNorm
+        x = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='proj_bn'+str(name_num))(x)
+        x = tf.transpose(x, perm=[0, 2, 1])
+        x = tf.reshape(x, [ B, N, C])
+        x = lib_snn.activations.Activation(act_type=act_type, name='ssa_proj_lif'+str(name_num))(x)
+
+        return x
     def block(x, dim, num_heads,name_num=0, mlp_ratio=4., qkv_bias=False, qk_scale=None, drop=0., attn_drop=0.,
               drop_path=0., norm_layer=LayerNormalization, sr_ratio=1):
 
-        def mlp(x, in_features, hidden_features=None, out_features=None):
-            out_features = out_features or in_features
-            hidden_features = hidden_features or in_features
-            B,N,C = tf.shape(x)[0],tf.shape(x)[1], tf.shape(x)[2]
-            # x_ = tf.reshape(x, [B,N,C])
-            x = lib_snn.layers.Dense(hidden_features,kernel_initializer=k_init,  name='MLP_fc1_'+str(name_num))(x)
-            # x = tf.transpose(x, perm=[0,2,1])
-            x = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='MLP_bn_fc1_'+str(name_num))(x)
-            # x = tf.transpose(x, perm=[0,2,1])
-            # x = tf.reshape(x, [B, N, hidden_features])
-            x = lib_snn.activations.Activation(act_type=act_type,name='MLP_n_fc1_'+str(name_num))(x)
-
-            x = tf.reshape(x, [B,N,hidden_features])
-            x = lib_snn.layers.Dense(out_features,kernel_initializer=k_init, name='MLP_fc2_'+str(name_num))(x)
-            # x = tf.transpose(x, perm=[0,2,1])
-            x = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='MLP_bn_fc2_'+str(name_num))(x)
-            # x = tf.transpose(x, perm=[0,2,1])
-            # x = tf.reshape(x, [B, N, out_features])
-            x = lib_snn.activations.Activation(act_type=act_type,name='MLP_n_fc2_'+str(name_num))(x)
-
-            return x
-
-        def ssa(x, dim, num_heads=12, qkv_bias=False, qk_scale=None, attn_drop=0., proj_drop=0., sr_ratio=1):
-
-            assert dim % num_heads ==0, f"dim {dim} should be divisible by num_heads {num_heads}."
-            B, N, C = tf.shape(x)[0], tf.shape(x)[1], tf.shape(x)[2]
-            scale = 0.125
-            x_for_qkv = tf.reshape(x, [ B, N, C])
-
-            q_linear_out = lib_snn.layers.Dense(dim,kernel_initializer=k_init, name='q_fc'+str(name_num))(x_for_qkv)
-            # q_linear_out = tf.transpose(q_linear_out, perm=[0, 2, 1])
-            q_linear_out = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='q_bn'+str(name_num))(q_linear_out)
-            # q_linear_out = tf.transpose(q_linear_out, perm=[0, 2, 1])
-            # q_linear_out = tf.reshape(q_linear_out, [ B, N, C])
-            q_linear_out = lib_snn.activations.Activation(act_type=act_type, name='ssa_q_lif'+str(name_num))(q_linear_out)
-            q = tf.reshape(q_linear_out,  [B, N, num_heads, C // num_heads])
-            q = tf.transpose(q, perm=[0, 2,1, 3,])  # Rearrange dimensions
-
-            k_linear_out = lib_snn.layers.Dense(dim,kernel_initializer=k_init, name='k_fc'+str(name_num))(x_for_qkv)
-            # k_linear_out = tf.transpose(k_linear_out, perm=[0, 2, 1])
-            k_linear_out = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='k_bn'+str(name_num))(k_linear_out)
-            # k_linear_out = tf.transpose(k_linear_out, perm=[0, 2, 1])
-            # k_linear_out = tf.reshape(k_linear_out, [ B, N, C])
-            k_linear_out = lib_snn.activations.Activation(act_type=act_type, name='ssa_k_lif'+str(name_num))(k_linear_out)
-            k = tf.reshape(k_linear_out, [ B, N, num_heads, C // num_heads])
-            k = tf.transpose(k, perm=[0,2, 1, 3])
-
-            v_linear_out = lib_snn.layers.Dense(dim,kernel_initializer=k_init, name='v_fc'+str(name_num))(x_for_qkv)
-            # v_linear_out = tf.transpose(v_linear_out, perm=[0, 2, 1])
-            v_linear_out = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='v_bn'+str(name_num))(v_linear_out)
-            # v_linear_out = tf.transpose(v_linear_out, perm=[0, 2, 1])
-            # v_linear_out = tf.reshape(v_linear_out, [ B, N, C])
-            v_linear_out = lib_snn.activations.Activation(act_type=act_type, name='ssa_v_lif'+str(name_num))(v_linear_out)
-            v = tf.reshape(v_linear_out, [ B, N, num_heads, C // num_heads])
-            v = tf.transpose(v, perm=[0, 2, 1, 3])
-
-            attn = tf.matmul(q, k, transpose_b=True) * scale
-            x = tf.matmul(attn, v)
-
-            x = tf.transpose(x, perm=[0, 1, 2, 3 ])  # [T, B, N, num_heads, head_dim]
-            x = tf.reshape(x, [ B, N, C])  # Combine head_dim and num_heads
-            x = lib_snn.activations.Activation(act_type=act_type, name='ssa_att_lif'+str(name_num))(x)
-
-            x = tf.reshape(x, [ B, N, C])  # Flatten T and B axes
-            x = lib_snn.layers.Dense(dim,kernel_initializer=k_init, name='proj_fc'+str(name_num))(x)
-            x = tf.transpose(x, perm=[0, 2, 1])  # Transpose for BatchNorm
-            x = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='proj_bn'+str(name_num))(x)
-            x = tf.transpose(x, perm=[0, 2, 1])
-            x = tf.reshape(x, [ B, N, C])
-            x = lib_snn.activations.Activation(act_type=act_type, name='ssa_proj_lif'+str(name_num))(x)
-
-            return x
         norm1 = norm_layer(axis=-1)
         norm2 = norm_layer(axis=-1)
 
@@ -252,7 +249,7 @@ def spikformer(
         x = block(x, dim=embed_dims, num_heads=num_heads,
                   mlp_ratio=mlp_ratios, qkv_bias=qkv_bias, qk_scale=qk_scale,
                   drop=drop_rate, attn_drop=attn_drop_rate, drop_path=drop_path_rate,
-                  norm_layer=LayerNormalization, sr_ratio=sr_ratios,name_num=i)
+                  norm_layer=LayerNormalization, sr_ratio=sr_ratios, name_num=i)
 
     x = tf.keras.layers.GlobalAveragePooling1D()(x)
 
