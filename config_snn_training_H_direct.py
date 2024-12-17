@@ -8,7 +8,7 @@ import os
 #os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["NCCL_P2P_DISABLE"]="0"
-os.environ["CUDA_VISIBLE_DEVICES"]='0'
+os.environ["CUDA_VISIBLE_DEVICES"]='1'
 #
 from config import config
 conf = config.flags
@@ -82,7 +82,7 @@ conf.SEL_model_dataset = 'V16_C10'
 # conf.num_train_data = 10000
 
 if conf.SEL_model_dataset == 'V16_C10':
-    conf.model='VGG16'
+    conf.model='Spikformer'
     conf.dataset = 'CIFAR10'
     if conf.im_en:
         conf.adaptive_dec_vth_scale = 0.8

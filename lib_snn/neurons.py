@@ -5,6 +5,7 @@ np.set_printoptions(linewidth=np.inf)
 
 
 import tensorflow as tf
+import tensorflow_probability as tfp
 from keras import backend
 
 import lib_snn

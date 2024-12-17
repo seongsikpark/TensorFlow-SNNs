@@ -841,6 +841,7 @@ flags.DEFINE_string('all_layer_SC_dir','./all_layer_SC','')
 flags.DEFINE_string('SEL_en','base','')
 flags.DEFINE_string('SEL_model_dataset','V16_C10','')
 flags.DEFINE_string('SEL_num','1','')
+flags.DEFINE_bool('SEL_noise_en_spike',False,'')
 flags.DEFINE_bool('low_test',False,'')
 #H-direct
 flags.DEFINE_bool('adaptive_vth_SEL',False,'adaptive vth spiking encoding layer')
