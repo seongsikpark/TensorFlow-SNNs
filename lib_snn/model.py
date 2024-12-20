@@ -2045,7 +2045,8 @@ class Model(tf.keras.Model):
                     else:
                         assert False, 'compute gradients'
 
-
+                # for grad, var in grads_accum_and_vars:
+                #     print(f"Grad shape: {grad.shape}, Var shape: {var.shape,var.name}")
                 #
                 self.optimizer.apply_gradients(grads_accum_and_vars)
 

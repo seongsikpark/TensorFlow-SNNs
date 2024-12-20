@@ -24,7 +24,8 @@ conf.root_model_save = './ICLR2025/ImageNet/1/'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/ours_ms/'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/ours_resnet/'
 conf.name_model_load= '/home/ssparknas/test1'
-
+conf.optimizer = 'ADAM'
+conf.learning_rate = 5e-4
 # conf.mode='inference'
 # conf.n_conv1_spike_count = True
 # conf.all_layer_spike_count = True
@@ -36,7 +37,7 @@ conf.name_model_load= '/home/ssparknas/test1'
 # conf.im_en = 'True'
 # conf.im_k = 0.001
 #
-# conf.SEL_en = 'base'
+conf.SEL_en = 'base'
 # conf.SEL_en = 'AT'
 # conf.SEL_en = 'FD'
 # conf.SEL_en = 'DFE'
