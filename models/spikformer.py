@@ -8,16 +8,20 @@ def mlp(x, in_features,k_init,tdbn, name_num=0, hidden_features=None, out_featur
     hidden_features = hidden_features or in_features
 
     B, N, C = x.shape[0],x.shape[1],x.shape[2]
+    # x = tf.keras.layers.TimeDistributed(lib_snn.layers.Dense(hidden_features,kernel_initializer=k_init,name='MLP_fc1_'+str(name_num)))(x)
+    # x = tf.keras.layers.Flatten(name='MLP_f1_'+str(name_num))(x)
     x = lib_snn.layers.Dense(hidden_features, kernel_initializer=k_init, name='MLP_fc1_' + str(name_num))(x)
-    x = tf.keras.layers.Flatten(name='MLP_f1'+str(name_num))(x)
+    x = tf.keras.layers.Lambda(lambda x: tf.reshape(x, (B*N,hidden_features)))(x)
     x = lib_snn.layers.BatchNormalization(en_tdbn=tdbn, name='MLP_bn_fc1_' + str(name_num))(x)
-    x = tf.keras.layers.Reshape((N,hidden_features))(x)
+    x = tf.keras.layers.Lambda(lambda x: tf.reshape(x, (B,N,hidden_features)))(x)
     x = lib_snn.activations.Activation(act_type=act_type, name='MLP_n_fc1_' + str(name_num))(x)
 
+    # x = tf.keras.layers.TimeDistributed(lib_snn.layers.Dense(out_features,kernel_initializer=k_init,name='MLP_fc2_'+str(name_num)))(x)
+    # x = tf.keras.layers.Flatten(name='MLP_f2_'+str(name_num))(x)
     x = lib_snn.layers.Dense(out_features, kernel_initializer=k_init, name='MLP_fc2_' + str(name_num))(x)
-    x = tf.keras.layers.Flatten(name='MLP_f2'+str(name_num))(x)
+    x = tf.keras.layers.Lambda(lambda x: tf.reshape(x, (B*N,out_features)))(x)
     x = lib_snn.layers.BatchNormalization(en_tdbn=tdbn, name='MLP_bn_fc2_' + str(name_num))(x)
-    x = tf.keras.layers.Reshape(( N, C))(x)
+    x = tf.keras.layers.Lambda(lambda x: tf.reshape(x, (B,N,out_features)))(x)
     x = lib_snn.activations.Activation(act_type=act_type, name='MLP_n_fc2_' + str(name_num))(x)
     return x
 
@@ -27,26 +31,36 @@ def ssa(x, dim,k_init,tdbn, num_heads=12, name_num=0, qkv_bias=False, qk_scale=N
     B, N, C = x.shape[0],x.shape[1],x.shape[2]
     scale = 0.125
     x_for_qkv = x
-    q_d = lib_snn.layers.Dense(dim, kernel_initializer=k_init, name='q_fc' + str(name_num))(x_for_qkv)
-    q_d = lib_snn.layers.Flatten(data_format='channels_last',name='q_f'+str(name_num))(q_d)
+    # q_d = lib_snn.layers.Flatten(data_format='channels_last',name='q_f'+str(name_num))(x_for_qkv)
+    q_d = lib_snn.layers.Dense(C, kernel_initializer=k_init, name='q_fc' + str(name_num))(x_for_qkv)
+    # q_d = tf.keras.layers.TimeDistributed(lib_snn.layers.Dense(C, kernel_initializer=k_init, name='q_fc' + str(name_num)))(x_for_qkv)
+    # q_d = lib_snn.layers.Flatten(data_format='channels_last',name='q_f'+str(name_num))(q_d)
+    q_d = tf.keras.layers.Lambda(lambda x: tf.reshape(x, (B*N,C)))(q_d)
     q_b = lib_snn.layers.BatchNormalization(en_tdbn=tdbn, name='q_bn' + str(name_num))(q_d)
-    q_b = tf.keras.layers.Reshape(( N, C))(q_b)
+    q_b = tf.keras.layers.Lambda(lambda x: tf.reshape(x, (B,N,C)))(q_b)
     q_a = lib_snn.activations.Activation(act_type=act_type, name='ssa_q_lif' + str(name_num))(q_b)
     q = tf.keras.layers.Reshape((N,num_heads, C // num_heads))(q_a)
     q= tf.keras.layers.Lambda(lambda x : tf.transpose(x, perm=[0,2,1,3]))(q)
 
-    k_d = lib_snn.layers.Dense(dim, kernel_initializer=k_init, name='k_fc' + str(name_num))(x_for_qkv)
-    k_d = lib_snn.layers.Flatten(data_format='channels_last',name='k_f'+str(name_num))(k_d)
+    # k_d = lib_snn.layers.Flatten(data_format='channels_last',name='k_f'+str(name_num))(x_for_qkv)
+    k_d = lib_snn.layers.Dense(C, kernel_initializer=k_init, name='k_fc' + str(name_num))(x_for_qkv)
+    # k_d = tf.keras.layers.TimeDistributed(lib_snn.layers.Dense(C, kernel_initializer=k_init, name='k_fc' + str(name_num)))(x_for_qkv)
+    # k_d = tf.keras.layers.Reshape((B*N,C))(k_d)
+    k_d = tf.keras.layers.Lambda(lambda x: tf.reshape(x, (B*N,C)))(k_d)
+    # k_d = lib_snn.layers.Flatten(data_format='channels_last',name='k_f'+str(name_num))(k_d)
     k_b = lib_snn.layers.BatchNormalization(en_tdbn=tdbn, name='k_bn' + str(name_num))(k_d)
-    k_b = tf.keras.layers.Reshape(( N, C))(k_b)
+    k_b = tf.keras.layers.Lambda(lambda x: tf.reshape(x, (B,N,C)))(k_b)
     k_a = lib_snn.activations.Activation(act_type=act_type, name='ssa_k_lif' + str(name_num))(k_b)
     k = tf.keras.layers.Reshape((N, num_heads, C//num_heads))(k_a)
     k= tf.keras.layers.Lambda(lambda x : tf.transpose(x, perm=[0,2,1,3]))(k)
 
-    v_d= lib_snn.layers.Dense(dim, kernel_initializer=k_init, name='v_fc' + str(name_num))(x_for_qkv)
-    v_d = lib_snn.layers.Flatten(data_format='channels_last',name='v_f'+str(name_num))(v_d)
+    # v_d = lib_snn.layers.Flatten(data_format='channels_last',name='v_f'+str(name_num))(x_for_qkv)
+    v_d = lib_snn.layers.Dense(C, kernel_initializer=k_init, name='v_fc' + str(name_num))(x_for_qkv)
+    # v_d = tf.keras.layers.TimeDistributed(lib_snn.layers.Dense(C, kernel_initializer=k_init, name='v_c' + str(name_num)))(x_for_qkv)
+    # v_d = lib_snn.layers.Flatten(data_format='channels_last',name='v_f'+str(name_num))(v_d)
+    v_d = tf.keras.layers.Lambda(lambda x: tf.reshape(x, (B*N,C)))(v_d)
     v_b= lib_snn.layers.BatchNormalization(en_tdbn=tdbn, name='v_bn' + str(name_num))(v_d)
-    v_b = tf.keras.layers.Reshape(( N, C))(v_b)
+    v_b = tf.keras.layers.Lambda(lambda x: tf.reshape(x, (B,N,C)))(v_b)
     v_a = lib_snn.activations.Activation(act_type=act_type, name='ssa_v_lif' + str(name_num))(v_b)
     v = tf.keras.layers.Reshape((N, num_heads, C//num_heads))(v_a)
     v= tf.keras.layers.Lambda(lambda x : tf.transpose(x, perm=[0,2,1,3]))(v)
@@ -59,10 +73,13 @@ def ssa(x, dim,k_init,tdbn, num_heads=12, name_num=0, qkv_bias=False, qk_scale=N
     x = tf.keras.layers.Reshape((N,C))(x)
     x = lib_snn.activations.Activation(act_type=act_type, name='ssa_att_lif' + str(name_num))(x)
 
-    x = lib_snn.layers.Dense(dim, kernel_initializer=k_init, name='proj_fc' + str(name_num))(x)
-    x = lib_snn.layers.Flatten(data_format='channels_last',name='proj_f'+str(name_num))(x)
+    # x = lib_snn.layers.Flatten(data_format='channels_last',name='proj_f'+str(name_num))(x)
+    x = lib_snn.layers.Dense(C, kernel_initializer=k_init, name='proj_fc' + str(name_num))(x)
+    # x = tf.keras.layers.TimeDistributed(lib_snn.layers.Dense(C,kernel_initializer=k_init,name='MLP_fc2_'+str(name_num)))(x)
+    # x = lib_snn.layers.Flatten(data_format='channels_last',name='proj_f'+str(name_num))(x)
+    x = tf.keras.layers.Lambda(lambda x: tf.reshape(x, (B*N,C)))(x)
     x = lib_snn.layers.BatchNormalization(en_tdbn=tdbn, name='proj_bn' + str(name_num))(x)
-    x = tf.keras.layers.Reshape(( N, C))(x)
+    x = tf.keras.layers.Lambda(lambda x: tf.reshape(x, (B,N,C)))(x)
     x = lib_snn.activations.Activation(act_type=act_type, name='ssa_proj_lif' + str(name_num))(x)
 
     return x
@@ -70,16 +87,17 @@ def ssa(x, dim,k_init,tdbn, num_heads=12, name_num=0, qkv_bias=False, qk_scale=N
 
 def block(x, dim, num_heads,k_init,tdbn, name_num=0, mlp_ratio=4., qkv_bias=False, qk_scale=None, drop=0., attn_drop=0.,
           drop_path=0., norm_layer=LayerNormalization, sr_ratio=1):
-    norm1 = norm_layer(axis=-1)
-    norm2 = norm_layer(axis=-1)
-
+    # norm1 = norm_layer(axis=-1)
+    # norm2 = norm_layer(axis=-1)
+    norm1 = x
+    norm2 = x
     mlp_hidden_dim = int(dim * mlp_ratio)
     block_in = x
-    attn_out = ssa(block_in, dim=dim,k_init=k_init,tdbn=tdbn, num_heads=num_heads, qkv_bias=qkv_bias,
+    attn_out = ssa(norm1, dim=dim,k_init=k_init,tdbn=tdbn, num_heads=num_heads, qkv_bias=qkv_bias,
                    qk_scale=qk_scale, attn_drop=attn_drop, proj_drop=drop, sr_ratio=sr_ratio, name_num=name_num)
     x = lib_snn.layers.Add(name='sps_attn_'+str(name_num))([block_in,attn_out])
 
-    mlp_out = mlp(x, name_num=name_num,k_init=k_init,tdbn=tdbn, in_features=dim, hidden_features=mlp_hidden_dim, out_features=dim)
+    mlp_out = mlp(norm2, name_num=name_num,k_init=k_init,tdbn=tdbn, in_features=dim, hidden_features=mlp_hidden_dim, out_features=dim)
     x = lib_snn.layers.Add(name='sps_attn_mlp'+str(name_num))([x,mlp_out])
 
     return x
@@ -132,7 +150,7 @@ def spikformer(
         embed_dims=384,
         num_heads=12,
         classes=1000,
-        mlp_ratios=4,
+        mlp_ratios=1,
         qkv_bias=False,
         qk_scale=None,
         drop_rate=0.,
@@ -229,8 +247,8 @@ def spikformer(
     # x_f =tf.keras.layers.Flatten(data_format=data_format,name='flatten')(block_x)
     gap_x = tf.keras.layers.GlobalAveragePooling1D(data_format=data_format)(block_x)
     output_tensor = lib_snn.layers.Dense(classes, last_layer=True, kernel_initializer=k_init,name='predictions')(gap_x)
-    # a_p = lib_snn.activations.Activation(act_type=act_type_out,loc='OUT',name='n_predictions')(output_tensor)
-    # a_p = lib_snn.activations.Activation(act_type='softmax',name='a_predictions')(a_p)
-    # model = lib_snn.model.Model(input_tensor, a_p, batch_size, input_shape, classes, conf, name=model_name)
-    model = lib_snn.model.Model(input_tensor, output_tensor, batch_size, input_shape, classes, conf, name=model_name)
+    a_p = lib_snn.activations.Activation(act_type=act_type_out,loc='OUT',name='n_predictions')(output_tensor)
+    a_p = lib_snn.activations.Activation(act_type='softmax',name='a_predictions')(a_p)
+    model = lib_snn.model.Model(input_tensor, a_p, batch_size, input_shape, classes, conf, name=model_name)
+    # model = lib_snn.model.Model(input_tensor, output_tensor, batch_size, input_shape, classes, conf, name=model_name)
     return model
