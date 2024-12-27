@@ -8,7 +8,7 @@ import os
 #os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["NCCL_P2P_DISABLE"]="0"
-os.environ["CUDA_VISIBLE_DEVICES"]='7'
+os.environ["CUDA_VISIBLE_DEVICES"]='4'
 #
 from config import config
 conf = config.flags
@@ -18,15 +18,17 @@ conf.save_best_model_only = True
 conf.save_models_max_to_keep = 1
 
 ######
-conf.root_model_save = './ICLR2025/ImageNet/1/'
+conf.root_model_save = '/mnt/hdd1/kyccj/H_direct/1/'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/resnet/'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/ms/'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/ours_ms/'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/ours_resnet/'
 conf.name_model_load= '/home/ssparknas/test1'
 conf.optimizer = 'ADAM'
-conf.tdbn= False
-conf.learning_rate = 5e-4
+# conf.data_aug_mix = 'mixup'
+# conf.lr_schedule = 'COS'
+# conf.tdbn= False
+conf.learning_rate = 1e-3
 # conf.mode='inference'
 # conf.n_conv1_spike_count = True
 # conf.all_layer_spike_count = True
@@ -43,10 +45,10 @@ conf.SEL_en = 'base'
 # conf.SEL_en = 'FD'
 # conf.SEL_en = 'DFE'
 # conf.SEL_en = 'AT+FD'
-conf.SEL_en = 'ours'
+# conf.SEL_en = 'ours'
 
 # conf.num_train_data = 100
-conf.SEL_model_dataset = 'V16_C10'
+# conf.SEL_model_dataset = 'V16_C10'
 # conf.SEL_model_dataset = 'V16_C100'
 # conf.SEL_model_dataset = 'V16_DVS'
 # conf.SEL_model_dataset = 'R19_C10'
@@ -57,6 +59,10 @@ conf.SEL_model_dataset = 'V16_C10'
 # conf.SEL_model_dataset = 'R20_DVS'
 # conf.SEL_model_dataset = 'MS34_ImageNet'
 # conf.SEL_model_dataset = '34_ImageNet'
+# conf.SEL_model_dataset = 'Spik_C10'
+conf.SEL_model_dataset = 'Spik_C100'
+# conf.SEL_model_dataset = 'Spik_Img'
+# conf.SEL_model_dataset = 'Spik_DVS'
 
 
 # conf.batch_size_inf=100
@@ -78,14 +84,11 @@ conf.SEL_model_dataset = 'V16_C10'
 
 
 #For ImageNet
-# conf.batch_size = 200
-# conf.train_epoch = 90
-# conf.step_decay_epoch = 30
+
 # conf.num_train_data = 10000
 
 if conf.SEL_model_dataset == 'V16_C10':
-    conf.model='Spikformer'
-    # conf.model='VGG16'
+    conf.model='VGG16'
     conf.dataset = 'CIFAR10'
     if conf.im_en:
         conf.adaptive_dec_vth_scale = 0.8
@@ -167,13 +170,63 @@ elif conf.SEL_model_dataset == '34_ImageNet':
     conf.reg_psp_SEL_const = 3e-3
     conf.reg_psp_SEL_BN_ratio_value = -1
     conf.reg_psp_SEL_BN_ratio_rate = 1e-4
-
-
+elif conf.SEL_model_dataset == 'Spik_C10':
+    conf.model='Spikformer'
+    conf.dataset = 'CIFAR10'
+    conf.patch_size = 4
+    conf.embed_dims = 384
+    conf.num_heads = 12
+    conf.depths = 4
+    conf.sr_ratios = 8
+    conf.adaptive_dec_vth_scale = 0.8
+    conf.reg_psp_SEL_const = 5e-6
+    conf.reg_psp_SEL_BN_ratio_value = -0.8
+    conf.reg_psp_SEL_BN_ratio_rate = 1e-4
+elif conf.SEL_model_dataset == 'Spik_C100':
+    conf.model='Spikformer'
+    conf.dataset = 'CIFAR100'
+    conf.patch_size = 4
+    conf.embed_dims = 384
+    conf.num_heads = 12
+    conf.depths = 4
+    conf.sr_ratios = 8
+    conf.adaptive_dec_vth_scale = 0.8
+    conf.reg_psp_SEL_const = 5e-6
+    conf.reg_psp_SEL_BN_ratio_value = -0.8
+    conf.reg_psp_SEL_BN_ratio_rate = 1e-4
+elif conf.SEL_model_dataset == 'Spik_Img':
+    conf.model='Spikformer'
+    conf.dataset = 'ImageNet'
+    conf.patch_size = 16
+    conf.embed_dims = 512
+    conf.num_heads = 16
+    conf.depths = 20
+    conf.sr_ratios = 8
+    conf.adaptive_dec_vth_scale = 0.8
+    conf.reg_psp_SEL_const = 5e-6
+    conf.reg_psp_SEL_BN_ratio_value = -0.8
+    conf.reg_psp_SEL_BN_ratio_rate = 1e-4
+elif conf.SEL_model_dataset == 'Spik_DVS':
+    conf.model='Spikformer'
+    conf.dataset = 'CIFAR10_DVS'
+    conf.batch_size = 16
+    conf.patch_size = 16
+    conf.embed_dims = 256
+    conf.num_heads = 16
+    conf.depths = 4
+    conf.sr_ratios = 8
+    conf.adaptive_dec_vth_scale = 0.8
+    conf.reg_psp_SEL_const = 5e-6
+    conf.reg_psp_SEL_BN_ratio_value = -0.8
+    conf.reg_psp_SEL_BN_ratio_rate = 1e-4
 
 if conf.dataset == 'CIFAR10_DVS':
     conf.learning_rate = 0.01
     conf.time_step = 4
-
+if conf.dataset == 'ImageNet':
+    conf.batch_size = 50
+    conf.train_epoch = 90
+    conf.step_decay_epoch = 30
 conf.pooling_vgg = 'avg'
 
 conf.nn_mode = 'SNN'

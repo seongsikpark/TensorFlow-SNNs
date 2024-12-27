@@ -75,12 +75,17 @@ def model_builder(
 
     metric_accuracy.name = metric_name_acc
     metric_accuracy_top5.name = metric_name_acc_top5
-
-    #
-    model_top = model_top(batch_size=batch_size, input_shape=image_shape, conf=conf,
-                          model_name=model_name, weights=load_weight,
-                          dataset_name=dataset_name, classes=num_class,
-                          include_top=include_top)
+    if conf.model == 'Spikformer':
+        model_top = model_top(batch_size=batch_size, input_shape=image_shape, conf=conf,
+                              model_name=model_name, weights=load_weight,
+                              dataset_name=dataset_name, classes=num_class,
+                              include_top=include_top, patch_size=conf.patch_size, embed_dims=conf.embed_dims,
+                              num_heads=conf.num_heads, depths=conf.depths, sr_ratios=conf.sr_ratios)
+    else:
+        model_top = model_top(batch_size=batch_size, input_shape=image_shape, conf=conf,
+                              model_name=model_name, weights=load_weight,
+                              dataset_name=dataset_name, classes=num_class,
+                              include_top=include_top)
 
 
     # set distribute strategy

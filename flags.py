@@ -867,6 +867,13 @@ flags.DEFINE_float('rmp_k',0.1,'controls the amplitude of regularization for rmp
 
 flags.DEFINE_bool('im_en',False,'im-loss enable')
 flags.DEFINE_float('im_k',0.1,'controls the amplitude of regularization for im')
+
+#Spikformer
+flags.DEFINE_integer('patch_size',4,'patch size for CIFAR')
+flags.DEFINE_integer('embed_dims',384,'embed_dims for CIFAR')
+flags.DEFINE_integer('num_heads',12,'num_heads for CIFAR')
+flags.DEFINE_integer('depths',8,'num of layers for CIFAR')
+flags.DEFINE_integer('sr_ratios',4,'patch size for CIFAR')
 ########################################
 # surrogate gradient parameters
 ########################################

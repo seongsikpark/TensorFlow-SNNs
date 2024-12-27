@@ -33,6 +33,8 @@ preprocessor_input_imagenet = {
     'ResNet32': ResNet_preprocess_input,
     'ResNet34': ResNet_preprocess_input,
     'ResNet50': ResNet_preprocess_input,
+    'ResNet34_MS':ResNet_preprocess_input,
+    'Spikformer' : ResNet_preprocess_input,
     'ResNet101': ResNet_preprocess_input,
     'ResNet152': ResNet_preprocess_input,
     'ResNet50V2': ResNetV2_preprocess_input,
