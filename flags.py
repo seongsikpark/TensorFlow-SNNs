@@ -874,6 +874,9 @@ flags.DEFINE_integer('embed_dims',384,'embed_dims for CIFAR')
 flags.DEFINE_integer('num_heads',12,'num_heads for CIFAR')
 flags.DEFINE_integer('depths',8,'num of layers for CIFAR')
 flags.DEFINE_integer('sr_ratios',4,'patch size for CIFAR')
+
+#AdamW
+flags.DEFINE_float('weight_decay_AdamW',1e-6,'weight_decay_factor')
 ########################################
 # surrogate gradient parameters
 ########################################

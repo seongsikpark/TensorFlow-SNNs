@@ -1,5 +1,6 @@
 
 import tensorflow as tf
+import tensorflow_addons as tfa
 import keras
 
 import lib_snn
@@ -108,7 +109,8 @@ def model_builder(
     step_decay_epoch = conf.step_decay_epoch
 
     if lr_schedule == 'COS':
-        learning_rate = tf.keras.optimizers.schedules.CosineDecay(learning_rate, train_steps_per_epoch * train_epoch)
+        # learning_rate = tf.keras.optimizers.schedules.CosineDecay(learning_rate, train_steps_per_epoch * train_epoch)
+        learning_rate = tf.keras.optimizers.schedules.CosineDecay(learning_rate, train_steps_per_epoch * train_epoch, alpha=1e-4)
     elif lr_schedule == 'COSR':
         learning_rate = tf.keras.optimizers.schedules.CosineDecayRestarts(learning_rate, lr_schedule_first_decay_step)
     elif lr_schedule == 'STEP':
@@ -137,10 +139,11 @@ def model_builder(
             optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate, name='ADAM',clipnorm=conf.grad_clipnorm)
     elif opt == 'ADAMW':
         learning_rate = learning_rate
+        weight_decay = conf.weight_decay_AdamW
         if conf.grad_clipnorm == None:
-            optimizer = tf.keras.optimizers.experimental.AdamW(learning_rate=learning_rate, name='ADAMW')
+            optimizer = tfa.optimizers.AdamW(weight_decay=weight_decay,learning_rate=learning_rate, name='ADAMW')
         else:
-            optimizer = tf.keras.optimizers.experimental.AdamW(learning_rate=learning_rate, name='ADAMW', clipnorm=conf.grad_clipnorm)
+            optimizer = tfa.optimizers.AdamW(weight_decay=weight_decay,learning_rate=learning_rate, name='ADAMW')
     else:
         assert False
 

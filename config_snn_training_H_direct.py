@@ -8,7 +8,7 @@ import os
 #os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["NCCL_P2P_DISABLE"]="0"
-os.environ["CUDA_VISIBLE_DEVICES"]='4'
+os.environ["CUDA_VISIBLE_DEVICES"]='5'
 #
 from config import config
 conf = config.flags
@@ -24,11 +24,13 @@ conf.root_model_save = '/mnt/hdd1/kyccj/H_direct/1/'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/ours_ms/'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/ours_resnet/'
 conf.name_model_load= '/home/ssparknas/test1'
-conf.optimizer = 'ADAM'
+# conf.optimizer = 'ADAM'
+conf.optimizer = 'ADAMW'
 # conf.data_aug_mix = 'mixup'
 # conf.lr_schedule = 'COS'
 # conf.tdbn= False
-conf.learning_rate = 1e-3
+conf.learning_rate = 9e-4
+conf.weight_decay_AdamW = 6e-6
 # conf.mode='inference'
 # conf.n_conv1_spike_count = True
 # conf.all_layer_spike_count = True
@@ -59,8 +61,8 @@ conf.SEL_en = 'base'
 # conf.SEL_model_dataset = 'R20_DVS'
 # conf.SEL_model_dataset = 'MS34_ImageNet'
 # conf.SEL_model_dataset = '34_ImageNet'
-# conf.SEL_model_dataset = 'Spik_C10'
-conf.SEL_model_dataset = 'Spik_C100'
+conf.SEL_model_dataset = 'Spik_C10'
+# conf.SEL_model_dataset = 'Spik_C100'
 # conf.SEL_model_dataset = 'Spik_Img'
 # conf.SEL_model_dataset = 'Spik_DVS'
 
@@ -200,7 +202,7 @@ elif conf.SEL_model_dataset == 'Spik_Img':
     conf.patch_size = 16
     conf.embed_dims = 512
     conf.num_heads = 16
-    conf.depths = 20
+    conf.depths = 10
     conf.sr_ratios = 8
     conf.adaptive_dec_vth_scale = 0.8
     conf.reg_psp_SEL_const = 5e-6
@@ -209,11 +211,11 @@ elif conf.SEL_model_dataset == 'Spik_Img':
 elif conf.SEL_model_dataset == 'Spik_DVS':
     conf.model='Spikformer'
     conf.dataset = 'CIFAR10_DVS'
-    conf.batch_size = 16
+    conf.batch_size = 10
     conf.patch_size = 16
     conf.embed_dims = 256
     conf.num_heads = 16
-    conf.depths = 4
+    conf.depths = 2
     conf.sr_ratios = 8
     conf.adaptive_dec_vth_scale = 0.8
     conf.reg_psp_SEL_const = 5e-6
@@ -221,10 +223,10 @@ elif conf.SEL_model_dataset == 'Spik_DVS':
     conf.reg_psp_SEL_BN_ratio_rate = 1e-4
 
 if conf.dataset == 'CIFAR10_DVS':
-    conf.learning_rate = 0.01
-    conf.time_step = 4
+    conf.learning_rate = 0.1
+    conf.time_step = 16
 if conf.dataset == 'ImageNet':
-    conf.batch_size = 50
+    conf.batch_size = 90
     conf.train_epoch = 90
     conf.step_decay_epoch = 30
 conf.pooling_vgg = 'avg'

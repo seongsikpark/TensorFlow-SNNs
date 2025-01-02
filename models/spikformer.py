@@ -109,7 +109,7 @@ def ssa(x, dim,k_init,tdbn, num_heads=12, name_num=0, qkv_bias=False, qk_scale=N
 def ssa_flat(x, dim,k_init,tdbn, num_heads=12, name_num=0, qkv_bias=False, qk_scale=None, attn_drop=0., proj_drop=0., sr_ratio=1):
     assert dim % num_heads == 0, f"dim {dim} should be divisible by num_heads {num_heads}."
     B, N, C = x.shape[0],x.shape[1],x.shape[2]
-    scale = 0.125
+    scale = 0.3
     x_for_qkv = x
     # q_d = lib_snn.layers.Flatten(data_format='channels_last',name='q_f'+str(name_num))(x_for_qkv)
     q_d = lib_snn.layers.Dense(C, kernel_initializer=k_init, name='q_fc' + str(name_num))(x_for_qkv)
@@ -185,9 +185,9 @@ def sps(x, input_shape,k_init,tdbn,tdbn_first_layer,use_bn_feat, patch_size=4, e
     patch_size = (patch_size, patch_size) if isinstance(patch_size, int) else patch_size
     # B, H, W, C = x.shape[0].x.shape[1],x.shape[2],x.shape[3]
     syn_c1 = lib_snn.layers.Conv2D(embed_dims // 8, kernel_size=3, padding='SAME', use_bn=use_bn_feat,
-                                   kernel_initializer=k_init, name='sps_conv1')(x)
-    norm_c1 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn_first_layer, name='sps_bn1')(syn_c1)
-    a_c1 = lib_snn.activations.Activation(act_type=act_type, name='sps_lif1')(norm_c1)
+                                   kernel_initializer=k_init, name='conv1')(x)
+    norm_c1 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn_first_layer, name='bn_conv1')(syn_c1)
+    a_c1 = lib_snn.activations.Activation(act_type=act_type, name='n_conv1')(norm_c1)
 
     syn_c2 = lib_snn.layers.Conv2D(embed_dims // 4, kernel_size=3, padding='SAME', kernel_initializer=k_init,
                                    name='sps_conv2')(a_c1)
@@ -346,11 +346,14 @@ def spikformer(
     input = lib_snn.layers.InputGenLayer(name='in')(input_tensor)
     if conf.nn_mode=='SNN':
         input = lib_snn.activations.Activation(act_type=act_type,loc='IN',name='n_in')(input)
-    if 'CIFAR' in conf.dataset:
-        sps_x = sps(input, input_shape=input_shape, patch_size=patch_size,
+    if dataset_name == 'ImageNet':
+        sps_x = sps_ImageNet(input, input_shape=input_shape, patch_size=patch_size,
+                    embed_dims=embed_dims,k_init=k_init,tdbn=tdbn,tdbn_first_layer=tdbn_first_layer,use_bn_feat=use_bn_feat)
+    elif dataset_name == 'CIFAR10_DVS':
+        sps_x = sps_ImageNet(input, input_shape=input_shape, patch_size=patch_size,
                     embed_dims=embed_dims,k_init=k_init,tdbn=tdbn,tdbn_first_layer=tdbn_first_layer,use_bn_feat=use_bn_feat)
     else:
-        sps_x = sps_ImageNet(input, input_shape=input_shape, patch_size=patch_size,
+        sps_x = sps(input, input_shape=input_shape, patch_size=patch_size,
                     embed_dims=embed_dims, k_init=k_init, tdbn=tdbn, tdbn_first_layer=tdbn_first_layer,
                     use_bn_feat=use_bn_feat)
     # for stage_idx, depth in enumerate(depths):
