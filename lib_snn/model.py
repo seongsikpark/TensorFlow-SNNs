@@ -53,7 +53,7 @@ train_counter = tf.Variable(0, trainable=False, dtype=tf.int64, name="train_coun
 
 class Model(tf.keras.Model):
     count=0
-    def __init__(self, inputs, outputs, batch_size, input_shape, num_class, conf_legacy, **kwargs):
+    def __init__(self, inputs, outputs, batch_size, input_shape, num_class_legacy=None, conf_legacy=None, **kwargs):
     #def __init__(self, batch_size, input_shape, data_format, num_class, conf, **kwargs):
 
         #print("lib_SNN - Layer - init")
@@ -81,8 +81,8 @@ class Model(tf.keras.Model):
         self.conf = conf
         Model.data_format = conf.data_format
         self.kernel_size = None                 # for conv layer
-        #self.num_class = conf.num_class
-        self.num_class = num_class
+        self.num_class = config.num_class
+        #self.num_class = num_class
         Model.use_bias = conf.use_bias
 
         #

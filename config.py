@@ -79,6 +79,9 @@ class Config():
         #
         self.set_metric()
 
+        #
+        self.set_num_class()
+
     def set_model_dataset(self):
         self.model_name = conf.model
         self.dataset_name = conf.dataset
@@ -257,6 +260,17 @@ class Config():
         self.metric_name_acc_top5='acc-5'
         self.monitor_cri='val_'+self.metric_name_acc
 
+    def set_num_class(self):
+        # num_class
+        num_class_sel = {
+            'ImageNet': 1000,
+            'CIFAR10': 10,
+            'CIFAR100': 100,
+            'CIFAR10_DVS': 10,
+        }
+        self.num_class = num_class_sel[self.flags.dataset]
+
+    #
 
 
 

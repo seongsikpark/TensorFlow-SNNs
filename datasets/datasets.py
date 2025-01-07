@@ -40,6 +40,7 @@ def load():
     else:
         dataset = dataset_sel[dataset_name]
 
+    # TODO: depreciated
     # num_class
     num_class_sel = {
         'ImageNet': 1000,
