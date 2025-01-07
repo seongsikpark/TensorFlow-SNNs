@@ -5,6 +5,7 @@ np.set_printoptions(linewidth=np.inf)
 
 
 import tensorflow as tf
+import tensorflow_probability as tfp
 from keras import backend
 
 import lib_snn
@@ -580,8 +581,33 @@ class Neuron(tf.keras.layers.Layer):
         self.vmem = self.vmem.write(t-1,vmem)
         #self.out = spike
         self.out = self.out.write(t-1,spike)
+        if conf.SEL_noise_en_spike:
+            layer_name = ['n_conv1', 'conv1_conv_n']
+            if self.name in layer_name:
+                rand_spike = tf.random.normal(self.dim, mean=0, stddev=conf.SEL_noise_std)
+                noise_spike_mask = tf.less(tf.abs(rand_spike), conf.SEL_noise_th)
+                noised_spike = tf.where(noise_spike_mask, tf.zeros(self.dim), self.out.read(t - 1))
+                self.out = self.out.write(t - 1, noised_spike)
+
+        if conf.low_test:
+            layer_name = ['n_conv1', 'conv1_conv_n']
+            if self.name in layer_name:
+                if t == 1:
+                    pass
+                elif t == 4:
+                    small_mask = tf.less_equal(tf.reduce_sum(self.spike_count_int, axis=[1, 2]), 500)
+                    small_mask = tf.expand_dims(tf.expand_dims(small_mask, axis=1), axis=1)
+                    out_0 = tf.where(small_mask, self.zeros, self.out.read(0))
+                    out_1 = tf.where(small_mask, self.zeros, self.out.read(1))
+                    out_2 = tf.where(small_mask, self.zeros, self.out.read(2))
+                    out_3 = tf.where(small_mask, self.zeros, self.out.read(3))
+                    self.out.write(0, out_0)
+                    self.out.write(1, out_1)
+                    self.out.write(2, out_2)
+                    self.out.write(3, out_3)
         out_ret = self.out.read(t-1)
 
+        out_ret_int = self.spike_count_int
 
         self.count_spike(t,spike)
 
@@ -630,6 +656,71 @@ class Neuron(tf.keras.layers.Layer):
             if t < conf.time_step:
                 self.vth = self.vth.write(t,vth)
 
+        if conf.reg_psp_SEL:
+            layer_name = ['n_conv1', 'conv1_conv_n']
+            if self.name in layer_name:
+                mean_SEL = tf.reduce_mean(out_ret_int)
+                std_SEL = tf.math.reduce_std(out_ret_int)
+                pdf_SEL = tfp.distributions.Normal(mean_SEL, std_SEL)
+                p_SEL = pdf_SEL.prob(out_ret_int)
+                nan_mask = tf.math.is_nan(p_SEL)
+                p_SEL = tf.where(nan_mask, tf.zeros_like(p_SEL),p_SEL)
+                e_SEL = tf.math.multiply_no_nan(tf.math.log(p_SEL) / tf.math.log(2.0), p_SEL)
+                e_SEL = tf.where(p_SEL == 0, tf.zeros(e_SEL.shape), e_SEL)
+                e_SEL = -tf.reduce_mean(e_SEL)
+                self.add_loss(-e_SEL * conf.reg_psp_SEL_const)
+
+        if conf.adaptive_vth_SEL:
+            layer_name = ['n_conv1', 'conv1_conv_n']
+            if self.name in layer_name:
+                channel_value = tf.reduce_sum(self.spike_count_int,axis=[1,2])
+                dec_mask = channel_value == 0
+                dec_mask = tf.expand_dims(tf.expand_dims(dec_mask,axis=1),axis=1)
+                # inc_mask = channel_value != 0
+                # inc_mask = tf.expand_dims(tf.expand_dims(inc_mask,axis=1),axis=1)
+                vth = self.vth.read(t-1)
+                vth_dec_step_scale = conf.adaptive_dec_vth_scale
+                # vth_inc_step_scale = conf.adaptive_inc_vth_scale
+
+                vth = tf.where(dec_mask, vth * vth_dec_step_scale, self.vth_init)
+                # vth = tf.where(inc_mask, vth * vth_inc_step_scale, vth)
+
+                if t < conf.time_step:
+                    self.vth = self.vth.write(t,vth)
+            else:
+                vth = self.vth_init
+                if t< conf.time_step:
+                    self.vth = self.vth.write(t,vth)
+
+        else:
+            vth = self.vth.read(t-1)
+            if t < conf.time_step:
+                self.vth = self.vth.write(t,vth)
+
+
+        if conf.rmp_en:
+            if t == 4:
+                rmp = 0
+                for i in range(4):
+                    dis_i = tf.subtract(self.out.read(i),self.vmem.read(i))
+                    q_err_i = lib_snn.layers.l2_norm(abs(dis_i),self.name)
+                    rmp += tf.reduce_sum(q_err_i)
+                rmp = rmp/4
+                if epoch <= conf.train_epoch/2:
+                    lamb_rmp = 2*conf.rmp_k*(epoch/conf.train_epoch)
+                else:
+                    lamb_rmp = 2*conf.tmp_k*(1-epoch/conf.train_epoch)
+                self.add_loss(lamb_rmp*rmp)
+
+
+        if conf.im_en:
+            if t == 4:
+                mem_avg = tf.add_n([self.vmem.read(0),self.vmem.read(1),self.vmem.read(2),self.vmem.read(3)])
+                mem_avg = tf.divide(mem_avg, 4.0)
+                im = tf.subtract(mem_avg,self.vth.read(0))
+                im = im**2
+                im = tf.reduce_mean(im)
+                self.add_loss(conf.im_k*im)
         #if True:
         #if False:
         if conf.reg_spike_out:

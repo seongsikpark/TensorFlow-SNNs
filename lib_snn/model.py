@@ -2045,7 +2045,8 @@ class Model(tf.keras.Model):
                     else:
                         assert False, 'compute gradients'
 
-
+                # for grad, var in grads_accum_and_vars:
+                #     print(f"Grad shape: {grad.shape}, Var shape: {var.shape,var.name}")
                 #
                 self.optimizer.apply_gradients(grads_accum_and_vars)
 
@@ -3856,4 +3857,3 @@ class Model(tf.keras.Model):
     #    for layer_name, (pre_name, post_name) in self.syn_pre_post.items():
             #pre = self.get_layer(pre_name).act.spike_trace
             #post = self.get_layer(post_name).act.spike_trace
-

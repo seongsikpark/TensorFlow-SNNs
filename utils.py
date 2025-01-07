@@ -1029,6 +1029,7 @@ def set_file_path(batch_size):
     opt = conf.optimizer
     lr_schedule = conf.lr_schedule
     learning_rate = conf.learning_rate
+    weight_decay= conf.weight_decay_AdamW
     lmb = conf.lmb
 
     train_type = conf.train_type
@@ -1054,7 +1055,11 @@ def set_file_path(batch_size):
     # config_name='bat-{}_lmb-{:.1E}'.format(batch_size,lmb)
 
     #config_name = 'bat-{}_opt-{}_lr-{:.0E}_lmb-{:.0E}'.format(batch_size,opt,learning_rate,lmb)
-    config_name = 'ep-{}_bat-{}_opt-{}_lr-{}-{:.0E}_lmb-{:.0E}'.format(train_epoch,batch_size,opt,lr_schedule,learning_rate,lmb)
+    if opt == 'ADAMW':
+        config_name = 'ep-{}_bat-{}_opt-{}_lr-{}-{:.0E}_wd-{:.0E}_lmb-{:.0E}'.format(train_epoch, batch_size, opt, lr_schedule,
+                                                                       learning_rate,weight_decay, lmb)
+    else:
+        config_name = 'ep-{}_bat-{}_opt-{}_lr-{}-{:.0E}_lmb-{:.0E}'.format(train_epoch,batch_size,opt,lr_schedule,learning_rate,lmb)
 
     #config_name = 'bat-{}_lmb-{:.0E}'.format(batch_size, lmb)
     #config_name = 'bat-512_lmb-{:.1E}'.format(lmb)

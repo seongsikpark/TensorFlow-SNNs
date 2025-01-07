@@ -150,8 +150,12 @@ def as_frames(
     images = tf.tensor_scatter_nd_add(images,idxs,colors)
 
     # resize image
-    s=conf.cifar10_dvs_img_size
-    crop_size =conf.cifar10_dvs_crop_img_size
+    if conf.model=='Spikformer':
+        s=128
+        crop_size = 134
+    else:
+        s=conf.cifar10_dvs_img_size
+        crop_size =conf.cifar10_dvs_crop_img_size
     #crop_size = 50
 
     if augmentation:
@@ -160,11 +164,17 @@ def as_frames(
         image_resize_size = s
     #images=tf.image.resize(images,(image_resize_size,image_resize_size),method='lanczos3')   # VGG, ResNet
     #images=tf.image.resize(images,(image_resize_size,image_resize_size),method='bilinear')   # VGG, ResNet
-    images=tf.image.resize(images,(s,s),method='bilinear')   # VGG, ResNet
+    if conf.model=='Spikformer':
+        images = images
+    else:
+        images=tf.image.resize(images,(s,s),method='bilinear')   # VGG, ResNet
 
 
     if augmentation:
-        pad = int((crop_size - s)/2)
+        if conf.model=='Spikformer':
+            pad = 3
+        else:
+            pad = int((crop_size - s)/2)
         #images = tf.image.pad_to_bounding_box(images, 3, 3, crop_size, crop_size)  # zero padding
         images = tf.image.pad_to_bounding_box(images, pad, pad, crop_size, crop_size)  # zero padding
         #images=tf.image.resize(images,(crop_size,crop_size),method='bilinear')   # VGG, ResNet
