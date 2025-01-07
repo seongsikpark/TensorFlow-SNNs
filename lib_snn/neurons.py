@@ -32,7 +32,7 @@ class Neuron(tf.keras.layers.Layer):
         # super(Neuron, self).__init__(name="")
         super(Neuron, self).__init__(name=name, **kwargs)
 
-        self.init_done = False
+        #self.init_done = False
 
         self.dim = dim
         self.dim_wo_batch = self.dim[1:]
@@ -912,7 +912,8 @@ class Neuron(tf.keras.layers.Layer):
     # initialization
     def init(self):
 
-        self.init_done = True
+        #self.init_done = True
+        pass
 
     # reset - time step
     def reset_each_time(self):

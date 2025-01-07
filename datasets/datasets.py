@@ -23,12 +23,6 @@ def load():
     batch_size = config.batch_size
     train_type = config.train_type
     train = config.train
-    # model_name ="am/auto_model_30"
-    #model_name = flags.model_path
-    # dataset_name = "CIFAR10"
-    # batch_size = 100
-    # train_type = "scratch"
-    # train = True
 
     dataset_sel = {
         #'ImageNet': datasets.imagenet,

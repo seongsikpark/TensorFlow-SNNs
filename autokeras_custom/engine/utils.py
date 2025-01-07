@@ -1,7 +1,19 @@
 
 
+import keras
 from keras_tuner import utils
 import time
+
+from config import config
+conf = config.flags
+
+
+import lib_snn
+from lib_snn.sim import glb_t
+
+import collections
+
+import tensorflow as tf
 
 # based on keras_tuner.engine.tuner_utils.py -> Display class
 #
@@ -101,3 +113,82 @@ class Display(object):
 
         ret = "{:.0f}d {:.0f}h {:.0f}m {:.0f}s".format(day,hour,min,sec)
         return ret
+
+
+
+# customized tuner callback
+# based on tuner_utils.py
+class TunerCallback(keras.callbacks.Callback):
+    def __init__(self, tuner, trial):
+        super(TunerCallback, self).__init__()
+        self.tuner = tuner
+        self.trial = trial
+
+
+        # sspark
+        # spike count
+        self.list_spike_count = collections.OrderedDict()
+        self.spike_count_total = 0
+        self.spike_count_total_best = 0
+
+        # tensorboard log dir
+        self.log_dir = config.path_tensorboard
+        self.writer = tf.summary.create_file_writer(self.log_dir)
+
+
+
+    def on_train_begin(self, logs):
+        #self.tuner.on_train_begin(self.trial, self.model, epoch, logs=logs)
+
+        if conf.nn_mode=='SNN':
+            self.model.init()
+            glb_t.reset()
+            lib_snn.proc.reset(self)
+
+    def on_epoch_begin(self, epoch, logs):
+        pass
+        #self.tuner.on_epoch_begin(self.trial, self.model, epoch, logs=logs)
+
+        if conf.nn_mode=='SNN':
+            lib_snn.proc.spike_count_epoch_init(self)
+            lib_snn.proc.reset(self)
+
+    def on_batch_begin(self, batch, logs):
+        #self.tuner.on_batch_begin(self.trial, self.model, batch, logs)
+        if conf.nn_mode=='SNN':
+            lib_snn.proc.reset_batch_snn(self)
+
+    def on_batch_end(self, batch, logs):
+        pass
+        #self.tuner.on_batch_end(self.trial, self.model, batch, logs)
+
+        #if conf.nn_mode=='SNN':
+        #    lib_snn.proc.spike_count_batch_end_one_device(self)
+
+    def on_epoch_end(self, epoch, logs):
+        #self.tuner.on_epoch_end(self.trial, self.model, epoch, logs=logs)
+
+        if conf.nn_mode=='SNN':
+            lib_snn.proc.spike_count_epoch_end(self,epoch,logs,config.test_ds_num)
+
+    def on_test_begin(self, logs):
+       # self.tuner.on_test_begin(self.trial, self.model, epoch, logs=logs)
+
+        if conf.nn_mode=='SNN':
+            self.model.init()
+            glb_t.reset()
+            lib_snn.proc.reset(self)
+            lib_snn.proc.spike_count_epoch_init(self)
+
+    def on_test_batch_begin(self, batch, logs):
+        if conf.nn_mode=='SNN':
+            lib_snn.proc.reset_batch_snn(self)
+
+    def on_test_batch_end(self, batch, logs):
+        if conf.nn_mode=='SNN':
+            lib_snn.proc.spike_count_batch_end_one_device(self)
+
+    def on_test_end(self, logs):
+        if conf.nn_mode=='SNN' and conf.mode=='inference':
+            lib_snn.proc.spike_count_batch_end_one_device(self)
+            lib_snn.proc.spike_count_epoch_end(self,0,logs,config.test_ds_num)

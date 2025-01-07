@@ -126,8 +126,8 @@ class ClassificationHead(head_module.Head):
             output_node = layers.Softmax(name=self.name)(output_node)
         else:
             output_node = lib_snn.layers.Dense(self.shape[-1])(output_node)
-            output_node = lib_snn.activations.Activations(act_type='LIF')(output_node)
-            output_node = lib_snn.activations.Activations(act_type='softmax')(output_node)
+            output_node = lib_snn.activations.Activation(act_type='LIF')(output_node)
+            output_node = lib_snn.activations.Activation(act_type='softmax')(output_node)
         return output_node
 
     def get_adapter(self):
