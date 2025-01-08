@@ -128,12 +128,17 @@ def batch_normalization(x,
         epsilon = variance_epsilon
         y_backprop = upstream
 
+        # TODO: axis fixed to last dim
+        input_shape = x.shape
+        ndims = len(input_shape)
+        reduction_axes = [i for i in range(ndims-1)]
+        axis = reduction_axes
 
         #if len(x.shape.as_list())==4:
-        if x.shape.rank==4:
-            axis=[0,1,2]
-        else:
-            axis=[0]
+        #if x.shape.rank==4:
+        #    axis=[0,1,2]
+        #else:
+        #    axis=[0]
         #axis=[0]
 
         #inv = math_ops.rsqrt(variance + variance_epsilon)
