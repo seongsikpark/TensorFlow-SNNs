@@ -7,7 +7,7 @@
 import os
 os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="7"
+os.environ["CUDA_VISIBLE_DEVICES"]="6"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1"
 
 
@@ -73,9 +73,10 @@ conf.nn_mode = 'SNN'
 
 
 #
-conf.fire_surro_grad_func = 'boxcar'
+#conf.fire_surro_grad_func = 'boxcar'
+conf.fire_surro_grad_func = 'asym'
 
-conf.surro_grad_alpha = 0.5
+conf.surro_grad_alpha = 1.0
 #conf.surro_grad_beth =
 
 conf.debug_surro_grad = True

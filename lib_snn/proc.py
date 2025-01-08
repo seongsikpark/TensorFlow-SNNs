@@ -1036,7 +1036,7 @@ def spike_count_epoch_end(self,epoch,logs,num_ds):
     self.spike_count_total/=num_data
 
     #
-    tf.summary.scalar('s_count', data=self.spike_count_total, step=epoch)
+    #tf.summary.scalar('s_count', data=self.spike_count_total, step=epoch)
     logs['s_count'] = self.spike_count_total
 
     if 'best_val_acc' in logs.keys():
@@ -1045,9 +1045,10 @@ def spike_count_epoch_end(self,epoch,logs,num_ds):
 
         logs['best_s_count'] = self.spike_count_total_best
 
-        with self.writer.as_default():
-            tf.summary.scalar('bset_s_count', data=self.spike_count_total_best, step=epoch)
-            self.writer.flush()
+        #tf.summary.scalar('best_s_count', data=self.spike_count_total_best, step=epoch)
+        #with self.writer.as_default():
+        #    tf.summary.scalar('bset_s_count', data=self.spike_count_total_best, step=epoch)
+        #    self.writer.flush()
 
 
 def gradient_epoch_end(self,epoch):

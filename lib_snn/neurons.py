@@ -1630,14 +1630,26 @@ class Neuron(tf.keras.layers.Layer):
             #cond=cond_1
 
             # boxcar
-            width_h = conf.surro_grad_alpha
-            cond_lower=tf.math.greater_equal(vmem,vth-width_h)
-            cond_upper=tf.math.less_equal(vmem,vth+width_h)
-            cond = tf.math.logical_and(cond_lower,cond_upper)
-            h = tf.constant(1/(2*width_h),shape=cond.shape)
-            #du_do = tf.where(cond,tf.ones(cond.shape),tf.zeros(cond.shape))
-            du_do = tf.where(cond,h,tf.zeros(cond.shape))
-            #du_do = tf.where(cond,vmem-vth+a,tf.zeros(cond.shape))
+            if conf.fire_surro_grad_func=='boxcar':
+                width_h = conf.surro_grad_alpha
+                cond_lower=tf.math.greater_equal(vmem,vth-width_h)
+                cond_upper=tf.math.less_equal(vmem,vth+width_h)
+                cond = tf.math.logical_and(cond_lower,cond_upper)
+                h = tf.constant(1/(2*width_h),shape=cond.shape)
+                #du_do = tf.where(cond,tf.ones(cond.shape),tf.zeros(cond.shape))
+                du_do = tf.where(cond,h,tf.zeros(cond.shape))
+                #du_do = tf.where(cond,vmem-vth+a,tf.zeros(cond.shape))
+            elif conf.fire_surro_grad_func=='asym':
+                width_h = conf.surro_grad_alpha
+                cond_lower=tf.math.greater_equal(vmem,vth-width_h)
+                cond_upper=tf.math.less_equal(vmem,vth+width_h)
+                cond = tf.math.logical_and(cond_lower,cond_upper)
+
+                #h = tf.constant(1/(2*width_h),shape=cond.shape)
+                h = tf.multiply(0.5,vmem)+0.25
+                #du_do = tf.where(cond,tf.ones(cond.shape),tf.zeros(cond.shape))
+                du_do = tf.where(cond,h,tf.zeros(cond.shape))
+                #du_do = tf.where(cond,vmem-vth+a,tf.zeros(cond.shape))
 
             grad_ret = upstream*du_do
 

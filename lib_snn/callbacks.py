@@ -95,7 +95,7 @@ class ModelCheckpointResume(tf.keras.callbacks.ModelCheckpoint):
             #self.best = best
         self.best = best
 
-        tf.summary.create_file_writer(log_dir)
+        #tf.summary.create_file_writer(log_dir)
 
         #print('ModelCheckpointResume - init - previous best: '.format(self.best))
 
@@ -209,8 +209,8 @@ class SNNLIB(tf.keras.callbacks.Callback):
 
 
         # tensorboard log dir
-        self.log_dir = config.path_tensorboard
-        self.writer = tf.summary.create_file_writer(self.log_dir)
+        #self.log_dir = config.path_tensorboard
+        #self.writer = tf.summary.create_file_writer(self.log_dir)
 
 
     #def build(self):

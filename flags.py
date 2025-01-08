@@ -882,7 +882,7 @@ flags.DEFINE_float('weight_decay_AdamW',1e-6,'weight_decay_factor')
 ########################################
 # surrogate gradient parameters
 ########################################
-flags.DEFINE_enum('fire_surro_grad_func', 'boxcar', ['boxcar', 'sigmoid', 'nonlin'], 'surrogate gardient function of fire function')
+flags.DEFINE_enum('fire_surro_grad_func', 'boxcar', ['boxcar', 'sigmoid', 'asym'], 'surrogate gardient function of fire function')
 flags.DEFINE_float('surro_grad_alpha', 0.5, 'surro gradient - const alpha')
 flags.DEFINE_float('surro_grad_beth', 0.5, 'surro gradient - const beta')
 flags.DEFINE_bool('debug_surro_grad',False,'debug suurogate gradient - surrogate gradient of spike fire function')
