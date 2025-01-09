@@ -432,6 +432,7 @@ class Model(tf.keras.Model):
         self.h_lab_tot_glb=[0]*10
 
         if conf.debug_grad:
+        #if False:
             self.writer = tf.summary.create_file_writer(config.path_tensorboard)
 
 
@@ -1763,6 +1764,7 @@ class Model(tf.keras.Model):
 
         # for debug
         if conf.debug_grad:
+        #if False:
             self.grads_and_vars = grads_and_vars
 
 
@@ -2056,8 +2058,8 @@ class Model(tf.keras.Model):
 
                 # print gradients
                 if conf.debug_grad:
-                #if True:
                 #if False:
+                #if True:
                     #print('')
                     #print('gradients')
 

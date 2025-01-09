@@ -31,13 +31,13 @@ conf.optimizer = 'ADAMW'
 # conf.data_aug_mix = 'mixup'
 conf.lr_schedule = 'COS'
 #conf.lr_schedule = 'COSR'
-conf.tdbn= False
+# conf.tdbn= False
 
 conf.learning_rate = 1E-3
 conf.train_epoch = 310
-conf.weight_decay_AdamW = 1E-6
+conf.weight_decay_AdamW = 1E-4
 conf.batch_size = 100
-conf.lmb=0
+# conf.lmb=0
 conf.label_smoothing =0.1
 
 # conf.mode='inference'
@@ -243,8 +243,8 @@ if conf.dataset == 'ImageNet':
     conf.step_decay_epoch = 30
 conf.pooling_vgg = 'avg'
 
-# conf.nn_mode = 'SNN'
-conf.nn_mode = 'ANN'
+conf.nn_mode = 'SNN'
+# conf.nn_mode = 'ANN'
 
 conf.n_reset_type = 'reset_by_sub'
 #conf.n_reset_type = 'reset_to_zero'
