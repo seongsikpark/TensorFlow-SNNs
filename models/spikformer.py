@@ -139,6 +139,7 @@ def sps(x, input_shape,k_init,tdbn,tdbn_first_layer,use_bn_feat, patch_size=4, e
     x = tf.keras.layers.Reshape((-1,embed_dims))(rpe_out)
     # x = tf.transpose(x, perm=[0, 1, 2])
     return x
+
 def sps_ImageNet(x, input_shape,k_init,tdbn,tdbn_first_layer,use_bn_feat, patch_size=4, embed_dims=384):
     patch_size = (patch_size, patch_size) if isinstance(patch_size, int) else patch_size
     # B, H, W, C = x.shape[0].x.shape[1],x.shape[2],x.shape[3]
