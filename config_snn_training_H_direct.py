@@ -29,10 +29,15 @@ conf.save_models_max_to_keep = 1
 # conf.optimizer = 'ADAM'
 conf.optimizer = 'ADAMW'
 # conf.data_aug_mix = 'mixup'
-# conf.lr_schedule = 'COS'
-# conf.tdbn= False
-conf.learning_rate = 9e-4
-conf.weight_decay_AdamW = 6e-6
+conf.lr_schedule = 'COS'
+#conf.lr_schedule = 'COSR'
+conf.tdbn= False
+
+conf.learning_rate = 1E-4
+conf.weight_decay_AdamW = 1E-5
+conf.batch_size = 200
+conf.lmb=1E-3
+
 # conf.mode='inference'
 # conf.n_conv1_spike_count = True
 # conf.all_layer_spike_count = True
@@ -233,8 +238,8 @@ if conf.dataset == 'ImageNet':
     conf.step_decay_epoch = 30
 conf.pooling_vgg = 'avg'
 
-conf.nn_mode = 'SNN'
-# conf.nn_mode = 'ANN'
+#conf.nn_mode = 'SNN'
+conf.nn_mode = 'ANN'
 
 conf.n_reset_type = 'reset_by_sub'
 #conf.n_reset_type = 'reset_to_zero'
