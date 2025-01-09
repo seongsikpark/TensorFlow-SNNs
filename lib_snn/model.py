@@ -431,8 +431,8 @@ class Model(tf.keras.Model):
         # debug
         self.h_lab_tot_glb=[0]*10
 
-        #if conf.debug_grad:
-        if False:
+        if conf.debug_grad:
+        #if False:
             self.writer = tf.summary.create_file_writer(config.path_tensorboard)
 
 
@@ -1763,8 +1763,8 @@ class Model(tf.keras.Model):
         self.optimizer.apply_gradients(grads_and_vars, name=name)
 
         # for debug
-        #if conf.debug_grad:
-        if False:
+        if conf.debug_grad:
+        #if False:
             self.grads_and_vars = grads_and_vars
 
 
@@ -2057,8 +2057,8 @@ class Model(tf.keras.Model):
                 #    self.grads_and_vars = grads_accum_and_vars
 
                 # print gradients
-                #if conf.debug_grad:
-                if False:
+                if conf.debug_grad:
+                #if False:
                 #if True:
                     #print('')
                     #print('gradients')

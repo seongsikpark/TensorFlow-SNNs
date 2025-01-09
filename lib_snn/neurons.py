@@ -32,7 +32,7 @@ class Neuron(tf.keras.layers.Layer):
         # super(Neuron, self).__init__(name="")
         super(Neuron, self).__init__(name=name, **kwargs)
 
-        #self.init_done = False
+        self.init_done = False
 
         self.dim = dim
         self.dim_wo_batch = self.dim[1:]
@@ -158,6 +158,7 @@ class Neuron(tf.keras.layers.Layer):
 
         # debug surrogate grad
         if conf.debug_surro_grad:
+        #if False:
             self.writer = tf.summary.create_file_writer(config.path_tensorboard)
 
 
@@ -912,7 +913,7 @@ class Neuron(tf.keras.layers.Layer):
     # initialization
     def init(self):
 
-        #self.init_done = True
+        self.init_done = True
         pass
 
     # reset - time step
@@ -1655,10 +1656,9 @@ class Neuron(tf.keras.layers.Layer):
 
 
             # print gradients
-            iter_count=lib_snn.model.train_counter
             if conf.debug_surro_grad:
-
-
+            #if False:
+                iter_count=lib_snn.model.train_counter
                 if False:
                     #
                     grad_mean = tf.reduce_mean(grad_ret)

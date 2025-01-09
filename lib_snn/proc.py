@@ -84,7 +84,7 @@ def preproc(self):
                 neuron.act.add_loss(functools.partial(tf.reduce_mean,spike))
                 #neuron.act.add_loss(lambda: tf.reduce_mean(0.001*neuron.act.out)
 
-    #self.init_done = True
+    self.init_done = True
 
 
 # reset on test begin
