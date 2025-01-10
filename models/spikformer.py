@@ -369,7 +369,8 @@ def spikformer(
     gap_x = tf.keras.layers.GlobalAveragePooling1D(data_format=data_format)(block_x)
     output_tensor = lib_snn.layers.Dense(classes, last_layer=True, kernel_initializer=k_init,name='predictions')(gap_x)
     a_p = lib_snn.activations.Activation(act_type=act_type_out,loc='OUT',name='n_predictions')(output_tensor)
-    a_p = lib_snn.activations.Activation(act_type='softmax',name='a_predictions')(a_p)
+    if conf.nn_mode=='SNN':
+        a_p = lib_snn.activations.Activation(act_type='softmax',name='a_predictions')(a_p)
     model = lib_snn.model.Model(input_tensor, a_p, batch_size, input_shape, classes, conf, name=model_name)
     # model = lib_snn.model.Model(input_tensor, output_tensor, batch_size, input_shape, classes, conf, name=model_name)
     return model

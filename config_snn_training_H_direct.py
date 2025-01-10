@@ -35,7 +35,7 @@ conf.tdbn= False
 
 conf.train_epoch = 310
 conf.learning_rate = 5E-4
-conf.weight_decay_AdamW = 1E-6
+conf.weight_decay_AdamW = 1E-3
 conf.batch_size = 200
 conf.lmb=0
 conf.label_smoothing=0.1
