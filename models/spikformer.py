@@ -96,13 +96,13 @@ def block(x, dim, num_heads,k_init,tdbn, name_num=0, mlp_ratio=4., qkv_bias=Fals
                    qk_scale=qk_scale, attn_drop=attn_drop, proj_drop=drop, sr_ratio=sr_ratio, name_num=name_num)
     x = lib_snn.layers.Add(name='block_attn_'+str(name_num))([block_in,attn_out])
 
-    mlp_out = mlp(norm2, name_num=name_num,k_init=k_init,tdbn=tdbn, in_features=dim, hidden_features=mlp_hidden_dim, out_features=dim)
+    mlp_out = mlp(x, name_num=name_num,k_init=k_init,tdbn=tdbn, in_features=dim, hidden_features=mlp_hidden_dim, out_features=dim)
     x = lib_snn.layers.Add(name='block_attn_mlp'+str(name_num))([x,mlp_out])
 
     return x
 
 
-def sps(x, input_shape,k_init,tdbn,tdbn_first_layer,use_bn_feat, patch_size=4, embed_dims=384):
+def sps(x, pool,input_shape,k_init,tdbn,tdbn_first_layer,use_bn_feat, patch_size=4, embed_dims=384):
     patch_size = (patch_size, patch_size) if isinstance(patch_size, int) else patch_size
     # B, H, W, C = x.shape[0].x.shape[1],x.shape[2],x.shape[3]
     syn_c1 = lib_snn.layers.Conv2D(embed_dims // 8, kernel_size=3, padding='SAME', use_bn=use_bn_feat,
@@ -119,15 +119,15 @@ def sps(x, input_shape,k_init,tdbn,tdbn_first_layer,use_bn_feat, patch_size=4, e
                                    name='sps_conv3')(a_c2)
     bn_c3 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn, name='sps_bn3')(syn_c3)
     a_c3 = lib_snn.activations.Activation(act_type=act_type, name='sps_lif3')(bn_c3)
-    a_p_c3 = lib_snn.layers.MaxPool2D((2, 2), (2, 2),padding='SAME', name='sps_conv3_p')(a_c3)  # why strides have to be only (2,2)?
-    # a_p_c3 = lib_snn.layers.AveragePooling2D((2, 2), (2, 2),padding='SAME', name='sps_conv3_p')(a_c3)  # why strides have to be only (2,2)?
+    # a_p_c3 = lib_snn.layers.MaxPool2D((2, 2), (2, 2),padding='SAME', name='sps_conv3_p')(a_c3)  # why strides have to be only (2,2)?
+    a_p_c3 = pool((2, 2), (2, 2),padding='SAME', name='sps_conv3_p')(a_c3)  # why strides have to be only (2,2)?
 
     syn_c4 = lib_snn.layers.Conv2D(embed_dims, kernel_size=3, padding='SAME', kernel_initializer=k_init,
                                    name='sps_conv4')(a_p_c3)
     bn_c4 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn, name='sps_bn4')(syn_c4)
     a_c4 = lib_snn.activations.Activation(act_type=act_type, name='sps_lif4')(bn_c4)
-    a_p_c4 = lib_snn.layers.MaxPool2D((2, 2), (2, 2),padding='SAME', name='sps_conv4_p')(a_c4)  # why strides have to be only (2,2)?
-    # a_p_c4 = lib_snn.layers.AveragePooling2D((2, 2), (2, 2),padding='SAME', name='sps_conv4_p')(a_c4)  # why strides have to be only (2,2)?
+    # a_p_c4 = lib_snn.layers.MaxPool2D((2, 2), (2, 2),padding='SAME', name='sps_conv4_p')(a_c4)  # why strides have to be only (2,2)?
+    a_p_c4 = pool((2, 2), (2, 2),padding='SAME', name='sps_conv4_p')(a_c4)  # why strides have to be only (2,2)?
 
     rpe_feat = lib_snn.layers.Identity(name='rpe_feat')(a_p_c4)
     rpe_c1 = lib_snn.layers.Conv2D(embed_dims, kernel_size=3, padding='SAME', kernel_initializer=k_init,
@@ -140,32 +140,32 @@ def sps(x, input_shape,k_init,tdbn,tdbn_first_layer,use_bn_feat, patch_size=4, e
     # x = tf.transpose(x, perm=[0, 1, 2])
     return x
 
-def sps_ImageNet(x, input_shape,k_init,tdbn,tdbn_first_layer,use_bn_feat, patch_size=4, embed_dims=384):
+def sps_ImageNet(x,pool, input_shape,k_init,tdbn,tdbn_first_layer,use_bn_feat, patch_size=4, embed_dims=384):
     patch_size = (patch_size, patch_size) if isinstance(patch_size, int) else patch_size
     # B, H, W, C = x.shape[0].x.shape[1],x.shape[2],x.shape[3]
     syn_c1 = lib_snn.layers.Conv2D(embed_dims // 8, kernel_size=3, padding='SAME', use_bn=use_bn_feat,
                                    kernel_initializer=k_init, name='sps_conv1')(x)
     norm_c1 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn_first_layer, name='sps_bn1')(syn_c1)
     a_c1 = lib_snn.activations.Activation(act_type=act_type, name='sps_lif1')(norm_c1)
-    a_p_c1 = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='sps_conv1_p')(a_c1)
+    a_p_c1 = pool((2, 2), (2, 2), name='sps_conv1_p')(a_c1)
 
     syn_c2 = lib_snn.layers.Conv2D(embed_dims // 4, kernel_size=3, padding='SAME', kernel_initializer=k_init,
                                    name='sps_conv2')(a_p_c1)
     norm_c2 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn, name='sps_bn2')(syn_c2)
     a_c2 = lib_snn.activations.Activation(act_type=act_type, name='sps_lif2')(norm_c2)
-    a_p_c2 = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='sps_conv2_p')(a_c2)
+    a_p_c2 = pool((2, 2), (2, 2), name='sps_conv2_p')(a_c2)
 
     syn_c3 = lib_snn.layers.Conv2D(embed_dims // 2, kernel_size=3, padding='SAME', kernel_initializer=k_init,
                                    name='sps_conv3')(a_p_c2)
     bn_c3 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn, name='sps_bn3')(syn_c3)
     a_c3 = lib_snn.activations.Activation(act_type=act_type, name='sps_lif3')(bn_c3)
-    a_p_c3 = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='sps_conv3_p')(a_c3)  # why strides have to be only (2,2)?
+    a_p_c3 = pool((2, 2), (2, 2), name='sps_conv3_p')(a_c3)  # why strides have to be only (2,2)?
 
     syn_c4 = lib_snn.layers.Conv2D(embed_dims, kernel_size=3, padding='SAME', kernel_initializer=k_init,
                                    name='sps_conv4')(a_p_c3)
     bn_c4 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn, name='sps_bn4')(syn_c4)
     a_c4 = lib_snn.activations.Activation(act_type=act_type, name='sps_lif4')(bn_c4)
-    a_p_c4 = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='sps_conv4_p')(a_c4)  # why strides have to be only (2,2)?
+    a_p_c4 = pool((2, 2), (2, 2), name='sps_conv4_p')(a_c4)  # why strides have to be only (2,2)?
 
     rpe_feat = lib_snn.layers.Identity(name='rpe_feat')(a_p_c4)
     rpe_c1 = lib_snn.layers.Conv2D(embed_dims, kernel_size=3, padding='SAME', kernel_initializer=k_init,
@@ -239,7 +239,8 @@ def spikformer(
         assert False
 
     #
-    k_init = 'glorot_uniform'
+    # k_init = 'glorot_uniform'
+    k_init = 'he_normal'
     #k_init = tf.keras.initializers.RandomUniform(minval=-1.0, maxval=1.0,seed=None)
 
     # pooling
@@ -271,13 +272,13 @@ def spikformer(
     if conf.nn_mode=='SNN':
         input = lib_snn.activations.Activation(act_type=act_type,loc='IN',name='n_in')(input)
     if dataset_name == 'ImageNet':
-        sps_x = sps_ImageNet(input, input_shape=input_shape, patch_size=patch_size,
+        sps_x = sps_ImageNet(input, pool=pool,input_shape=input_shape, patch_size=patch_size,
                     embed_dims=embed_dims,k_init=k_init,tdbn=tdbn,tdbn_first_layer=tdbn_first_layer,use_bn_feat=use_bn_feat)
     elif dataset_name == 'CIFAR10_DVS':
-        sps_x = sps_ImageNet(input, input_shape=input_shape, patch_size=patch_size,
+        sps_x = sps_ImageNet(input, pool=pool,input_shape=input_shape, patch_size=patch_size,
                     embed_dims=embed_dims,k_init=k_init,tdbn=tdbn,tdbn_first_layer=tdbn_first_layer,use_bn_feat=use_bn_feat)
     else:
-        sps_x = sps(input, input_shape=input_shape, patch_size=patch_size,
+        sps_x = sps(input, pool=pool,input_shape=input_shape, patch_size=patch_size,
                     embed_dims=embed_dims, k_init=k_init, tdbn=tdbn, tdbn_first_layer=tdbn_first_layer,
                     use_bn_feat=use_bn_feat)
     # for stage_idx, depth in enumerate(depths):

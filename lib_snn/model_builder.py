@@ -112,7 +112,7 @@ def model_builder(
     if lr_schedule == 'COS':
         # learning_rate = tf.keras.optimizers.schedules.CosineDecay(learning_rate, train_steps_per_epoch * train_epoch)
         #learning_rate = tf.keras.optimizers.schedules.CosineDecay(learning_rate, train_steps_per_epoch * train_epoch, alpha=1e-4)
-        learning_rate = lib_snn.optimizers.CosineDecay(learning_rate, train_steps_per_epoch * train_epoch, alpha=1e-4,
+        learning_rate = lib_snn.optimizers.CosineDecay(learning_rate, train_steps_per_epoch * train_epoch, alpha=1e-5,
                                                        warmup_target=learning_rate, warmup_steps=train_steps_per_epoch*warmup_epochs)
     elif lr_schedule == 'COSR':
         learning_rate = tf.keras.optimizers.schedules.CosineDecayRestarts(learning_rate, lr_schedule_first_decay_step)
@@ -177,7 +177,7 @@ def model_builder(
     # compile
     model.compile(optimizer=optimizer,
                   #loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
-                  loss=tf.keras.losses.CategoricalCrossentropy(),
+                  loss=tf.keras.losses.CategoricalCrossentropy(label_smoothing=conf.label_smoothing),
                   #loss=tf.keras.losses.CategoricalCrossentropy(reduction=tf.keras.losses.Reduction.NONE),
                   metrics=[metric_accuracy, metric_accuracy_top5], run_eagerly=eager_mode)
                 #metrics = [metric_accuracy, metric_accuracy_top5], run_eagerly = False)

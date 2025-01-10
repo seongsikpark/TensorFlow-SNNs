@@ -375,7 +375,8 @@ flags.DEFINE_enum('data_prep', 'default', ['default', 'max_norm', 'max_norm_d', 
 #flags.DEFINE_enum('data_aug_mix', 'None', ['mixup', 'cutmix', 'None'], 'data augmentation - mixup')
 flags.DEFINE_enum('data_aug_mix', 'cutmix', ['mixup', 'cutmix', 'None'], 'data augmentation - mixup')
 
-
+# label smoothing ( current only for CategoricalCrossentropy in model_builder.py)
+flags.DEFINE_float('label_smoothing',0.0, 'label smoothing')
 ## data_format - DO NOT TOUCH
 flags.DEFINE_string('data_format', 'channels_last', 'data format')
 

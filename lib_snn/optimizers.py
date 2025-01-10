@@ -97,6 +97,139 @@ class LRSchedule_step_wup(tf.keras.optimizers.schedules.LearningRateSchedule):
 
         return config
 
+class LRSchedule_cosine_wup(tf.keras.optimizers.schedules.LearningRateSchedule):
+    def __init__(
+            self,
+            initial_learning_rate,
+            decay_steps,
+            alpha=0.0,
+            name="CosineDecay_wup",
+            warmup_target=None,
+            warmup_steps=0,
+    ):
+        super().__init__()
+
+        self.initial_learning_rate = initial_learning_rate
+        self.decay_steps = decay_steps
+        self.alpha = alpha
+        self.name = name
+        self.warmup_steps = warmup_steps
+        self.warmup_target = warmup_target
+
+        if self.decay_steps <= 0:
+            raise ValueError(
+                "Argument `decay_steps` must be > 0. "
+                f"Received: decay_steps={self.decay_steps}"
+            )
+
+    def _decay_function(self, step, decay_steps, decay_from_lr, dtype):
+        with ops.name_scope(self.name):
+            completed_fraction = step / decay_steps
+            pi = ops.array(math.pi, dtype=dtype)
+            cosine_decayed = 0.5 * (1.0 + ops.cos(pi * completed_fraction))
+            decayed = (1 - self.alpha) * cosine_decayed + self.alpha
+            return ops.multiply(decay_from_lr, decayed)
+
+    def _warmup_function(
+            self, step, warmup_steps, warmup_target, initial_learning_rate
+    ):
+        with ops.name_scope(self.name):
+            completed_fraction = step / warmup_steps
+            total_step_delta = warmup_target - initial_learning_rate
+            return total_step_delta * completed_fraction + initial_learning_rate
+
+    def __call__(self, step):
+        with ops.name_scope(self.name):
+            initial_learning_rate = ops.convert_to_tensor(
+                self.initial_learning_rate
+            )
+            dtype = initial_learning_rate.dtype
+            decay_steps = ops.cast(self.decay_steps, dtype)
+            global_step_recomp = ops.cast(step, dtype)
+
+            if self.warmup_target is None:
+                global_step_recomp = ops.minimum(
+                    global_step_recomp, decay_steps
+                )
+                return self._decay_function(
+                    global_step_recomp,
+                    decay_steps,
+                    initial_learning_rate,
+                    dtype,
+                )
+
+            warmup_target = ops.cast(self.warmup_target, dtype)
+            warmup_steps = ops.cast(self.warmup_steps, dtype)
+
+            global_step_recomp = ops.minimum(
+                global_step_recomp, decay_steps + warmup_steps
+            )
+
+            return ops.cond(
+                global_step_recomp < warmup_steps,
+                lambda: self._warmup_function(
+                    global_step_recomp,
+                    warmup_steps,
+                    warmup_target,
+                    initial_learning_rate,
+                ),
+                lambda: self._decay_function(
+                    global_step_recomp - warmup_steps,
+                    decay_steps,
+                    warmup_target,
+                    dtype,
+                ),
+            )
+
+    def get_config(self):
+        return {
+            "initial_learning_rate": self.initial_learning_rate,
+            "decay_steps": self.decay_steps,
+            "alpha": self.alpha,
+            "name": self.name,
+            "warmup_target": self.warmup_target,
+            "warmup_steps": self.warmup_steps,
+        }
+class LRScheduleCosineWarmup(tf.keras.optimizers.schedules.LearningRateSchedule):
+    def __init__(self, initial_learning_rate, warmup_steps, total_steps, minimum_learning_rate=1e-6):
+        """
+        Args:
+            initial_learning_rate: Maximum learning rate after warmup.
+            warmup_steps: Number of steps for the warmup phase.
+            total_steps: Total number of training steps.
+            minimum_learning_rate: The minimum learning rate at the end of cosine decay.
+        """
+        self.initial_learning_rate = initial_learning_rate
+        self.warmup_steps = warmup_steps
+        self.total_steps = total_steps
+        self.minimum_learning_rate = minimum_learning_rate
+
+    def __call__(self, step):
+        step = tf.cast(step, tf.float32)
+        warmup_steps = tf.cast(self.warmup_steps, tf.float32)
+        total_steps = tf.cast(self.total_steps, tf.float32)
+
+        # Warmup phase: Linear increase from 0 to initial_learning_rate
+        warmup_lr = self.initial_learning_rate * (step / warmup_steps)
+
+        # Cosine decay phase: Gradual decay to minimum_learning_rate
+        cosine_decay_steps = total_steps - warmup_steps
+        cosine_decay = 0.5 * (1 + tf.cos(tf.constant(tf.pi) * (step - warmup_steps) / cosine_decay_steps))
+        decayed_lr = (self.initial_learning_rate - self.minimum_learning_rate) * cosine_decay + self.minimum_learning_rate
+
+        # Use warmup_lr if step < warmup_steps, otherwise use decayed_lr
+        learning_rate = tf.where(step < warmup_steps, warmup_lr, decayed_lr)
+
+        return learning_rate
+
+    def get_config(self):
+        return {
+            'initial_learning_rate': self.initial_learning_rate,
+            'warmup_steps': self.warmup_steps,
+            'total_steps': self.total_steps,
+            'minimum_learning_rate': self.minimum_learning_rate,
+        }
+
 
 
 # from tf2.16.1 source code

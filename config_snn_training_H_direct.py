@@ -8,7 +8,7 @@ import os
 #os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["NCCL_P2P_DISABLE"]="0"
-os.environ["CUDA_VISIBLE_DEVICES"]='0'
+os.environ["CUDA_VISIBLE_DEVICES"]='3'
 #
 from config import config
 conf = config.flags
@@ -20,7 +20,7 @@ conf.save_best_model_only = True
 conf.save_models_max_to_keep = 1
 
 ######
-#conf.root_model_save = '/mnt/hdd1/kyccj/H_direct/1/'
+conf.root_model_save = '/mnt/hdd1/kyccj/H_direct/base/1/'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/resnet/'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/ms/'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/ours_ms/'
@@ -33,10 +33,12 @@ conf.lr_schedule = 'COS'
 #conf.lr_schedule = 'COSR'
 conf.tdbn= False
 
-conf.learning_rate = 1E-4
-conf.weight_decay_AdamW = 1E-5
-conf.batch_size = 200
-conf.lmb=1E-3
+conf.learning_rate = 1E-3
+conf.train_epoch = 310
+conf.weight_decay_AdamW = 1E-6
+conf.batch_size = 100
+conf.lmb=0
+conf.label_smoothing =0.1
 
 # conf.mode='inference'
 # conf.n_conv1_spike_count = True
@@ -232,13 +234,16 @@ elif conf.SEL_model_dataset == 'Spik_DVS':
 if conf.dataset == 'CIFAR10_DVS':
     conf.learning_rate = 0.1
     conf.time_step = 16
+if conf.dataset == 'CIFAR100':
+    conf.learning_rate = 0.001
+    conf.lmb = 0.01
 if conf.dataset == 'ImageNet':
     conf.batch_size = 90
     conf.train_epoch = 90
     conf.step_decay_epoch = 30
 conf.pooling_vgg = 'avg'
 
-#conf.nn_mode = 'SNN'
+# conf.nn_mode = 'SNN'
 conf.nn_mode = 'ANN'
 
 conf.n_reset_type = 'reset_by_sub'
