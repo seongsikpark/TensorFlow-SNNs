@@ -109,7 +109,7 @@ def ssa(x, dim,k_init,tdbn, num_heads=12, name_num=0, qkv_bias=False, qk_scale=N
 def ssa_flat(x, dim,k_init,tdbn, num_heads=12, name_num=0, qkv_bias=False, qk_scale=None, attn_drop=0., proj_drop=0., sr_ratio=1):
     assert dim % num_heads == 0, f"dim {dim} should be divisible by num_heads {num_heads}."
     B, N, C = x.shape[0],x.shape[1],x.shape[2]
-    scale = 0.3
+    scale = 0.125
     x_for_qkv = x
     # q_d = lib_snn.layers.Flatten(data_format='channels_last',name='q_f'+str(name_num))(x_for_qkv)
     q_d = lib_snn.layers.Dense(C, kernel_initializer=k_init, name='q_fc' + str(name_num))(x_for_qkv)
@@ -171,11 +171,11 @@ def block(x, dim, num_heads,k_init,tdbn, name_num=0, mlp_ratio=4., qkv_bias=Fals
     norm2 = x
     mlp_hidden_dim = int(dim * mlp_ratio)
     block_in = x
-    attn_out = ssa(norm1, dim=dim,k_init=k_init,tdbn=tdbn, num_heads=num_heads, qkv_bias=qkv_bias,
+    attn_out = ssa(block_in, dim=dim,k_init=k_init,tdbn=tdbn, num_heads=num_heads, qkv_bias=qkv_bias,
                    qk_scale=qk_scale, attn_drop=attn_drop, proj_drop=drop, sr_ratio=sr_ratio, name_num=name_num)
     x = lib_snn.layers.Add(name='block_attn_'+str(name_num))([block_in,attn_out])
 
-    mlp_out = mlp(norm2, name_num=name_num,k_init=k_init,tdbn=tdbn, in_features=dim, hidden_features=mlp_hidden_dim, out_features=dim)
+    mlp_out = mlp(x, name_num=name_num,k_init=k_init,tdbn=tdbn, in_features=dim, hidden_features=mlp_hidden_dim, out_features=dim)
     x = lib_snn.layers.Add(name='block_attn_mlp'+str(name_num))([x,mlp_out])
 
     return x
@@ -186,7 +186,7 @@ def sps(x, input_shape,k_init,tdbn,tdbn_first_layer,use_bn_feat, patch_size=4, e
     # B, H, W, C = x.shape[0].x.shape[1],x.shape[2],x.shape[3]
     syn_c1 = lib_snn.layers.Conv2D(embed_dims // 8, kernel_size=3, padding='SAME', use_bn=use_bn_feat,
                                    kernel_initializer=k_init, name='conv1')(x)
-    norm_c1 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn_first_layer, name='bn_conv1')(syn_c1)
+    norm_c1 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn, name='bn_conv1')(syn_c1)
     a_c1 = lib_snn.activations.Activation(act_type=act_type, name='n_conv1')(norm_c1)
 
     syn_c2 = lib_snn.layers.Conv2D(embed_dims // 4, kernel_size=3, padding='SAME', kernel_initializer=k_init,
@@ -222,7 +222,7 @@ def sps_ImageNet(x, input_shape,k_init,tdbn,tdbn_first_layer,use_bn_feat, patch_
     # B, H, W, C = x.shape[0].x.shape[1],x.shape[2],x.shape[3]
     syn_c1 = lib_snn.layers.Conv2D(embed_dims // 8, kernel_size=3, padding='SAME', use_bn=use_bn_feat,
                                    kernel_initializer=k_init, name='sps_conv1')(x)
-    norm_c1 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn_first_layer, name='sps_bn1')(syn_c1)
+    norm_c1 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn, name='sps_bn1')(syn_c1)
     a_c1 = lib_snn.activations.Activation(act_type=act_type, name='sps_lif1')(norm_c1)
     a_p_c1 = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='sps_conv1_p')(a_c1)
 

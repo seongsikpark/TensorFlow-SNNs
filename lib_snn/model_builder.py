@@ -107,7 +107,7 @@ def model_builder(
     learning_rate = conf.learning_rate
     lr_schedule = conf.lr_schedule
     step_decay_epoch = conf.step_decay_epoch
-    warmup_epochs = 5
+    warmup_epochs = 20
 
     if lr_schedule == 'COS':
         # learning_rate = tf.keras.optimizers.schedules.CosineDecay(learning_rate, train_steps_per_epoch * train_epoch)
