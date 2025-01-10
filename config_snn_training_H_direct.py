@@ -38,6 +38,7 @@ conf.learning_rate = 5E-4
 conf.weight_decay_AdamW = 1E-6
 conf.batch_size = 200
 conf.lmb=0
+conf.label_smoothing=0.1
 
 # conf.mode='inference'
 # conf.n_conv1_spike_count = True
