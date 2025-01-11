@@ -206,6 +206,7 @@ class CosineDecay(tf.keras.optimizers.schedules.LearningRateSchedule):
         name="CosineDecay",
         warmup_target=None,
         warmup_steps=0,
+        lr_min=0,
     ):
         super().__init__()
 
@@ -215,6 +216,7 @@ class CosineDecay(tf.keras.optimizers.schedules.LearningRateSchedule):
         self.name = name
         self.warmup_steps = warmup_steps
         self.warmup_target = warmup_target
+        self.lr_min = lr_min
 
         if self.decay_steps <= 0:
             raise ValueError(
@@ -228,7 +230,9 @@ class CosineDecay(tf.keras.optimizers.schedules.LearningRateSchedule):
             pi = tf.constant(math.pi, dtype=dtype)
             cosine_decayed = 0.5 * (1.0 + tf.cos(pi * completed_fraction))
             decayed = (1 - self.alpha) * cosine_decayed + self.alpha
-            return tf.multiply(decay_from_lr, decayed)
+            ret = tf.multiply(decay_from_lr, decayed)
+            ret = tf.where(ret>self.lr_min, ret, self.lr_min)
+            return ret
 
     def _warmup_function(
         self, step, warmup_steps, warmup_target, initial_learning_rate
