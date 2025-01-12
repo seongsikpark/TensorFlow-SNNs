@@ -181,10 +181,10 @@ def block(x, dim, num_heads,k_init,tdbn, name_num=0, mlp_ratio=4., qkv_bias=Fals
     return x
 
 
-def sps(x, input_shape,k_init,tdbn,tdbn_first_layer,use_bn_feat, patch_size=4, embed_dims=384):
+def sps(x, input_shape,k_init,tdbn,tdbn_first_layer,patch_size=4, embed_dims=384):
     patch_size = (patch_size, patch_size) if isinstance(patch_size, int) else patch_size
     # B, H, W, C = x.shape[0].x.shape[1],x.shape[2],x.shape[3]
-    syn_c1 = lib_snn.layers.Conv2D(embed_dims // 8, kernel_size=3, padding='SAME', use_bn=use_bn_feat,
+    syn_c1 = lib_snn.layers.Conv2D(embed_dims // 8, kernel_size=3, padding='SAME',
                                    kernel_initializer=k_init, name='conv1')(x)
     norm_c1 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn, name='bn_conv1')(syn_c1)
     a_c1 = lib_snn.activations.Activation(act_type=act_type, name='n_conv1')(norm_c1)
@@ -217,10 +217,10 @@ def sps(x, input_shape,k_init,tdbn,tdbn_first_layer,use_bn_feat, patch_size=4, e
     # x = tf.transpose(x, perm=[0, 1, 2])
     return x
 
-def sps_ImageNet(x, input_shape,k_init,tdbn,tdbn_first_layer,use_bn_feat, patch_size=4, embed_dims=384):
+def sps_ImageNet(x, input_shape,k_init,tdbn,tdbn_first_layer,patch_size=4, embed_dims=384):
     patch_size = (patch_size, patch_size) if isinstance(patch_size, int) else patch_size
     # B, H, W, C = x.shape[0].x.shape[1],x.shape[2],x.shape[3]
-    syn_c1 = lib_snn.layers.Conv2D(embed_dims // 8, kernel_size=3, padding='SAME', use_bn=use_bn_feat,
+    syn_c1 = lib_snn.layers.Conv2D(embed_dims // 8, kernel_size=3, padding='SAME',
                                    kernel_initializer=k_init, name='sps_conv1')(x)
     norm_c1 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn, name='sps_bn1')(syn_c1)
     a_c1 = lib_snn.activations.Activation(act_type=act_type, name='sps_lif1')(norm_c1)
@@ -350,14 +350,13 @@ def spikformer(
         input = lib_snn.activations.Activation(act_type=act_type,loc='IN',name='n_in')(input)
     if dataset_name == 'ImageNet':
         sps_x = sps_ImageNet(input, input_shape=input_shape, patch_size=patch_size,
-                    embed_dims=embed_dims,k_init=k_init,tdbn=tdbn,tdbn_first_layer=tdbn_first_layer,use_bn_feat=use_bn_feat)
+                    embed_dims=embed_dims,k_init=k_init,tdbn=tdbn,tdbn_first_layer=tdbn_first_layer)
     elif dataset_name == 'CIFAR10_DVS':
         sps_x = sps_ImageNet(input, input_shape=input_shape, patch_size=patch_size,
-                    embed_dims=embed_dims,k_init=k_init,tdbn=tdbn,tdbn_first_layer=tdbn_first_layer,use_bn_feat=use_bn_feat)
+                    embed_dims=embed_dims,k_init=k_init,tdbn=tdbn,tdbn_first_layer=tdbn_first_layer)
     else:
         sps_x = sps(input, input_shape=input_shape, patch_size=patch_size,
-                    embed_dims=embed_dims, k_init=k_init, tdbn=tdbn, tdbn_first_layer=tdbn_first_layer,
-                    use_bn_feat=use_bn_feat)
+                    embed_dims=embed_dims, k_init=k_init, tdbn=tdbn, tdbn_first_layer=tdbn_first_layer)
     # for stage_idx, depth in enumerate(depths):
     block_x=sps_x
     for i in range(depths):
