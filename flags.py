@@ -456,6 +456,7 @@ flags.DEFINE_integer('idx_test_data', 0, 'start index of test data')
 flags.DEFINE_integer('num_test_data', 400, 'number of test data')
 
 
+flags.DEFINE_bool('debug_lr', False, 'print learning rate')
 
 ################################
 # SNN

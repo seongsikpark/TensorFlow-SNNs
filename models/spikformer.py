@@ -338,8 +338,9 @@ def spikformer(
 
 
     #
-    tdbn_first_layer = conf.nn_mode=='SNN' and conf.input_spike_mode=='POISSON' and conf.tdbn
     tdbn = conf.nn_mode=='SNN' and conf.tdbn
+    #tdbn_first_layer = conf.nn_mode=='SNN' and conf.input_spike_mode=='POISSON' and conf.tdbn
+    tdbn_first_layer = tdbn
 
 
 
