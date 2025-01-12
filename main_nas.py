@@ -79,7 +79,7 @@ max_model_size=None
 #model_path = "am/231028_0_Rand_VNN"
 #model_path = "am/241028_SNN_Bay_VGG"
 #model_path = "am/2412_SNN_test"
-model_path = "am/241207_SNN_test"
+model_path = "am/241206_VGG_SNN_SGD_Rand_SG"
 #model_path = "am/test"
 
 
@@ -191,8 +191,8 @@ metrics = [acc, acc_top5]
 
 loss = tf.keras.losses.CategoricalCrossentropy()
 
-#tuner = 'random'
-tuner = 'bayesian'
+tuner = 'random'
+#tuner = 'bayesian'
 #tuner = 'greedy'
 #tuner = 'evolution'
 #tuner = 'hyperband'

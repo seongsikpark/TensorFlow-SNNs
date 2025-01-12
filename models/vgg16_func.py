@@ -115,9 +115,10 @@ def VGG16(
 
     #
     #x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, en_tdbn=tdbn_first_layer, name='conv1')(x)
-    syn_c1 = lib_snn.layers.Conv2D(channels, 3, padding='SAME', use_bn=use_bn_feat, kernel_initializer=k_init, name='conv1')(input)
+    #syn_c1 = lib_snn.layers.Conv2D(channels, 3, padding='SAME', use_bn=use_bn_feat, kernel_initializer=k_init, name='conv1')(input)
+    syn_c1 = lib_snn.layers.Conv2D(channels, 3, padding='SAME', kernel_initializer=k_init, name='conv1')(input)
     if use_bn_feat:
-        norm_c1 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn_first_layer,name='bn_conv1')(syn_c1)
+        norm_c1 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='bn_conv1')(syn_c1)
     else:
         norm_c1 = syn_c1
     a_c1 = lib_snn.activations.Activation(act_type=act_type,name='n_conv1')(norm_c1)

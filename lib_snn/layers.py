@@ -76,7 +76,7 @@ class Layer():
             'L2': regularizers.l2(self.lmb),
         }
 
-        self.kernel_regularizer = regularizer_type[self.conf.regularizer]
+        self.kernel_regularizer = regularizer_type.get(self.conf.regularizer,None)
 
         #
         #last_layer = kwargs.pop('last_layer', None)

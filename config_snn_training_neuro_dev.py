@@ -7,7 +7,7 @@
 import os
 os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="6"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1"
 
 
@@ -51,18 +51,18 @@ conf = config.flags
 #conf.train_epoch = 10
 #conf.num_train_data = 10000
 
-conf.model='VGG11'
+#conf.model='VGG11'
 #conf.model='VGG16'
 #conf.model='ResNet18'
 #conf.model='ResNet19'
-#conf.model='ResNet20'
+conf.model='ResNet20'
 #conf.model='ResNet32'
 #conf.model='ResNet20_SEW'   # spike-element-wise block
 
 
 #conf.dataset='CIFAR100'
 #conf.dataset='ImageNet'
-conf.dataset='CIFAR10_DVS'
+#conf.dataset='CIFAR10_DVS'
 
 
 conf.pooling_vgg = 'avg'
@@ -70,40 +70,34 @@ conf.pooling_vgg = 'avg'
 conf.nn_mode = 'SNN'
 #conf.nn_mode = 'ANN'
 
-conf.n_reset_type = 'reset_by_sub'
-#conf.n_reset_type = 'reset_to_zero'
+#conf.n_reset_type = 'reset_by_sub'
+conf.n_reset_type = 'reset_to_zero'
+
 
 conf.vth_rand_static = False
-#conf.vth_rand_static = True
+conf.vth_rand_static = True
 conf.n_init_vth = 0.5
 conf.n_init_vth_std = 0.001
 
 conf.vrest_rand_static = False
-#conf.vrest_rand_static = True
+conf.vrest_rand_static = True
 conf.vrest_std = 0.007
 
 conf.adaptive_vth = False
-#conf.adaptive_vth = True
+conf.adaptive_vth = True
 conf.adaptive_vth_scale = 1.1
 
 conf.reset_to_zero_grad_clip = False
-#conf.reset_to_zero_grad_clip = True
-
-#conf.use_bn=False
-
-#conf.n_init_vth = 0.3
+conf.reset_to_zero_grad_clip = True
 
 
 #
-##conf.exp_set_name='neuro_dev'
-##conf.root_model_save = "./models_ckpt_e10"
-##conf.save_model_freq_epoch = 10
-#conf.save_model=False
-#conf.debug_grad = True
-#
-#
-##conf.num_train_data = 300
-##conf.train_epoch= 3
+conf.root_model_save = "./models_ckpt_e10"
+conf.save_best_model_only=False
+conf.save_model_freq_iter = 10*500
+conf.save_models_max_to_keep = 40
+
+conf.mode = 'inference'
 
 
 #

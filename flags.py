@@ -375,8 +375,11 @@ flags.DEFINE_enum('data_prep', 'default', ['default', 'max_norm', 'max_norm_d', 
 #flags.DEFINE_enum('data_aug_mix', 'None', ['mixup', 'cutmix', 'None'], 'data augmentation - mixup')
 flags.DEFINE_enum('data_aug_mix', 'cutmix', ['mixup', 'cutmix', 'None'], 'data augmentation - mixup')
 
-# label smoothing ( current only for CategoricalCrossentropy in model_builder.py)
-flags.DEFINE_float('label_smoothing',0.0, 'label smoothing')
+# label smoothing (current only for CategoricalCrossentropy in model_builder.py)
+flags.DEFINE_float('label_smoothing', 0.0, 'label smoothing')
+
+
+
 ## data_format - DO NOT TOUCH
 flags.DEFINE_string('data_format', 'channels_last', 'data format')
 
@@ -453,6 +456,7 @@ flags.DEFINE_integer('idx_test_data', 0, 'start index of test data')
 flags.DEFINE_integer('num_test_data', 400, 'number of test data')
 
 
+flags.DEFINE_bool('debug_lr', False, 'print learning rate')
 
 ################################
 # SNN
@@ -883,7 +887,7 @@ flags.DEFINE_float('weight_decay_AdamW',1e-6,'weight_decay_factor')
 ########################################
 # surrogate gradient parameters
 ########################################
-flags.DEFINE_enum('fire_surro_grad_func', 'boxcar', ['boxcar', 'sigmoid', 'nonlin'], 'surrogate gardient function of fire function')
+flags.DEFINE_enum('fire_surro_grad_func', 'boxcar', ['boxcar', 'sigmoid', 'asym'], 'surrogate gardient function of fire function')
 flags.DEFINE_float('surro_grad_alpha', 0.5, 'surro gradient - const alpha')
 flags.DEFINE_float('surro_grad_beth', 0.5, 'surro gradient - const beta')
 flags.DEFINE_bool('debug_surro_grad',False,'debug suurogate gradient - surrogate gradient of spike fire function')

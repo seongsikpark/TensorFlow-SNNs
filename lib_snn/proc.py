@@ -933,7 +933,7 @@ def postproc_snn_train(self):
 ########################################
 # (on_train_batch_end)
 ########################################
-def postproc_batch_train(self):
+def postproc_batch_train(self, batch, logs):
 #print('postproc_batch_train')
     pass
 
@@ -945,6 +945,8 @@ def postproc_batch_train(self):
     postproc_batch_train_sel[self.model.nn_mode](self)
 
 
+    if conf.debug_lr:
+        logs['lr']=self.model.optimizer.learning_rate(self.model.optimizer.iterations)
 
 #
 def postproc_batch_train_ann(self):
@@ -967,6 +969,7 @@ def postproc_epoch_train(self,epoch,logs):
         'SNN': postproc_epoch_train_snn,
     }
     postproc_epoch_train_sel[self.model.nn_mode](self,epoch,logs)
+
 
 
 def postproc_epoch_train_ann(self,epoch,logs):
@@ -1036,7 +1039,7 @@ def spike_count_epoch_end(self,epoch,logs,num_ds):
     self.spike_count_total/=num_data
 
     #
-    tf.summary.scalar('s_count', data=self.spike_count_total, step=epoch)
+    #tf.summary.scalar('s_count', data=self.spike_count_total, step=epoch)
     logs['s_count'] = self.spike_count_total
 
     if 'best_val_acc' in logs.keys():
@@ -1045,9 +1048,10 @@ def spike_count_epoch_end(self,epoch,logs,num_ds):
 
         logs['best_s_count'] = self.spike_count_total_best
 
-        with self.writer.as_default():
-            tf.summary.scalar('bset_s_count', data=self.spike_count_total_best, step=epoch)
-            self.writer.flush()
+        #tf.summary.scalar('best_s_count', data=self.spike_count_total_best, step=epoch)
+        #with self.writer.as_default():
+        #    tf.summary.scalar('bset_s_count', data=self.spike_count_total_best, step=epoch)
+        #    self.writer.flush()
 
 
 def gradient_epoch_end(self,epoch):

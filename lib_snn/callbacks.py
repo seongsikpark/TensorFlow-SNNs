@@ -95,7 +95,7 @@ class ModelCheckpointResume(tf.keras.callbacks.ModelCheckpoint):
             #self.best = best
         self.best = best
 
-        tf.summary.create_file_writer(log_dir)
+        #tf.summary.create_file_writer(log_dir)
 
         #print('ModelCheckpointResume - init - previous best: '.format(self.best))
 
@@ -209,8 +209,8 @@ class SNNLIB(tf.keras.callbacks.Callback):
 
 
         # tensorboard log dir
-        self.log_dir = config.path_tensorboard
-        self.writer = tf.summary.create_file_writer(self.log_dir)
+        #self.log_dir = config.path_tensorboard
+        #self.writer = tf.summary.create_file_writer(self.log_dir)
 
 
     #def build(self):
@@ -263,13 +263,14 @@ class SNNLIB(tf.keras.callbacks.Callback):
 
     def on_train_batch_end(self, batch, logs=None):
         #print('on_test_batch_end')
-        lib_snn.proc.postproc_batch_train(self)
+        lib_snn.proc.postproc_batch_train(self, batch, logs)
 
     def on_epoch_begin(self, epoch, logs=None):
         lib_snn.proc.preproc_epoch_train(self,epoch)
 
     def on_epoch_end(self, epoch, logs=None):
         lib_snn.proc.postproc_epoch_train(self,epoch,logs)
+
 
 
 
