@@ -35,11 +35,12 @@ conf.lr_schedule = 'COS'
 
 conf.train_epoch = 310
 conf.learning_rate = 5E-4
-conf.weight_decay_AdamW = 1E-6
+conf.weight_decay_AdamW = 1E-4
 conf.batch_size = 100
-conf.lmb=1E-4
+conf.lmb=0
 conf.label_smoothing=0.1
 conf.debug_lr = True
+conf.regularizer=None
 
 # conf.mode='inference'
 # conf.n_conv1_spike_count = True
