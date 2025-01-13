@@ -13,6 +13,7 @@ import lib_snn
 from lib_snn.sim import glb
 
 from lib_snn.sim import glb_t
+from lib_snn.sim import glb_epoch
 
 import functools
 
@@ -350,6 +351,7 @@ class Neuron(tf.keras.layers.Layer):
             self.inputs_t = inputs
         #t = tf.constant(glb_t.t)
         t = glb_t.t
+        epoch = glb_epoch.epoch
         #print('neuron call')
         #print(t)
 

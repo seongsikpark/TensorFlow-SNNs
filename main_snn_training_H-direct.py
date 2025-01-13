@@ -66,7 +66,7 @@ with dist_strategy.scope():
     en = 'train'
     # en = 'sample_spike'
     # en = 'visual'
-    # en = 'channl_count'
+    # en = 'channel_count'
     # en = 'mutual'
     # en = 'count_avg_channel'
     # en='alpha'
@@ -343,6 +343,8 @@ with dist_strategy.scope():
             layer_names = [layer_names[1]]
             if conf.model == 'ResNet19':
                 channel_num = 128
+            elif conf.model == 'Spikformer':
+                channel_num = 48
             else:
                 channel_num = 64
             # vis_count

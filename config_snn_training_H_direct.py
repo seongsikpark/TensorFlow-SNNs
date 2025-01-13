@@ -8,10 +8,12 @@ import os
 #os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["NCCL_P2P_DISABLE"]="0"
-os.environ["CUDA_VISIBLE_DEVICES"]='3'
+os.environ["CUDA_VISIBLE_DEVICES"]='0'
 #
 from config import config
 conf = config.flags
+conf.nn_mode = 'SNN'
+# conf.nn_mode = 'ANN'
 
 #conf.debug_mode = True
 
@@ -21,24 +23,27 @@ conf.save_models_max_to_keep = 1
 
 ######
 conf.root_model_save = '/mnt/hdd1/kyccj/H_direct/base/1/'
+# conf.root_model_save = '/mnt/hdd1/kyccj/H_direct/ours/8/'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/resnet/'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/ms/'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/ours_ms/'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/ours_resnet/'
-#conf.name_model_load= '/home/ssparknas/test1'
+conf.name_model_load= '/mnt/hdd1/kyccj/H_direct/base/1/Spikformer_CIFAR10/ep-310_bat-100_opt-ADAMW_lr-COS-5E-04_wd-1E-06_lmb-1E-02_sc_cm_ts-4_nc-R-R_nr-s/'
 # conf.optimizer = 'ADAM'
 conf.optimizer = 'ADAMW'
 # conf.data_aug_mix = 'mixup'
 conf.lr_schedule = 'COS'
-#conf.lr_schedule = 'COSR'
+# conf.lr_schedule = 'COSR'
 # conf.tdbn= False
 
-conf.learning_rate = 1E-3
+conf.learning_rate = 5E-4
 conf.train_epoch = 310
-conf.weight_decay_AdamW = 1E-4
+conf.weight_decay_AdamW = 1E-6
 conf.batch_size = 100
-# conf.lmb=0
+conf.lmb=0
 conf.label_smoothing =0.1
+conf.debug_lr=True
+conf.regularizer=None
 
 # conf.mode='inference'
 # conf.n_conv1_spike_count = True
@@ -60,7 +65,7 @@ conf.SEL_en = 'base'
 
 # conf.num_train_data = 100
 # conf.SEL_model_dataset = 'V16_C10'
-# conf.SEL_model_dataset = 'V16_C100'
+conf.SEL_model_dataset = 'V16_C100'
 # conf.SEL_model_dataset = 'V16_DVS'
 # conf.SEL_model_dataset = 'R19_C10'
 # conf.SEL_model_dataset = 'R19_C100'
@@ -243,8 +248,7 @@ if conf.dataset == 'ImageNet':
     conf.step_decay_epoch = 30
 conf.pooling_vgg = 'avg'
 
-conf.nn_mode = 'SNN'
-# conf.nn_mode = 'ANN'
+
 
 conf.n_reset_type = 'reset_by_sub'
 #conf.n_reset_type = 'reset_to_zero'
