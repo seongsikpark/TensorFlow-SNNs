@@ -50,11 +50,12 @@ def mlp_flat(x, in_features,k_init,tdbn, name_num=0, hidden_features=None, out_f
 
 def ssa(x, dim,k_init,tdbn, num_heads=12, name_num=0, qkv_bias=False, qk_scale=None, attn_drop=0., proj_drop=0., sr_ratio=1):
     assert dim % num_heads == 0, f"dim {dim} should be divisible by num_heads {num_heads}."
+    # C==dim
     B, N, C = x.shape[0],x.shape[1],x.shape[2]
     scale = 0.125
     x_for_qkv = x
     # q_d = lib_snn.layers.Flatten(data_format='channels_last',name='q_f'+str(name_num))(x_for_qkv)
-    q_d = lib_snn.layers.Dense(C, kernel_initializer=k_init, name='q_fc' + str(name_num))(x_for_qkv)
+    q_d = lib_snn.layers.Dense(dim, kernel_initializer=k_init, name='q_fc' + str(name_num))(x_for_qkv)
     # q_d = tf.keras.layers.TimeDistributed(lib_snn.layers.Dense(C, kernel_initializer=k_init, name='q_fc' + str(name_num)))(x_for_qkv)
     # q_d = lib_snn.layers.Flatten(data_format='channels_last',name='q_f'+str(name_num))(q_d)
     #q_d = tf.keras.layers.Lambda(lambda x: tf.reshape(x, (B*N,C)))(q_d)
@@ -65,7 +66,7 @@ def ssa(x, dim,k_init,tdbn, num_heads=12, name_num=0, qkv_bias=False, qk_scale=N
     q= tf.keras.layers.Lambda(lambda x : tf.transpose(x, perm=[0,2,1,3]))(q)
 
     # k_d = lib_snn.layers.Flatten(data_format='channels_last',name='k_f'+str(name_num))(x_for_qkv)
-    k_d = lib_snn.layers.Dense(C, kernel_initializer=k_init, name='k_fc' + str(name_num))(x_for_qkv)
+    k_d = lib_snn.layers.Dense(dim, kernel_initializer=k_init, name='k_fc' + str(name_num))(x_for_qkv)
     # k_d = tf.keras.layers.TimeDistributed(lib_snn.layers.Dense(C, kernel_initializer=k_init, name='k_fc' + str(name_num)))(x_for_qkv)
     # k_d = tf.keras.layers.Reshape((B*N,C))(k_d)
     #k_d = tf.keras.layers.Lambda(lambda x: tf.reshape(x, (B*N,C)))(k_d)
@@ -77,7 +78,7 @@ def ssa(x, dim,k_init,tdbn, num_heads=12, name_num=0, qkv_bias=False, qk_scale=N
     k= tf.keras.layers.Lambda(lambda x : tf.transpose(x, perm=[0,2,1,3]))(k)
 
     # v_d = lib_snn.layers.Flatten(data_format='channels_last',name='v_f'+str(name_num))(x_for_qkv)
-    v_d = lib_snn.layers.Dense(C, kernel_initializer=k_init, name='v_fc' + str(name_num))(x_for_qkv)
+    v_d = lib_snn.layers.Dense(dim, kernel_initializer=k_init, name='v_fc' + str(name_num))(x_for_qkv)
     # v_d = tf.keras.layers.TimeDistributed(lib_snn.layers.Dense(C, kernel_initializer=k_init, name='v_c' + str(name_num)))(x_for_qkv)
     # v_d = lib_snn.layers.Flatten(data_format='channels_last',name='v_f'+str(name_num))(v_d)
     #v_d = tf.keras.layers.Lambda(lambda x: tf.reshape(x, (B*N,C)))(v_d)
@@ -184,31 +185,36 @@ def block(x, dim, num_heads,k_init,tdbn, name_num=0, mlp_ratio=4., qkv_bias=Fals
 def sps(x, input_shape,k_init,tdbn,tdbn_first_layer,patch_size=4, embed_dims=384):
     patch_size = (patch_size, patch_size) if isinstance(patch_size, int) else patch_size
     # B, H, W, C = x.shape[0].x.shape[1],x.shape[2],x.shape[3]
+
     syn_c1 = lib_snn.layers.Conv2D(embed_dims // 8, kernel_size=3, padding='SAME',
-                                   kernel_initializer=k_init, name='conv1')(x)
+                                   kernel_initializer=k_init, use_bias=False, name='conv1')(x)
     norm_c1 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn, name='bn_conv1')(syn_c1)
     a_c1 = lib_snn.activations.Activation(act_type=act_type, name='n_conv1')(norm_c1)
 
+
     syn_c2 = lib_snn.layers.Conv2D(embed_dims // 4, kernel_size=3, padding='SAME', kernel_initializer=k_init,
-                                   name='sps_conv2')(a_c1)
+                                   use_bias=False, name='sps_conv2')(a_c1)
     norm_c2 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn, name='sps_bn2')(syn_c2)
     a_c2 = lib_snn.activations.Activation(act_type=act_type, name='sps_lif2')(norm_c2)
 
+
     syn_c3 = lib_snn.layers.Conv2D(embed_dims // 2, kernel_size=3, padding='SAME', kernel_initializer=k_init,
-                                   name='sps_conv3')(a_c2)
+                                   use_bias=False,name='sps_conv3')(a_c2)
     bn_c3 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn, name='sps_bn3')(syn_c3)
     a_c3 = lib_snn.activations.Activation(act_type=act_type, name='sps_lif3')(bn_c3)
-    a_p_c3 = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='sps_conv3_p')(a_c3)  # why strides have to be only (2,2)?
+    a_p_c3 = lib_snn.layers.MaxPool2D((3, 3), (2, 2), padding='same', name='sps_conv3_p')(a_c3)  # why strides have to be only (2,2)?
+
 
     syn_c4 = lib_snn.layers.Conv2D(embed_dims, kernel_size=3, padding='SAME', kernel_initializer=k_init,
-                                   name='sps_conv4')(a_p_c3)
+                                   use_bias=False,name='sps_conv4')(a_p_c3)
     bn_c4 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn, name='sps_bn4')(syn_c4)
     a_c4 = lib_snn.activations.Activation(act_type=act_type, name='sps_lif4')(bn_c4)
-    a_p_c4 = lib_snn.layers.MaxPool2D((2, 2), (2, 2), name='sps_conv4_p')(a_c4)  # why strides have to be only (2,2)?
+    a_p_c4 = lib_snn.layers.MaxPool2D((3, 3), (2, 2), padding='same', name='sps_conv4_p')(a_c4)  # why strides have to be only (2,2)?
+
 
     rpe_feat = lib_snn.layers.Identity(name='rpe_feat')(a_p_c4)
     rpe_c1 = lib_snn.layers.Conv2D(embed_dims, kernel_size=3, padding='SAME', kernel_initializer=k_init,
-                                   name='sps_conv_rpe')(a_p_c4)
+                                   use_bias=False,name='sps_conv_rpe')(a_p_c4)
     rpe_norm_c1 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn, name='sps_bn_rpe')(rpe_c1)
     rpe_a1 = lib_snn.activations.Activation(act_type=act_type, name='sps_lif_rpe')(rpe_norm_c1)
     rpe_out = lib_snn.layers.Add(name='sps_out')([rpe_feat,rpe_a1])

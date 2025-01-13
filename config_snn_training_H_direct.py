@@ -242,8 +242,8 @@ if conf.dataset == 'ImageNet':
     conf.step_decay_epoch = 30
 conf.pooling_vgg = 'avg'
 
-#conf.nn_mode = 'SNN'
-conf.nn_mode = 'ANN'
+conf.nn_mode = 'SNN'
+#conf.nn_mode = 'ANN'
 
 conf.n_reset_type = 'reset_by_sub'
 #conf.n_reset_type = 'reset_to_zero'
