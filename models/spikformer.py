@@ -62,8 +62,8 @@ def ssa(x, dim,k_init,tdbn, num_heads=12, name_num=0, qkv_bias=False, qk_scale=N
     q_b = lib_snn.layers.BatchNormalization(en_tdbn=tdbn, name='q_bn' + str(name_num))(q_d)
     #q_b = tf.keras.layers.Lambda(lambda x: tf.reshape(x, (B,N,C)))(q_b)
     q_a = lib_snn.activations.Activation(act_type=act_type, name='ssa_q_lif' + str(name_num))(q_b)
-    q = tf.keras.layers.Reshape((N,num_heads, C // num_heads))(q_a)
-    q= tf.keras.layers.Lambda(lambda x : tf.transpose(x, perm=[0,2,1,3]))(q)
+    q = tf.keras.layers.Reshape((N,num_heads, C // num_heads))(q_a)             # [B,N,head,dim/head]
+    q= tf.keras.layers.Lambda(lambda x : tf.transpose(x, perm=[0,2,1,3]))(q)    # [B,head,N,dim/head]
 
     # k_d = lib_snn.layers.Flatten(data_format='channels_last',name='k_f'+str(name_num))(x_for_qkv)
     k_d = lib_snn.layers.Dense(dim, kernel_initializer=k_init, name='k_fc' + str(name_num))(x_for_qkv)
@@ -92,12 +92,14 @@ def ssa(x, dim,k_init,tdbn, num_heads=12, name_num=0, qkv_bias=False, qk_scale=N
     attn = tf.keras.layers.Lambda(lambda x: x*scale)(attn)
 
     x = tf.keras.layers.Lambda(lambda tensors: tf.matmul(tensors[0],tensors[1]))([attn,v])
-    x= tf.keras.layers.Lambda(lambda x : tf.transpose(x, perm=[0,1,3,2]))(x)
+    #x = tf.keras.layers.Lambda(lambda x : tf.transpose(x, perm=[0,1,3,2]))(x)
+    # sspark
+    x = tf.keras.layers.Lambda(lambda x : tf.transpose(x, perm=[0,2,1,3]))(x)   # [B,N,head,dim/head]
     x = tf.keras.layers.Reshape((N,C))(x)
     x = lib_snn.activations.Activation(act_type=act_type, name='ssa_att_lif' + str(name_num))(x)
 
     # x = lib_snn.layers.Flatten(data_format='channels_last',name='proj_f'+str(name_num))(x)
-    x = lib_snn.layers.Dense(C, kernel_initializer=k_init, name='proj_fc' + str(name_num))(x)
+    x = lib_snn.layers.Dense(dim, kernel_initializer=k_init, name='proj_fc' + str(name_num))(x)
     # x = tf.keras.layers.TimeDistributed(lib_snn.layers.Dense(C,kernel_initializer=k_init,name='MLP_fc2_'+str(name_num)))(x)
     # x = lib_snn.layers.Flatten(data_format='channels_last',name='proj_f'+str(name_num))(x)
     #x = tf.keras.layers.Lambda(lambda x: tf.reshape(x, (B*N,C)))(x)
@@ -166,10 +168,6 @@ def ssa_flat(x, dim,k_init,tdbn, num_heads=12, name_num=0, qkv_bias=False, qk_sc
     return x
 def block(x, dim, num_heads,k_init,tdbn, name_num=0, mlp_ratio=4., qkv_bias=False, qk_scale=None, drop=0., attn_drop=0.,
           drop_path=0., norm_layer=LayerNormalization, sr_ratio=1):
-    # norm1 = norm_layer(axis=-1)
-    # norm2 = norm_layer(axis=-1)
-    norm1 = x
-    norm2 = x
     mlp_hidden_dim = int(dim * mlp_ratio)
     block_in = x
     attn_out = ssa(block_in, dim=dim,k_init=k_init,tdbn=tdbn, num_heads=num_heads, qkv_bias=qkv_bias,
@@ -182,7 +180,7 @@ def block(x, dim, num_heads,k_init,tdbn, name_num=0, mlp_ratio=4., qkv_bias=Fals
     return x
 
 
-def sps(x, input_shape,k_init,tdbn,tdbn_first_layer,patch_size=4, embed_dims=384):
+def sps(x, input_shape,k_init,tdbn,patch_size=4, embed_dims=384):
     patch_size = (patch_size, patch_size) if isinstance(patch_size, int) else patch_size
     # B, H, W, C = x.shape[0].x.shape[1],x.shape[2],x.shape[3]
 
@@ -212,18 +210,20 @@ def sps(x, input_shape,k_init,tdbn,tdbn_first_layer,patch_size=4, embed_dims=384
     a_p_c4 = lib_snn.layers.MaxPool2D((3, 3), (2, 2), padding='same', name='sps_conv4_p')(a_c4)  # why strides have to be only (2,2)?
 
 
-    rpe_feat = lib_snn.layers.Identity(name='rpe_feat')(a_p_c4)
+    #rpe_feat = lib_snn.layers.Identity(name='rpe_feat')(a_p_c4)
+    rpe_feat = a_p_c4
     rpe_c1 = lib_snn.layers.Conv2D(embed_dims, kernel_size=3, padding='SAME', kernel_initializer=k_init,
-                                   use_bias=False,name='sps_conv_rpe')(a_p_c4)
+                                   use_bias=False,name='sps_conv_rpe')(rpe_feat)
     rpe_norm_c1 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn, name='sps_bn_rpe')(rpe_c1)
     rpe_a1 = lib_snn.activations.Activation(act_type=act_type, name='sps_lif_rpe')(rpe_norm_c1)
     rpe_out = lib_snn.layers.Add(name='sps_out')([rpe_feat,rpe_a1])
 
     x = tf.keras.layers.Reshape((-1,embed_dims))(rpe_out)
+
     # x = tf.transpose(x, perm=[0, 1, 2])
     return x
 
-def sps_ImageNet(x, input_shape,k_init,tdbn,tdbn_first_layer,patch_size=4, embed_dims=384):
+def sps_ImageNet(x, input_shape,k_init,tdbn,patch_size=4, embed_dims=384):
     patch_size = (patch_size, patch_size) if isinstance(patch_size, int) else patch_size
     # B, H, W, C = x.shape[0].x.shape[1],x.shape[2],x.shape[3]
     syn_c1 = lib_snn.layers.Conv2D(embed_dims // 8, kernel_size=3, padding='SAME',
@@ -346,7 +346,6 @@ def spikformer(
     #
     tdbn = conf.nn_mode=='SNN' and conf.tdbn
     #tdbn_first_layer = conf.nn_mode=='SNN' and conf.input_spike_mode=='POISSON' and conf.tdbn
-    tdbn_first_layer = tdbn
 
 
 
@@ -354,15 +353,19 @@ def spikformer(
     input = lib_snn.layers.InputGenLayer(name='in')(input_tensor)
     if conf.nn_mode=='SNN':
         input = lib_snn.activations.Activation(act_type=act_type,loc='IN',name='n_in')(input)
+
+    #
     if dataset_name == 'ImageNet':
         sps_x = sps_ImageNet(input, input_shape=input_shape, patch_size=patch_size,
-                    embed_dims=embed_dims,k_init=k_init,tdbn=tdbn,tdbn_first_layer=tdbn_first_layer)
+                    embed_dims=embed_dims,k_init=k_init,tdbn=tdbn)
     elif dataset_name == 'CIFAR10_DVS':
         sps_x = sps_ImageNet(input, input_shape=input_shape, patch_size=patch_size,
-                    embed_dims=embed_dims,k_init=k_init,tdbn=tdbn,tdbn_first_layer=tdbn_first_layer)
+                    embed_dims=embed_dims,k_init=k_init,tdbn=tdbn)
     else:
         sps_x = sps(input, input_shape=input_shape, patch_size=patch_size,
-                    embed_dims=embed_dims, k_init=k_init, tdbn=tdbn, tdbn_first_layer=tdbn_first_layer)
+                    embed_dims=embed_dims, k_init=k_init, tdbn=tdbn)
+
+    #
     # for stage_idx, depth in enumerate(depths):
     block_x=sps_x
     for i in range(depths):
