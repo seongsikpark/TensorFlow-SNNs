@@ -112,8 +112,9 @@ def model_builder(
     lr_min=1E-5
 
     if lr_schedule == 'COS':
-        learning_rate = 1E-5 # initial
+        learning_rate = conf.learning_rate_init # initial
         warmup_target = conf.learning_rate
+        lr_min=conf.learning_rate_init
         # learning_rate = tf.keras.optimizers.schedules.CosineDecay(learning_rate, train_steps_per_epoch * train_epoch)
         #learning_rate = tf.keras.optimizers.schedules.CosineDecay(learning_rate, train_steps_per_epoch * train_epoch, alpha=1e-4)
         learning_rate = lib_snn.optimizers.CosineDecay(learning_rate, train_steps_per_epoch * train_epoch, alpha=0.0,

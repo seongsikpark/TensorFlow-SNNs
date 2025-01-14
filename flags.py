@@ -347,6 +347,8 @@ flags.DEFINE_float('learning_rate', 0.1, 'learning rate')   # SNN
 # ResNet
 #flags.DEFINE_float('learning_rate', 0.2, 'learning rate')
 
+flags.DEFINE_float('learning_rate_init', 0.1, 'learning rate init - for warmup')
+
 # regularizer
 flags.DEFINE_string('regularizer', 'L2', 'L2 or L1 regularizer')
 # VGG

@@ -3378,6 +3378,9 @@ class Model(tf.keras.Model):
                     if type(node.layer) in layers_temporal_reduction:
                         f_temporal_reduction = True
 
+                    if hasattr(node.layer,'temporal_mean_input') and node.layer.temporal_mean_input:
+                        f_temporal_reduction = True
+
                     if f_temporal_reduction:
                         _layer_in = tf.reduce_mean(layer_in.stack(),axis=0)
                         _layer_out = node.layer(_layer_in)

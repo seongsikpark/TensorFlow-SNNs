@@ -111,6 +111,9 @@ class Layer():
         # tdbn
         tdbn_arg = kwargs.pop('tdbn',None)
 
+        # temporal_mean_input - temporally reduced input (mean)
+        self.temporal_mean_input = kwargs.pop('temporal_mean_input', None)
+
 
         # batch norm.
         if self.use_bn:
@@ -1110,6 +1113,7 @@ class Conv2D(Layer, layers_new.conv.Conv2D):
                  bias_constraint=None,
                  bias_regularizer=None,
                  use_bn=False,  # use batch norm.
+                 use_bias=conf.use_bias,
                  **kwargs):
 
         Layer.__init__(self, use_bn, activation, kwargs=kwargs)
@@ -1123,7 +1127,7 @@ class Conv2D(Layer, layers_new.conv.Conv2D):
             data_format=conf.data_format,
             dilation_rate=dilation_rate,
             activation=None,
-            use_bias=conf.use_bias,
+            use_bias=use_bias,
             kernel_initializer=kernel_initializer,
             bias_initializer='zeros',
             kernel_regularizer=self.kernel_regularizer,

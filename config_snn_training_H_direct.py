@@ -65,7 +65,7 @@ conf.SEL_en = 'base'
 
 # conf.num_train_data = 100
 # conf.SEL_model_dataset = 'V16_C10'
-conf.SEL_model_dataset = 'V16_C100'
+# conf.SEL_model_dataset = 'V16_C100'
 # conf.SEL_model_dataset = 'V16_DVS'
 # conf.SEL_model_dataset = 'R19_C10'
 # conf.SEL_model_dataset = 'R19_C100'
