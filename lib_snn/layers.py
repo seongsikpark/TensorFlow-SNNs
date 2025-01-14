@@ -111,6 +111,9 @@ class Layer():
         # tdbn
         tdbn_arg = kwargs.pop('tdbn',None)
 
+        # temporal_mean_input - temporally reduced input (mean)
+        self.temporal_mean_input = kwargs.pop('temporal_mean_input', None)
+
 
         # batch norm.
         if self.use_bn:
