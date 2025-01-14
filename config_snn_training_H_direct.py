@@ -34,7 +34,8 @@ conf.lr_schedule = 'COS'
 #conf.tdbn= False
 
 conf.train_epoch = 310
-conf.learning_rate = 5E-4
+conf.learning_rate_init = 1E-4
+conf.learning_rate = 5E-3
 conf.weight_decay_AdamW = 1E-4
 conf.batch_size = 100
 conf.lmb=0
