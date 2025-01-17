@@ -33,6 +33,8 @@ conf.lr_schedule = 'COS'
 #conf.lr_schedule = 'COSR'
 #conf.tdbn= False
 
+conf.nn_mode = 'SNN'
+#conf.nn_mode = 'ANN'
 
 conf.n_init_vth = 1.0
 
@@ -247,8 +249,6 @@ if conf.dataset == 'ImageNet':
     conf.step_decay_epoch = 30
 conf.pooling_vgg = 'avg'
 
-#conf.nn_mode = 'SNN'
-conf.nn_mode = 'ANN'
 
 conf.n_reset_type = 'reset_by_sub'
 #conf.n_reset_type = 'reset_to_zero'

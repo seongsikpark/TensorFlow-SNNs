@@ -54,7 +54,7 @@ class Neuron(tf.keras.layers.Layer):
 
         #
         self.zeros = tf.zeros(self.dim, dtype=tf.float32)
-        #self.fires = tf.constant(conf.n_vth_init_const, shape=self.dim ,dtype=tf.float32)
+        #self.fires = tf.constant(conf.n_vth_init, shape=self.dim ,dtype=tf.float32)
         self.fires = tf.ones(self.dim, dtype=tf.float32)
 
         self.depth = depth
@@ -167,9 +167,9 @@ class Neuron(tf.keras.layers.Layer):
 
         if vth is None:
             if self.loc== 'IN':
-                self.vth_init_const = conf.n_in_vth_init_const
+                self.vth_init_const = conf.n_in_init_vth
             else:
-                self.vth_init_const = conf.n_vth_init_const
+                self.vth_init_const = conf.n_init_vth
         else:
             self.vth_init_const = vth
 
@@ -202,8 +202,8 @@ class Neuron(tf.keras.layers.Layer):
 
         if conf.vth_rand_static:
             #self.vth_init = tf.random.uniform(shape=self.dim,minval=0.1,maxval=1.0,dtype=tf.float32,name='vth_init')
-            #self.vth_init = tf.random.normal(shape=self.dim,mean=conf.n_vth_init_const,stddev=conf.n_vth_init_const_std,name='vth_init')
-            self.vth_init = tf.random.normal(shape=self.dim,mean=self.vth_init_const,stddev=conf.n_vth_init_const_std,name='vth_init')
+            #self.vth_init = tf.random.normal(shape=self.dim,mean=conf.n_vth_init,stddev=conf.n_vth_init_std,name='vth_init')
+            self.vth_init = tf.random.normal(shape=self.dim,mean=self.vth_init_const,stddev=conf.n_vth_init_std,name='vth_init')
         else:
             self.vth_init = tf.constant(self.vth_init_const, shape=self.dim, dtype=tf.float32, name='vth_init')
 
@@ -1064,13 +1064,13 @@ class Neuron(tf.keras.layers.Layer):
 
         '''
         if self.loc== 'IN':
-            vth_init_const = conf.n_in_vth_init_const
+            vth_init_const = conf.n_in_vth_init
         else:
-            vth_init_const = conf.n_vth_init_const
+            vth_init_const = conf.n_vth_init
 
         if conf.vth_rand_static:
             #self.vth_init = tf.random.uniform(shape=self.dim,minval=0.1,maxval=1.0,dtype=tf.float32,name='vth_init')
-            self.vth = tf.random.normal(shape=self.vth.shape,mean=conf.n_vth_init_const,stddev=0.1,name='vth_init')
+            self.vth = tf.random.normal(shape=self.vth.shape,mean=conf.n_vth_init,stddev=0.1,name='vth_init')
         else:
             self.vth = tf.constant(vth_init_const, shape=self.vth.shape, dtype=tf.float32, name='vth_init')
         '''
@@ -1145,7 +1145,7 @@ class Neuron(tf.keras.layers.Layer):
         # TODO: check
         self.vth = tf.exp(tf.divide(-time ,self.time_const_fire))
         #
-        # self.vth = tf.multiply(conf.n_vth_init_const,tf.exp(tf.divide(-time,self.time_const_fire)))
+        # self.vth = tf.multiply(conf.n_vth_init,tf.exp(tf.divide(-time,self.time_const_fire)))
 
         # polynomial
         # self.vth = tf.constant(tf.add(-tf.pow(t/conf.tc,2),1.0),tf.float32,self.out.shape)
@@ -1894,7 +1894,7 @@ class Neuron(tf.keras.layers.Layer):
         if t_mod == 0:
             # TODO: check
             # self.vth = tf.constant(0.5,tf.float32,self.vth.shape)
-            #self.vth = tf.constant(conf.n_vth_init_const, tf.float32, self.vth.shape)
+            #self.vth = tf.constant(conf.n_vth_init, tf.float32, self.vth.shape)
             self.vth = tf.constant(self.vth, tf.float32, self.vth.shape)
         else:
             self.vth = tf.multiply(self.vth, 0.5)
@@ -2290,7 +2290,7 @@ class Neuron(tf.keras.layers.Layer):
 
 
             elif t==toggle_time:
-                #self.vth_init = tf.constant(conf.n_vth_init_const,shape=self.dim,dtype=tf.float32, name='vth_init')
+                #self.vth_init = tf.constant(conf.n_vth_init,shape=self.dim,dtype=tf.float32, name='vth_init')
                 self.reset_vth()
 
         #self.out = tf.nn.relu(inputs)
