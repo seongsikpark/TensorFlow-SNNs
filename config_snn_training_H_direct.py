@@ -33,6 +33,9 @@ conf.lr_schedule = 'COS'
 #conf.lr_schedule = 'COSR'
 #conf.tdbn= False
 
+
+conf.n_init_vth = 1.0
+
 conf.train_epoch = 310
 conf.learning_rate_init = 5E-5
 conf.learning_rate = 7E-3
