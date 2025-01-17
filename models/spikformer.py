@@ -95,7 +95,7 @@ def ssa(x, dim,k_init,tdbn, num_heads=12, name_num=0, qkv_bias=False, qk_scale=N
     attn = tf.keras.layers.Lambda(lambda x: x*scale)(attn)
 
     if conf.nn_mode=='ANN':
-        attn = tf.keras.layers.Softmax(name='attn_sm'+str(name_num))(attn)
+        attn = tf.keras.layers.Softmax(axis=-1,name='attn_sm'+str(name_num))(attn)
 
     x = tf.keras.layers.Lambda(lambda tensors: tf.matmul(tensors[0],tensors[1]))([attn,v])
     #x = tf.keras.layers.Lambda(lambda x : tf.transpose(x, perm=[0,1,3,2]))(x)  # [B,head,dim/head,N]
