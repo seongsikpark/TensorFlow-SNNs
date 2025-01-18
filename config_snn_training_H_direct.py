@@ -33,8 +33,8 @@ conf.lr_schedule = 'COS'
 #conf.lr_schedule = 'COSR'
 #conf.tdbn= False
 
-conf.nn_mode = 'SNN'
-#conf.nn_mode = 'ANN'
+#conf.nn_mode = 'SNN'
+conf.nn_mode = 'ANN'
 
 conf.n_init_vth = 1.0
 
@@ -44,7 +44,7 @@ conf.learning_rate = 7E-3
 conf.weight_decay_AdamW = 3E-5
 conf.batch_size = 100
 conf.lmb=0
-conf.label_smoothing=0.1
+conf.label_smoothing=0.0
 conf.debug_lr = True
 conf.regularizer=None
 #conf.data_aug_mix='mixup'

@@ -131,6 +131,9 @@ class Activation(keras.engine.base_layer.Layer):
             elif self.act_type == 'softmax':
                 #self.act_dnn = tf.keras.layers.Softmax(name=name_act)
                 self.act = tf.keras.layers.Softmax(name=self.name)
+            elif self.act_type == 'gelu':
+                #self.act = tf.nn.gelu(name=self.name)
+                self.act = tf.keras.activations.gelu
             else:
                 assert False
         else:
