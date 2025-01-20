@@ -137,18 +137,20 @@ def load(dataset_name,batch_size,input_size,input_size_pre_crop_ratio,num_class,
     # Preprocess input
     if train:
         if config.flags.data_aug_mix == 'mixup':
+            random_erase_1 = datasets.augmentation_cifar.RandomErasing()
+            train_ds_1 = train_ds_1.map(lambda image, label: random_erase_1._erase(image))
+
+            random_erase_2 = datasets.augmentation_cifar.RandomErasing()
+            train_ds_2 = train_ds_2.map(lambda image, label: random_erase_2._erase(image))
             train_ds = train_ds.map(lambda train_ds_1, train_ds_2: mixup(train_ds_1, train_ds_2, dataset_name, input_size, input_size_pre_crop_ratio,num_class,1.0, input_prec_mode, preprocessor_input),
                                     num_parallel_calls=num_parallel)
             # train_ds=train_ds.map(lambda train_ds_1, train_ds_2: eager_mixup(train_ds_1,train_ds_2,alpha=0.2),num_parallel_calls=tf.data.experimental.AUTOTUNE)
         elif config.flags.data_aug_mix == 'cutmix':
-            random_erase = datasets.augmentation_cifar.RandomErasing()
-            train_ds_1 = train_ds_1.map(
-                lambda image, label: random_erase._erase(image)
-            )
+            random_erase_1 = datasets.augmentation_cifar.RandomErasing()
+            train_ds_1 = train_ds_1.map(lambda image, label: random_erase_1._erase(image))
 
-            train_ds_2 = train_ds_2.map(
-                lambda image, label: random_erase._erase(image)
-            )
+            random_erase_2 = datasets.augmentation_cifar.RandomErasing()
+            train_ds_2 = train_ds_2.map(lambda image, label: random_erase_2._erase(image))
             train_ds = train_ds.map(
                 lambda train_ds_1, train_ds_2: cutmix(train_ds_1, train_ds_2, dataset_name, input_size, input_size_pre_crop_ratio,
                                                       num_class, 1.0, input_prec_mode,preprocessor_input),
