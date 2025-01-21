@@ -3,7 +3,7 @@ import tensorflow as tf
 
 # import tensorflow_probability as tfp
 
-import tensorflow.keras.regularizers as regularizers
+import tensorflow.python.keras.regularizers as regularizers
 
 from keras import backend
 
@@ -37,7 +37,7 @@ from lib_snn.sim import glb
 from absl import flags
 conf = flags.FLAGS
 
-from keras.engine.input_spec import InputSpec
+from tensorflow.python.keras.engine.input_spec import InputSpec
 
 
 import layers_new

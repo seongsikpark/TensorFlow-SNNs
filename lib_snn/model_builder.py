@@ -153,7 +153,6 @@ def model_builder(
             optimizer = tfa.optimizers.AdamW(weight_decay=weight_decay,learning_rate=learning_rate, name='ADAMW')
         else:
             optimizer = tfa.optimizers.AdamW(weight_decay=weight_decay,learning_rate=learning_rate, name='ADAMW')
-            #optimizer = lib_snn.optimizers.AdamW(weight_decay=weight_decay,learning_rate=learning_rate, name='ADAMW')
     else:
         assert False
 

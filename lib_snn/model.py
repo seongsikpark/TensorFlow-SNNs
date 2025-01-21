@@ -1758,7 +1758,8 @@ class Model(tf.keras.Model):
         grad_loss=None
         name=None
 
-        grads_and_vars = self.optimizer._compute_gradients(loss=loss, var_list=self.trainable_variables, grad_loss=grad_loss, tape=tape)
+        #grads_and_vars = self.optimizer._compute_gradients(loss=loss, var_list=self.trainable_variables, grad_loss=grad_loss, tape=tape)
+        grads_and_vars = self.optimizer.compute_gradients(loss=loss, var_list=self.trainable_variables, tape=tape)
         #optimizer = keras.optimizers.optimizer_v2.optimizer_v2.OptimizerV2
         self.optimizer.apply_gradients(grads_and_vars, name=name)
 

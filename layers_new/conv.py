@@ -24,7 +24,7 @@ from keras import activations
 from keras import constraints
 from keras import initializers
 from keras import regularizers
-from keras.dtensor import utils
+#from keras.dtensor import utils
 # from keras.layers.convolutional.base_conv import Conv
 from layers_new.base_conv import Conv
 from lib_snn import layers
@@ -155,7 +155,7 @@ class Conv2D(Conv):
       ValueError: when both `strides > 1` and `dilation_rate > 1`.
     """
 
-    @utils.allow_initializer_layout
+    #@utils.allow_initializer_layout
     def __init__(self,
                  filters,
                  kernel_size,

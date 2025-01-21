@@ -27,11 +27,12 @@ conf.save_models_max_to_keep = 1
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/ours_resnet/'
 #conf.name_model_load= '/home/ssparknas/test1'
 #conf.optimizer = 'ADAM'
-conf.optimizer = 'ADAMW'
 # conf.data_aug_mix = 'mixup'
-conf.lr_schedule = 'COS'
 #conf.lr_schedule = 'COSR'
 #conf.tdbn= False
+
+#conf.optimizer = 'ADAMW'
+#conf.lr_schedule = 'COS'
 
 #conf.nn_mode = 'SNN'
 conf.nn_mode = 'ANN'
@@ -39,17 +40,17 @@ conf.nn_mode = 'ANN'
 conf.n_init_vth = 1.0
 
 conf.train_epoch = 310
-conf.learning_rate_init = 5E-5
-conf.learning_rate = 7E-3
-conf.weight_decay_AdamW = 3E-5
+#conf.learning_rate_init = 5E-5
+conf.learning_rate = 1E-1
+#conf.weight_decay_AdamW = 1E-5
 #conf.learning_rate_init = 1E-5
 #conf.learning_rate = 5E-4
 #conf.weight_decay_AdamW = 1E-2
 conf.batch_size = 100
-conf.lmb=0
 conf.label_smoothing=0.0
 conf.debug_lr = True
-conf.regularizer=None
+conf.lmb=5E-3
+#conf.regularizer=None
 #conf.data_aug_mix='mixup'
 
 # conf.mode='inference'
