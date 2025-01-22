@@ -150,9 +150,11 @@ def model_builder(
         learning_rate = learning_rate
         weight_decay = conf.weight_decay_AdamW
         if conf.grad_clipnorm == None:
-            optimizer = tfa.optimizers.AdamW(weight_decay=weight_decay,learning_rate=learning_rate, name='ADAMW')
+            #optimizer = tfa.optimizers.AdamW(weight_decay=weight_decay,learning_rate=learning_rate, name='ADAMW')
+            optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate, weight_decay=weight_decay, name='ADAMW')
         else:
-            optimizer = tfa.optimizers.AdamW(weight_decay=weight_decay,learning_rate=learning_rate, name='ADAMW')
+            assert False
+            #optimizer = tfa.optimizers.AdamW(weight_decay=weight_decay,learning_rate=learning_rate, name='ADAMW')
     else:
         assert False
 
