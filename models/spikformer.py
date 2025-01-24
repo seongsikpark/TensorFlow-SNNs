@@ -7,7 +7,7 @@ from config import config
 conf = config.flags
 
 dropout_rate = 0.5
-dropout_rate_blk = 0.1
+dropout_rate_blk = 0.5
 #
 if conf.nn_mode=='ANN':
     act_type = 'gelu'

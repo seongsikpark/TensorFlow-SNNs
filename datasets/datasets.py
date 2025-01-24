@@ -10,7 +10,9 @@ from config import config
 from models.imagenet_input_preprocessor import preprocessor_input_imagenet
 #from tensorflow.python.keras.applications.imagenet_utils import preprocess_input as preprocess_input_others
 
-preprocess_input_others = tf.keras.applications.imagenet_utils.preprocess_input
+#preprocess_input_others = tf.keras.applications.imagenet_utils.preprocess_input
+
+from datasets.cifar_utils import preprocess_input as preprocessor_input_cifar10
 
 
 # label - one-hot
@@ -83,7 +85,7 @@ def load():
         else:
             assert False, 'not supported train type {}'.format(train_type)
 
-        preprocessor_input = preprocess_input_others
+        preprocessor_input = preprocessor_input_cifar10
 
         #input_size = lib_snn.utils_vis.image_shape_vis(model_name,dataset_name)[0]
 

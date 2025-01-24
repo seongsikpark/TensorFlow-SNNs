@@ -31,8 +31,8 @@ conf.save_models_max_to_keep = 1
 #conf.lr_schedule = 'COSR'
 #conf.tdbn= False
 
-conf.optimizer = 'ADAMW'
-conf.lr_schedule = 'COS'
+#conf.optimizer = 'ADAMW'
+#conf.lr_schedule = 'COS'
 
 #conf.nn_mode = 'SNN'
 conf.nn_mode = 'ANN'
@@ -40,14 +40,14 @@ conf.nn_mode = 'ANN'
 conf.n_init_vth = 1.0
 
 conf.train_epoch = 310
-conf.learning_rate_init = 5E-5
-conf.learning_rate = 1E-2
-conf.weight_decay_AdamW = 5E-5
+#conf.learning_rate_init = 5E-5
+conf.learning_rate = 1E-1
+#conf.weight_decay_AdamW = 5E-5
 conf.batch_size = 100
 conf.label_smoothing=0.0
 conf.debug_lr = True
-conf.lmb=0
-conf.regularizer=None
+conf.lmb=1E-3
+#conf.regularizer=None
 #conf.data_aug_mix='mixup'
 
 # conf.mode='inference'
