@@ -273,7 +273,7 @@ def resize_with_crop_aug(image, label, dataset_name, input_size, input_size_pre_
     # random transformation
     #i=tf.image.resize_with_crop_or_pad(i,input_size,input_size)
     i=tf.image.random_crop(i,[input_size,input_size,3])
-    #i=tf.image.random_flip_left_right(i)
+    i=tf.image.random_flip_left_right(i)
 
     #
     if conf.data_prep=='default':
