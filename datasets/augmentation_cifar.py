@@ -581,3 +581,4 @@ def _fill_rectangle(image,
 
     return image
 
+
