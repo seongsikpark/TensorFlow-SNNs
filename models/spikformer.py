@@ -92,7 +92,7 @@ def ssa(x, dim,k_init,tdbn, num_heads=12, name_num=0, qkv_bias=False, qk_scale=N
     attn = tf.keras.layers.Lambda(lambda x: x*scale)(attn)
 
     x = tf.keras.layers.Lambda(lambda tensors: tf.matmul(tensors[0],tensors[1]))([attn,v])
-    #x = tf.keras.layers.Lambda(lambda x : tf.transpose(x, perm=[0,1,3,2]))(x)  # [B,head,dim/head,N]
+    # x = tf.keras.layers.Lambda(lambda x : tf.transpose(x, perm=[0,1,3,2]))(x)  # [B,head,dim/head,N]
     # sspark
     x = tf.keras.layers.Lambda(lambda x : tf.transpose(x, perm=[0,2,1,3]))(x)   # [B,N,head,dim/head]
     x = tf.keras.layers.Reshape((N,C))(x)                                       # [B,N,dim]
@@ -200,14 +200,14 @@ def sps(x, input_shape,k_init,tdbn,patch_size=4, embed_dims=384):
                                    use_bias=False,name='sps_conv3')(a_c2)
     bn_c3 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn, name='sps_bn3')(syn_c3)
     a_c3 = lib_snn.activations.Activation(act_type=act_type, name='sps_lif3')(bn_c3)
-    a_p_c3 = lib_snn.layers.MaxPool2D((3, 3), (2, 2), padding='same', name='sps_conv3_p')(a_c3)  # why strides have to be only (2,2)?
+    a_p_c3 = lib_snn.layers.AveragePooling2D((3, 3), (2, 2), padding='same', name='sps_conv3_p')(a_c3)  # why strides have to be only (2,2)?
 
 
     syn_c4 = lib_snn.layers.Conv2D(embed_dims, kernel_size=3, padding='SAME', kernel_initializer=k_init,
                                    use_bias=False,name='sps_conv4')(a_p_c3)
     bn_c4 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn, name='sps_bn4')(syn_c4)
     a_c4 = lib_snn.activations.Activation(act_type=act_type, name='sps_lif4')(bn_c4)
-    a_p_c4 = lib_snn.layers.MaxPool2D((3, 3), (2, 2), padding='same', name='sps_conv4_p')(a_c4)  # why strides have to be only (2,2)?
+    a_p_c4 = lib_snn.layers.AveragePooling2D((3, 3), (2, 2), padding='same',name='sps_conv4_p')(a_c4)  # why strides have to be only (2,2)?
 
 
     #rpe_feat = lib_snn.layers.Identity(name='rpe_feat')(a_p_c4)
@@ -377,10 +377,10 @@ def spikformer(
     # x_f =tf.keras.layers.Flatten(data_format=data_format,name='flatten')(block_x)
     gap_x = tf.keras.layers.GlobalAveragePooling1D(data_format=data_format)(block_x)
     output_tensor = lib_snn.layers.Dense(classes, last_layer=True, kernel_initializer=k_init,temporal_mean_input=True,name='predictions')(gap_x)
-    a_p = lib_snn.activations.Activation(act_type='softmax',loc='OUT',name='n_predictions')(output_tensor)
-    #a_p = lib_snn.activations.Activation(act_type=act_type_out,loc='OUT',name='n_predictions')(output_tensor)
-    #if conf.nn_mode=='SNN':
-    #    a_p = lib_snn.activations.Activation(act_type='softmax',name='a_predictions')(a_p)
+    # a_p = lib_snn.activations.Activation(act_type='softmax',loc='OUT',name='n_predictions')(output_tensor)
+    a_p = lib_snn.activations.Activation(act_type=act_type_out,loc='OUT',name='n_predictions')(output_tensor)
+    if conf.nn_mode=='SNN':
+       a_p = lib_snn.activations.Activation(act_type='softmax',name='a_predictions')(a_p)
     model = lib_snn.model.Model(input_tensor, a_p, batch_size, input_shape, classes, conf, name=model_name)
     # model = lib_snn.model.Model(input_tensor, output_tensor, batch_size, input_shape, classes, conf, name=model_name)
     return model

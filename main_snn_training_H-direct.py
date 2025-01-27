@@ -51,6 +51,7 @@ with dist_strategy.scope():
     #data_batch = valid_ds.take(1)
     #model = lib_snn.model_builder.model_builder(num_class,train_steps_per_epoch)
     model = lib_snn.model_builder.model_builder(num_class,train_steps_per_epoch,valid_ds)
+    # model.summary()
 
     ########################################
     # load model
@@ -361,18 +362,21 @@ with dist_strategy.scope():
                 sum_spike = 2304  # for DVS
                 batch_num = 10
                 img_num = 100
+                step = 100
             elif conf.dataset == 'ImageNet':
                 # s = 56
                 s = 112
                 sum_spike = 50176
                 img_num = 100 #batch
+                step = 100
             else:
                 s = 32
                 sum_spike = 1024
                 batch_num = 100
                 img_num = 100
+                step = 500
 
-            for i in range(0, 500):
+            for i in range(0, step):
                 result = model.evaluate(test_ds.skip(i).take(1), callbacks=callbacks_test)
                 for img_idx in range(0, img_num):
                     non_vis = []

@@ -1133,6 +1133,34 @@ def set_file_path(batch_size):
 
         # regularization
         reg_spike_str='_r-'
+        if conf.im_en:
+            reg_spike_str += 'im_'+str(conf.im_k)
+        if conf.rmp_en:
+            reg_spike_str += 'rmp_'+str(conf.rmp_k)
+        if conf.reg_psp_SEL:
+            reg_spike_str += '-FD'
+            reg_spike_str += '_'+str(conf.reg_psp_SEL_const)
+        if conf.adaptive_vth_SEL:
+            reg_spike_str += '_AT'
+            reg_spike_str += '_'+str(conf.adaptive_dec_vth_scale)
+        config_name += reg_spike_str
+        if conf.reg_psp_SEL_BN:
+            if conf.reg_psp_SEL_BN_const:
+                reg_BN_str = '-BN_gc'
+                reg_BN_str += '_'+str(conf.reg_psp_SEL_BN_gamma_const)
+                reg_BN_str += '_gr'
+                reg_BN_str += '_'+str(conf.reg_psp_SEL_BN_gamma_rate)
+                reg_BN_str += '_bc'
+                reg_BN_str += '_'+str(conf.reg_psp_SEL_BN_beta_const)
+                reg_BN_str += '_br'
+                reg_BN_str += '_'+str(conf.reg_psp_SEL_BN_beta_rate)
+            elif conf.reg_psp_SEL_BN_ratio:
+                reg_BN_str = '-DFE_rat_val'
+                reg_BN_str += '_'+str(conf.reg_psp_SEL_BN_ratio_value)
+                reg_BN_str += '-r'
+                reg_BN_str += '_'+str(conf.reg_psp_SEL_BN_ratio_rate)
+                config_name += reg_BN_str
+
         if conf.reg_spike_out:
             if conf.reg_spike_out_sc:
                 reg_spike_str += 'sc'

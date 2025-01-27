@@ -1033,7 +1033,22 @@ def spike_count_epoch_end(self,epoch,logs,num_ds):
     #else:
         #num_data = self.test_ds_num
     num_data = num_ds
-
+    if conf.n_conv1_spike_count:
+        if conf.model == 'VGG16':
+            print(self.list_spike_count['n_conv1']/num_data)
+        elif conf.model == 'Spikformer':
+            print(self.list_spike_count['n_conv1'] / num_data)
+        else:
+            print(self.list_spike_count['conv1_conv_n'] / num_data)
+    if conf. all_layer_spike_count:
+        save_dir = conf.all_layer_SC_dir
+        df_sc=[]
+        for neuron in self.model.layers_w_neuron:
+            self.list_spike_count[neuron.name] /= num_data
+            a = [neuron.name,self.list_spike_count[neuron.name].numpy()]
+            df_sc.append(a)
+        df_sc = pd.DataFrame(df_sc, columns=['name','SC'])
+        df_sc.to_excel(save_dir)
     for neuron in self.model.layers_w_neuron:
         self.list_spike_count[neuron.name]/=num_data
     self.spike_count_total/=num_data

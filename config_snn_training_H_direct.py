@@ -8,8 +8,8 @@ import os
 #os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["NCCL_P2P_DISABLE"]="0"
-os.environ["CUDA_VISIBLE_DEVICES"]='0'
-#
+os.environ["CUDA_VISIBLE_DEVICES"]='9'
+
 from config import config
 conf = config.flags
 conf.nn_mode = 'SNN'
@@ -22,50 +22,54 @@ conf.save_best_model_only = True
 conf.save_models_max_to_keep = 1
 
 ######
-conf.root_model_save = '/mnt/hdd1/kyccj/H_direct/base/1/'
+conf.root_model_save = '/mnt/hdd1/kyccj/H_direct/rmp/ours/15/'
+# conf.root_model_save = '/mnt/hdd1/kyccj/H_direct/base/1/'
 # conf.root_model_save = '/mnt/hdd1/kyccj/H_direct/ours/8/'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/resnet/'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/ms/'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/ours_ms/'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/ours_resnet/'
-conf.name_model_load= '/mnt/hdd1/kyccj/H_direct/base/1/Spikformer_CIFAR10/ep-310_bat-100_opt-ADAMW_lr-COS-5E-04_wd-1E-06_lmb-1E-02_sc_cm_ts-4_nc-R-R_nr-s/'
+# conf.name_model_load= '/mnt/hdd1/kyccj/H_direct/base/1/Spikformer_CIFAR10/ep-310_bat-100_opt-ADAMW_lr-COS-5E-04_wd-1E-06_lmb-1E-02_sc_cm_ts-4_nc-R-R_nr-s/'
+conf.name_model_load= '/mnt/hdd1/kyccj/H_direct/base/1/Spikformer_CIFAR10/ep-310_bat-100_opt-ADAMW_lr-COS-2E-03_wd-6E-06_lmb-0E+00_sc_cm_ts-4_nc-R-R_nr-s'
+# conf.name_model_load= '/mnt/hdd1/kyccj/H_direct/base/1/VGG16_AP_CIFAR100/ep-300_bat-100_opt-SGD_lr-STEP-1E-03_lmb-1E-02_sc_cm_ts-4_nc-R-R_nr-s/'
 # conf.optimizer = 'ADAM'
-conf.optimizer = 'ADAMW'
-# conf.data_aug_mix = 'mixup'
-conf.lr_schedule = 'COS'
+# conf.optimizer = 'ADAMW'
+# conf.lr_schedule = 'COS'
 # conf.lr_schedule = 'COSR'
 # conf.tdbn= False
-
-conf.learning_rate = 5E-4
-conf.train_epoch = 310
-conf.weight_decay_AdamW = 1E-6
-conf.batch_size = 100
-conf.lmb=0
-conf.label_smoothing =0.1
-conf.debug_lr=True
-conf.regularizer=None
-
+# conf.data_aug_mix = 'mixup'
+# conf.learning_rate_init =5e-5
+# conf.learning_rate = 2E-3
+# conf.train_epoch = 310
+# conf.weight_decay_AdamW = 6E-6
+# conf.batch_size = 100
+# conf.lmb=0
+# conf.label_smoothing =0.1
+# conf.debug_lr=True
+# conf.regularizer=None
+#
 # conf.mode='inference'
-# conf.n_conv1_spike_count = True
+conf.n_conv1_spike_count = True
 # conf.all_layer_spike_count = True
 # conf.time_step=6
 
 # Method
-# conf.rmp_en = 'True'
+conf.rmp_en = 'True'
 # conf.rmp_k = 0.0005
+conf.rmp_k = 0.0001
 # conf.im_en = 'True'
 # conf.im_k = 0.001
 #
-conf.SEL_en = 'base'
+# conf.SEL_en = 'base'
 # conf.SEL_en = 'AT'
 # conf.SEL_en = 'FD'
 # conf.SEL_en = 'DFE'
 # conf.SEL_en = 'AT+FD'
-# conf.SEL_en = 'ours'
+conf.SEL_en = 'ours'
 
 # conf.num_train_data = 100
 # conf.SEL_model_dataset = 'V16_C10'
-# conf.SEL_model_dataset = 'V16_C100'
+conf.SEL_model_dataset = 'V16_C100'
 # conf.SEL_model_dataset = 'V16_DVS'
 # conf.SEL_model_dataset = 'R19_C10'
 # conf.SEL_model_dataset = 'R19_C100'
@@ -75,7 +79,7 @@ conf.SEL_en = 'base'
 # conf.SEL_model_dataset = 'R20_DVS'
 # conf.SEL_model_dataset = 'MS34_ImageNet'
 # conf.SEL_model_dataset = '34_ImageNet'
-conf.SEL_model_dataset = 'Spik_C10'
+# conf.SEL_model_dataset = 'Spik_C10'
 # conf.SEL_model_dataset = 'Spik_C100'
 # conf.SEL_model_dataset = 'Spik_Img'
 # conf.SEL_model_dataset = 'Spik_DVS'

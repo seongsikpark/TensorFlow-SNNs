@@ -107,7 +107,7 @@ def model_builder(
     learning_rate = conf.learning_rate
     lr_schedule = conf.lr_schedule
     step_decay_epoch = conf.step_decay_epoch
-    warmup_target=1E-6
+    warmup_target=5E-4
     warmup_epochs = 20
     lr_min=1E-5
 
