@@ -40,6 +40,8 @@ from datasets.preprocessing import preprocessing_input_img
 #from tensorflow.python.keras.applications.imagenet_utils import preprocess_input as preprocess_input_others
 preprocess_input_others = tf.keras.applications.imagenet_utils.preprocess_input
 
+import lib_snn
+
 ########
 # cutmix
 ########
@@ -78,8 +80,10 @@ def eager_cutmix(ds_one, ds_two, alpha=1.0):
     return tf.py_function(mixup, [ds_one, ds_two, alpha],[tf.float32,tf.float32])
 
 #
+
 @tf.function
-def cutmix(train_ds_one, train_ds_two, dataset_name, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input):
+def _cutmix(train_ds_one, train_ds_two, dataset_name, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input):
+
     (images_one, labels_one), (images_two, labels_two) = train_ds_one, train_ds_two
 
     # Get a sample from the Beta distribution
@@ -119,7 +123,25 @@ def cutmix(train_ds_one, train_ds_two, dataset_name, input_size, input_size_pre_
     # Combine the labels of both images
     label = lambda_value*labels_one + (1-lambda_value)*labels_two
 
+    #
     return (image, label)
+
+
+
+@tf.function
+def cutmix(train_ds_one, train_ds_two, dataset_name, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input):
+
+    def mix_off(train_ds_one, train_ds_two, dataset_name, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input):
+        (images_one, labels_one) = train_ds_one
+        images_one, labels_one = resize_with_crop_aug(images_one,labels_one,dataset_name,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input)
+        return (images_one, labels_one)
+
+    mix_off_iter = 500*200
+
+    return tf.cond(
+        lib_snn.model.train_counter < mix_off_iter,
+        lambda: _cutmix(train_ds_one, train_ds_two, dataset_name, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input),
+        lambda: mix_off(train_ds_one, train_ds_two, dataset_name, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input))
 
 ########
 # mixup
