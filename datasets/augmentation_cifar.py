@@ -136,7 +136,7 @@ def cutmix(train_ds_one, train_ds_two, dataset_name, input_size, input_size_pre_
         images_one, labels_one = resize_with_crop_aug(images_one,labels_one,dataset_name,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input)
         return (images_one, labels_one)
 
-    mix_off_iter = 500*250
+    mix_off_iter = 500*150
 
     return tf.cond(
         lib_snn.model.train_counter < mix_off_iter,

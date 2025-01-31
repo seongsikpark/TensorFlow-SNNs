@@ -23,6 +23,8 @@ from keras_cv.utils import preprocessing as preprocessing_utils
 
 import keras_cv_local
 
+import random
+
 
 #@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandAugment(RandomAugmentationPipeline):
@@ -199,6 +201,18 @@ class RandAugment(RandomAugmentationPipeline):
         return config
 
 
+# from timm
+#def _enhance_level(magnitude, magnitude_stddev):
+    ## range [0.1, 1.9]
+    #return magnitude
+
+def _randomly_negate(magnitude):
+    # 50% - negate
+    if random.uniform(0, 1) < 0.5:
+        magnitude *= -1
+    return magnitude
+
+
 def auto_contrast_policy(magnitude, magnitude_stddev):
     return {}
 
@@ -255,6 +269,7 @@ def shear_x_policy(magnitude, magnitude_stddev):
         min_value=0,
         max_value=1,
     )
+    factor = _randomly_negate(factor)*0.3
     return {"x_factor": factor, "y_factor": 0}
 
 
@@ -265,29 +280,53 @@ def shear_y_policy(magnitude, magnitude_stddev):
         min_value=0,
         max_value=1,
     )
+    factor = _randomly_negate(factor)*0.3
     return {"x_factor": 0, "y_factor": factor}
 
 
 def translate_x_policy(magnitude, magnitude_stddev):
     # TODO(lukewood): should we integrate RandomTranslation with `factor`?
-    return {"width_factor": magnitude, "height_factor": 0}
+    factor = core.NormalFactorSampler(
+        mean=magnitude,
+        stddev=magnitude_stddev,
+        min_value=0,
+        max_value=1,
+    )
+    factor = _randomly_negate(factor)*0.45
+    return {"width_factor": factor, "height_factor": 0}
 
 
 def translate_y_policy(magnitude, magnitude_stddev):
     # TODO(lukewood): should we integrate RandomTranslation with `factor`?
-    return {"width_factor": 0, "height_factor": magnitude}
+    factor = core.NormalFactorSampler(
+        mean=magnitude,
+        stddev=magnitude_stddev,
+        min_value=0,
+        max_value=1,
+    )
+    factor = _randomly_negate(factor)*0.45
+    return {"width_factor": 0, "height_factor": factor}
 
 
 def rotation_policy(magnitude, magnitude_stddev):
+    magnitude = 1/12*magnitude  # 1/12*2*pi = 30 -> -30 ~ 30
     return {"factor": magnitude}
 
 
 def sharpness_policy(magnitude, magnitude_stddev):
-    return {"factor": magnitude}
+    factor = core.NormalFactorSampler(
+        mean=magnitude,
+        stddev=magnitude_stddev,
+        min_value=0,
+        max_value=1,
+    )
+    factor = _randomly_negate(factor)
+    return {"factor": factor}
 
 
 def posterization_policy(magnitude, magnitude_stddev):
-    magnitude = max(1, int(8*magnitude))
+    #magnitude = max(1, int(8*magnitude))
+    magnitude = max(1, int(4*magnitude))
     return {"bits": magnitude}
 
 def invert_policy(magnitude, magnitude_stddev):
