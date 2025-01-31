@@ -24,7 +24,13 @@ from keras_cv.utils import preprocessing as preprocessing_utils
 import keras_cv_local
 
 import random
+from keras_cv.utils import preprocessing
+from keras import backend
 
+
+
+_random_generator = backend.RandomGenerator()
+    #seed, force_generator=force_generator, rng_type=rng_type)
 
 #@tf.keras.utils.register_keras_serializable(package="keras_cv")
 class RandAugment(RandomAugmentationPipeline):
@@ -118,6 +124,9 @@ class RandAugment(RandomAugmentationPipeline):
         self.geometric = geometric
         self.magnitude_stddev = float(magnitude_stddev)
 
+        #
+
+
     def _augment(self, sample):
         sample["images"] = preprocessing_utils.transform_value_range(
             sample["images"], self.value_range, (0, 255)
@@ -201,6 +210,7 @@ class RandAugment(RandomAugmentationPipeline):
         return config
 
 
+
 # from timm
 #def _enhance_level(magnitude, magnitude_stddev):
     ## range [0.1, 1.9]
@@ -209,7 +219,7 @@ class RandAugment(RandomAugmentationPipeline):
 def _randomly_negate(magnitude):
     # 50% - negate
     if random.uniform(0, 1) < 0.5:
-        magnitude *= -1
+        tf.multiply(magnitude, -1.0)
     return magnitude
 
 
@@ -263,48 +273,29 @@ def brightness_policy(magnitude, magnitude_stddev):
 
 
 def shear_x_policy(magnitude, magnitude_stddev):
-    factor = core.NormalFactorSampler(
-        mean=magnitude,
-        stddev=magnitude_stddev,
-        min_value=0,
-        max_value=1,
-    )
-    factor = _randomly_negate(factor)*0.3
+    factor = magnitude*0.3
+    #factor *= preprocessing.random_inversion(_random_generator)
+    #factor = (-factor, factor)
     return {"x_factor": factor, "y_factor": 0}
 
 
 def shear_y_policy(magnitude, magnitude_stddev):
-    factor = core.NormalFactorSampler(
-        mean=magnitude,
-        stddev=magnitude_stddev,
-        min_value=0,
-        max_value=1,
-    )
-    factor = _randomly_negate(factor)*0.3
+    factor = magnitude*0.3
+    #factor = (-factor, factor)
     return {"x_factor": 0, "y_factor": factor}
 
 
 def translate_x_policy(magnitude, magnitude_stddev):
     # TODO(lukewood): should we integrate RandomTranslation with `factor`?
-    factor = core.NormalFactorSampler(
-        mean=magnitude,
-        stddev=magnitude_stddev,
-        min_value=0,
-        max_value=1,
-    )
-    factor = _randomly_negate(factor)*0.45
+    factor = magnitude*0.45
+    #factor = (-factor, factor)
     return {"width_factor": factor, "height_factor": 0}
 
 
 def translate_y_policy(magnitude, magnitude_stddev):
     # TODO(lukewood): should we integrate RandomTranslation with `factor`?
-    factor = core.NormalFactorSampler(
-        mean=magnitude,
-        stddev=magnitude_stddev,
-        min_value=0,
-        max_value=1,
-    )
-    factor = _randomly_negate(factor)*0.45
+    factor = magnitude*0.45
+    #factor = (-factor, factor)
     return {"width_factor": 0, "height_factor": factor}
 
 
@@ -314,13 +305,8 @@ def rotation_policy(magnitude, magnitude_stddev):
 
 
 def sharpness_policy(magnitude, magnitude_stddev):
-    factor = core.NormalFactorSampler(
-        mean=magnitude,
-        stddev=magnitude_stddev,
-        min_value=0,
-        max_value=1,
-    )
-    factor = _randomly_negate(factor)
+    factor = magnitude
+    #factor = _randomly_negate(factor)
     return {"factor": factor}
 
 
