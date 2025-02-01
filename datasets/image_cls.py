@@ -142,7 +142,7 @@ def load(dataset_name,batch_size,input_size,input_size_pre_crop_ratio,num_class,
     # Preprocess input
     if train:
         if config.flags.data_aug_mix == 'mixup':
-            rand_augment = keras_cv.preprocessing.RandAugment(value_range=(0,255),magnitude=0.9,magnitude_stddev=0.4,augmentations_per_image=1)
+            rand_augment = keras_cv.preprocessing.RandAugment(value_range=(0,255),magnitude=0.9,magnitude_stddev=0.4,augmentations_per_image=1,rate=0.5)
             random_erase_1 = datasets.augmentation_cifar.RandomErasing()
             train_ds_1 = train_ds_1.map(lambda image, label: (rand_augment(tf.cast(image,tf.uint8)),label),num_parallel_calls=num_parallel) \
                 .map(lambda image, label: random_erase_1._erase(image),num_parallel_calls=num_parallel).prefetch(tf.data.AUTOTUNE)
@@ -156,7 +156,7 @@ def load(dataset_name,batch_size,input_size,input_size_pre_crop_ratio,num_class,
             # train_ds=train_ds.map(lambda train_ds_1, train_ds_2: eager_mixup(train_ds_1,train_ds_2,alpha=0.2),num_parallel_calls=tf.data.experimental.AUTOTUNE)
         elif config.flags.data_aug_mix == 'cutmix':
             #rand_augment = keras_cv.layers.RandAugment(value_range=(0,255),magnitude=0.9,magnitude_stddev=0.6,augmentations_per_image=6)
-            rand_augment = keras_cv.preprocessing.RandAugment(value_range=(0,255),magnitude=0.9,magnitude_stddev=0.4,augmentations_per_image=1)
+            rand_augment = keras_cv.preprocessing.RandAugment(value_range=(0,255),magnitude=0.9,magnitude_stddev=0.4,augmentations_per_image=1,rate=0.5)
             #rand_augment = image_preprocessing.rand_augment.RandAugment()
             random_erase_1 = datasets.augmentation_cifar.RandomErasing()
             train_ds_1 = train_ds_1.map(lambda image, label: (rand_augment(tf.cast(image,tf.uint8)),label),num_parallel_calls=num_parallel)\

@@ -273,46 +273,114 @@ def brightness_policy(magnitude, magnitude_stddev):
 
 
 def shear_x_policy(magnitude, magnitude_stddev):
-    factor = magnitude*0.3
+    #factor = magnitude*0.3
     #factor *= preprocessing.random_inversion(_random_generator)
     #factor = (-factor, factor)
+
+    scale = 0.3
+
+    factor = core.NormalFactorSampler(
+        mean=magnitude*scale,
+        stddev=magnitude_stddev*scale,
+        min_value=0,
+        max_value=1,
+    )
+
     return {"x_factor": factor, "y_factor": 0}
 
 
 def shear_y_policy(magnitude, magnitude_stddev):
-    factor = magnitude*0.3
+    #factor = magnitude*0.3
     #factor = (-factor, factor)
+
+    scale = 0.3
+
+    factor = core.NormalFactorSampler(
+        mean=magnitude*scale,
+        stddev=magnitude_stddev*scale,
+        min_value=0,
+        max_value=1,
+    )
+
     return {"x_factor": 0, "y_factor": factor}
 
 
 def translate_x_policy(magnitude, magnitude_stddev):
     # TODO(lukewood): should we integrate RandomTranslation with `factor`?
-    factor = magnitude*0.45
+    #factor = magnitude*0.45
     #factor = (-factor, factor)
+
+    scale = 0.45
+
+    factor = core.NormalFactorSampler(
+        mean=magnitude*scale,
+        stddev=magnitude_stddev*scale,
+        min_value=0,
+        max_value=1,
+    )
+
     return {"width_factor": factor, "height_factor": 0}
 
 
 def translate_y_policy(magnitude, magnitude_stddev):
     # TODO(lukewood): should we integrate RandomTranslation with `factor`?
-    factor = magnitude*0.45
+    #factor = magnitude*0.45
     #factor = (-factor, factor)
+    scale = 0.45
+
+    factor = core.NormalFactorSampler(
+        mean=magnitude*scale,
+        stddev=magnitude_stddev*scale,
+        min_value=0,
+        max_value=1,
+    )
+
     return {"width_factor": 0, "height_factor": factor}
 
 
 def rotation_policy(magnitude, magnitude_stddev):
+    # TODO: random uniform -> gauss ?
     magnitude = 1/12*magnitude  # 1/12*2*pi = 30 -> -30 ~ 30
+
     return {"factor": magnitude}
 
 
 def sharpness_policy(magnitude, magnitude_stddev):
-    factor = magnitude
+    #factor = magnitude
     #factor = _randomly_negate(factor)
+
+    factor = core.NormalFactorSampler(
+        mean=magnitude,
+        stddev=magnitude_stddev,
+        min_value=0,
+        max_value=1,
+    )
+
     return {"factor": factor}
 
 
+
+
+
 def posterization_policy(magnitude, magnitude_stddev):
-    #magnitude = max(1, int(8*magnitude))
-    magnitude = max(1, int(4*magnitude))
+    #magnitude = max(2, int(8*magnitude))
+    #magnitude = max(1, int(4*magnitude))
+
+    factor = tf.clip_by_value(
+            tf.random.normal(
+                shape=(1,),
+                mean=magnitude,
+                stddev=magnitude_stddev,
+                #seed=self.seed,
+                #dtype=dtype,
+            ),
+            0,
+            1,
+        )
+
+    factor = max(1, int(4*factor))
+
+
     return {"bits": magnitude}
 
 def invert_policy(magnitude, magnitude_stddev):
