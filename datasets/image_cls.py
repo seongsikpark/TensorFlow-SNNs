@@ -15,6 +15,7 @@ from datasets.augmentation_cifar import resize_with_crop
 from datasets.augmentation_cifar import resize_with_crop_aug
 from datasets.augmentation_cifar import mixup
 from datasets.augmentation_cifar import cutmix
+from datasets.augmentation_cifar import cutmix_in_batch
 
 
 #import keras_cv
@@ -165,17 +166,24 @@ def load(dataset_name,batch_size,input_size,input_size_pre_crop_ratio,num_class,
                                 .map(lambda image, label: (rand_augment(tf.cast(image,tf.uint8)),label),num_parallel_calls=num_parallel)
             #train_ds_1 = train_ds_1.map(lambda image, label: random_erase_1._erase(image),num_parallel_calls=num_parallel).prefetch(tf.data.AUTOTUNE)
 
-            train_ds_2 = train_ds_2.map(lambda image, label: resize_with_crop_aug(image, label, dataset_name,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input) ,num_parallel_calls=num_parallel) \
-                                .map(lambda image, label: (rand_augment(tf.cast(image,tf.uint8)),label),num_parallel_calls=num_parallel)
+            #train_ds_2 = train_ds_2.map(lambda image, label: resize_with_crop_aug(image, label, dataset_name,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input) ,num_parallel_calls=num_parallel) \
+            #                    .map(lambda image, label: (rand_augment(tf.cast(image,tf.uint8)),label),num_parallel_calls=num_parallel)
             #train_ds_2 = train_ds_2.map(lambda image, label: random_erase_1._erase(image),num_parallel_calls=num_parallel).prefetch(tf.data.AUTOTUNE)
 
-            train_ds = tf.data.Dataset.zip((train_ds_1,train_ds_2))
+            train_ds = train_ds_1.map(cutmix_in_batch,num_parallel_calls=num_parallel).prefetch(tf.data.AUTOTUNE)
+
+            #train_ds = tf.data.Dataset.zip((train_ds_1,train_ds_2))
+
+            #train_ds = train_ds.map(
+            #    lambda train_ds_1, train_ds_2: cutmix(train_ds_1, train_ds_2),
+            #                            num_parallel_calls=num_parallel).prefetch(tf.data.AUTOTUNE)
+
 
             #train_ds = train_ds.map(
             #    lambda train_ds_1, train_ds_2: cutmix(train_ds_1, train_ds_2, dataset_name, input_size, input_size_pre_crop_ratio,
             #                                          num_class, alpha, input_prec_mode,preprocessor_input),
             #                            num_parallel_calls=num_parallel).prefetch(tf.data.AUTOTUNE)
-            train_ds = train_ds.map(cutmix,num_parallel_calls=num_parallel).prefetch(tf.data.AUTOTUNE)
+            #train_ds = train_ds.map(cutmix,num_parallel_calls=num_parallel).prefetch(tf.data.AUTOTUNE)
 
             # train_ds = train_ds.map(lambda train_ds_1, train_ds_2: eager_cutmix(train_ds_1, train_ds_2, alpha=0.2),
             #                        num_parallel_calls=num_parallel)

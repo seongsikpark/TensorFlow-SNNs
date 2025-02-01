@@ -80,7 +80,6 @@ def eager_cutmix(ds_one, ds_two, alpha=1.0):
     return tf.py_function(mixup, [ds_one, ds_two, alpha],[tf.float32,tf.float32])
 
 #
-
 @tf.function
 #def _cutmix(train_ds_one, train_ds_two, dataset_name, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input):
 def _cutmix(train_ds_one, train_ds_two):
@@ -90,6 +89,61 @@ def _cutmix(train_ds_one, train_ds_two):
     input_size=32
 
     (images_one, labels_one), (images_two, labels_two) = train_ds_one, train_ds_two
+
+    # Get a sample from the Beta distribution
+    batch_size = 1
+    gamma_1_sample = tf.random.gamma(shape=(), alpha=alpha)
+    gamma_2_sample = tf.random.gamma(shape=(), alpha=alpha)
+    lambda_value = gamma_1_sample / (gamma_1_sample + gamma_2_sample)
+
+    # Get the bounding box offsets, heights and widths
+    boundaryx1, boundaryy1, target_w, target_h = get_box(lambda_value,input_size)
+
+    #images_one, labels_one = resize_with_crop_aug(images_one,labels_one,dataset_name,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input)
+    #images_two, labels_two = resize_with_crop_aug(images_two,labels_two,dataset_name,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input)
+
+    # Get a patch from the second image
+    crop2 = tf.image.crop_to_bounding_box(images_two, boundaryy1, boundaryx1, target_h, target_w)
+
+    # Pad the images_two patch with the same offset
+    images_two = tf.image.pad_to_bounding_box(crop2, boundaryy1, boundaryx1, input_size, input_size)
+
+    # Get a patch from the first image
+    crop1 = tf.image.crop_to_bounding_box(images_one, boundaryy1, boundaryx1, target_h, target_w)
+
+    # Pad the images_one patch with the same offset
+    img1 = tf.image.pad_to_bounding_box(crop1, boundaryy1, boundaryx1, input_size, input_size)
+
+    # Modifi the first image by subtracting the patch
+    images_one = images_one - img1
+
+    # Add the modified images_one and images_two to get the CutMix image
+    image = images_one + images_two
+
+    # Adjust Lambda in accordanct to the pixel ration
+    lambda_value = 1 - (target_w*target_h)/(input_size*input_size)
+    lambda_value = tf.cast(lambda_value,tf.float32)
+
+    # Combine the labels of both images
+    label = lambda_value*labels_one + (1-lambda_value)*labels_two
+
+    #
+    return (image, label)
+
+
+
+@tf.function
+#def _cutmix(train_ds_one, train_ds_two, dataset_name, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input):
+def _cutmix_in_batch(images, labels):
+
+    # TODO: parameterize
+    alpha = 0.5
+    input_size=32
+
+    (images_one, labels_one) = (images, labels)
+    images_two = tf.reverse(images_one, [0])
+    labels_two = tf.reverse(labels_one, [0])
+
 
     # Get a sample from the Beta distribution
     batch_size = 1
@@ -154,6 +208,31 @@ def cutmix(train_ds_one, train_ds_two):
         lib_snn.model.train_counter < mix_off_iter,
         lambda: _cutmix(train_ds_one, train_ds_two),
         lambda: mix_off(train_ds_one, train_ds_two))
+
+
+
+@tf.function
+#def cutmix(train_ds_one, train_ds_two, dataset_name, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input):
+def cutmix_in_batch(images, labels):
+
+    #def mix_off(train_ds_one, train_ds_two, dataset_name, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input):
+    def mix_off(images, labels):
+        #(images_one, labels_one) =
+        #images_one, labels_one = resize_with_crop_aug(images_one,labels_one,dataset_name,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input)
+        #return (images_one, labels_one)
+        return (images, labels)
+
+    mix_off_iter = 500*200
+
+    #return tf.cond(
+        #lib_snn.model.train_counter < mix_off_iter,
+        #lambda: _cutmix(train_ds_one, train_ds_two, dataset_name, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input),
+        #lambda: mix_off(train_ds_one, train_ds_two, dataset_name, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input))
+
+    return tf.cond(
+        lib_snn.model.train_counter < mix_off_iter,
+        lambda: _cutmix_in_batch(images, labels),
+        lambda: mix_off(images, labels))
 
 
 ########
