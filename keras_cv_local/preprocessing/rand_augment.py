@@ -307,33 +307,21 @@ def shear_y_policy(magnitude, magnitude_stddev):
 
 def translate_x_policy(magnitude, magnitude_stddev):
     # TODO(lukewood): should we integrate RandomTranslation with `factor`?
-    #factor = magnitude*0.45
+    factor = magnitude*0.45
     #factor = (-factor, factor)
 
-    scale = 0.45
+    #scale = 0.45
 
-    factor = core.NormalFactorSampler(
-        mean=magnitude*scale,
-        stddev=magnitude_stddev*scale,
-        min_value=0,
-        max_value=1,
-    )
 
     return {"width_factor": factor, "height_factor": 0}
 
 
 def translate_y_policy(magnitude, magnitude_stddev):
     # TODO(lukewood): should we integrate RandomTranslation with `factor`?
-    #factor = magnitude*0.45
+    factor = magnitude*0.45
     #factor = (-factor, factor)
-    scale = 0.45
+    #scale = 0.45
 
-    factor = core.NormalFactorSampler(
-        mean=magnitude*scale,
-        stddev=magnitude_stddev*scale,
-        min_value=0,
-        max_value=1,
-    )
 
     return {"width_factor": 0, "height_factor": factor}
 
@@ -381,7 +369,7 @@ def posterization_policy(magnitude, magnitude_stddev):
     factor = max(1, int(4*factor))
 
 
-    return {"bits": magnitude}
+    return {"bits": factor}
 
 def invert_policy(magnitude, magnitude_stddev):
     return {"factor": magnitude}
