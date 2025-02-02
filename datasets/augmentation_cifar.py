@@ -297,6 +297,7 @@ def mixup(ds_one, ds_two, dataset_name, input_size, input_size_pre_crop_ratio, n
     return (images,labels)
 
 #
+@tf.function
 def _mixup_in_batch(images, labels):
 
     #TODO:
@@ -305,7 +306,7 @@ def _mixup_in_batch(images, labels):
 
     images_one = images
     images_two = tf.reverse(images, [0])
-    labels_one = labels, [0]
+    labels_one = labels
     labels_two = tf.reverse(labels, [0])
 
     # sample lambda and reshape it to do the mixup
@@ -319,7 +320,6 @@ def _mixup_in_batch(images, labels):
     return (images,labels)
 
 @tf.function
-#def cutmix(train_ds_one, train_ds_two, dataset_name, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input):
 def mixup_in_batch(images, labels):
 
     #def mix_off(train_ds_one, train_ds_two, dataset_name, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input):
@@ -348,7 +348,7 @@ def eager_resize_with_crop(image, label):
     #return resize_with_crop(image,label)
 
 #
-#@tf.function
+@tf.function
 #def resize_with_crop(image, label, dataset_name, input_size,input_size_pre_crop_ratio, num_class, input_prec_mode='torch'):
 def resize_with_crop(image, label, dataset_name, input_size, input_size_pre_crop_ratio, num_class, input_prec_mode, preprocess_input):
 
@@ -389,7 +389,7 @@ def resize_with_crop(image, label, dataset_name, input_size, input_size_pre_crop
     return (i, label)
 
 
-#@tf.function
+@tf.function
 #def resize_with_crop_aug(image, label, dataset_name, input_size, input_size_pre_crop_ratio, num_class, input_prec_mode='torch'):
 def resize_with_crop_aug(image, label, dataset_name, input_size, input_size_pre_crop_ratio, num_class, input_prec_mode, preprocess_input):
 

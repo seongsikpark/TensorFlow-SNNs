@@ -48,7 +48,7 @@ conf.label_smoothing=0.1
 conf.debug_lr = True
 conf.lmb=1E-3
 #conf.regularizer=None
-#conf.data_aug_mix='mixup'
+conf.data_aug_mix='mixup'
 
 # conf.mode='inference'
 # conf.n_conv1_spike_count = True
