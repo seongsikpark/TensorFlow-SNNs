@@ -242,10 +242,13 @@ def cutmix_in_batch(images, labels):
 # from keras.io
 
 def eager_mixup(ds_one, ds_two, alpha=1.0):
+    assert False
     return tf.py_function(mixup, [ds_one, ds_two, alpha],[tf.float32,tf.float32])
     #return tf.py_function(mixup, [ds_one, ds_two, alpha],[tf.uint8,tf.uint8,tf.int64),tf.float32])
     #return tf.py_function(mixup, [ds_one, ds_two, alpha],[(tf.uint8,tf.int64),(tf.uint8,tf.int64),tf.float32])
 
+
+#
 def mixup(ds_one, ds_two, dataset_name, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input):
 
     # unpack two datasets
@@ -257,8 +260,8 @@ def mixup(ds_one, ds_two, dataset_name, input_size, input_size_pre_crop_ratio, n
     #assert False
 
     #
-    images_one, labels_one = resize_with_crop_aug(images_one,labels_one,dataset_name,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input)
-    images_two, labels_two = resize_with_crop_aug(images_two,labels_two,dataset_name,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input)
+    #images_one, labels_one = resize_with_crop_aug(images_one,labels_one,dataset_name,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input)
+    #images_two, labels_two = resize_with_crop_aug(images_two,labels_two,dataset_name,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input)
 
     labels_one = tf.cast(labels_one,tf.float32)
     labels_two = tf.cast(labels_two,tf.float32)
@@ -292,6 +295,52 @@ def mixup(ds_one, ds_two, dataset_name, input_size, input_size_pre_crop_ratio, n
     #labels = tf.add(tf.multiply())
 
     return (images,labels)
+
+#
+def _mixup_in_batch(images, labels):
+
+    #TODO:
+    alpha = 0.5
+    batch_size = 1
+
+    images_one = images
+    images_two = tf.reverse(images, [0])
+    labels_one = labels, [0]
+    labels_two = tf.reverse(labels, [0])
+
+    # sample lambda and reshape it to do the mixup
+    gamma_1_sample = tf.random.gamma(shape=[batch_size], alpha=alpha)
+    gamma_2_sample = tf.random.gamma(shape=[batch_size], alpha=alpha)
+    l = gamma_1_sample / (gamma_1_sample+gamma_2_sample)
+
+    images = images_one * l + images_two * (1-l)
+    labels = labels_one * l + labels_two * (1-l)
+
+    return (images,labels)
+
+@tf.function
+#def cutmix(train_ds_one, train_ds_two, dataset_name, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input):
+def mixup_in_batch(images, labels):
+
+    #def mix_off(train_ds_one, train_ds_two, dataset_name, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input):
+    def mix_off(images, labels):
+        #(images_one, labels_one) =
+        #images_one, labels_one = resize_with_crop_aug(images_one,labels_one,dataset_name,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input)
+        #return (images_one, labels_one)
+        return (images, labels)
+
+    mix_off_iter = 500*200
+
+    #return tf.cond(
+        #lib_snn.model.train_counter < mix_off_iter,
+        #lambda: _mixup(train_ds_one, train_ds_two, dataset_name, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input),
+        #lambda: mix_off(train_ds_one, train_ds_two, dataset_name, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input))
+
+    return tf.cond(
+        lib_snn.model.train_counter < mix_off_iter,
+        lambda: _mixup_in_batch(images, labels),
+        lambda: mix_off(images, labels))
+
 
 #
 def eager_resize_with_crop(image, label):

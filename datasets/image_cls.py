@@ -143,18 +143,34 @@ def load(dataset_name,batch_size,input_size,input_size_pre_crop_ratio,num_class,
     # Preprocess input
     if train:
         if config.flags.data_aug_mix == 'mixup':
+            if False:
+                rand_augment = keras_cv.preprocessing.RandAugment(value_range=(0,255),magnitude=0.9,magnitude_stddev=0.4,augmentations_per_image=1,rate=0.5)
+                random_erase_1 = datasets.augmentation_cifar.RandomErasing()
+                train_ds_1 = train_ds_1.map(lambda image, label: (rand_augment(tf.cast(image,tf.uint8)),label),num_parallel_calls=num_parallel) \
+                    .map(lambda image, label: random_erase_1._erase(image),num_parallel_calls=num_parallel).prefetch(tf.data.AUTOTUNE)
+
+                random_erase_2 = datasets.augmentation_cifar.RandomErasing()
+                train_ds_2 = train_ds_2.map(lambda image, label: (rand_augment(tf.cast(image,tf.uint8)),label),num_parallel_calls=num_parallel) \
+                    .map(lambda image, label: random_erase_2._erase(image),num_parallel_calls=num_parallel).prefetch(tf.data.AUTOTUNE)
+
+                train_ds = train_ds.map(lambda train_ds_1, train_ds_2: mixup(train_ds_1, train_ds_2, dataset_name, input_size, input_size_pre_crop_ratio,num_class,alpha, input_prec_mode, preprocessor_input),
+                                        num_parallel_calls=num_parallel).prefetch(tf.data.AUTOTUNE)
+                # train_ds=train_ds.map(lambda train_ds_1, train_ds_2: eager_mixup(train_ds_1,train_ds_2,alpha=0.2),num_parallel_calls=tf.data.experimental.AUTOTUNE)
+
+
+
             rand_augment = keras_cv.preprocessing.RandAugment(value_range=(0,255),magnitude=0.9,magnitude_stddev=0.4,augmentations_per_image=1,rate=0.5)
             random_erase_1 = datasets.augmentation_cifar.RandomErasing()
-            train_ds_1 = train_ds_1.map(lambda image, label: (rand_augment(tf.cast(image,tf.uint8)),label),num_parallel_calls=num_parallel) \
-                .map(lambda image, label: random_erase_1._erase(image),num_parallel_calls=num_parallel).prefetch(tf.data.AUTOTUNE)
 
-            random_erase_2 = datasets.augmentation_cifar.RandomErasing()
-            train_ds_2 = train_ds_2.map(lambda image, label: (rand_augment(tf.cast(image,tf.uint8)),label),num_parallel_calls=num_parallel) \
-                .map(lambda image, label: random_erase_2._erase(image),num_parallel_calls=num_parallel).prefetch(tf.data.AUTOTUNE)
+            train_ds_1 = train_ds_1.map(lambda image, label: resize_with_crop_aug(image, label, dataset_name,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input) ,num_parallel_calls=num_parallel) \
+                                .map(lambda image, label: (rand_augment(tf.cast(image,tf.uint8)),label),num_parallel_calls=num_parallel) \
+                                .map(lambda image, label: (random_erase_1._erase(image),label),num_parallel_calls=num_parallel) \
+                                .map(lambda image, label: (preprocessor_input(image,mode=input_prec_mode),label)) \
+                                .prefetch(tf.data.AUTOTUNE)
 
-            train_ds = train_ds.map(lambda train_ds_1, train_ds_2: mixup(train_ds_1, train_ds_2, dataset_name, input_size, input_size_pre_crop_ratio,num_class,alpha, input_prec_mode, preprocessor_input),
-                                    num_parallel_calls=num_parallel).prefetch(tf.data.AUTOTUNE)
-            # train_ds=train_ds.map(lambda train_ds_1, train_ds_2: eager_mixup(train_ds_1,train_ds_2,alpha=0.2),num_parallel_calls=tf.data.experimental.AUTOTUNE)
+            train_ds = train_ds_1.map(mixup_in_batch,num_parallel_calls=num_parallel).prefetch(tf.data.AUTOTUNE)
+
+
         elif config.flags.data_aug_mix == 'cutmix':
 
             #rand_augment = keras_cv.layers.RandAugment(value_range=(0,255),magnitude=0.9,magnitude_stddev=0.6,augmentations_per_image=6)
@@ -164,7 +180,10 @@ def load(dataset_name,batch_size,input_size,input_size_pre_crop_ratio,num_class,
 
             train_ds_1 = train_ds_1.map(lambda image, label: resize_with_crop_aug(image, label, dataset_name,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input) ,num_parallel_calls=num_parallel) \
                                 .map(lambda image, label: (rand_augment(tf.cast(image,tf.uint8)),label),num_parallel_calls=num_parallel) \
-                                .map(lambda image, label: (preprocessor_input(image,mode=input_prec_mode),label)).prefetch(tf.data.AUTOTUNE)
+                                .map(lambda image, label: (random_erase_1._erase(image),label),num_parallel_calls=num_parallel) \
+                                .map(lambda image, label: (preprocessor_input(image,mode=input_prec_mode),label)) \
+                                .prefetch(tf.data.AUTOTUNE)
+
             #train_ds_1 = train_ds_1.map(lambda image, label: random_erase_1._erase(image),num_parallel_calls=num_parallel).prefetch(tf.data.AUTOTUNE)
 
             #train_ds_2 = train_ds_2.map(lambda image, label: resize_with_crop_aug(image, label, dataset_name,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input) ,num_parallel_calls=num_parallel) \
