@@ -327,6 +327,7 @@ def translate_y_policy(magnitude, magnitude_stddev):
     factor = _random_generator.random_normal([1,],magnitude,magnitude_stddev)
     factor *= scale
 
+
     return {"width_factor": 0, "height_factor": factor}
 
 

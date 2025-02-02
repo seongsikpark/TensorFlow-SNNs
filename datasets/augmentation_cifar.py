@@ -389,16 +389,18 @@ def resize_with_crop_aug(image, label, dataset_name, input_size, input_size_pre_
     i=tf.image.random_crop(i,[input_size,input_size,3])
     i=tf.image.random_flip_left_right(i)
 
-    #
-    if conf.data_prep=='default':
-        try:
-            i = preprocess_input(i, mode=input_prec_mode)
-        except:
-            i=preprocess_input(i)
-    else:
-        i=datasets.preprocessing.preprocessing_input_img(i,mode=conf.data_prep)
 
+    # TODO: to other function
+    #if conf.data_prep=='default':
+        #try:
+            #i = preprocess_input(i, mode=input_prec_mode)
+        #except:
+            #i=preprocess_input(i)
+    #else:
+        #i=datasets.preprocessing.preprocessing_input_img(i,mode=conf.data_prep)
+#
 
+    # TODO: to other function
     # one-hot vectorization - label
     label = tf.one_hot(label, num_class)
 
