@@ -137,30 +137,19 @@ def load(dataset_name,batch_size,input_size,input_size_pre_crop_ratio,num_class,
     #
     #input_prec_mode = 'torch'
 
-    alpha = 0.5
+    #alpha = 0.5
 
     #
     # data augmentation
     # Preprocess input
     if train:
         if config.flags.data_aug_mix == 'mixup':
-            if False:
-                rand_augment = keras_cv.preprocessing.RandAugment(value_range=(0,255),magnitude=0.9,magnitude_stddev=0.4,augmentations_per_image=1,rate=0.5)
-                random_erase_1 = datasets.augmentation_cifar.RandomErasing()
-                train_ds_1 = train_ds_1.map(lambda image, label: (rand_augment(tf.cast(image,tf.uint8)),label),num_parallel_calls=num_parallel) \
-                    .map(lambda image, label: random_erase_1._erase(image),num_parallel_calls=num_parallel).prefetch(tf.data.AUTOTUNE)
-
-                random_erase_2 = datasets.augmentation_cifar.RandomErasing()
-                train_ds_2 = train_ds_2.map(lambda image, label: (rand_augment(tf.cast(image,tf.uint8)),label),num_parallel_calls=num_parallel) \
-                    .map(lambda image, label: random_erase_2._erase(image),num_parallel_calls=num_parallel).prefetch(tf.data.AUTOTUNE)
-
-                train_ds = train_ds.map(lambda train_ds_1, train_ds_2: mixup(train_ds_1, train_ds_2, dataset_name, input_size, input_size_pre_crop_ratio,num_class,alpha, input_prec_mode, preprocessor_input),
-                                        num_parallel_calls=num_parallel).prefetch(tf.data.AUTOTUNE)
-                # train_ds=train_ds.map(lambda train_ds_1, train_ds_2: eager_mixup(train_ds_1,train_ds_2,alpha=0.2),num_parallel_calls=tf.data.experimental.AUTOTUNE)
-
-
-
-            rand_augment = keras_cv.preprocessing.RandAugment(value_range=(0,255),magnitude=0.9,magnitude_stddev=0.4,augmentations_per_image=1,rate=0.5)
+            rand_augment = keras_cv.preprocessing.RandAugment(
+                value_range=(0,255),
+                magnitude=conf.randaug_mag,
+                magnitude_stddev=conf.randaug_mag_std,
+                augmentations_per_image=conf.randaug_n,
+                rate=conf.randaug_rate)
             random_erase_1 = datasets.augmentation_cifar.RandomErasing()
 
             train_ds_1 = train_ds_1.map(lambda image, label: resize_with_crop_aug(image, label, dataset_name,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input) ,num_parallel_calls=num_parallel) \
@@ -169,15 +158,17 @@ def load(dataset_name,batch_size,input_size,input_size_pre_crop_ratio,num_class,
                                 .map(lambda image, label: (preprocessor_input(image,mode=input_prec_mode),label)) \
                                 .map(mixup_in_batch,num_parallel_calls=num_parallel) \
                                 .prefetch(tf.data.AUTOTUNE)
-
-            #train_ds = train_ds_1.map(mixup_in_batch,num_parallel_calls=num_parallel).prefetch(tf.data.AUTOTUNE)
             train_ds = train_ds_1
-
 
         elif config.flags.data_aug_mix == 'cutmix':
 
             #rand_augment = keras_cv.layers.RandAugment(value_range=(0,255),magnitude=0.9,magnitude_stddev=0.6,augmentations_per_image=6)
-            rand_augment = keras_cv.preprocessing.RandAugment(value_range=(0,255),magnitude=0.9,magnitude_stddev=0.4,augmentations_per_image=1,rate=0.5)
+            rand_augment = keras_cv.preprocessing.RandAugment(
+                value_range=(0, 255),
+                magnitude=conf.randaug_mag,
+                magnitude_stddev=conf.randaug_mag_std,
+                augmentations_per_image=conf.randaug_n,
+                rate=conf.randaug_rate)
             #rand_augment = image_preprocessing.rand_augment.RandAugment()
             random_erase_1 = datasets.augmentation_cifar.RandomErasing()
 
@@ -187,8 +178,8 @@ def load(dataset_name,batch_size,input_size,input_size_pre_crop_ratio,num_class,
                                 .map(lambda image, label: (preprocessor_input(image,mode=input_prec_mode),label)) \
                                 .map(mixup_in_batch,num_parallel_calls=num_parallel) \
                                 .prefetch(tf.data.AUTOTUNE)
-
             train_ds = train_ds_1
+
             #train_ds_1 = train_ds_1.map(lambda image, label: random_erase_1._erase(image),num_parallel_calls=num_parallel).prefetch(tf.data.AUTOTUNE)
 
             #train_ds_2 = train_ds_2.map(lambda image, label: resize_with_crop_aug(image, label, dataset_name,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input) ,num_parallel_calls=num_parallel) \
@@ -217,24 +208,29 @@ def load(dataset_name,batch_size,input_size,input_size_pre_crop_ratio,num_class,
         else:
             train_ds = train_ds.map(
                 lambda image, label: resize_with_crop_aug(image, label, dataset_name, input_size, input_size_pre_crop_ratio, num_class, input_prec_mode,preprocessor_input),
-                num_parallel_calls=num_parallel)
+                num_parallel_calls=num_parallel) \
+                            .map(lambda image, label: (preprocessor_input(image,mode=input_prec_mode),label)) \
+                            .prefetch(tf.data.AUTOTUNE)
+
 
         train_ds = train_ds.batch(batch_size,drop_remainder=True)
         train_ds = train_ds.prefetch(num_parallel)
     else:
         train_ds = train_ds.map(
             lambda image, label: resize_with_crop(image, label, dataset_name, input_size, input_size_pre_crop_ratio, num_class, input_prec_mode,preprocessor_input),
-            num_parallel_calls=num_parallel)
+            num_parallel_calls=num_parallel) \
+                        .map(lambda image, label: (preprocessor_input(image,mode=input_prec_mode),label)) \
+                        .prefetch(tf.data.AUTOTUNE)
 
         train_ds = train_ds.batch(batch_size,drop_remainder=True)
         train_ds = train_ds.prefetch(num_parallel)
 
-    # valid_ds=valid_ds.map(resize_with_crop_cifar,num_parallel_calls=tf.data.experimental.AUTOTUNE)
-    # valid_ds=valid_ds.map(resize_with_crop,num_parallel_calls=tf.data.experimental.AUTOTUNE)
-    # valid_ds=valid_ds.map(resize_with_crop,num_parallel_calls=num_parallel)
     valid_ds = valid_ds.map(
         lambda image, label: resize_with_crop(image, label, dataset_name, input_size, input_size_pre_crop_ratio, num_class, input_prec_mode,preprocessor_input),
-        num_parallel_calls=num_parallel)
+        num_parallel_calls=num_parallel) \
+                    .map(lambda image, label: (preprocessor_input(image,mode=input_prec_mode),label)) \
+                    .prefetch(tf.data.AUTOTUNE)
+
     #valid_ds = valid_ds.batch(batch_size,drop_remainder=True)
     valid_ds = valid_ds.batch(batch_size_inference,drop_remainder=True)
     valid_ds = valid_ds.prefetch(num_parallel)

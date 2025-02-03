@@ -34,8 +34,8 @@ conf.save_models_max_to_keep = 1
 #conf.optimizer = 'ADAMW'
 #conf.lr_schedule = 'COS'
 
-#conf.nn_mode = 'SNN'
-conf.nn_mode = 'ANN'
+conf.nn_mode = 'SNN'
+#conf.nn_mode = 'ANN'
 
 conf.n_init_vth = 1.0
 
@@ -48,7 +48,16 @@ conf.label_smoothing=0.1
 conf.debug_lr = True
 conf.lmb=1E-3
 #conf.regularizer=None
-conf.data_aug_mix='mixup'
+#conf.data_aug_mix='mixup'
+
+conf.mix_off_iter = 500*200
+conf.mix_alpha = 0.5
+conf.randaug_mag = 0.9
+conf.randaug_mag_std = 0.4
+conf.randaug_n = 1
+conf.randaug_rate = 0.5
+
+
 
 # conf.mode='inference'
 # conf.n_conv1_spike_count = True

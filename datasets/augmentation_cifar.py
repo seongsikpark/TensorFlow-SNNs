@@ -25,6 +25,7 @@ from typing import Any, List, Iterable, Optional, Tuple, Union
 import math
 
 from config import config
+conf = config.flags
 
 model_name = config.model_name
 dataset_name = config.dataset_name
@@ -32,8 +33,8 @@ dataset_name = config.dataset_name
 #
 #from config import conf
 #from config_common import conf
-from absl import flags
-conf = flags.FLAGS
+#from absl import flags
+#conf = flags.FLAGS
 
 from datasets.preprocessing import preprocessing_input_img
 
@@ -84,9 +85,11 @@ def eager_cutmix(ds_one, ds_two, alpha=1.0):
 #def _cutmix(train_ds_one, train_ds_two, dataset_name, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input):
 def _cutmix(train_ds_one, train_ds_two):
 
-    # TODO: parameterize
-    alpha = 0.5
-    input_size=32
+    alpha = conf.alpha
+    input_size = lib_snn.utils_vis.image_shape_vis(model_name, dataset_name)[0]
+    #alpha = 0.5
+    #input_size = 32
+
 
     (images_one, labels_one), (images_two, labels_two) = train_ds_one, train_ds_two
 
@@ -136,9 +139,10 @@ def _cutmix(train_ds_one, train_ds_two):
 #def _cutmix(train_ds_one, train_ds_two, dataset_name, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input):
 def _cutmix_in_batch(images, labels):
 
-    # TODO: parameterize
-    alpha = 0.5
-    input_size=32
+    #alpha = 0.5
+    #input_size=32
+    alpha = conf.alpha
+    input_size = lib_snn.utils_vis.image_shape_vis(model_name, dataset_name)[0]
 
     (images_one, labels_one) = (images, labels)
     images_two = tf.reverse(images_one, [0])
@@ -197,7 +201,8 @@ def cutmix(train_ds_one, train_ds_two):
         #images_one, labels_one = resize_with_crop_aug(images_one,labels_one,dataset_name,input_size,input_size_pre_crop_ratio,num_class,input_prec_mode,preprocessor_input)
         return (images_one, labels_one)
 
-    mix_off_iter = 500*200
+    #mix_off_iter = 500*200
+    mix_off_iter = conf.mix_off_iter
 
     #return tf.cond(
         #lib_snn.model.train_counter < mix_off_iter,
@@ -222,7 +227,8 @@ def cutmix_in_batch(images, labels):
         #return (images_one, labels_one)
         return (images, labels)
 
-    mix_off_iter = 500*200
+    #mix_off_iter = 500*200
+    mix_off_iter = conf.mix_off_iter
 
     #return tf.cond(
         #lib_snn.model.train_counter < mix_off_iter,
@@ -300,8 +306,7 @@ def mixup(ds_one, ds_two, dataset_name, input_size, input_size_pre_crop_ratio, n
 @tf.function
 def _mixup_in_batch(images, labels):
 
-    #TODO:
-    alpha = 0.5
+    alpha = conf.mix_alpha
     batch_size = 1
 
     images_one = images
@@ -329,7 +334,8 @@ def mixup_in_batch(images, labels):
         #return (images_one, labels_one)
         return (images, labels)
 
-    mix_off_iter = 500*200
+    #mix_off_iter = 500*200
+    mix_off_iter = conf.mix_off_iter
 
     #return tf.cond(
         #lib_snn.model.train_counter < mix_off_iter,
@@ -337,7 +343,7 @@ def mixup_in_batch(images, labels):
         #lambda: mix_off(train_ds_one, train_ds_two, dataset_name, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input))
 
     return tf.cond(
-        lib_snn.model.train_counter < mix_off_iter,
+        tf.logical_or(lib_snn.model.train_counter < mix_off_iter, mix_off_iter < 0),
         lambda: _mixup_in_batch(images, labels),
         lambda: mix_off(images, labels))
 
@@ -375,13 +381,14 @@ def resize_with_crop(image, label, dataset_name, input_size, input_size_pre_crop
             assert False
 
     #
-    if conf.data_prep=='default':
-        try:
-            i = preprocess_input(i, mode=input_prec_mode)
-        except:
-            i=preprocess_input(i)
-    else:
-        i=preprocessing_input_img(i,mode=conf.data_prep)
+    #
+    #if conf.data_prep=='default':
+    #    try:
+    #        i = preprocess_input(i, mode=input_prec_mode)
+    #    except:
+    #        i=preprocess_input(i)
+    #else:
+    #    i=preprocessing_input_img(i,mode=conf.data_prep)
 
     #
     label = tf.one_hot(label,num_class)
@@ -438,16 +445,6 @@ def resize_with_crop_aug(image, label, dataset_name, input_size, input_size_pre_
     i=tf.image.random_crop(i,[input_size,input_size,3])
     i=tf.image.random_flip_left_right(i)
 
-
-    # TODO: to other function
-    #if conf.data_prep=='default':
-        #try:
-            #i = preprocess_input(i, mode=input_prec_mode)
-        #except:
-            #i=preprocess_input(i)
-    #else:
-        #i=datasets.preprocessing.preprocessing_input_img(i,mode=conf.data_prep)
-#
 
     # TODO: to other function
     # one-hot vectorization - label
