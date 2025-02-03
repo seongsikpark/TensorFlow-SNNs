@@ -11,7 +11,7 @@ from absl import flags
 #flags = flags
 
 flags.DEFINE_string('date','','date')
-
+G
 flags.DEFINE_integer('epoch', 300, 'Number os epochs')
 #flags.DEFINE_string('gpu_fraction', '1/3', 'define the gpu fraction used')
 #flags.DEFINE_string('activation', 'ReLU', '')
@@ -383,12 +383,14 @@ flags.DEFINE_integer('mix_off_iter', -1, 'mix off iter (default: -1 (not apply m
 flags.DEFINE_float('mix_alpha', 1.0, 'alpha for mix augmentation')
 
 # rand augment
+flags.DEFINE_bool('randaug_en', False, 'randaug enable')
 flags.DEFINE_float('randaug_mag', 0.9, 'randaug - magnitude')
 flags.DEFINE_float('randaug_mag_std', 0.4, 'randaug - magnitude std')
 flags.DEFINE_integer('randaug_n', 1, 'randaug - n (augmentation per image)')
 flags.DEFINE_float('randaug_rate', 0.5, 'randaug - rate')
 
-
+#
+flags.DEFINE_bool('rand_erase_en', False, 'random erase enable')
 
 
 
