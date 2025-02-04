@@ -147,7 +147,7 @@ def model_builder(
         else:
             optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate, name='ADAM',clipnorm=conf.grad_clipnorm)
     elif opt == 'ADAMW':
-        assert not (config.flags.regularizer is None),'ADAMW -> regularizer should be None'
+        assert config.flags.regularizer is None,'ADAMW -> regularizer should be None'
 
         learning_rate = learning_rate
         weight_decay = conf.weight_decay_AdamW

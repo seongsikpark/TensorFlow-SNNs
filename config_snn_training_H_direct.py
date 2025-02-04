@@ -47,7 +47,7 @@ conf.batch_size = 100
 conf.label_smoothing=0.1
 conf.debug_lr = True
 conf.lmb=1E-3
-#conf.regularizer=None
+conf.regularizer=None
 #conf.data_aug_mix='mixup'
 
 conf.mix_off_iter = 500*200
