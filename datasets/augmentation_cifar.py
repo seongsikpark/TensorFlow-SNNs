@@ -85,7 +85,7 @@ def eager_cutmix(ds_one, ds_two, alpha=1.0):
 #def _cutmix(train_ds_one, train_ds_two, dataset_name, input_size, input_size_pre_crop_ratio, num_class, alpha, input_prec_mode,preprocessor_input):
 def _cutmix(train_ds_one, train_ds_two):
 
-    alpha = conf.alpha
+    alpha = conf.mix_alpha
     input_size = lib_snn.utils_vis.image_shape_vis(model_name, dataset_name)[0]
     #alpha = 0.5
     #input_size = 32
@@ -141,7 +141,7 @@ def _cutmix_in_batch(images, labels):
 
     #alpha = 0.5
     #input_size=32
-    alpha = conf.alpha
+    alpha = conf.mix_alpha
     input_size = lib_snn.utils_vis.image_shape_vis(model_name, dataset_name)[0]
 
     (images_one, labels_one) = (images, labels)
