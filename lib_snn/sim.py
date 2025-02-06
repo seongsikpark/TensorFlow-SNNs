@@ -96,6 +96,7 @@ idx_neurons = [0,20,5,0,20,5,10,13,30,13,14,9,1,7,9,2,5,9,0,2,3,4,10,4,5]
 
 
 if conf.verbose_visual:
+#if False:
     #
     if False:
         glb_plot = GLB_PLOT('plot',layers,idx_neurons)

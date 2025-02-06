@@ -41,7 +41,7 @@ class Activation(keras.engine.base_layer.Layer):
 
     #index = None    # layer index count starts from InputGenLayer
 
-    def __init__(self, act_type=None, loc='HID', **kwargs):
+    def __init__(self, act_type=None, loc='HID', vth=None, **kwargs):
 
         super(Activation, self).__init__(**kwargs)
         #
@@ -75,6 +75,12 @@ class Activation(keras.engine.base_layer.Layer):
         self.en_record_output = False
         #self.record_output = None
         #self.record_logit = None
+
+        # vth for SNN
+
+        #self.vth = kwargs.pop('vth',None)
+        self.vth = vth
+
 
 
     #
@@ -125,6 +131,9 @@ class Activation(keras.engine.base_layer.Layer):
             elif self.act_type == 'softmax':
                 #self.act_dnn = tf.keras.layers.Softmax(name=name_act)
                 self.act = tf.keras.layers.Softmax(name=self.name)
+            elif self.act_type == 'gelu':
+                #self.act = tf.nn.gelu(name=self.name)
+                self.act = tf.keras.activations.gelu
             else:
                 assert False
         else:
@@ -132,7 +141,7 @@ class Activation(keras.engine.base_layer.Layer):
                 self.act = tf.keras.layers.Softmax(name=self.name)
             elif self.act_type in {'IF', 'LIF'}:
                 self.act = lib_snn.neurons.Neuron(self.output_shape_fixed_batch, self.conf,
-                                                  self.act_type, self.conf.neural_coding, self.depth, loc=self.loc, name=self.name)
+                                                  self.act_type, self.conf.neural_coding, self.depth, loc=self.loc, vth=self.vth,name=self.name)
             else:
                 assert False, 'not supported activation type - {:}'.format(self.act_type)
 

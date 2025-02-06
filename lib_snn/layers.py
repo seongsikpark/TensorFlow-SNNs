@@ -3,7 +3,7 @@ import tensorflow as tf
 
 # import tensorflow_probability as tfp
 
-import tensorflow.keras.regularizers as regularizers
+import tensorflow.python.keras.regularizers as regularizers
 
 from keras import backend
 
@@ -37,7 +37,7 @@ from lib_snn.sim import glb
 from absl import flags
 conf = flags.FLAGS
 
-from keras.engine.input_spec import InputSpec
+from tensorflow.python.keras.engine.input_spec import InputSpec
 
 
 import layers_new
@@ -1473,7 +1473,7 @@ class BatchNormalization(Layer, layers_new.batch_normalization.BatchNormalizatio
     def __init__(self,
                  axis=-1,
                  momentum=0.99,
-                 epsilon=1e-3,
+                 epsilon=1e-4,
                  center=True,
                  scale=True,
                  beta_initializer='zeros',

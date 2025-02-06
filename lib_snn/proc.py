@@ -946,7 +946,8 @@ def postproc_batch_train(self, batch, logs):
 
 
     if conf.debug_lr:
-        logs['lr']=self.model.optimizer.learning_rate(self.model.optimizer.iterations)
+        #logs['lr']=self.model.optimizer.learning_rate(self.model.optimizer.iterations)
+        logs['lr']=self.model.optimizer.learning_rate
 
 #
 def postproc_batch_train_ann(self):

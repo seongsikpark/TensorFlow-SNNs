@@ -1056,13 +1056,14 @@ def set_file_path(batch_size):
 
     #config_name = 'bat-{}_opt-{}_lr-{:.0E}_lmb-{:.0E}'.format(batch_size,opt,learning_rate,lmb)
     if opt == 'ADAMW':
-        config_name = 'ep-{}_bat-{}_opt-{}_lr-{}-{:.0E}_wd-{:.0E}_lmb-{:.0E}'.format(train_epoch, batch_size, opt, lr_schedule,
+        config_name = 'ep-{}_bat-{}_opt-{}_lr-{}-{:.0E}_wd-{:.0E}'.format(train_epoch, batch_size, opt, lr_schedule,
                                                                        learning_rate,weight_decay, lmb)
     else:
         config_name = 'ep-{}_bat-{}_opt-{}_lr-{}-{:.0E}_lmb-{:.0E}'.format(train_epoch,batch_size,opt,lr_schedule,learning_rate,lmb)
 
     #config_name = 'bat-{}_lmb-{:.0E}'.format(batch_size, lmb)
     #config_name = 'bat-512_lmb-{:.1E}'.format(lmb)
+
 
     if train_type=='transfer':
         config_name += '_tr'
@@ -1084,6 +1085,10 @@ def set_file_path(batch_size):
             config_name += '_dp-mdd'
 
     #
+    if conf.randaug_en:
+        config_name += '_ra'
+
+    #
     if conf.data_aug_mix == 'mixup':
         en_mixup = True
         en_cutmix = False
@@ -1098,6 +1103,10 @@ def set_file_path(batch_size):
         config_name += '_mu'
     elif en_cutmix:
         config_name += '_cm'
+
+    #
+    if conf.rand_erase_en:
+        config_name += '_re'
 
     if conf.nn_mode=='SNN':
         # time step

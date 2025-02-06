@@ -1,10 +1,22 @@
 from tensorflow.keras.layers import LayerNormalization
-from models.resnet import act_type
+#from models.resnet import act_type
 import tensorflow as tf
 import lib_snn
 
+from config import config
+conf = config.flags
 
-def mlp(x, in_features,k_init,tdbn, name_num=0, hidden_features=None, out_features=None):
+dropout_rate = 0.5
+dropout_rate_blk = 0.1
+#
+if conf.nn_mode=='ANN':
+    act_type = 'gelu'
+    act_type_out = 'softmax'
+else:
+    act_type = conf.n_type
+    act_type_out = conf.n_type
+
+def mlp(x, in_features,k_init,tdbn,dropout_rate=0, name_num=0, hidden_features=None, out_features=None):
     out_features = out_features
     hidden_features = hidden_features
 
@@ -16,6 +28,8 @@ def mlp(x, in_features,k_init,tdbn, name_num=0, hidden_features=None, out_featur
     x = lib_snn.layers.BatchNormalization(en_tdbn=tdbn, name='MLP_bn_fc1_' + str(name_num))(x)
     #x = tf.keras.layers.Lambda(lambda x: tf.reshape(x, (B,N,hidden_features)))(x)
     x = lib_snn.activations.Activation(act_type=act_type, name='MLP_n_fc1_' + str(name_num))(x)
+    if conf.nn_mode=='ANN':
+        x = tf.keras.layers.Dropout(dropout_rate)(x)
 
     # x = tf.keras.layers.TimeDistributed(lib_snn.layers.Dense(out_features,kernel_initializer=k_init,name='MLP_fc2_'+str(name_num)))(x)
     # x = tf.keras.layers.Flatten(name='MLP_f2_'+str(name_num))(x)
@@ -24,6 +38,8 @@ def mlp(x, in_features,k_init,tdbn, name_num=0, hidden_features=None, out_featur
     x = lib_snn.layers.BatchNormalization(en_tdbn=tdbn, name='MLP_bn_fc2_' + str(name_num))(x)
     #x = tf.keras.layers.Lambda(lambda x: tf.reshape(x, (B,N,out_features)))(x)
     x = lib_snn.activations.Activation(act_type=act_type, name='MLP_n_fc2_' + str(name_num))(x)
+    if conf.nn_mode=='ANN':
+        x = tf.keras.layers.Dropout(dropout_rate)(x)
     return x
 
 def mlp_flat(x, in_features,k_init,tdbn, name_num=0, hidden_features=None, out_features=None):
@@ -91,12 +107,15 @@ def ssa(x, dim,k_init,tdbn, num_heads=12, name_num=0, qkv_bias=False, qk_scale=N
     attn = tf.keras.layers.Lambda(lambda tensors: tf.matmul(tensors[0],tensors[1]))([q,tf.keras.layers.Lambda(lambda x : tf.transpose(x, perm=[0,1,3,2]))(k)])
     attn = tf.keras.layers.Lambda(lambda x: x*scale)(attn)
 
+    if conf.nn_mode=='ANN':
+        attn = tf.keras.layers.Softmax(axis=-1,name='attn_sm'+str(name_num))(attn)
+
     x = tf.keras.layers.Lambda(lambda tensors: tf.matmul(tensors[0],tensors[1]))([attn,v])
     # x = tf.keras.layers.Lambda(lambda x : tf.transpose(x, perm=[0,1,3,2]))(x)  # [B,head,dim/head,N]
     # sspark
     x = tf.keras.layers.Lambda(lambda x : tf.transpose(x, perm=[0,2,1,3]))(x)   # [B,N,head,dim/head]
     x = tf.keras.layers.Reshape((N,C))(x)                                       # [B,N,dim]
-    x = lib_snn.activations.Activation(act_type=act_type, name='ssa_att_lif' + str(name_num))(x)
+    x = lib_snn.activations.Activation(act_type=act_type, vth=0.5, name='ssa_att_lif' + str(name_num))(x)
 
     # x = lib_snn.layers.Flatten(data_format='channels_last',name='proj_f'+str(name_num))(x)
     x = lib_snn.layers.Dense(dim, kernel_initializer=k_init, name='proj_fc' + str(name_num))(x)
@@ -151,6 +170,9 @@ def ssa_flat(x, dim,k_init,tdbn, num_heads=12, name_num=0, qkv_bias=False, qk_sc
     attn = tf.keras.layers.Lambda(lambda tensors: tf.matmul(tensors[0],tensors[1]))([q,tf.keras.layers.Lambda(lambda x : tf.transpose(x, perm=[0,1,3,2]))(k)])
     attn = tf.keras.layers.Lambda(lambda x: x*scale)(attn)
 
+    if conf.nn_mode=='ANN':
+        attn = tf.keras.layers.Dropout(attn_drop)(attn)
+
     x = tf.keras.layers.Lambda(lambda tensors: tf.matmul(tensors[0],tensors[1]))([attn,v])
     x= tf.keras.layers.Lambda(lambda x : tf.transpose(x, perm=[0,1,3,2]))(x)
     x = tf.keras.layers.Reshape((N,C))(x)
@@ -170,11 +192,18 @@ def block(x, dim, num_heads,k_init,tdbn, name_num=0, mlp_ratio=4., qkv_bias=Fals
           drop_path=0., norm_layer=LayerNormalization, sr_ratio=1):
     mlp_hidden_dim = int(dim * mlp_ratio)
     block_in = x
-    attn_out = ssa(block_in, dim=dim,k_init=k_init,tdbn=tdbn, num_heads=num_heads, qkv_bias=qkv_bias,
-                   qk_scale=qk_scale, attn_drop=attn_drop, proj_drop=drop, sr_ratio=sr_ratio, name_num=name_num)
-    x = lib_snn.layers.Add(name='block_attn_'+str(name_num))([block_in,attn_out])
 
-    mlp_out = mlp(x, name_num=name_num,k_init=k_init,tdbn=tdbn, in_features=dim, hidden_features=mlp_hidden_dim, out_features=dim)
+    if conf.nn_mode=='ANN':
+        block_in = tf.keras.layers.LayerNormalization(epsilon=1e-6)(block_in)
+        block_in = tf.keras.layers.Dropout(dropout_rate_blk)(block_in)
+    attn_out = ssa(block_in, dim=dim,k_init=k_init,tdbn=tdbn, num_heads=num_heads, qkv_bias=qkv_bias,
+                   qk_scale=qk_scale, attn_drop=dropout_rate_blk, proj_drop=drop, sr_ratio=sr_ratio, name_num=name_num)
+    x = lib_snn.layers.Add(name='block_attn_'+str(name_num))([block_in,attn_out])
+    if conf.nn_mode=='ANN':
+        x = tf.keras.layers.LayerNormalization(epsilon=1e-6)(x)
+        x = tf.keras.layers.Dropout(dropout_rate_blk)(x)
+
+    mlp_out = mlp(x,dropout_rate=dropout_rate_blk, name_num=name_num,k_init=k_init,tdbn=tdbn, in_features=dim, hidden_features=mlp_hidden_dim, out_features=dim)
     x = lib_snn.layers.Add(name='block_attn_mlp'+str(name_num))([x,mlp_out])
 
     return x
@@ -374,6 +403,9 @@ def spikformer(
                         drop=drop_rate, attn_drop=attn_drop_rate, drop_path=drop_path_rate,
                         norm_layer=LayerNormalization, sr_ratio=sr_ratios, name_num=i,k_init=k_init,tdbn=tdbn)
 
+    if conf.nn_mode=='ANN':
+        block_x = tf.keras.layers.LayerNormalization(epsilon=1e-6)(block_x)
+        block_x = tf.keras.layers.Dropout(dropout_rate)(block_x)
     # x_f =tf.keras.layers.Flatten(data_format=data_format,name='flatten')(block_x)
     gap_x = tf.keras.layers.GlobalAveragePooling1D(data_format=data_format)(block_x)
     output_tensor = lib_snn.layers.Dense(classes, last_layer=True, kernel_initializer=k_init,temporal_mean_input=True,name='predictions')(gap_x)

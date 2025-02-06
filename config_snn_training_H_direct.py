@@ -8,8 +8,8 @@ import os
 #os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["NCCL_P2P_DISABLE"]="0"
-os.environ["CUDA_VISIBLE_DEVICES"]='9'
-
+os.environ["CUDA_VISIBLE_DEVICES"]='0'
+#
 from config import config
 conf = config.flags
 conf.nn_mode = 'SNN'
@@ -48,15 +48,52 @@ conf.name_model_load= '/mnt/hdd1/kyccj/H_direct/base/1/Spikformer_CIFAR10/ep-310
 # conf.debug_lr=True
 # conf.regularizer=None
 #
+#conf.name_model_load= '/home/ssparknas/test1'
+#conf.optimizer = 'ADAM'
+# conf.data_aug_mix = 'mixup'
+#conf.lr_schedule = 'COSR'
+#conf.tdbn= False
+
+conf.optimizer = 'ADAMW'
+conf.lr_schedule = 'COS'
+
+conf.nn_mode = 'SNN'
+#conf.nn_mode = 'ANN'
+
+conf.n_init_vth = 1.0
+
+conf.train_epoch = 310
+conf.learning_rate_init = 5E-5
+conf.learning_rate = 1E-2
+conf.weight_decay_AdamW = 5E-5
+conf.batch_size = 100
+conf.label_smoothing=0.1
+conf.debug_lr = True
+conf.lmb=1E-3
+conf.regularizer=None
+#conf.data_aug_mix='mixup'
+
+conf.mix_off_iter = 500*200
+conf.mix_alpha = 0.5
+
+conf.randaug_en = True
+conf.randaug_mag = 0.9
+conf.randaug_mag_std = 0.4
+conf.randaug_n = 1
+conf.randaug_rate = 0.5
+
+conf.rand_erase_en = True
+
+
+
 # conf.mode='inference'
 conf.n_conv1_spike_count = True
 # conf.all_layer_spike_count = True
 # conf.time_step=6
 
 # Method
-conf.rmp_en = 'True'
+# conf.rmp_en = 'True'
 # conf.rmp_k = 0.0005
-conf.rmp_k = 0.0001
 # conf.im_en = 'True'
 # conf.im_k = 0.001
 #
@@ -69,7 +106,7 @@ conf.SEL_en = 'ours'
 
 # conf.num_train_data = 100
 # conf.SEL_model_dataset = 'V16_C10'
-conf.SEL_model_dataset = 'V16_C100'
+# conf.SEL_model_dataset = 'V16_C100'
 # conf.SEL_model_dataset = 'V16_DVS'
 # conf.SEL_model_dataset = 'R19_C10'
 # conf.SEL_model_dataset = 'R19_C100'
@@ -79,7 +116,7 @@ conf.SEL_model_dataset = 'V16_C100'
 # conf.SEL_model_dataset = 'R20_DVS'
 # conf.SEL_model_dataset = 'MS34_ImageNet'
 # conf.SEL_model_dataset = '34_ImageNet'
-# conf.SEL_model_dataset = 'Spik_C10'
+conf.SEL_model_dataset = 'Spik_C10'
 # conf.SEL_model_dataset = 'Spik_C100'
 # conf.SEL_model_dataset = 'Spik_Img'
 # conf.SEL_model_dataset = 'Spik_DVS'
