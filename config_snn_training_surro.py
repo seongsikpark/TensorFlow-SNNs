@@ -7,7 +7,7 @@
 import os
 os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="6"
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1"
 
 
@@ -52,10 +52,10 @@ conf = config.flags
 #conf.num_train_data = 10000
 
 #conf.model='VGG11'
-conf.model='VGG16'
+# conf.model='VGG16'
 #conf.model='ResNet18'
 #conf.model='ResNet19'
-#conf.model='ResNet20'
+conf.model='ResNet20'
 #conf.model='ResNet32'
 #conf.model='ResNet20_SEW'   # spike-element-wise block
 
@@ -73,14 +73,14 @@ conf.nn_mode = 'SNN'
 
 
 #
-#conf.fire_surro_grad_func = 'boxcar'
-conf.fire_surro_grad_func = 'asym'
+conf.fire_surro_grad_func = 'boxcar'
+# conf.fire_surro_grad_func = 'asym'
 
-conf.surro_grad_alpha = 1.0
+conf.surro_grad_alpha = 0.5
 #conf.surro_grad_beth =
 
-conf.debug_surro_grad = True
-conf.debug_surro_grad_per_iter = 100
+# conf.debug_surro_grad = True
+# conf.debug_surro_grad_per_iter = 100
 
 
 conf.exp_set_name='surro_grad_new'

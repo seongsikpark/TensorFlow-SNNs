@@ -8,7 +8,11 @@ import os
 #os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["NCCL_P2P_DISABLE"]="0"
+<<<<<<< HEAD
 os.environ["CUDA_VISIBLE_DEVICES"]='1'
+=======
+os.environ["CUDA_VISIBLE_DEVICES"]='4'
+>>>>>>> d0e79e2 (Updated by yongjin 2/12)
 #
 from config import config
 conf = config.flags
@@ -27,13 +31,21 @@ conf.lr_schedule = 'COS'
 conf.learning_rate_init = 1e-4
 
 
+<<<<<<< HEAD
 conf.learning_rate = 5e-4
 conf.weight_decay_AdamW = 2e-4
+=======
+conf.learning_rate = 8e-3
+conf.weight_decay_AdamW = 3e-2
+>>>>>>> d0e79e2 (Updated by yongjin 2/12)
 
 ######
 # conf.root_model_save = f'./model_ckpt/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
 conf.root_model_save = f'./model_ckpt_2/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
+<<<<<<< HEAD
 # conf.root_model_save = f'./model_ckpt_test'
+=======
+>>>>>>> d0e79e2 (Updated by yongjin 2/12)
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/resnet/'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/ms/'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/ours_ms/'
@@ -52,6 +64,10 @@ conf.nn_mode = 'SNN'
 conf.n_init_vth = 1.0
 
 conf.train_epoch = 310
+<<<<<<< HEAD
+=======
+
+>>>>>>> d0e79e2 (Updated by yongjin 2/12)
 conf.batch_size = 100
 
 conf.label_smoothing=0.1
@@ -112,7 +128,7 @@ conf.SEL_model_dataset = 'VSNN_DVS'
 
 ###### ResNet20
 # conf.SEL_model_dataset = 'R20_C10'
-# conf.SEL_model_dataset = 'R20_C100'
+conf.SEL_model_dataset = 'R20_C100'
 # conf.SEL_model_dataset = 'R20_DVS'
 
 

@@ -4,7 +4,7 @@
 from config_snn_training_H_direct import config
 
 
-from config import config
+# from config import config
 conf = config.flags
 # snn library
 import lib_snn
