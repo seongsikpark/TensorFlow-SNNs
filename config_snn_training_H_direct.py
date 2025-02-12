@@ -8,7 +8,7 @@ import os
 #os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["NCCL_P2P_DISABLE"]="0"
-os.environ["CUDA_VISIBLE_DEVICES"]='4'
+os.environ["CUDA_VISIBLE_DEVICES"]='1'
 #
 from config import config
 conf = config.flags
@@ -28,7 +28,7 @@ conf.learning_rate_init = 1e-4
 
 
 conf.learning_rate = 5e-4
-conf.weight_decay_AdamW = 1e-4
+conf.weight_decay_AdamW = 2e-4
 
 ######
 # conf.root_model_save = f'./model_ckpt/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
