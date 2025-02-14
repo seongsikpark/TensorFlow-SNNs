@@ -7,15 +7,7 @@
 import os
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["NCCL_P2P_DISABLE"]="0"
-# os.environ["CUDA_VISIBLE_DEVICES"]='1,4'
-# os.environ["CUDA_VISIBLE_DEVICES"]='2,3'
-# os.environ["CUDA_VISIBLE_DEVICES"]='5,6'
-# os.environ["CUDA_VISIBLE_DEVICES"]='8,9'
-# os.environ["CUDA_VISIBLE_DEVICES"]='0'
-# os.environ["CUDA_VISIBLE_DEVICES"]='5'
-# os.environ["CUDA_VISIBLE_DEVICES"]='6'
-# os.environ["CUDA_VISIBLE_DEVICES"]='8'
-os.environ["CUDA_VISIBLE_DEVICES"]='9'
+
 #
 from config import config
 conf = config.flags
@@ -27,8 +19,7 @@ conf.save_best_model_only = True
 conf.save_models_max_to_keep = 1
 
 ######
-#conf.root_model_save = '/mnt/hdd1/kyccj/H_direct/1/'
-conf.root_model_save = './transformer/2/'
+
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/resnet/'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/ms/'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/ours_ms/'
@@ -48,9 +39,6 @@ conf.nn_mode = 'SNN'
 conf.n_init_vth = 1.0
 
 conf.train_epoch = 310
-conf.learning_rate_init = 1e-5
-conf.learning_rate = 5e-3
-conf.weight_decay_AdamW = 3e-2
 conf.batch_size = 100
 conf.label_smoothing=0.1
 conf.debug_lr = True
