@@ -593,6 +593,8 @@ class Neuron(tf.keras.layers.Layer):
         self.vmem = self.vmem.write(t-1,vmem)
         #self.out = spike
         self.out = self.out.write(t-1,spike)
+
+
         if conf.SEL_noise_en_spike:
             layer_name = ['n_conv1', 'conv1_conv_n']
             if self.name in layer_name:
@@ -621,8 +623,8 @@ class Neuron(tf.keras.layers.Layer):
 
         out_ret_int = self.spike_count_int
 
-        self.count_spike(t,spike)
 
+        self.count_spike(t,spike)
         #
         if conf.f_record_first_spike_time:
             self.record_first_spike_time(t)
@@ -1822,7 +1824,7 @@ class Neuron(tf.keras.layers.Layer):
                 #vmem=tf.where(f_fire,tf.constant(conf.n_init_vrest,tf.float32,vmem.shape),vmem)
                 #self.vmem.assign(tf.where(self.f_fire,tf.constant(conf.n_init_vrest,tf.float32,self.vmem.shape),self.vmem))
 
-                f_reset_to_zero_custom_g = True
+                f_reset_to_zero_custom_g = False
 
                 if f_reset_to_zero_custom_g:
 
@@ -2181,6 +2183,9 @@ class Neuron(tf.keras.layers.Layer):
         self.spike_count_int.assign(tf.where(self.f_fire, self.spike_count_int + 1.0, self.spike_count_int))
         self.spike_count.assign(tf.add(self.spike_count, spike))
 
+
+        # tf.print(f"time step : {t}, {self.name}")
+        # tf.print(self.spike_count)
         #print('out')
         #print(self.out)
 
