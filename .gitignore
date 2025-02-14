@@ -11,7 +11,3 @@ spike_pattern_anal/
 venv/
 ILVRC2012_training_filename
 tmp/
-events-tfds/
-model_ckpt/
-model_ckpt_2/
-tensorboard/
