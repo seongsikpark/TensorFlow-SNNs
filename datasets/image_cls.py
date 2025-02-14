@@ -44,8 +44,8 @@ def load(dataset_name,batch_size,input_size,input_size_pre_crop_ratio,num_class,
     input_size_pre_crop_ratio = input_size_pre_crop_ratio
 
     if dataset_name=='imagenet':
-        data_down_dir = '/home/sspark/Datasets/ImageNet_down/'
-        write_dir = '/home/sspark/Datasets/ImageNet'
+        data_down_dir = "/data/datasets/ImageNet_down/"
+        write_dir = "/data/datasets/ImageNet"
 
         #    # Construct a tf.data.Dataset
         download_config = tfds.download.DownloadConfig(
@@ -290,7 +290,7 @@ def load(dataset_name,batch_size,input_size,input_size_pre_crop_ratio,num_class,
     valid_ds = valid_ds.map(
         lambda image, label: resize_with_crop(image, label, dataset_name, input_size, input_size_pre_crop_ratio, num_class, input_prec_mode,preprocessor_input),
         num_parallel_calls=num_parallel) \
-                    .map(lambda image, label: (preprocessor_input(image,mode=input_prec_mode),label)) \
+                    .map(lambda image, label: (preprocessor_input(image, mode=input_prec_mode),label)) \
                     .prefetch(tf.data.AUTOTUNE)
 
     #valid_ds = valid_ds.batch(batch_size,drop_remainder=True)
