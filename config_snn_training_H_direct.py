@@ -5,13 +5,10 @@
 
 # GPU setting
 import os
+#os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["NCCL_P2P_DISABLE"]="0"
-<<<<<<< HEAD
-
-=======
 os.environ["CUDA_VISIBLE_DEVICES"]='1'
->>>>>>> parent of 51e454b... Revert "Yongjin"
 #
 from config import config
 conf = config.flags
@@ -34,13 +31,9 @@ conf.learning_rate = 5e-4
 conf.weight_decay_AdamW = 2e-4
 
 ######
-<<<<<<< HEAD
-
-=======
 # conf.root_model_save = f'./model_ckpt/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
 conf.root_model_save = f'./model_ckpt_2/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
 # conf.root_model_save = f'./model_ckpt_test'
->>>>>>> parent of 51e454b... Revert "Yongjin"
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/resnet/'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/ms/'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/ours_ms/'
@@ -67,17 +60,14 @@ conf.lmb=1E-3
 conf.regularizer=None
 #conf.data_aug_mix='mixup'
 
-conf.mix_off_iter = 500*200 #500*200 for CIFAR10 / 0 for ImageNet
-# conf.mix_off_iter = 0 #500*200 for CIFAR10 / 0 for ImageNet
-conf.mix_alpha = 0.5 #0.5 for CIFAR / 0.8 for ImageNet
-# conf.mix_alpha = 0.8 #0.5 for CIFAR / 0.8 for ImageNet
+conf.mix_off_iter = 500*200
+conf.mix_alpha = 0.5
 
 # data augmentation
 conf.randaug_en = True
 conf.randaug_mag = 0.9
-conf.randaug_mag_std = 0.4 #0.4 for CIFAR10 / 0.5 for ImageNet
-# conf.randaug_mag_std = 0.5 #0.4 for CIFAR10 / 0.5 for ImageNet
-conf.randaug_n = 1 #1 for CIFAR10 / for ImageNet
+conf.randaug_mag_std = 0.4
+conf.randaug_n = 1
 conf.randaug_rate = 0.5
 
 conf.rand_erase_en = True
@@ -284,8 +274,8 @@ elif conf.SEL_model_dataset == 'Spik_Img':
     conf.dataset = 'ImageNet'
     conf.patch_size = 16
     conf.embed_dims = 512
-    conf.num_heads = 8
-    conf.depths = 6
+    conf.num_heads = 16
+    conf.depths = 10
     conf.sr_ratios = 8
     conf.adaptive_dec_vth_scale = 0.8
     conf.reg_psp_SEL_const = 5e-6
@@ -310,9 +300,9 @@ if conf.dataset == 'CIFAR10_DVS':
     conf.train_epoch = 200
     conf.time_step = 4
 if conf.dataset == 'ImageNet':
-    conf.batch_size = 50
-    conf.train_epoch = 100
-    # conf.step_decay_epoch = 30
+    conf.batch_size = 90
+    conf.train_epoch = 90
+    conf.step_decay_epoch = 30
 conf.pooling_vgg = 'avg'
 
 
