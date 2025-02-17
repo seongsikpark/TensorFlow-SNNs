@@ -2,12 +2,12 @@
 
 
 import tensorflow_datasets as tfds
-import events_tfds.events.cifar10_dvs
+# import events_tfds.events.cifar10_dvs
 #from events_tfds.vis.image import as_frames
 #from events_tfds.vis.image import as_frame
 from datasets.events.image import as_frames
 from datasets.events.image import as_frame
-from events_tfds.vis.anim import animate_frames
+# from events_tfds.vis.anim import animate_frames
 
 
 
@@ -98,12 +98,12 @@ def load():
 #        #train_ds, train_ds_num = default_load_train()
 #        train_ds = train_ds.map(lambda events,labels: as_frames(events,labels,shape=image_shape,num_frames=num_frames,augmentation=True))
 
-    train_ds = train_ds.batch(batch_size, drop_remainder = True)
+    train_ds = train_ds.batch(batch_size)
     train_ds = train_ds.prefetch(num_parallel)
 
     #valid_ds = valid_ds.map(lambda events,labels: as_frame(events,labels,shape=image_shape))
     valid_ds = valid_ds.map(lambda events,labels: as_frames(events,labels,shape=image_shape,num_frames=num_frames))
-    valid_ds = valid_ds.batch(batch_size, drop_remainder = True)
+    valid_ds = valid_ds.batch(batch_size)
     valid_ds = valid_ds.prefetch(num_parallel)
 
 
