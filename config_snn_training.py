@@ -52,13 +52,13 @@ conf = config.flags
 #conf.num_train_data = 10000
 
 #conf.model='VGG11'
-#conf.model='VGG16'
+conf.model='VGG16'
 #conf.model='ResNet18'
 #conf.model='ResNet19'
 #conf.model='ResNet20'
 #conf.model='ResNet32'
 #conf.model='ResNet20_SEW'   # spike-element-wise block
-conf.model = 'Spikformer'
+#conf.model = 'Spikformer'
 
 #conf.dataset='CIFAR100'
 #conf.dataset='ImageNet'
@@ -99,8 +99,9 @@ conf.nn_mode = 'SNN'
 conf.n_init_vth = 1.0
 
 conf.train_epoch = 310
-conf.learning_rate_init = 1E-4
-conf.learning_rate = 5E-3
+#
+conf.learning_rate_init = 1E-5
+conf.learning_rate = 6E-3
 conf.weight_decay_AdamW = 2E-2
 conf.batch_size = 100
 conf.label_smoothing=0.1
@@ -125,10 +126,10 @@ conf.rand_erase_en = True
 #
 #if False:
 if True:
-    if True:
-        #if False:
+    #if True:    # proposed method
+    if False:
         conf.reg_spike_out=True
-        conf.reg_spike_out_const=3E-7
+        conf.reg_spike_out_const=6E-7
         conf.reg_spike_out_alpha=4  # temperature
         #conf.reg_spike_rate_alpha=8E-1  # coefficient of reg. rate
         conf.reg_spike_out_sc=True
@@ -142,7 +143,18 @@ if True:
         #
         #conf.reg_spike_out_sc_sm_wo_tmp=True
         #conf.reg_spike_out_sc_sm_wo_spa=True
-
+    else:   # previous work
+        conf.reg_spike_out = True
+        conf.reg_spike_out_const = 1E-2
+        conf.reg_spike_out_alpha = 4  # temperature
+        # conf.reg_spike_rate_alpha=8E-1  # coefficient of reg. rate
+        #conf.reg_spike_out_sc = True
+        #conf.reg_spike_out_sc_wta=False
+        # conf.reg_spike_out_sc_train=True
+        #conf.reg_spike_out_sc_sm = True
+        # conf.reg_spike_out_sc_sq=True
+        conf.reg_spike_out_norm = True
+        #conf.reg_spike_out_norm_sq=True
 
 #
 config.set()
