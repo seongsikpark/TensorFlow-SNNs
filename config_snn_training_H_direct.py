@@ -8,22 +8,32 @@ import os
 #os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["NCCL_P2P_DISABLE"]="0"
-os.environ["CUDA_VISIBLE_DEVICES"]='0'
+os.environ["CUDA_VISIBLE_DEVICES"]='8'
 #
 from config import config
 conf = config.flags
 
-#conf.debug_mode = True
-
+# conf.debug_mode = True
+# conf.mode='inference'
+# conf.name_model_load='/home/dydwls6598/PycharmProjects/TensorFlow-SNN-internal/model_ckpt/warmup=0.0001 to 0.005, weight_decay=0.03/ResNet20_CIFAR10/ep-310_bat-100_opt-ADAMW_lr-COS-5E-03_wd-3E-02_sc_ra_cm_re_ts-4_nc-R-R_nr-s'
 # conf.debug_mode = True
 conf.save_best_model_only = True
 conf.save_models_max_to_keep = 1
 
+conf.optimizer = 'ADAMW'
+conf.lr_schedule = 'COS'
+
+####conf.learning_rate_init is used in COS lr_scheduler
+conf.learning_rate_init = 1e-4
+
+
+conf.learning_rate = 5e-3
+conf.weight_decay_AdamW = 3e-2
+
 ######
-#conf.root_model_save = '/mnt/hdd1/kyccj/H_direct/1/'
-# conf.name_model_load= '/home/ssparknas/240907_ms_inf/resnet/'
-# conf.name_model_load= '/home/ssparknas/240907_ms_inf/ms/'
-# conf.name_model_load= '/home/ssparknas/240907_ms_inf/ours_ms/'
+# conf.root_model_save = f'./model_ckpt/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
+conf.root_model_save = f'/mnt/hdd1/kyccj/H-direct/Spikformer/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
+# conf.root_model_save = f'./model_ckpt_test'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/ours_resnet/'
 #conf.name_model_load= '/home/ssparknas/test1'
 #conf.optimizer = 'ADAM'
@@ -31,18 +41,14 @@ conf.save_models_max_to_keep = 1
 #conf.lr_schedule = 'COSR'
 #conf.tdbn= False
 
-conf.optimizer = 'ADAMW'
-conf.lr_schedule = 'COS'
+
 
 conf.nn_mode = 'SNN'
 #conf.nn_mode = 'ANN'
 
-conf.n_init_vth = 1.0
+conf.n_init_vth = 0.5
 
 conf.train_epoch = 310
-conf.learning_rate_init = 1E-4
-conf.learning_rate = 5E-3
-conf.weight_decay_AdamW = 2E-2
 conf.batch_size = 100
 conf.label_smoothing=0.1
 conf.debug_lr = True
@@ -151,6 +157,20 @@ elif conf.SEL_model_dataset == 'V16_DVS':
     conf.reg_psp_SEL_const = 5e-5 # 5e-6
     conf.reg_psp_SEL_BN_ratio_value = -1 # -1
     conf.reg_psp_SEL_BN_ratio_rate = 1e-2 # 1e-3
+elif conf.SEL_model_dataset == 'V11_DVS':
+    conf.model = 'VGG11'
+    conf.dataset = 'CIFAR10_DVS'
+    conf.adaptive_dec_vth_scale = 0.8
+    conf.reg_psp_SEL_const = 5e-5  # 5e-6
+    conf.reg_psp_SEL_BN_ratio_value = -1  # -1
+    conf.reg_psp_SEL_BN_ratio_rate = 1e-2  # 1e-3
+elif conf.SEL_model_dataset == 'VSNN_DVS':
+    conf.model = 'VGGSNN'
+    conf.dataset = 'CIFAR10_DVS'
+    conf.adaptive_dec_vth_scale = 0.8
+    conf.reg_psp_SEL_const = 5e-5  # 5e-6
+    conf.reg_psp_SEL_BN_ratio_value = -1  # -1
+    conf.reg_psp_SEL_BN_ratio_rate = 1e-2  # 1e-3
 elif conf.SEL_model_dataset == 'R19_C10':
     conf.model='ResNet19'
     conf.dataset = 'CIFAR10'
@@ -258,8 +278,9 @@ elif conf.SEL_model_dataset == 'Spik_DVS':
     conf.reg_psp_SEL_BN_ratio_rate = 1e-4
 
 if conf.dataset == 'CIFAR10_DVS':
-    conf.learning_rate = 0.1
-    conf.time_step = 16
+    conf.batch_size = 32
+    conf.train_epoch = 200
+    conf.time_step = 4
 if conf.dataset == 'ImageNet':
     conf.batch_size = 50
     conf.train_epoch = 100

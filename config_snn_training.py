@@ -7,7 +7,7 @@
 import os
 os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="9"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1"
 
 
@@ -52,13 +52,13 @@ conf = config.flags
 #conf.num_train_data = 10000
 
 #conf.model='VGG11'
-conf.model='VGG16'
+# conf.model='VGG16'
 #conf.model='ResNet18'
 #conf.model='ResNet19'
 #conf.model='ResNet20'
 #conf.model='ResNet32'
 #conf.model='ResNet20_SEW'   # spike-element-wise block
-#conf.model = 'Spikformer'
+conf.model = 'Spikformer'
 
 #conf.dataset='CIFAR100'
 #conf.dataset='ImageNet'
@@ -100,9 +100,9 @@ conf.n_init_vth = 1.0
 
 conf.train_epoch = 310
 #
-conf.learning_rate_init = 1E-5
-conf.learning_rate = 6E-3
-conf.weight_decay_AdamW = 2E-2
+conf.learning_rate_init = 1E-4
+conf.learning_rate = 5E-3
+conf.weight_decay_AdamW = 3E-2
 conf.batch_size = 100
 conf.label_smoothing=0.1
 conf.debug_lr = True
