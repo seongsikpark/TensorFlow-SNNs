@@ -76,7 +76,7 @@ def model_builder(
 
     metric_accuracy.name = metric_name_acc
     metric_accuracy_top5.name = metric_name_acc_top5
-    if conf.model == 'Spikformer':
+    if conf.model == 'Spikformer' or 'Spikingformer':
         model_top = model_top(batch_size=batch_size, input_shape=image_shape, conf=conf,
                               model_name=model_name, weights=load_weight,
                               dataset_name=dataset_name, classes=num_class,

@@ -1,4 +1,4 @@
-
+from models.spikingformer import spikingformer
 from models.vgg16_tr import VGG16_TR
 #from models.vgg16 import VGG16
 from models.vgg11_func import VGG11
@@ -80,7 +80,8 @@ model_sel_sc = {
     'EfficientNetV2S': EfficientNetV2S,
     'EfficientNetV2M': EfficientNetV2M,
     'EfficientNetV2L': EfficientNetV2L,
-    'Spikformer':spikformer
+    'Spikformer':spikformer,
+    'Spikingformer':spikingformer
 }
 
 
