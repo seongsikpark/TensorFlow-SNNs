@@ -9,7 +9,7 @@ import os
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,2"
 #os.environ["CUDA_VISIBLE_DEVICES"]="4,7"
-os.environ["CUDA_VISIBLE_DEVICES"]="6"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3,4,5,6,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
@@ -29,8 +29,8 @@ conf = config.flags
 
 
 # inference
-conf.mode='inference'
-conf.root_model_load='/home/sspark/models_WTA_SNN_TMP/models_ckpt_WTA-SNN'
+#conf.mode='inference'
+#conf.root_model_load='/home/sspark/models_WTA_SNN_TMP/models_ckpt_WTA-SNN'
 
 # training
 
@@ -91,28 +91,10 @@ conf.n_reset_type = 'reset_by_sub'
 #conf.n_reset_type = 'reset_to_zero'
 
 
-conf.vth_rand_static = False
-conf.vrest = 0.0
-#conf.vrest_rand_static = False
-#conf.vrest_rand_static = True
-
-#conf.adaptive_vth = False
-#conf.adaptive_vth = True
-conf.adaptive_vth_scale = 1.2
-
-#conf.use_bn=False
-
-#conf.n_init_vth = 0.3
-
-conf.leak_const_init = 0.9
-#conf.leak_const_train = True
-
-
 #
-
 #conf.reg_spike_vis_fmap_sc=True
 #conf.debug_neuron_input=True
-conf.debug_syn_output=True
+#conf.debug_syn_output=True
 
 #conf.sm_batch_index=1
 #conf.reg_spike_vis_fmap_sc=True
@@ -129,6 +111,8 @@ mode=conf.trained_model_reg_spike
 #mode='SIM-A'
 #mode='SIM-S'
 #mode='custom'
+
+
 
 
 
@@ -253,7 +237,7 @@ if conf.mode == 'inference' :
 elif conf.mode == 'train':
     if True:
         conf.reg_spike_out=True
-        conf.reg_spike_out_const=3E-6
+        conf.reg_spike_out_const=1E-3
         conf.reg_spike_out_alpha=4
         conf.reg_spike_out_sc=True
         #conf.reg_spike_out_sc_wta=False
@@ -261,25 +245,6 @@ elif conf.mode == 'train':
         conf.reg_spike_out_sc_sm=True
         #conf.reg_spike_out_sc_sq=True
         conf.reg_spike_out_norm=True
-
-
-
-
-
-
-
-
-
-
-
-
-#
-#conf.grad_clipnorm = 3.0
-#conf.grad_clipnorm = 1.0
-
-#
-#conf.en_stdp_pathway = True
-conf.stdp_pathway_weight = 0.1
 
 #
 config.set()

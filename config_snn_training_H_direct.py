@@ -50,13 +50,16 @@ conf.lmb=1E-3
 conf.regularizer=None
 #conf.data_aug_mix='mixup'
 
-conf.mix_off_iter = 500*200
-conf.mix_alpha = 0.5
+conf.mix_off_iter = 500*200 #500*200 for CIFAR10 / 0 for ImageNet
+# conf.mix_off_iter = 0 #500*200 for CIFAR10 / 0 for ImageNet
+conf.mix_alpha = 0.5 #0.5 for CIFAR / 0.8 for ImageNet
+# conf.mix_alpha = 0.8 #0.5 for CIFAR / 0.8 for ImageNet
 
 conf.randaug_en = True
 conf.randaug_mag = 0.9
-conf.randaug_mag_std = 0.4
-conf.randaug_n = 1
+conf.randaug_mag_std = 0.4 #0.4 for CIFAR10 / 0.5 for ImageNet
+# conf.randaug_mag_std = 0.5 #0.4 for CIFAR10 / 0.5 for ImageNet
+conf.randaug_n = 1 #1 for CIFAR10 / for ImageNet
 conf.randaug_rate = 0.5
 
 conf.rand_erase_en = True
@@ -233,8 +236,8 @@ elif conf.SEL_model_dataset == 'Spik_Img':
     conf.dataset = 'ImageNet'
     conf.patch_size = 16
     conf.embed_dims = 512
-    conf.num_heads = 16
-    conf.depths = 10
+    conf.num_heads = 8
+    conf.depths = 6
     conf.sr_ratios = 8
     conf.adaptive_dec_vth_scale = 0.8
     conf.reg_psp_SEL_const = 5e-6
@@ -258,9 +261,9 @@ if conf.dataset == 'CIFAR10_DVS':
     conf.learning_rate = 0.1
     conf.time_step = 16
 if conf.dataset == 'ImageNet':
-    conf.batch_size = 90
-    conf.train_epoch = 90
-    conf.step_decay_epoch = 30
+    conf.batch_size = 50
+    conf.train_epoch = 100
+    # conf.step_decay_epoch = 30
 conf.pooling_vgg = 'avg'
 
 

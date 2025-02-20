@@ -7,8 +7,8 @@
 import os
 os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-#os.environ["CUDA_VISIBLE_DEVICES"]="0"
-os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
+#os.environ["CUDA_VISIBLE_DEVICES"]="0,1"
 
 
 #
@@ -133,16 +133,16 @@ conf.rand_erase_en = True
 
 
 #
-#if False:
-if True:
-    #if True:
-    if False:
+if False:
+#if True:
+    if True:
+        #if False:
         conf.reg_spike_out=True
-        conf.reg_spike_out_const=2E-5
+        conf.reg_spike_out_const=8E-2
         conf.reg_spike_out_alpha=4  # temperature
         #conf.reg_spike_rate_alpha=8E-1  # coefficient of reg. rate
         conf.reg_spike_out_sc=True
-        #conf.reg_spike_out_sc_wta=False
+        conf.reg_spike_out_sc_wta=False
         #conf.reg_spike_out_sc_train=True
         conf.reg_spike_out_sc_sm=True
         #conf.reg_spike_out_sc_sq=True
@@ -153,6 +153,8 @@ if True:
         #conf.reg_spike_out_sc_sm_wo_tmp=True
         #conf.reg_spike_out_sc_sm_wo_spa=True
 
+
+
         #
         #conf.reg_psp=True
         conf.reg_psp_const=1E-3
@@ -160,14 +162,21 @@ if True:
         conf.reg_psp_min=True
     else:
         conf.reg_spike_out=True
-        conf.reg_spike_out_const=3E-6
-        conf.reg_spike_out_alpha=4
+        conf.reg_spike_out_const=5E-5
+        conf.reg_spike_out_alpha=0
         #conf.reg_spike_out_sc=True
         #conf.reg_spike_out_sc_wta=False
         #conf.reg_spike_out_sc_train=True
         #conf.reg_spike_out_sc_sm=True
         #conf.reg_spike_out_sc_sq=True
         conf.reg_spike_out_norm=True
+
+        #
+        #conf.reg_psp=True
+        conf.reg_psp_const=1E-3
+        conf.reg_psp_eps=1E-10
+        conf.reg_psp_min=True
+
 
 #
 #conf.grad_clipnorm = 3.0
