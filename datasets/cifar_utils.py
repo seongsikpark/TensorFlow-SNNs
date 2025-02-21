@@ -75,9 +75,9 @@ PREPROCESS_INPUT_DEFAULT_ERROR_DOC = """
     ValueError: In case of unknown `mode` or `data_format` argument."""
 
 
-def preprocess_input(x, data_format=None, mode="caffe"):
+#def preprocess_input(x, data_format=None, mode="caffe"):
+def preprocess_input(x, data_format=None, mode="torch"):
     """Preprocesses a tensor or Numpy array encoding a batch of images."""
-
     if mode not in {"caffe", "tf", "torch"}:
         raise ValueError(
             "Expected mode to be one of `caffe`, `tf` or `torch`. "
