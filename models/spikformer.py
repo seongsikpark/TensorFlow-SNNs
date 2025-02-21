@@ -384,7 +384,7 @@ def spikformer(
         input = lib_snn.activations.Activation(act_type=act_type,loc='IN',name='n_in')(input)
 
     #
-    # if dataset_name == 'ImageNet':
+    if dataset_name == 'ImageNet':
         sps_x = sps_ImageNet(input, input_shape=input_shape, patch_size=patch_size,
                     embed_dims=embed_dims,k_init=k_init,tdbn=tdbn)
     elif dataset_name == 'CIFAR10_DVS':

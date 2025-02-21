@@ -5,7 +5,7 @@
 
 # GPU setting
 import os
-os.environ['NCCL_P2P_DISABLE']='1'
+os.environ['NCCL_P2P_DISABLE']='0'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"]="0"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1"
@@ -145,7 +145,7 @@ if True:
         #conf.reg_spike_out_sc_sm_wo_spa=True
     else:   # previous work
         conf.reg_spike_out = True
-        conf.reg_spike_out_const = 1E-2
+        conf.reg_spike_out_const = 1.5E-5
         conf.reg_spike_out_alpha = 4  # temperature
         # conf.reg_spike_rate_alpha=8E-1  # coefficient of reg. rate
         #conf.reg_spike_out_sc = True
