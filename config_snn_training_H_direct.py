@@ -8,7 +8,7 @@ import os
 #os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["NCCL_P2P_DISABLE"]="0"
-os.environ["CUDA_VISIBLE_DEVICES"]='1'
+os.environ["CUDA_VISIBLE_DEVICES"]='6'
 #
 from config import config
 conf = config.flags
@@ -24,15 +24,17 @@ conf.optimizer = 'ADAMW'
 conf.lr_schedule = 'COS'
 
 ####conf.learning_rate_init is used in COS lr_scheduler
-conf.learning_rate_init = 1e-4
+conf.learning_rate_init = 1e-5
 
-conf.learning_rate = 5e-3
-conf.weight_decay_AdamW = 1e-2
+
+conf.learning_rate = 6e-3
+conf.weight_decay_AdamW = 2e-2
 
 ######
-conf.root_model_save = f'./model_ckpt/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
-# conf.root_model_save = f'./model_ckpt_2/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
-
+# conf.root_model_save = f'./model_ckpt/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
+conf.root_model_save = f'./model_ckpt_2/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
+# conf.root_model_save = f'./model_ckpt_3/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
+# conf.root_model_save = f'./model_ckpt_4/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
 # conf.root_model_save = f'./model_ckpt_test'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/resnet/'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/ms/'
@@ -103,7 +105,7 @@ conf.SEL_en = 'base'
 # conf.SEL_model_dataset = 'V11_DVS'
 
 ###### VGGSNN
-conf.SEL_model_dataset = 'VSNN_DVS'
+# conf.SEL_model_dataset = 'VSNN_DVS'
 
 ###### ResNet19
 # conf.SEL_model_dataset = 'R19_C10'
@@ -111,7 +113,7 @@ conf.SEL_model_dataset = 'VSNN_DVS'
 # conf.SEL_model_dataset = 'R19_DVS'
 
 ###### ResNet20
-# conf.SEL_model_dataset = 'R20_C10'
+conf.SEL_model_dataset = 'R20_C10'
 # conf.SEL_model_dataset = 'R20_C100'
 # conf.SEL_model_dataset = 'R20_DVS'
 
@@ -300,7 +302,7 @@ if conf.dataset == 'CIFAR10_DVS':
     conf.train_epoch = 200
     conf.time_step = 4
 if conf.dataset == 'ImageNet':
-    conf.batch_size = 90
+    conf.batch_size = 800
     conf.train_epoch = 90
     conf.step_decay_epoch = 30
 conf.pooling_vgg = 'avg'
