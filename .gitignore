@@ -15,3 +15,5 @@ events-tfds/
 model_ckpt/
 model_ckpt_2/
 tensorboard/
+model_ckpt_3/
+model_ckpt_4/
