@@ -7,8 +7,14 @@
 import os
 os.environ['NCCL_P2P_DISABLE']='0'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="8"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1"
+
+#
+os.environ['TF_CPP_MIN_LOG_LEVEL']='1'  # 0: show all, 1: hide info, 2: hide info&warning, 3: hide all (info, warning, error)
+
+#
+#os.environ['TF_XLA_FLAGS'] = '--tf_xla_enable_xla_devices'
 
 
 #
@@ -49,7 +55,7 @@ conf = config.flags
 #
 #conf.train_epoch = 10
 #conf.train_epoch = 10
-#conf.num_train_data = 10000
+#conf.num_train_data = 200
 
 #conf.model='VGG11'
 conf.model='VGG16'
@@ -100,9 +106,14 @@ conf.n_init_vth = 1.0
 
 conf.train_epoch = 310
 #
-conf.learning_rate_init = 1E-5
-conf.learning_rate = 6E-3
+#conf.learning_rate_init = 1E-5
+#conf.learning_rate = 6E-3
+#conf.weight_decay_AdamW = 2E-2
+# spikformer - C10
+conf.learning_rate_init = 1E-4
+conf.learning_rate = 5E-3
 conf.weight_decay_AdamW = 2E-2
+
 conf.batch_size = 100
 conf.label_smoothing=0.1
 conf.debug_lr = True
@@ -124,12 +135,12 @@ conf.rand_erase_en = True
 
 
 #
-#if False:
-if True:
-    #if True:    # proposed method
-    if False:
+if False:
+#if True:
+    if True:    # proposed method
+    #if False:
         conf.reg_spike_out=True
-        conf.reg_spike_out_const=6E-7
+        conf.reg_spike_out_const=5E-6
         conf.reg_spike_out_alpha=4  # temperature
         #conf.reg_spike_rate_alpha=8E-1  # coefficient of reg. rate
         conf.reg_spike_out_sc=True
@@ -145,7 +156,7 @@ if True:
         #conf.reg_spike_out_sc_sm_wo_spa=True
     else:   # previous work
         conf.reg_spike_out = True
-        conf.reg_spike_out_const = 1.5E-5
+        conf.reg_spike_out_const = 4E-6
         conf.reg_spike_out_alpha = 4  # temperature
         # conf.reg_spike_rate_alpha=8E-1  # coefficient of reg. rate
         #conf.reg_spike_out_sc = True

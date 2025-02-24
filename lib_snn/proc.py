@@ -1006,18 +1006,25 @@ def spike_count_batch_end(self):
     if isinstance(strategy,tf.distribute.OneDeviceStrategy):
         for neuron in self.model.layers_w_neuron:
             name = neuron.name
-            spike_count = tf.reduce_sum(neuron.act.spike_count_int)
+            sc = neuron.act.spike_count_int
+            if tf.keras.mixed_precision.global_policy().name=='mixed_float16':
+                sc = tf.cast(sc,tf.float32)
+            spike_count = tf.reduce_sum(sc)
             self.list_spike_count[name] += spike_count
             self.spike_count_total += spike_count
     else:
         for neuron in self.model.layers_w_neuron:
             name = neuron.name
+            sc = neuron.act.spike_count_int
+            if tf.keras.mixed_precision.global_policy.name()=='mixed_float16':
+                sc = tf.cast(sc,tf.float32)
             spike_count = tf.reduce_sum(neuron.act.spike_count_int.values)
             self.list_spike_count[name] += spike_count
             self.spike_count_total += spike_count
 
 
 def spike_count_batch_end_one_device(self):
+    assert False
     for neuron in self.model.layers_w_neuron:
         name = neuron.name
         spike_count = tf.reduce_sum(neuron.act.spike_count_int)

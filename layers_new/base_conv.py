@@ -254,7 +254,7 @@ class Conv(Layer):
             data_format=self._tf_data_format,
             name=self.__class__.__name__)
 
-        def grad(upstream):
+        def grad(upstream, variables=None):
             '''
              _Conv2DGrad in nn_grad.py
             '''
@@ -268,11 +268,19 @@ class Conv(Layer):
             dilations = nn_ops._get_sequence(self.dilation_rate, 2, channel_index, "dilations")
 
             use_cudnn_on_gpu = True
-            shape_0, shape_1 = array_ops.shape_n([inputs, kernel])
+
+            # sspark
+            if tf.keras.mixed_precision.global_policy().name == 'mixed_float16':
+                _kernel = tf.cast(self.kernel, inputs.dtype)
+            else:
+                _kernel = self.kernel
+
+            shape_0, shape_1 = array_ops.shape_n([inputs, _kernel])
 
             grad_in = gen_nn_ops.conv2d_backprop_input(
                 shape_0,
-                kernel,
+                #kernel,
+                _kernel,
                 upstream,
                 dilations=dilations,
                 strides=strides,

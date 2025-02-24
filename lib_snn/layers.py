@@ -57,6 +57,13 @@ class Layer():
         #
         self.depth = -1
 
+
+        #
+        if tf.keras.mixed_precision.global_policy().name == 'mixed_float16':
+            self._dtype = tf.float16
+        else:
+            self._dtype = tf.float32
+
         #
         self.conf = conf
         # self.use_bn = Model.use_bn
@@ -113,6 +120,10 @@ class Layer():
 
         # temporal_mean_input - temporally reduced input (mean)
         self.temporal_mean_input = kwargs.pop('temporal_mean_input', None)
+
+        # temporal_batch - batch -> t*batch @ synaptic operation
+        self.temporal_batch= kwargs.pop('temporal_batch', None)
+
 
 
         # batch norm.
@@ -328,7 +339,8 @@ class Layer():
         if hasattr(self, 'f_output_t'):
             if self.f_output_t:
                 self._outputs = tf.TensorArray(
-                    dtype=tf.float32,
+                    #dtype=tf.float32,
+                    dtype=self._dtype,
                     size=conf.time_step,
                     element_shape=self.output_shape_fixed_batch,
                     clear_after_read=False,
@@ -341,7 +353,7 @@ class Layer():
 
     def init_record_output(self):
         #self.record_output = tf.Variable(tf.zeros(self.output_shape_fixed_batch),trainable=False,name='record_output')
-        self.record_output = tf.TensorArray(dtype=tf.float32,
+        self.record_output = tf.TensorArray(dtype=self._dtype,
                                 size=self.conf.time_step,element_shape=self.output_shape_fixed_batch,clear_after_read=False)
 
         #
@@ -1556,7 +1568,8 @@ def tfn(layer, input):
         #
         if not isinstance(input,tf.TensorArray):
             in_arr = tf.TensorArray(
-                dtype=tf.float32,
+                #dtype=tf.float32,
+                dtype=self._dtype,
                 size=conf.time_step,
                 element_shape=input.shape,
                 clear_after_read=False,
@@ -1573,7 +1586,8 @@ def tfn(layer, input):
 
             #
             out_arr = tf.TensorArray(
-                dtype=tf.float32,
+                #dtype=tf.float32,
+                dtype=self._dtype,
                 size=conf.time_step,
                 element_shape=layer_out.shape,
                 clear_after_read=False,
@@ -1596,7 +1610,8 @@ def tfn(layer, input):
                 #
                 if t-1==0:
                     out_arr = tf.TensorArray(
-                        dtype=tf.float32,
+                        #dtype=tf.float32,
+                        dtype=self._dtype,
                         size=conf.time_step,
                         element_shape=layer_out.shape,
                         clear_after_read=False,

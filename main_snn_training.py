@@ -1,4 +1,5 @@
 
+
 #
 # configuration
 from config_snn_training import config
@@ -10,6 +11,9 @@ import lib_snn
 #
 import datasets
 import callbacks
+
+#
+import tensorflow as tf
 
 ########################################
 # configuration
@@ -30,6 +34,10 @@ train_ds, valid_ds, test_ds, train_ds_num, valid_ds_num, test_ds_num, num_class,
     datasets.datasets.load()
     #datasets.datasets_bck_eventdata.load()
 
+
+# precision
+#tf.keras.mixed_precision.set_global_policy('mixed_float16')
+#tf.keras.backend.set_floatx('float16')
 
 #
 with dist_strategy.scope():
