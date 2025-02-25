@@ -1249,17 +1249,15 @@ def set_file_path(batch_size):
 
     if conf.name_model_save=='':
         path_model_save = os.path.join(root_model_save, model_dataset_name)
-        if os.path.exists(path_model_save):
-            folders = [d for d in os.listdir(path_model_save) if os.path.isdir(os.path.join(path_model_save,d))]
+        filepath_save = os.path.join(path_model_save, config_name)
+        if os.path.exists(filepath_save):
+            folders = [d for d in os.listdir(filepath_save) if os.path.isdir(os.path.join(filepath_save,d))]
             num_folders = str(len(folders))
-            os.makedirs(path_model_save+'/'+num_folders,exist_ok=True)
-            path_model_save = os.path.join(path_model_save, num_folders)
-            filepath_save = os.path.join(path_model_save,config_name)
+            os.makedirs(filepath_save+'/'+num_folders,exist_ok=True)
+            filepath_save = os.path.join(filepath_save,num_folders)
         else:
-            path_model_save = os.path.join(root_model_save, model_dataset_name)
-            os.makedirs(path_model_save+'/'+str(0),exist_ok=True)
-            path_model_save = os.path.join(path_model_save, str(0))
-            filepath_save = os.path.join(path_model_save, config_name)
+            os.makedirs(filepath_save+'/'+str(0),exist_ok=True)
+            filepath_save = os.path.join(filepath_save, str(0))
     else:
         path_model_save = conf.name_model_save
         filepath_save = path_model_save
