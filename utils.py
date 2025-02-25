@@ -1232,6 +1232,10 @@ def set_file_path(batch_size):
         model_dataset_name = model_name + '_' + dataset_name
 
 
+    def new_path(root_model_save):
+        if not os.path.exists(root_model_save):
+            pass
+
 
     if conf.name_model_load=='':
         path_model_load = os.path.join(root_model_load, model_dataset_name)
@@ -1245,7 +1249,17 @@ def set_file_path(batch_size):
 
     if conf.name_model_save=='':
         path_model_save = os.path.join(root_model_save, model_dataset_name)
-        filepath_save = os.path.join(path_model_save, config_name)
+        if os.path.exists(path_model_save):
+            folders = [d for d in os.listdir(path_model_save) if os.path.isdir(os.path.join(path_model_save,d))]
+            num_folders = str(len(folders))
+            os.makedirs(path_model_save+'/'+num_folders,exist_ok=True)
+            path_model_save = os.path.join(path_model_save, num_folders)
+            filepath_save = os.path.join(path_model_save,config_name)
+        else:
+            path_model_save = os.path.join(root_model_save, model_dataset_name)
+            os.makedirs(path_model_save+'/'+str(0),exist_ok=True)
+            path_model_save = os.path.join(path_model_save, str(0))
+            filepath_save = os.path.join(path_model_save, config_name)
     else:
         path_model_save = conf.name_model_save
         filepath_save = path_model_save

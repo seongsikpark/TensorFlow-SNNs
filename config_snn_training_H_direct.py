@@ -8,20 +8,22 @@ import os
 #os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["NCCL_P2P_DISABLE"]="0"
-os.environ["CUDA_VISIBLE_DEVICES"]='8'
+os.environ["CUDA_VISIBLE_DEVICES"]='5'
 #
 from config import config
 conf = config.flags
 
+# conf.num_train_data = 100
 # conf.debug_mode = True
 # conf.mode='inference'
+# conf.root_tensorboard='./tensorflow_pf/'
 # conf.name_model_load='/home/dydwls6598/PycharmProjects/TensorFlow-SNN-internal/model_ckpt/warmup=0.0001 to 0.005, weight_decay=0.03/ResNet20_CIFAR10/ep-310_bat-100_opt-ADAMW_lr-COS-5E-03_wd-3E-02_sc_ra_cm_re_ts-4_nc-R-R_nr-s'
 # conf.debug_mode = True
 conf.save_best_model_only = True
 conf.save_models_max_to_keep = 1
 
 conf.optimizer = 'ADAMW'
-conf.lr_schedule = 'COS'
+# conf.lr_schedule = 'COS'
 
 ####conf.learning_rate_init is used in COS lr_scheduler
 conf.learning_rate_init = 1e-4
@@ -32,19 +34,19 @@ conf.weight_decay_AdamW = 3e-2
 
 ######
 # conf.root_model_save = f'./model_ckpt/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
-conf.root_model_save = f'/mnt/hdd1/kyccj/H-direct/Spikformer1/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
+conf.root_model_save = f'/mnt/hdd1/kyccj/H-direct/Spikingformer_speed_test1/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
 # conf.root_model_save = f'./model_ckpt_test'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/ours_resnet/'
 #conf.name_model_load= '/home/ssparknas/test1'
 #conf.optimizer = 'ADAM'
-conf.data_aug_mix = 'mixup'
+# conf.data_aug_mix = 'mixup'
 #conf.lr_schedule = 'COSR'
 #conf.tdbn= False
 
 
 
-conf.nn_mode = 'SNN'
-#conf.nn_mode = 'ANN'
+# conf.nn_mode = 'SNN'
+conf.nn_mode = 'ANN'
 
 conf.n_init_vth = 0.5
 
@@ -91,7 +93,7 @@ conf.SEL_en = 'base'
 # conf.SEL_en = 'ours'
 
 # conf.num_train_data = 100
-# conf.SEL_model_dataset = 'V16_C10'
+conf.SEL_model_dataset = 'V16_C10'
 # conf.SEL_model_dataset = 'V16_C100'
 # conf.SEL_model_dataset = 'V16_DVS'
 # conf.SEL_model_dataset = 'R19_C10'
@@ -102,7 +104,7 @@ conf.SEL_en = 'base'
 # conf.SEL_model_dataset = 'R20_DVS'
 # conf.SEL_model_dataset = 'MS34_ImageNet'
 # conf.SEL_model_dataset = '34_ImageNet'
-conf.SEL_model_dataset = 'Spik_C10'
+# conf.SEL_model_dataset = 'Spik_C10'
 # conf.SEL_model_dataset = 'Spik_C100'
 # conf.SEL_model_dataset = 'Spik_Img'
 # conf.SEL_model_dataset = 'Spik_DVS'

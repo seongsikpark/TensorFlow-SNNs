@@ -349,7 +349,7 @@ class Neuron(tf.keras.layers.Layer):
 
         self.built = True
 
-    #@tf.function
+    # @tf.function(jit_compile=True)
     #@tf.custom_gradient
     #def call(self ,inputs ,t, training):
     def call(self, inputs, training=None):
