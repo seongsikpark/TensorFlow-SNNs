@@ -5,8 +5,25 @@
 
 # GPU setting
 import os
-os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+# os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["NCCL_P2P_DISABLE"]="0"
+
+# os.environ["CUDA_VISIBLE_DEVICES"]="1" #sohee LLM
+# os.environ["CUDA_VISIBLE_DEVICES"]="4" #mangyeong LLM
+os.environ["CUDA_VISIBLE_DEVICES"]="0,7,2,3" #ImageNet
+# os.environ["CUDA_VISIBLE_DEVICES"]="5,6,8,9" #ImageNet
+# os.environ["CUDA_VISIBLE_DEVICES"]="2,3,5,6,8,9" #ImageNet
+
+# os.environ["CUDA_VISIBLE_DEVICES"]="0"
+# os.environ["CUDA_VISIBLE_DEVICES"]="1"
+# os.environ["CUDA_VISIBLE_DEVICES"]="2" 
+# os.environ["CUDA_VISIBLE_DEVICES"]="3"
+# os.environ["CUDA_VISIBLE_DEVICES"]="4" 
+# os.environ["CUDA_VISIBLE_DEVICES"]="5" 
+# os.environ["CUDA_VISIBLE_DEVICES"]="6" 
+# os.environ["CUDA_VISIBLE_DEVICES"]="7" 
+# os.environ["CUDA_VISIBLE_DEVICES"]="8"
+# os.environ["CUDA_VISIBLE_DEVICES"]="9" 
 
 #
 from config import config
@@ -19,12 +36,12 @@ conf.save_best_model_only = True
 conf.save_models_max_to_keep = 1
 
 ######
-
+conf.root_model_save = './Transformer/'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/resnet/'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/ms/'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/ours_ms/'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/ours_resnet/'
-#conf.name_model_load= '/home/ssparknas/test1'
+conf.name_model_load= '/home/ssparknas/new_augmentation/CIFAR100/ResNet19/4/'
 #conf.optimizer = 'ADAM'
 # conf.data_aug_mix = 'mixup'
 #conf.lr_schedule = 'COSR'
@@ -39,6 +56,10 @@ conf.nn_mode = 'SNN'
 conf.n_init_vth = 1.0
 
 conf.train_epoch = 310
+conf.learning_rate_init = 1e-4
+conf.learning_rate = 5e-3
+conf.weight_decay_AdamW = 3e-2 
+
 conf.batch_size = 100
 conf.label_smoothing=0.1
 conf.debug_lr = True
@@ -46,16 +67,23 @@ conf.lmb=1E-3
 conf.regularizer=None
 #conf.data_aug_mix='mixup'
 
-conf.mix_off_iter = 500*200 #500*200 for CIFAR10 / 0 for ImageNet
-# conf.mix_off_iter = 0 #500*200 for CIFAR10 / 0 for ImageNet
-conf.mix_alpha = 0.5 #0.5 for CIFAR / 0.8 for ImageNet
-# conf.mix_alpha = 0.8 #0.5 for CIFAR / 0.8 for ImageNet
+#for cifar
+# conf.mix_off_iter = 500*200
+# conf.mix_alpha = 0.5
+# conf.randaug_en = True
+# conf.randaug_mag = 0.9
+# conf.randaug_mag_std = 0.4
+# conf.randaug_n = 1
+# conf.randaug_rate = 0.5
 
+
+#for ImagNet
+conf.mix_off_iter = 0
+conf.mix_alpha = 0.8
 conf.randaug_en = True
 conf.randaug_mag = 0.9
-conf.randaug_mag_std = 0.4 #0.4 for CIFAR10 / 0.5 for ImageNet
-# conf.randaug_mag_std = 0.5 #0.4 for CIFAR10 / 0.5 for ImageNet
-conf.randaug_n = 1 #1 for CIFAR10 / for ImageNet
+conf.randaug_mag_std = 0.5
+conf.randaug_n = 1
 conf.randaug_rate = 0.5
 
 conf.rand_erase_en = True
@@ -73,12 +101,12 @@ conf.rand_erase_en = True
 # conf.im_en = 'True'
 # conf.im_k = 0.001
 #
-conf.SEL_en = 'base'
+# conf.SEL_en = 'base'
 # conf.SEL_en = 'AT'
 # conf.SEL_en = 'FD'
 # conf.SEL_en = 'DFE'
 # conf.SEL_en = 'AT+FD'
-# conf.SEL_en = 'ours'
+conf.SEL_en = 'ours'
 
 # conf.num_train_data = 100
 # conf.SEL_model_dataset = 'V16_C10'
@@ -92,9 +120,9 @@ conf.SEL_en = 'base'
 # conf.SEL_model_dataset = 'R20_DVS'
 # conf.SEL_model_dataset = 'MS34_ImageNet'
 # conf.SEL_model_dataset = '34_ImageNet'
-conf.SEL_model_dataset = 'Spik_C10'
+# conf.SEL_model_dataset = 'Spik_C10'
 # conf.SEL_model_dataset = 'Spik_C100'
-# conf.SEL_model_dataset = 'Spik_Img'
+conf.SEL_model_dataset = 'Spik_Img'
 # conf.SEL_model_dataset = 'Spik_DVS'
 
 
@@ -231,13 +259,13 @@ elif conf.SEL_model_dataset == 'Spik_Img':
     conf.model='Spikformer'
     conf.dataset = 'ImageNet'
     conf.patch_size = 16
-    conf.embed_dims = 512
-    conf.num_heads = 8
-    conf.depths = 6
+    conf.embed_dims = 384
+    conf.num_heads = 12
+    conf.depths = 8
     conf.sr_ratios = 8
     conf.adaptive_dec_vth_scale = 0.8
-    conf.reg_psp_SEL_const = 5e-6
-    conf.reg_psp_SEL_BN_ratio_value = -0.8
+    conf.reg_psp_SEL_const = 5e-3
+    conf.reg_psp_SEL_BN_ratio_value = -0.15
     conf.reg_psp_SEL_BN_ratio_rate = 1e-4
 elif conf.SEL_model_dataset == 'Spik_DVS':
     conf.model='Spikformer'
@@ -245,7 +273,7 @@ elif conf.SEL_model_dataset == 'Spik_DVS':
     conf.batch_size = 10
     conf.patch_size = 16
     conf.embed_dims = 256
-    conf.num_heads = 16
+    conf.num_heads = 8
     conf.depths = 2
     conf.sr_ratios = 8
     conf.adaptive_dec_vth_scale = 0.8
@@ -253,15 +281,15 @@ elif conf.SEL_model_dataset == 'Spik_DVS':
     conf.reg_psp_SEL_BN_ratio_value = -0.8
     conf.reg_psp_SEL_BN_ratio_rate = 1e-4
 
+
 if conf.dataset == 'CIFAR10_DVS':
     conf.learning_rate = 0.1
     conf.time_step = 16
 if conf.dataset == 'ImageNet':
-    conf.batch_size = 50
+    conf.batch_size = 188
     conf.train_epoch = 100
-    # conf.step_decay_epoch = 30
+    conf.step_decay_epoch = 30
 conf.pooling_vgg = 'avg'
-
 
 conf.n_reset_type = 'reset_by_sub'
 #conf.n_reset_type = 'reset_to_zero'

@@ -1034,25 +1034,43 @@ def spike_count_epoch_end(self,epoch,logs,num_ds):
     #else:
         #num_data = self.test_ds_num
     num_data = num_ds
+    #yc for spike count in n_conv1
+    if conf.n_conv1_spike_count:
+        if conf.model == 'VGG16':
+            print(self.list_spike_count['n_conv1']/num_data)
+        elif conf.model == 'ResNet18_MS' or conf.model == 'ResNet34_MS':
+            print(self.list_spike_count['conv2_block1_conv1_n']/num_data)
+        else:
+            print(self.list_spike_count['conv1_conv_n'] / num_data)
+
+
+    if conf.all_layer_spike_count:
+        save_dir = conf.all_layer_SC_dir
+        df_sc = []
+        neurons = []
+        for neuron in self.model.layers_w_neuron:
+            self.list_spike_count[neuron.name] /= num_data
+            a = [neuron.name,self.list_spike_count[neuron.name].numpy(),self.total_]
+            df_sc.append(a)
+        df_sc = pd.DataFrame(df_sc,columns=['name','SC'])
+        df_sc.to_excel(save_dir)
 
     for neuron in self.model.layers_w_neuron:
         self.list_spike_count[neuron.name]/=num_data
+
     self.spike_count_total/=num_data
 
     #
-    #tf.summary.scalar('s_count', data=self.spike_count_total, step=epoch)
+    tf.summary.scalar('s_count', data=self.spike_count_total, step=epoch)
     logs['s_count'] = self.spike_count_total
 
     if 'best_val_acc' in logs.keys():
         if logs['val_acc'] == logs['best_val_acc']:
             self.spike_count_total_best = self.spike_count_total
 
+        tf.summary.scalar('bset_s_count', data=self.spike_count_total_best, step=epoch)
         logs['best_s_count'] = self.spike_count_total_best
 
-        #tf.summary.scalar('best_s_count', data=self.spike_count_total_best, step=epoch)
-        #with self.writer.as_default():
-        #    tf.summary.scalar('bset_s_count', data=self.spike_count_total_best, step=epoch)
-        #    self.writer.flush()
 
 
 def gradient_epoch_end(self,epoch):
