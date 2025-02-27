@@ -7,7 +7,7 @@
 import os
 os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="6"
+os.environ["CUDA_VISIBLE_DEVICES"]="4"
 
 
 #
@@ -35,12 +35,6 @@ conf.lr_schedule = 'COS'
 conf.learning_rate_init = 1e-5
 conf.learning_rate = 6e-3
 conf.weight_decay_AdamW = 2e-2
-##########
-
-##### model save setting #####
-conf.root_model_save = f'./model_ckpt/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
-# conf.root_model_save = f'./model_ckpt_2/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
-# conf.root_model_save = f'./model_ckpt_test/'
 ##########
 
 ##### neural network type setting #####
@@ -74,17 +68,23 @@ conf.rand_erase_en = True
 ##### surrogate function setting #####
 #conf.fire_surro_grad_func = 'boxcar'
 # conf.fire_surro_grad_func = 'asym'
-conf.fire_surro_grad_func = 'cpng_tri'
+# conf.fire_surro_grad_func = 'cpng_tri'
+conf.fire_surro_grad_func = 'cpng_asy'
 
 conf.surro_grad_alpha = 1.0
 #conf.surro_grad_beth =
 
-conf.debug_surro_grad = True
-conf.debug_surro_grad_per_iter = 100
+# conf.debug_surro_grad = True
+# conf.debug_surro_grad_per_iter = 100
 
+##### model save setting #####
+conf.root_model_save = f'./model_ckpt/{conf.fire_surro_grad_func}_alpha={conf.surro_grad_alpha}/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
+# conf.root_model_save = f'./model_ckpt_2/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
+# conf.root_model_save = f'./model_ckpt_test/'
+##########
 
-conf.exp_set_name='surro_grad_new'
-
+# conf.exp_set_name='surro_grad_new'
+conf.exp_set_name='CPNG'
 
 ##### Loss setting #####
 # conf.rmp_en = 'True'
@@ -95,7 +95,7 @@ conf.exp_set_name='surro_grad_new'
 
 ##### Model setting #####
 ###### VGG16
-# conf.SEL_model_dataset = 'V16_C10'
+conf.SEL_model_dataset = 'V16_C10'
 # conf.SEL_model_dataset = 'V16_C100'
 # conf.SEL_model_dataset = 'V16_DVS'
 
@@ -111,7 +111,7 @@ conf.exp_set_name='surro_grad_new'
 # conf.SEL_model_dataset = 'R19_DVS'
 
 ###### ResNet20
-conf.SEL_model_dataset = 'R20_C10'
+# conf.SEL_model_dataset = 'R20_C10'
 # conf.SEL_model_dataset = 'R20_C100'
 # conf.SEL_model_dataset = 'R20_DVS'
 
