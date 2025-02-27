@@ -74,11 +74,18 @@ conf.fire_surro_grad_func = 'cpng_asy'
 conf.surro_grad_alpha = 1.0
 #conf.surro_grad_beth =
 
+##### CPNG setting #####
+conf.chi_limit = 0.2
+conf.find_beta_low = 0.5
+conf.find_beta_high = 2.0
+##########
+
 # conf.debug_surro_grad = True
 # conf.debug_surro_grad_per_iter = 100
 
 ##### model save setting #####
-conf.root_model_save = f'./model_ckpt/{conf.fire_surro_grad_func}_alpha={conf.surro_grad_alpha}/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
+conf.root_model_save = f'./model_ckpt/{conf.fire_surro_grad_func}_{conf.surro_grad_alpha}/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
+# conf.root_model_save = f'./model_ckpt/{conf.fire_surro_grad_func}_alpha={conf.surro_grad_alpha}/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
 # conf.root_model_save = f'./model_ckpt_2/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
 # conf.root_model_save = f'./model_ckpt_test/'
 ##########
