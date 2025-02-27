@@ -7,7 +7,7 @@
 import os
 os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="6"
+os.environ["CUDA_VISIBLE_DEVICES"]="4"
 
 
 #
@@ -26,6 +26,7 @@ conf.save_models_max_to_keep = 1
 #conf.batch_size=400
 #conf.name_model_load='./models/VGG16_AP_CIFAR100/ep-300_bat-100_opt-SGD_lr-STEP-1E-01_lmb-1E-04_sc_cm_ts-4_nc-R-R_nr-z'
 ##########
+##########
 
 ##### hyper-parameter setting #####
 conf.optimizer = 'ADAMW'
@@ -34,24 +35,6 @@ conf.lr_schedule = 'COS'
 conf.learning_rate_init = 1e-5
 conf.learning_rate = 6e-3
 conf.weight_decay_AdamW = 2e-2
-##########
-
-#
-#conf.fire_surro_grad_func = 'boxcar'
-conf.fire_surro_grad_func = 'asym'
-
-conf.surro_grad_alpha = 0.75
-#conf.surro_grad_beth =
-
-# conf.debug_surro_grad = True
-# conf.debug_surro_grad_per_iter = 100
-
-
-conf.exp_set_name='surro_grad_new'
-
-##### model save setting #####
-# conf.root_model_save = f'./model_ckpt/{conf.fire_surro_grad_func}_{conf.surro_grad_alpha}/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
-conf.root_model_save = f'./model_ckpt_2/{conf.fire_surro_grad_func}_{conf.surro_grad_alpha}/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
 ##########
 
 ##### neural network type setting #####
@@ -70,7 +53,7 @@ conf.regularizer=None
 #conf.data_aug_mix='mixup'
 
 conf.mix_off_iter = 500*200
-conf.mix_alpha = 0.75
+conf.mix_alpha = 0.5
 
 # data augmentation
 conf.randaug_en = True
@@ -82,6 +65,34 @@ conf.randaug_rate = 0.5
 conf.rand_erase_en = True
 ##########
 
+##### surrogate function setting #####
+#conf.fire_surro_grad_func = 'boxcar'
+# conf.fire_surro_grad_func = 'asym'
+# conf.fire_surro_grad_func = 'cpng_tri'
+conf.fire_surro_grad_func = 'cpng_asy'
+
+conf.surro_grad_alpha = 1.0
+#conf.surro_grad_beth =
+
+##### CPNG setting #####
+conf.chi_limit = 0.2
+conf.find_beta_low = 0.5
+conf.find_beta_high = 2.0
+##########
+
+# conf.debug_surro_grad = True
+# conf.debug_surro_grad_per_iter = 100
+
+##### model save setting #####
+conf.root_model_save = f'./model_ckpt/{conf.fire_surro_grad_func}_{conf.surro_grad_alpha}/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
+# conf.root_model_save = f'./model_ckpt/{conf.fire_surro_grad_func}_alpha={conf.surro_grad_alpha}/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
+# conf.root_model_save = f'./model_ckpt_2/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
+# conf.root_model_save = f'./model_ckpt_test/'
+##########
+
+# conf.exp_set_name='surro_grad_new'
+conf.exp_set_name='CPNG'
+
 ##### Loss setting #####
 # conf.rmp_en = 'True'
 # conf.rmp_k = 0.0005
@@ -91,7 +102,7 @@ conf.rand_erase_en = True
 
 ##### Model setting #####
 ###### VGG16
-# conf.SEL_model_dataset = 'V16_C10'
+conf.SEL_model_dataset = 'V16_C10'
 # conf.SEL_model_dataset = 'V16_C100'
 # conf.SEL_model_dataset = 'V16_DVS'
 
@@ -107,13 +118,10 @@ conf.rand_erase_en = True
 # conf.SEL_model_dataset = 'R19_DVS'
 
 ###### ResNet20
-conf.SEL_model_dataset = 'R20_C10'
+# conf.SEL_model_dataset = 'R20_C10'
 # conf.SEL_model_dataset = 'R20_C100'
 # conf.SEL_model_dataset = 'R20_DVS'
 
-
-# conf.SEL_model_dataset = 'MS34_ImageNet'
-# conf.SEL_model_dataset = '34_ImageNet'
 
 ##### Spikformer
 # conf.SEL_model_dataset = 'Spik_C10'
@@ -301,5 +309,4 @@ conf.leak_const_init = 0.9
 # conf.stdp_pathway_weight = 0.1
 ##########
 
-#
 config.set()

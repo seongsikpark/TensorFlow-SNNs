@@ -912,6 +912,12 @@ flags.DEFINE_float('surro_grad_beth', 0.5, 'surro gradient - const beta')
 flags.DEFINE_bool('debug_surro_grad',False,'debug suurogate gradient - surrogate gradient of spike fire function')
 flags.DEFINE_integer('debug_surro_grad_per_iter',500,'debug suurogate gradient print iter')
 
+########################################
+# cpng parameter
+########################################
+flags.DEFINE_float('chi_limit', 0.2, 'cpng - chi_limit')
+flags.DEFINE_float('find_beta_low', 0.5, 'cpng - find_beta_low')
+flags.DEFINE_float('find_beta_high', 2.0, 'cpng - find_beta_high')
 
 #
 conf=flags.FLAGS
