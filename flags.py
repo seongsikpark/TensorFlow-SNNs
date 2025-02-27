@@ -910,7 +910,7 @@ flags.DEFINE_enum('fire_surro_grad_func', 'boxcar', ['boxcar', 'sigmoid', 'asym'
 flags.DEFINE_float('surro_grad_alpha', 0.5, 'surro gradient - const alpha')
 flags.DEFINE_float('surro_grad_beth', 0.5, 'surro gradient - const beta')
 flags.DEFINE_bool('debug_surro_grad',False,'debug suurogate gradient - surrogate gradient of spike fire function')
-flags.DEFINE_integer('debug_surro_grad_per_iter',100,'debug suurogate gradient print iter')
+flags.DEFINE_integer('debug_surro_grad_per_iter',500,'debug suurogate gradient print iter')
 
 
 #

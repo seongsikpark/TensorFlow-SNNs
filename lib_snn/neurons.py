@@ -200,6 +200,10 @@ class Neuron(tf.keras.layers.Layer):
             clear_after_read=False,
             tensor_array_name='vth')
 
+        ##yongjin for cpng
+        self.beta = tf.Variable(conf.surro_grad_alpha, dtype=tf.float32, name='beta', trainable=False)
+        self.record = tf.Variable(0.0, dtype=tf.float32, name='record', trainable=False)
+
         if conf.vth_rand_static:
             #self.vth_init = tf.random.uniform(shape=self.dim,minval=0.1,maxval=1.0,dtype=tf.float32,name='vth_init')
             #self.vth_init = tf.random.normal(shape=self.dim,mean=conf.n_vth_init,stddev=conf.n_vth_init_std,name='vth_init')
@@ -1662,6 +1666,207 @@ class Neuron(tf.keras.layers.Layer):
                 #du_do = tf.where(cond,tf.ones(cond.shape),tf.zeros(cond.shape))
                 du_do = tf.where(cond,h,tf.zeros(cond.shape))
                 #du_do = tf.where(cond,vmem-vth+a,tf.zeros(cond.shape))
+
+            elif conf.fire_surro_grad_func=='cpng_tri':
+                beta = self.beta
+
+                def first_epoch():
+                    vmem_mean = tf.reduce_mean(vmem)
+                    vmem_std = tf.math.reduce_std(vmem)
+
+                    gaussian_dist = tfp.distributions.Normal(loc=vmem_mean, scale=vmem_std)
+
+                    lower_bound = 1 - (1.0/beta)
+                    upper_bound = 1 + (1.0/beta)
+
+                    probability = gaussian_dist.cdf(upper_bound) - gaussian_dist.cdf(lower_bound)
+
+                    self.record.assign(probability)
+                    return self.beta
+
+                def true_beta():
+                    vmem_mean = tf.reduce_mean(vmem)
+                    vmem_std = tf.math.reduce_std(vmem)
+
+                    gaussian_dist = tfp.distributions.Normal(loc=vmem_mean, scale=vmem_std)
+
+                    lower_bound = 1 - (1.0 / beta)
+                    upper_bound = 1 + (1.0 / beta)
+
+                    current = gaussian_dist.cdf(upper_bound) - gaussian_dist.cdf(lower_bound)
+
+                    new_record = tf.case([
+                        (tf.less(self.record, 0.3), lambda: 0.3),  # record < 0.3 : record = 0.3
+                        (tf.less(current, self.record), lambda: current) # current < record : record = current
+                    ], default=lambda: self.record)
+
+                    self.record.assign(new_record)
+
+                    chi_min = self.record
+
+                    def keep_beta():
+                        return self.beta
+
+                    def update_beta(vmem_mean, vmem_std, chi_min):
+                        beta_low = tf.constant(0.5, dtype=tf.float32)
+                        beta_high = tf.constant(2.0, dtype=tf.float32)
+                        tolerance = tf.constant(1e-4, dtype=tf.float32)
+
+                        gaussian_dist = tfp.distributions.Normal(loc=vmem_mean, scale=vmem_std)
+
+                        def cond(beta_low, beta_high):
+                            return tf.greater(beta_high - beta_low, tolerance)
+
+                        def body(beta_low, beta_high):
+                            beta_mid = (beta_high + beta_low) / 2.0
+
+                            lower_bound = 1.0 - (1.0/beta_mid)
+                            upper_bound = 1.0 + (1.0/beta_mid)
+                            chi_estimate = gaussian_dist.cdf(upper_bound) - gaussian_dist.cdf(lower_bound)
+
+                            def update_high():
+                                return beta_low, beta_mid
+
+                            def update_low():
+                                return beta_mid, beta_high
+
+                            new_beta_low, new_beta_high = tf.cond(
+                                tf.less(chi_estimate, chi_min),
+                                update_high,
+                                update_low
+                            )
+
+                            return new_beta_low, new_beta_high
+
+                        final_low, final_high = tf.while_loop(
+                            cond=cond,
+                            body=body,
+                            loop_vars=[beta_low, beta_high]
+                        )
+
+                        return (final_low + final_high) / 2.0
+
+                    return tf.cond(tf.equal(chi_min, current),
+                            keep_beta,
+                            lambda: update_beta(vmem_mean, vmem_std, chi_min))
+
+                def false_beta():
+                    return self.beta
+
+                if t==4:
+                    beta = tf.case([
+                        (tf.equal(lib_snn.model.train_counter, 0), first_epoch),
+                        (tf.equal(tf.math.floormod(lib_snn.model.train_counter, conf.debug_surro_grad_per_iter), 0),true_beta)
+                    ], default=false_beta)
+
+                width_h = 1 / beta
+                cond_lower = tf.math.greater_equal(vmem, vth - width_h)
+                cond_upper = tf.math.less_equal(vmem, vth + width_h)
+                cond = tf.math.logical_and(cond_lower, cond_upper)
+
+                h = beta * (1 - beta * tf.abs(vmem - vth))
+                du_do = tf.where(cond, h, tf.zeros(cond.shape))
+
+            elif conf.fire_surro_grad_func=='cpng_asy':
+                beta = self.beta
+
+                def first_epoch():
+                    vmem_mean = tf.reduce_mean(vmem)
+                    vmem_std = tf.math.reduce_std(vmem)
+
+                    gaussian_dist = tfp.distributions.Normal(loc=vmem_mean, scale=vmem_std)
+
+                    lower_bound = 1 - (1.0/beta)
+                    upper_bound = 1 + (1.0/beta)
+
+                    probability = gaussian_dist.cdf(upper_bound) - gaussian_dist.cdf(lower_bound)
+
+                    self.record.assign(probability)
+                    return self.beta
+
+                def true_beta():
+                    vmem_mean = tf.reduce_mean(vmem)
+                    vmem_std = tf.math.reduce_std(vmem)
+
+                    gaussian_dist = tfp.distributions.Normal(loc=vmem_mean, scale=vmem_std)
+
+                    lower_bound = 1 - (1.0 / beta)
+                    upper_bound = 1 + (1.0 / beta)
+
+                    current = gaussian_dist.cdf(upper_bound) - gaussian_dist.cdf(lower_bound)
+
+                    new_record = tf.case([
+                        (tf.less(self.record, 0.2), lambda: 0.2),  # record < 0.3 : record = 0.3
+                        (tf.less(current, self.record), lambda: current) # current < record : record = current
+                    ], default=lambda: self.record)
+
+                    self.record.assign(new_record)
+
+                    chi_min = self.record
+
+                    def keep_beta():
+                        return self.beta
+
+                    def update_beta(vmem_mean, vmem_std, chi_min):
+                        beta_low = tf.constant(0.5, dtype=tf.float32)
+                        beta_high = tf.constant(2.0, dtype=tf.float32)
+                        tolerance = tf.constant(1e-4, dtype=tf.float32)
+
+                        gaussian_dist = tfp.distributions.Normal(loc=vmem_mean, scale=vmem_std)
+
+                        def cond(beta_low, beta_high):
+                            return tf.greater(beta_high - beta_low, tolerance)
+
+                        def body(beta_low, beta_high):
+                            beta_mid = (beta_high + beta_low) / 2.0
+
+                            lower_bound = 1.0 - (1.0/beta_mid)
+                            upper_bound = 1.0 + (1.0/beta_mid)
+                            chi_estimate = gaussian_dist.cdf(upper_bound) - gaussian_dist.cdf(lower_bound)
+
+                            def update_high():
+                                return beta_low, beta_mid
+
+                            def update_low():
+                                return beta_mid, beta_high
+
+                            new_beta_low, new_beta_high = tf.cond(
+                                tf.less(chi_estimate, chi_min),
+                                update_high,
+                                update_low
+                            )
+
+                            return new_beta_low, new_beta_high
+
+                        final_low, final_high = tf.while_loop(
+                            cond=cond,
+                            body=body,
+                            loop_vars=[beta_low, beta_high]
+                        )
+
+                        return (final_low + final_high) / 2.0
+
+                    return tf.cond(tf.equal(chi_min, current),
+                            keep_beta,
+                            lambda: update_beta(vmem_mean, vmem_std, chi_min))
+
+                def false_beta():
+                    return self.beta
+
+                if t==4:
+                    beta = tf.case([
+                        (tf.equal(lib_snn.model.train_counter, 0), first_epoch),
+                        (tf.equal(tf.math.floormod(lib_snn.model.train_counter, conf.debug_surro_grad_per_iter), 0),true_beta)
+                    ], default=false_beta)
+
+                width_h = 1 / beta
+                cond_lower = tf.math.greater_equal(vmem, vth - width_h)
+                cond_upper = tf.math.less_equal(vmem, vth + width_h)
+                cond = tf.math.logical_and(cond_lower, cond_upper)
+
+                h = tf.multiply(0.5, vmem) + 0.25
+                du_do = tf.where(cond, h, tf.zeros(cond.shape))
+
 
             grad_ret = upstream*du_do
 

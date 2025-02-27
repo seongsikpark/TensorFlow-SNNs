@@ -17,6 +17,9 @@ conf = config.flags
 ##### training setting #####
 #conf.debug_mode = True
 #conf.verbose_snn_train = True
+conf.save_best_model_only = True
+conf.save_models_max_to_keep = 1
+##########
 
 ##### inference mode setting #####
 #conf.mode='inference'
@@ -109,6 +112,8 @@ conf.SEL_model_dataset = 'R20_C10'
 # conf.SEL_model_dataset = 'R20_DVS'
 
 
+# conf.SEL_model_dataset = 'MS34_ImageNet'
+# conf.SEL_model_dataset = '34_ImageNet'
 
 ##### Spikformer
 # conf.SEL_model_dataset = 'Spik_C10'
