@@ -275,8 +275,6 @@ def VGG16(
         a_p = lib_snn.activations.Activation(act_type='softmax',name='a_predictions')(a_p)
 
 
-
-
     #model = training.Model(img_input, x, name=name)
     #model = lib_snn.model.Model(img_input, x, batch_size, input_shape,  classes, conf, name=model_name)
     model = lib_snn.model.Model(img_input, a_p, batch_size, input_shape,  classes, conf, name=model_name)

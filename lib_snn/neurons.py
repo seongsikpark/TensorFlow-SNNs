@@ -201,8 +201,15 @@ class Neuron(tf.keras.layers.Layer):
             tensor_array_name='vth')
 
         ##yongjin for cpng
-        self.beta = tf.Variable(conf.surro_grad_alpha, dtype=tf.float32, name='beta', trainable=False)
-        self.record = tf.Variable(0.0, dtype=tf.float32, name='record', trainable=False)
+        if conf.fire_surro_grad_func in ['cpng_tri', 'cpng_asy']:
+            self.beta = tf.Variable(conf.surro_grad_alpha, dtype=tf.float32, name='beta', trainable=False)
+            self.record = tf.Variable(0.0, dtype=tf.float32, name='record', trainable=False)
+        ##yongjin for predictiveness
+        elif conf.fire_surro_grad_func == 'predictiveness_asy':
+            # print(self.dim)
+            # print(tf.reshape(self.dim, [-1]))
+            self.beta = tf.Variable(conf.surro_grad_alpha, dtype=tf.float32, name='beta', trainable=False)
+
 
         if conf.vth_rand_static:
             #self.vth_init = tf.random.uniform(shape=self.dim,minval=0.1,maxval=1.0,dtype=tf.float32,name='vth_init')
@@ -1644,7 +1651,6 @@ class Neuron(tf.keras.layers.Layer):
             # original
             #cond_1=tf.math.less_equal(tf.math.abs(vmem-vth),a)
             #cond=cond_1
-
             # boxcar
             if conf.fire_surro_grad_func=='boxcar':
                 width_h = conf.surro_grad_alpha
@@ -1656,7 +1662,9 @@ class Neuron(tf.keras.layers.Layer):
                 du_do = tf.where(cond,h,tf.zeros(cond.shape))
                 #du_do = tf.where(cond,vmem-vth+a,tf.zeros(cond.shape))
             elif conf.fire_surro_grad_func=='asym':
-                width_h = conf.surro_grad_alpha
+                beta = self.beta
+                width_h = self.beta
+                # width_h = conf.surro_grad_alpha
                 cond_lower=tf.math.greater_equal(vmem,vth-width_h)
                 cond_upper=tf.math.less_equal(vmem,vth+width_h)
                 cond = tf.math.logical_and(cond_lower,cond_upper)
@@ -1669,7 +1677,9 @@ class Neuron(tf.keras.layers.Layer):
 
             elif conf.fire_surro_grad_func=='cpng_tri':
                 beta = self.beta
-
+                chi_limit = conf.chi_limit
+                find_beta_low = conf.find_beta_low
+                find_beta_high = conf.find_beta_high
                 def first_epoch():
                     vmem_mean = tf.reduce_mean(vmem)
                     vmem_std = tf.math.reduce_std(vmem)
@@ -1696,7 +1706,7 @@ class Neuron(tf.keras.layers.Layer):
                     current = gaussian_dist.cdf(upper_bound) - gaussian_dist.cdf(lower_bound)
 
                     new_record = tf.case([
-                        (tf.less(self.record, 0.3), lambda: 0.3),  # record < 0.3 : record = 0.3
+                        (tf.less(self.record, chi_limit), lambda: chi_limit),  # record < 0.3 : record = 0.3
                         (tf.less(current, self.record), lambda: current) # current < record : record = current
                     ], default=lambda: self.record)
 
@@ -1708,8 +1718,8 @@ class Neuron(tf.keras.layers.Layer):
                         return self.beta
 
                     def update_beta(vmem_mean, vmem_std, chi_min):
-                        beta_low = tf.constant(0.5, dtype=tf.float32)
-                        beta_high = tf.constant(2.0, dtype=tf.float32)
+                        beta_low = tf.constant(find_beta_low, dtype=tf.float32)
+                        beta_high = tf.constant(find_beta_high, dtype=tf.float32)
                         tolerance = tf.constant(1e-4, dtype=tf.float32)
 
                         gaussian_dist = tfp.distributions.Normal(loc=vmem_mean, scale=vmem_std)
@@ -1769,6 +1779,9 @@ class Neuron(tf.keras.layers.Layer):
 
             elif conf.fire_surro_grad_func=='cpng_asy':
                 beta = self.beta
+                chi_limit = conf.chi_limit
+                find_beta_low = conf.find_beta_low
+                find_beta_high = conf.find_beta_high
 
                 def first_epoch():
                     vmem_mean = tf.reduce_mean(vmem)
@@ -1796,7 +1809,7 @@ class Neuron(tf.keras.layers.Layer):
                     current = gaussian_dist.cdf(upper_bound) - gaussian_dist.cdf(lower_bound)
 
                     new_record = tf.case([
-                        (tf.less(self.record, 0.2), lambda: 0.2),  # record < 0.3 : record = 0.3
+                        (tf.less(self.record, chi_limit), lambda: chi_limit),  # record < 0.3 : record = 0.3
                         (tf.less(current, self.record), lambda: current) # current < record : record = current
                     ], default=lambda: self.record)
 
@@ -1808,8 +1821,8 @@ class Neuron(tf.keras.layers.Layer):
                         return self.beta
 
                     def update_beta(vmem_mean, vmem_std, chi_min):
-                        beta_low = tf.constant(0.5, dtype=tf.float32)
-                        beta_high = tf.constant(2.0, dtype=tf.float32)
+                        beta_low = tf.constant(find_beta_low, dtype=tf.float32)
+                        beta_high = tf.constant(find_beta_high, dtype=tf.float32)
                         tolerance = tf.constant(1e-4, dtype=tf.float32)
 
                         gaussian_dist = tfp.distributions.Normal(loc=vmem_mean, scale=vmem_std)
@@ -1865,8 +1878,95 @@ class Neuron(tf.keras.layers.Layer):
                 cond = tf.math.logical_and(cond_lower, cond_upper)
 
                 h = tf.multiply(0.5, vmem) + 0.25
+                # h = tf.multiply(0.5, vmem)
                 du_do = tf.where(cond, h, tf.zeros(cond.shape))
 
+            elif conf.fire_surro_grad_func=='predictiveness_asy':
+                find_beta_low = conf.find_beta_low
+                find_beta_high = conf.find_beta_high
+                def first_epoch():
+                    beta = self.beta
+                    width_h = 1/beta
+                    cond_lower = tf.math.greater_equal(vmem, vth - width_h)
+                    cond_upper = tf.math.less_equal(vmem, vth + width_h)
+                    cond = tf.math.logical_and(cond_lower, cond_upper)
+
+                    # h = tf.multiply(0.5, vmem) + 0.25
+                    h = tf.multiply(beta, vmem)
+                    du_do = tf.where(cond, h, tf.zeros(cond.shape))
+
+                    gradient = upstream * du_do
+                    gradient_vector = tf.reshape(gradient, [-1])
+                    return self.beta, gradient_vector
+
+                def true_beta(gradient_vector):
+                    def compute_similarity(beta):
+                        width_h = 1/beta
+                        cond_lower = tf.math.greater_equal(vmem, vth - width_h)
+                        cond_upper = tf.math.less_equal(vmem, vth + width_h)
+                        cond = tf.math.logical_and(cond_lower, cond_upper)
+
+                        # h = tf.multiply(0.5, vmem) + 0.25
+                        h = tf.multiply(beta, vmem)
+                        du_do = tf.where(cond, h, tf.zeros(cond.shape))
+
+                        current_gradient = upstream * du_do
+                        current_gradient_vector = tf.reshape(current_gradient, [-1])
+
+                        cosine_sim = tf.reduce_sum(gradient_vector * current_gradient_vector)/(
+                            tf.norm(gradient_vector)*tf.norm(current_gradient_vector)+1e-8
+                        )
+                        return cosine_sim
+
+                    beta_low = tf.constant(find_beta_low, dtype=tf.float32)
+                    beta_high = tf.constant(find_beta_high, dtype=tf.float32)
+                    tolerance = tf.constant(1e-4, dtype=tf.float32)
+
+
+                    def cond(beta_low, beta_high):
+                        return tf.greater(beta_high - beta_low, tolerance)
+
+                    def body(beta_low, beta_high):
+                        m1 = beta_low + (beta_high - beta_low) / 3.0
+                        m2 = beta_high - (beta_high - beta_low) / 3.0
+                        f1 = compute_similarity(m1)
+                        f2 = compute_similarity(m2)
+
+                        new_low, new_high = tf.cond(tf.less(f1, f2),
+                                                    lambda: (m1, beta_high),
+                                                    lambda: (beta_low, m2))
+                        return new_low, new_high
+
+                    final_beta_low, final_beta_high = tf.while_loop(
+                        cond, body, loop_vars=[beta_low, beta_high])
+                    best_beta = (final_beta_low + final_beta_high) / 2.0
+                    return best_beta
+
+                def false_beta():
+                    return self.beta
+
+                if t == 4:
+                    beta_first, gv = first_epoch()
+                    result = tf.case([
+                        (tf.equal(lib_snn.model.train_counter, 0), lambda: (beta_first, gv)),
+                        (tf.equal(tf.math.floormod(lib_snn.model.train_counter, conf.debug_surro_grad_per_iter), 0),
+                         lambda: (self.beta, true_beta(gv)))
+                    ], default=lambda: (self.beta, tf.constant(0.0, dtype=tf.float32)))
+                    if isinstance(result, (list, tuple)):
+                        beta, gradient_vector = result
+                    else:
+                        beta = result
+                else:
+                    beta = false_beta()
+
+                width_h = 1 / beta
+                cond_lower = tf.math.greater_equal(vmem, vth - width_h)
+                cond_upper = tf.math.less_equal(vmem, vth + width_h)
+                cond = tf.math.logical_and(cond_lower, cond_upper)
+
+                # h = tf.multiply(0.5, vmem) + 0.25
+                h = tf.multiply(beta, vmem)
+                du_do = tf.where(cond, h, tf.zeros(cond.shape))
 
             grad_ret = upstream*du_do
 

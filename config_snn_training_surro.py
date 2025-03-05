@@ -7,7 +7,7 @@
 import os
 os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="4"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 
 #
@@ -15,7 +15,7 @@ from config import config
 conf = config.flags
 
 ##### training setting #####
-#conf.debug_mode = True
+# conf.debug_mode = True
 #conf.verbose_snn_train = True
 conf.save_best_model_only = True
 conf.save_models_max_to_keep = 1
@@ -32,9 +32,9 @@ conf.save_models_max_to_keep = 1
 conf.optimizer = 'ADAMW'
 conf.lr_schedule = 'COS'
 
-conf.learning_rate_init = 1e-5
-conf.learning_rate = 6e-3
-conf.weight_decay_AdamW = 2e-2
+conf.learning_rate_init = 1e-4
+conf.learning_rate = 8e-3
+conf.weight_decay_AdamW = 1e-2
 ##########
 
 ##### neural network type setting #####
@@ -69,13 +69,14 @@ conf.rand_erase_en = True
 #conf.fire_surro_grad_func = 'boxcar'
 # conf.fire_surro_grad_func = 'asym'
 # conf.fire_surro_grad_func = 'cpng_tri'
-conf.fire_surro_grad_func = 'cpng_asy'
+# conf.fire_surro_grad_func = 'cpng_asy'
+conf.fire_surro_grad_func = 'predictiveness_asy'
 
-conf.surro_grad_alpha = 1.0
+conf.surro_grad_alpha = 1
 #conf.surro_grad_beth =
 
 ##### CPNG setting #####
-conf.chi_limit = 0.2
+# conf.chi_limit = 0.2
 conf.find_beta_low = 0.5
 conf.find_beta_high = 2.0
 ##########
@@ -84,14 +85,15 @@ conf.find_beta_high = 2.0
 # conf.debug_surro_grad_per_iter = 100
 
 ##### model save setting #####
-conf.root_model_save = f'./model_ckpt/{conf.fire_surro_grad_func}_{conf.surro_grad_alpha}/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
+# conf.root_model_save = f'./model_ckpt/{conf.fire_surro_grad_func}_{conf.surro_grad_alpha}_extent=1/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
 # conf.root_model_save = f'./model_ckpt/{conf.fire_surro_grad_func}_alpha={conf.surro_grad_alpha}/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
 # conf.root_model_save = f'./model_ckpt_2/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
-# conf.root_model_save = f'./model_ckpt_test/'
+conf.root_model_save = f'./model_ckpt_test/'
 ##########
 
 # conf.exp_set_name='surro_grad_new'
-conf.exp_set_name='CPNG'
+# conf.exp_set_name='CPNG'
+conf.exp_set_name='test'
 
 ##### Loss setting #####
 # conf.rmp_en = 'True'
@@ -102,7 +104,7 @@ conf.exp_set_name='CPNG'
 
 ##### Model setting #####
 ###### VGG16
-conf.SEL_model_dataset = 'V16_C10'
+# conf.SEL_model_dataset = 'V16_C10'
 # conf.SEL_model_dataset = 'V16_C100'
 # conf.SEL_model_dataset = 'V16_DVS'
 
@@ -113,7 +115,7 @@ conf.SEL_model_dataset = 'V16_C10'
 # conf.SEL_model_dataset = 'VSNN_DVS'
 
 ###### ResNet19
-# conf.SEL_model_dataset = 'R19_C10'
+conf.SEL_model_dataset = 'R19_C10'
 # conf.SEL_model_dataset = 'R19_C100'
 # conf.SEL_model_dataset = 'R19_DVS'
 

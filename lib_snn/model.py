@@ -51,6 +51,12 @@ train_counter = tf.Variable(0, trainable=False, dtype=tf.int64, name="train_coun
 #train_counter = 0
 
 
+# predictiveness - yongjin
+if conf.model == 'VGG16' :
+    predictiveness = tf.Variable(tf.zeros([16]), trainable=False, dtype=tf.float32, name="predictiveness")
+
+
+
 class Model(tf.keras.Model):
     count=0
     def __init__(self, inputs, outputs, batch_size, input_shape, num_class_legacy=None, conf_legacy=None, **kwargs):
@@ -434,7 +440,6 @@ class Model(tf.keras.Model):
         if conf.debug_grad:
         #if False:
             self.writer = tf.summary.create_file_writer(config.path_tensorboard)
-
 
 
     #def init_graph(self, inputs, outputs,**kwargs):
