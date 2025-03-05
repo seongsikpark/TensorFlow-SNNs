@@ -32,9 +32,9 @@ conf.save_models_max_to_keep = 1
 conf.optimizer = 'ADAMW'
 conf.lr_schedule = 'COS'
 
-conf.learning_rate_init = 1e-4
-conf.learning_rate = 8e-3
-conf.weight_decay_AdamW = 1e-2
+conf.learning_rate_init = 1e-5
+conf.learning_rate = 6e-3
+conf.weight_decay_AdamW = 2e-2
 ##########
 
 ##### neural network type setting #####
@@ -104,7 +104,7 @@ conf.exp_set_name='test'
 
 ##### Model setting #####
 ###### VGG16
-# conf.SEL_model_dataset = 'V16_C10'
+conf.SEL_model_dataset = 'V16_C10'
 # conf.SEL_model_dataset = 'V16_C100'
 # conf.SEL_model_dataset = 'V16_DVS'
 
@@ -115,7 +115,7 @@ conf.exp_set_name='test'
 # conf.SEL_model_dataset = 'VSNN_DVS'
 
 ###### ResNet19
-conf.SEL_model_dataset = 'R19_C10'
+# conf.SEL_model_dataset = 'R19_C10'
 # conf.SEL_model_dataset = 'R19_C100'
 # conf.SEL_model_dataset = 'R19_DVS'
 

@@ -206,10 +206,9 @@ class Neuron(tf.keras.layers.Layer):
             self.record = tf.Variable(0.0, dtype=tf.float32, name='record', trainable=False)
         ##yongjin for predictiveness
         elif conf.fire_surro_grad_func == 'predictiveness_asy':
-            # print(self.dim)
-            # print(tf.reshape(self.dim, [-1]))
             self.beta = tf.Variable(conf.surro_grad_alpha, dtype=tf.float32, name='beta', trainable=False)
-
+            prod_dim = int(np.prod(self.dim))
+            self.gradient_vector = tf.Variable(tf.zeros([prod_dim]), dtype=tf.float32, trainable=False, name='gradient_vector')
 
         if conf.vth_rand_static:
             #self.vth_init = tf.random.uniform(shape=self.dim,minval=0.1,maxval=1.0,dtype=tf.float32,name='vth_init')
@@ -1643,7 +1642,7 @@ class Neuron(tf.keras.layers.Layer):
             spike = tf.where(f_fire, vth, self.zeros)
 
         def grad(upstream):
-            # todo: parameterize
+            # print(upstream.shape)
             #a=0.5
             #a=1.0
             #cond_1=tf.math.less_equal(tf.math.abs(vmem-vth),a)
@@ -1884,6 +1883,7 @@ class Neuron(tf.keras.layers.Layer):
             elif conf.fire_surro_grad_func=='predictiveness_asy':
                 find_beta_low = conf.find_beta_low
                 find_beta_high = conf.find_beta_high
+
                 def first_epoch():
                     beta = self.beta
                     width_h = 1/beta
@@ -1891,30 +1891,31 @@ class Neuron(tf.keras.layers.Layer):
                     cond_upper = tf.math.less_equal(vmem, vth + width_h)
                     cond = tf.math.logical_and(cond_lower, cond_upper)
 
-                    # h = tf.multiply(0.5, vmem) + 0.25
-                    h = tf.multiply(beta, vmem)
+                    h = tf.multiply(0.5, vmem) + 0.25
+                    # h = tf.multiply(beta, vmem)
                     du_do = tf.where(cond, h, tf.zeros(cond.shape))
 
                     gradient = upstream * du_do
                     gradient_vector = tf.reshape(gradient, [-1])
-                    return self.beta, gradient_vector
+                    self.gradient_vector.assign(gradient_vector)
+                    return self.beta
 
-                def true_beta(gradient_vector):
+                def true_beta():
                     def compute_similarity(beta):
                         width_h = 1/beta
                         cond_lower = tf.math.greater_equal(vmem, vth - width_h)
                         cond_upper = tf.math.less_equal(vmem, vth + width_h)
                         cond = tf.math.logical_and(cond_lower, cond_upper)
 
-                        # h = tf.multiply(0.5, vmem) + 0.25
-                        h = tf.multiply(beta, vmem)
+                        h = tf.multiply(0.5, vmem) + 0.25
+                        # h = tf.multiply(beta, vmem)
                         du_do = tf.where(cond, h, tf.zeros(cond.shape))
 
                         current_gradient = upstream * du_do
                         current_gradient_vector = tf.reshape(current_gradient, [-1])
 
-                        cosine_sim = tf.reduce_sum(gradient_vector * current_gradient_vector)/(
-                            tf.norm(gradient_vector)*tf.norm(current_gradient_vector)+1e-8
+                        cosine_sim = tf.reduce_sum(self.gradient_vector * current_gradient_vector)/(
+                            tf.norm(self.gradient_vector)*tf.norm(current_gradient_vector)+1e-8
                         )
                         return cosine_sim
 
@@ -1940,32 +1941,36 @@ class Neuron(tf.keras.layers.Layer):
                     final_beta_low, final_beta_high = tf.while_loop(
                         cond, body, loop_vars=[beta_low, beta_high])
                     best_beta = (final_beta_low + final_beta_high) / 2.0
+                    self.beta.assign(best_beta)
+
+                    width_h_new = 1 / best_beta
+                    cond_lower_new = tf.math.greater_equal(vmem, vth - width_h_new)
+                    cond_upper_new = tf.math.less_equal(vmem, vth + width_h_new)
+                    cond_new = tf.math.logical_and(cond_lower_new, cond_upper_new)
+                    h_new = tf.multiply(0.5, vmem) + 0.25
+
+                    du_do_new = tf.where(cond_new, h_new, tf.zeros(cond_new.shape))
+                    new_gradient = upstream * du_do_new
+                    new_gradient_vector = tf.reshape(new_gradient, [-1])
+                    self.gradient_vector.assign(new_gradient_vector)
                     return best_beta
 
-                def false_beta():
-                    return self.beta
-
                 if t == 4:
-                    beta_first, gv = first_epoch()
-                    result = tf.case([
-                        (tf.equal(lib_snn.model.train_counter, 0), lambda: (beta_first, gv)),
+                    beta = tf.case([
+                        (tf.equal(lib_snn.model.train_counter, 0), lambda: first_epoch()),
                         (tf.equal(tf.math.floormod(lib_snn.model.train_counter, conf.debug_surro_grad_per_iter), 0),
-                         lambda: (self.beta, true_beta(gv)))
-                    ], default=lambda: (self.beta, tf.constant(0.0, dtype=tf.float32)))
-                    if isinstance(result, (list, tuple)):
-                        beta, gradient_vector = result
-                    else:
-                        beta = result
-                else:
-                    beta = false_beta()
+                         lambda: true_beta())
+                    ], default=lambda: self.beta)
+                else :
+                    beta = self.beta
 
                 width_h = 1 / beta
                 cond_lower = tf.math.greater_equal(vmem, vth - width_h)
                 cond_upper = tf.math.less_equal(vmem, vth + width_h)
                 cond = tf.math.logical_and(cond_lower, cond_upper)
 
-                # h = tf.multiply(0.5, vmem) + 0.25
-                h = tf.multiply(beta, vmem)
+                h = tf.multiply(0.5, vmem) + 0.25
+                # h = tf.multiply(beta, vmem)
                 du_do = tf.where(cond, h, tf.zeros(cond.shape))
 
             grad_ret = upstream*du_do
