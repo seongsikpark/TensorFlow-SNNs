@@ -36,6 +36,8 @@ from models.resnet import ResNet18_MS
 from models.resnet import ResNet32_MS
 
 from models.spikformer import spikformer
+from models.spikformer_tb import spikformer_tb
+
 from models.mobilenet_v2 import MobileNetV2
 
 from models.efficientnet_v2 import EfficientNetV2S
@@ -78,7 +80,8 @@ model_sel_sc = {
     'EfficientNetV2S': EfficientNetV2S,
     'EfficientNetV2M': EfficientNetV2M,
     'EfficientNetV2L': EfficientNetV2L,
-    'Spikformer':spikformer
+    'Spikformer':spikformer,
+    'Spikformer_tb': spikformer_tb,
 }
 
 

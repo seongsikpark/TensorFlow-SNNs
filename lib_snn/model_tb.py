@@ -706,7 +706,7 @@ class Model(tf.keras.Model):
                             # debug
                             if False:
                                 #if True:
-                                if hasattr(layer,'act') and isinstance(layer.act,lib_snn.neurons.Neuron):
+                                if hasattr(layer,'act') and isinstance(layer.act,lib_snn.neurons_tb.Neuron):
                                     spike_count = layer.act.spike_count
                                     spike = layer.act.out
                                     print('spike count> {}: - sum {:.3e}, mean {:.3e}'.format(layer.name,tf.reduce_sum(spike_count),tf.reduce_mean(spike_count)))
@@ -720,11 +720,9 @@ class Model(tf.keras.Model):
         elif True:
 
             #
-            y_pred = self._run_internal_graph_snn_t_first(inputs, training=training, mask=mask)
+            #ret = self._run_internal_graph_snn_t_first(inputs, training=training, mask=mask)
 
-            #ret = y_pred[-1]
-            #ret = y_pred.read(self.conf.time_step-1)
-            ret = y_pred
+            ret = self._run_internal_graph(inputs, training=training, mask=mask)
 
         else:   # temporal first - old
             #inputs_expand_shape = [self.conf.time_step,]+inputs.shape
@@ -1077,8 +1075,8 @@ class Model(tf.keras.Model):
 
                             #
                             if self.conf.leak_off_after_bias_en:
-                                if isinstance(layer.act,lib_snn.neurons.Neuron):
-                                #if isinstance(layer.act, lib_snn.neurons.Neuron) and (layer.name!='predictions'):
+                                if isinstance(layer.act,lib_snn.neurons_tb.Neuron):
+                                #if isinstance(layer.act, lib_snn.neurons_tb.Neuron) and (layer.name!='predictions'):
                                     layer.act.set_leak_const(tf.ones(layer.act.leak_const.shape))
 
                                 if 'block' in layer.name:
@@ -1417,8 +1415,8 @@ class Model(tf.keras.Model):
 
                                 #
                                 if self.conf.leak_off_after_bias_en:
-                                    if isinstance(layer.act,lib_snn.neurons.Neuron):
-                                        #if isinstance(layer.act, lib_snn.neurons.Neuron) and (layer.name!='predictions'):
+                                    if isinstance(layer.act,lib_snn.neurons_tb.Neuron):
+                                        #if isinstance(layer.act, lib_snn.neurons_tb.Neuron) and (layer.name!='predictions'):
                                         layer.act.set_leak_const(tf.ones(layer.act.leak_const.shape))
 
                                     if 'block' in layer.name:
@@ -1694,12 +1692,13 @@ class Model(tf.keras.Model):
 
 
     # this function is based on Model.train_step in training.py
+    #@tf.function(jit_compile=True)
     def train_step(self, data):
 
         ret = {
             'ANN': self.train_step_ann,
-            'SNN': self.train_step_snn,
-            #'SNN': self.train_step_ann,
+            #'SNN': self.train_step_snn,
+            'SNN': self.train_step_ann,
         }[self.nn_mode](data)
 
 
@@ -1715,6 +1714,7 @@ class Model(tf.keras.Model):
 
         return ret
 
+    #
     def train_step_ann(self, data):
         """The logic for one training step.
 
@@ -2395,7 +2395,7 @@ class Model(tf.keras.Model):
         self.layers_w_act = []
         for layer in self.layers:
             #if hasattr(layer, 'act'):
-            if isinstance(layer, lib_snn.activations.Activation):
+            if isinstance(layer, lib_snn.activations_tb.Activation):
                 #if not isinstance(layer,lib_snn.layers.InputGenLayer):
                 #if not layer.act_dnn is None:
                 #if not (layer.activation is None):
@@ -2571,7 +2571,7 @@ class Model(tf.keras.Model):
         self.total_residual_vmem=collections.OrderedDict()
 
         for layer in self.layers_w_neuron:
-            #if isinstance(layer.act_snn,lib_snn.neurons.Neuron):
+            #if isinstance(layer.act_snn,lib_snn.neurons_tb.Neuron):
             #self.total_spike_count_int[layer.name]=np.zeros([self.num_accuracy_time_point])
             #self.total_spike_count_int[layer.name]=np.empty_like([self.num_accuracy_time_point],dtype=object)
 
@@ -2761,13 +2761,13 @@ class Model(tf.keras.Model):
                 #if hasattr(layer, 'act_snn'):
                 if hasattr(layer, 'act'):
                     #if layer.act_snn is not None:
-                    #if isinstance(layer.act,lib_snn.neurons.Neuron):
+                    #if isinstance(layer.act,lib_snn.neurons_tb.Neuron):
                     if not (layer.act_dnn is None):
                         #print(layer.name)
                         self.layers_w_neuron.append(layer)
         for layer in self.layers:
-            if isinstance(layer, lib_snn.activations.Activation):
-                if isinstance(layer.act, lib_snn.neurons.Neuron):
+            if isinstance(layer, lib_snn.activations_tb.Activation):
+                if isinstance(layer.act, lib_snn.neurons_tb.Neuron):
                     self.layers_w_neuron.append(layer)
 
 
@@ -3784,7 +3784,7 @@ class Model(tf.keras.Model):
 
         print('\n spike count')
         for layer in self.layers:
-            if hasattr(layer,'act') and isinstance(layer.act,lib_snn.neurons.Neuron):
+            if hasattr(layer,'act') and isinstance(layer.act,lib_snn.neurons_tb.Neuron):
                 spike_count = layer.act.spike_count_int
                 #spike = layer.act.out
                 print('{: <10}: - max {:.3e}, mean {:.3e}, non-zero percent {:.3e}'
@@ -3802,7 +3802,7 @@ class Model(tf.keras.Model):
 
         print('\n vmem residual')
         for layer in self.layers:
-            if hasattr(layer,'act') and isinstance(layer.act,lib_snn.neurons.Neuron):
+            if hasattr(layer,'act') and isinstance(layer.act,lib_snn.neurons_tb.Neuron):
                 vmem = layer.act.vmem.read(self.conf.time_step-1)
                 print('{: <10}: - max {:.3e}, min {:.3e}, mean {:.3e}, var {:.3e}'
                       .format(layer.name,tf.reduce_max(vmem),tf.reduce_min(vmem),
@@ -4002,7 +4002,7 @@ class Model(tf.keras.Model):
         #for l in self.layers_w_neuron:
         for l in self.layers:
             if hasattr(l, 'act'):
-                if isinstance(l.act, lib_snn.neurons.Neuron):
+                if isinstance(l.act, lib_snn.neurons_tb.Neuron):
                     total_num_neurons += l.act.num_neurons
 
         self.total_num_neurons = total_num_neurons

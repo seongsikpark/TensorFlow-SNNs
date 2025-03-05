@@ -34,8 +34,8 @@ class Neuron(tf.keras.layers.Layer):
 
         self.init_done = False
 
-        self.dim = dim
-        self.dim_wo_batch = self.dim[1:]
+        self.dim = dim[1:]      # [T, B, ...]
+        self.dim_wo_batch = self.dim[2:]
         #self.dim_one_batch = [1 , ] +dim[1:]
 
         self.n_type = n_type
@@ -373,8 +373,8 @@ class Neuron(tf.keras.layers.Layer):
     #@tf.custom_gradient
     #def call(self ,inputs ,t, training):
     # temporal batch
-    def call_tb(self, inputs, training=None):
-    #def call(self, inputs, training=None):
+    #def call_tmp_working_250304(self, inputs, training=None):
+    def call(self, inputs, training=None):
 
         if conf.verbose_snn_train:
             self.inputs_t = inputs
@@ -408,15 +408,16 @@ class Neuron(tf.keras.layers.Layer):
         vmem_prev_t = tf.zeros(shape=self.dim, dtype=self._dtype)
 
         for t in range(1, conf.time_step + 1):
-            if self.loc=='IN':
-                if conf.input_data_time_dim:  # event data
-                    _inputs = inputs[t-1]
-                else:
-                    _inputs = inputs
-            else:
-                inputs = inputs[t-1]
+            #if self.loc=='IN':
+            #    if conf.input_data_time_dim:  # event data
+            #        _inputs = inputs[t-1]
+            #    else:
+            #        _inputs = inputs
+            #else:
+            _inputs = inputs[t-1]
+            #print(_inputs)
 
-            spike, vmem = run_type[self.loc](inputs, vmem_prev_t, t, training)
+            spike, vmem = run_type[self.loc](_inputs, vmem_prev_t, t, training)
 
             vmem_prev_t = vmem
             self.out = self.out.write(t - 1, spike)
@@ -746,7 +747,7 @@ class Neuron(tf.keras.layers.Layer):
         # return out_ret, grad
         return out_ret
 
-    def call(self, inputs, training=None):
+    def call_bck_250304(self, inputs, training=None):
 
         if conf.verbose_snn_train:
             self.inputs_t = inputs
@@ -1722,6 +1723,7 @@ class Neuron(tf.keras.layers.Layer):
         return spike, vmem_fire
 
     #
+    @tf.function(jit_compile=True)
     def leak(self,vmem, t):
 
         vmem_leak = tf.multiply(vmem, self.leak_const)
@@ -1746,6 +1748,15 @@ class Neuron(tf.keras.layers.Layer):
     #
     @tf.function(jit_compile=True)
     def integration(self, inputs, vmem, t):
+
+        vmem_integ = self.integration_default(inputs, vmem, t)
+
+        ret = vmem_integ
+        return ret
+
+    #
+    @tf.function(jit_compile=True)
+    def integration_bck_250305(self, inputs, vmem, t):
 
         if conf.neural_coding == "TEMPORAL":
             t_int_s = self.time_start_integ_init
@@ -2616,8 +2627,8 @@ class Neuron(tf.keras.layers.Layer):
         # self.spike_count = tf.add(self.spike_count, self.out)
 
         #self.spike_count_int.assign(tf.where(self.f_fire, self.spike_count_int + 1.0, self.spike_count_int))
-        #self.spike_count.assign(tf.add(self.spike_count, spike))
-        self.spike_count.assign(tf.where(self.f_fire, self.spike_count+ 1.0, self.spike_count))
+        self.spike_count.assign(tf.add(self.spike_count, spike))
+        #self.spike_count.assign(tf.where(self.f_fire, self.spike_count+ 1.0, self.spike_count))
 
         ## here
         #print(self.spike_count)
@@ -2787,10 +2798,14 @@ class Neuron(tf.keras.layers.Layer):
 
         vmem_integ = self.integration(inputs, vmem, t)
 
-        if self.n_type=='LIF':
-            vmem_leak = self.leak(vmem_integ, t)
-        else:
-            vmem_leak = vmem_integ
+        #
+        # TODO:
+        #if self.n_type=='LIF':
+        #    vmem_leak = self.leak(vmem_integ, t)
+        #else:
+        #    vmem_leak = vmem_integ
+
+        vmem_leak = self.leak(vmem_integ, t)
 
         fire, vmem_fire = self.fire(vmem_leak,t)
 

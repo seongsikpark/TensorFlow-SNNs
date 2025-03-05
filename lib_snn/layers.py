@@ -11,6 +11,10 @@ from tensorflow.python.ops import math_ops
 
 import tensorflow_probability as tfp
 
+#
+import keras
+from keras.engine.base_layer import Layer as base_layer
+
 # custom gradient
 
 
@@ -228,7 +232,10 @@ class Layer():
         if isinstance(self,lib_snn.layers.InputGenLayer):
             self.output_shape_fixed_batch = input_shapes
         else:
-            self.output_shape_fixed_batch = super().compute_output_shape(input_shapes)
+            if hasattr(self, 'compute_output_shape'):
+                self.output_shape_fixed_batch = super().compute_output_shape(input_shapes)
+            else:
+                self.output_shape_fixed_batch = None
 
         # self.act_snn = lib_snn.layers.Neuron(self.output_shape_fixed_batch,self.conf,\
         # n_type,self.conf.neural_coding,depth,self.name)
@@ -1054,6 +1061,35 @@ class InputLayer(Layer, tf.keras.layers.InputLayer):
 
         assert False
 
+# InputGenLayer for temporal batch
+class InputGenLayerTB(Layer, tf.keras.layers.Layer):
+    def __init__(self, **kwargs):
+        tf.keras.layers.Layer.__init__(self, **kwargs)
+        Layer.__init__(self, False, None, kwargs=kwargs)
+
+        # self.act_dnn = tf.identity()
+
+        #
+        Layer.index = 0  # start of models
+        self.depth = Layer.index
+        self.n_type = 'IN'
+        # self.use_bias=conf.use_bias
+        # self.kernel=1           # dummy
+        # self.bias=0
+
+    def call(self, inputs, training):
+        # print('input gen layer - call')
+        if conf.input_data_time_dim:
+            inputs = inputs
+        else:
+            rank = tf.rank(inputs)
+            expanded = tf.expand_dims(inputs, axis=0)
+            tile_axis = tf.concat([[conf.time_step], tf.ones(rank,dtype=tf.int32)],axis=0)
+            inputs = tf.tile(expanded,tile_axis)
+
+        # print(inputs)
+        return inputs
+
 
 # custom input layer - for spike input generation
 class InputGenLayer(Layer, tf.keras.layers.Layer):
@@ -1079,6 +1115,8 @@ class InputGenLayer(Layer, tf.keras.layers.Layer):
 
         #print(inputs)
         return inputs
+
+
 
         #
 #    def call(self, inputs, training):
@@ -1338,6 +1376,50 @@ class Identity(Layer, tf.keras.layers.Layer):
             #'kernel': self.kernel,
         })
         return config
+
+
+
+# Lambda
+class Lambda(Layer, tf.keras.layers.Lambda):
+
+    def __init__(self,
+                 function,
+                 output_shape=None,
+                 mask=None,
+                 arguments=None,
+                 **kwargs
+                 ):
+
+        Layer.__init__(self, kwargs=kwargs)
+
+        tf.keras.layers.Lambda.__init__(self, function, output_shape, mask, arguments, **kwargs)
+
+        #
+        Layer.index += 1
+        self.depth = Layer.index
+        self.synapse=True
+
+        # integrated output
+        self.f_output_integ = False
+        #self.f_output_integ = True
+        self.f_output_t = conf.debug_syn_output
+
+# Permute
+class Permute(Layer, tf.keras.layers.Permute):
+    def __init__(self, dims, **kwargs):
+
+        Layer.__init__(self, kwargs=kwargs)
+        tf.keras.layers.Permute.__init__(self, dims, **kwargs)
+
+
+        Layer.index += 1
+        self.depth = Layer.index
+        self.synapse=True
+
+        # integrated output
+        self.f_output_integ = False
+        #self.f_output_integ = True
+        self.f_output_t = conf.debug_syn_output
 
 
 # MaxPolling2D
@@ -1856,6 +1938,9 @@ def prob_fit_norm_dist(x):
 
     #return p, grad
     return h, grad
+
+
+
 
 
 # l2 norm

@@ -7,7 +7,7 @@
 import os
 os.environ['NCCL_P2P_DISABLE']='0'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="8"
+os.environ["CUDA_VISIBLE_DEVICES"]="9"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1"
 
 #
@@ -15,6 +15,9 @@ os.environ['TF_CPP_MIN_LOG_LEVEL']='1'  # 0: show all, 1: hide info, 2: hide inf
 
 #
 #os.environ['TF_XLA_FLAGS'] = '--tf_xla_enable_xla_devices'
+os.environ['TF_XLA_FLAGS'] = '--tf_xla_gpu_global_jit'
+os.environ['TF_XLA_FLGAS'] = '--vmodule=xla_compilation_cache=1'
+os.environ['TF_XLA_FLAGS'] = '--tf_xla_auto_jit=2'
 
 
 #
@@ -58,21 +61,18 @@ conf = config.flags
 #conf.num_train_data = 200
 
 #conf.model='VGG11'
-conf.model='VGG16'
+#conf.model='VGG16'
 #conf.model='ResNet18'
 #conf.model='ResNet19'
 #conf.model='ResNet20'
 #conf.model='ResNet32'
 #conf.model='ResNet20_SEW'   # spike-element-wise block
 #conf.model = 'Spikformer'
+conf.model = 'Spikformer_tb'
 
 #conf.dataset='CIFAR100'
 #conf.dataset='ImageNet'
 #conf.dataset='CIFAR10_DVS'
-
-if conf.dataset=='CIFAR100':
-    conf.learning_rate = 1E-3
-    conf.lmb = 1E-2
 
 conf.pooling_vgg = 'avg'
 
@@ -130,9 +130,10 @@ conf.randaug_mag_std = 0.4
 conf.randaug_n = 1
 conf.randaug_rate = 0.5
 
-conf.rand_erase_en = True
+#conf.rand_erase_en = True
 
-
+# test
+conf.neuron_detach_reset = True
 
 #
 if False:
@@ -140,7 +141,7 @@ if False:
     if True:    # proposed method
     #if False:
         conf.reg_spike_out=True
-        conf.reg_spike_out_const=5E-6
+        conf.reg_spike_out_const=8E-6
         conf.reg_spike_out_alpha=4  # temperature
         #conf.reg_spike_rate_alpha=8E-1  # coefficient of reg. rate
         conf.reg_spike_out_sc=True
@@ -156,7 +157,7 @@ if False:
         #conf.reg_spike_out_sc_sm_wo_spa=True
     else:   # previous work
         conf.reg_spike_out = True
-        conf.reg_spike_out_const = 4E-6
+        conf.reg_spike_out_const = 1E-7
         conf.reg_spike_out_alpha = 4  # temperature
         # conf.reg_spike_rate_alpha=8E-1  # coefficient of reg. rate
         #conf.reg_spike_out_sc = True

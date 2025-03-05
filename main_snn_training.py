@@ -15,6 +15,8 @@ import callbacks
 #
 import tensorflow as tf
 
+tf.config.optimizer.set_jit(True)
+
 ########################################
 # configuration
 ########################################

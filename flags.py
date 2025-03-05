@@ -559,6 +559,9 @@ flags.DEFINE_bool('f_record_first_spike_time',False,'flag - recording first spik
 # temporal batch
 flags.DEFINE_bool('temporal_batch',False,'temporal batch')
 
+# detach reset
+flags.DEFINE_bool('neuron_detach_reset',False,'detach reset gradient')
+
 
 ################
 # DNN-to-SNN conversion
