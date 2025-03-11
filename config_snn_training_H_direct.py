@@ -8,7 +8,8 @@ import os
 #os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["NCCL_P2P_DISABLE"]="0"
-os.environ["CUDA_VISIBLE_DEVICES"]='5'
+# os.environ["CUDA_VISIBLE_DEVICES"]='0,1,2,3,4,6,7,8'#imagenet
+os.environ["CUDA_VISIBLE_DEVICES"]='0'
 #
 from config import config
 conf = config.flags
@@ -23,7 +24,7 @@ conf.save_best_model_only = True
 conf.save_models_max_to_keep = 1
 
 conf.optimizer = 'ADAMW'
-# conf.lr_schedule = 'COS'
+conf.lr_schedule = 'COS'
 
 ####conf.learning_rate_init is used in COS lr_scheduler
 conf.learning_rate_init = 1e-4
@@ -34,7 +35,8 @@ conf.weight_decay_AdamW = 3e-2
 
 ######
 # conf.root_model_save = f'./model_ckpt/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
-conf.root_model_save = f'/mnt/hdd1/kyccj/H-direct/Spikingformer_speed_test1/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
+# conf.root_model_save = f'/mnt/hdd1/kyccj/H-direct/spik_mixup/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
+conf.root_model_save = f'/mnt/hdd1/kyccj/H-direct/speed_test/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
 # conf.root_model_save = f'./model_ckpt_test'
 # conf.name_model_load= '/home/ssparknas/240907_ms_inf/ours_resnet/'
 #conf.name_model_load= '/home/ssparknas/test1'
@@ -45,8 +47,8 @@ conf.root_model_save = f'/mnt/hdd1/kyccj/H-direct/Spikingformer_speed_test1/warm
 
 
 
-# conf.nn_mode = 'SNN'
-conf.nn_mode = 'ANN'
+conf.nn_mode = 'SNN'
+# conf.nn_mode = 'ANN'
 
 conf.n_init_vth = 0.5
 
@@ -56,7 +58,7 @@ conf.label_smoothing=0.1
 conf.debug_lr = True
 conf.lmb=1E-3
 conf.regularizer=None
-#conf.data_aug_mix='mixup'
+# conf.data_aug_mix='mixup'
 
 conf.mix_off_iter = 500*200 #500*200 for CIFAR10 / 0 for ImageNet
 # conf.mix_off_iter = 0 #500*200 for CIFAR10 / 0 for ImageNet
@@ -85,15 +87,15 @@ conf.rand_erase_en = True
 # conf.im_en = 'True'
 # conf.im_k = 0.001
 #
-conf.SEL_en = 'base'
+# conf.SEL_en = 'base'
 # conf.SEL_en = 'AT'
 # conf.SEL_en = 'FD'
 # conf.SEL_en = 'DFE'
 # conf.SEL_en = 'AT+FD'
-# conf.SEL_en = 'ours'
+conf.SEL_en = 'ours'
 
 # conf.num_train_data = 100
-conf.SEL_model_dataset = 'V16_C10'
+# conf.SEL_model_dataset = 'V16_C10'
 # conf.SEL_model_dataset = 'V16_C100'
 # conf.SEL_model_dataset = 'V16_DVS'
 # conf.SEL_model_dataset = 'R19_C10'
@@ -104,7 +106,7 @@ conf.SEL_model_dataset = 'V16_C10'
 # conf.SEL_model_dataset = 'R20_DVS'
 # conf.SEL_model_dataset = 'MS34_ImageNet'
 # conf.SEL_model_dataset = '34_ImageNet'
-# conf.SEL_model_dataset = 'Spik_C10'
+conf.SEL_model_dataset = 'Spik_C10'
 # conf.SEL_model_dataset = 'Spik_C100'
 # conf.SEL_model_dataset = 'Spik_Img'
 # conf.SEL_model_dataset = 'Spik_DVS'
@@ -258,9 +260,9 @@ elif conf.SEL_model_dataset == 'Spik_Img':
     conf.model='Spikformer'
     conf.dataset = 'ImageNet'
     conf.patch_size = 16
-    conf.embed_dims = 512
-    conf.num_heads = 8
-    conf.depths = 6
+    conf.embed_dims = 384
+    conf.num_heads = 12
+    conf.depths = 8
     conf.sr_ratios = 8
     conf.adaptive_dec_vth_scale = 0.8
     conf.reg_psp_SEL_const = 5e-6
@@ -273,7 +275,7 @@ elif conf.SEL_model_dataset == 'Spik_DVS':
     conf.patch_size = 16
     conf.embed_dims = 256
     conf.num_heads = 16
-    conf.depths = 2
+    conf.depths = 4
     conf.sr_ratios = 8
     conf.adaptive_dec_vth_scale = 0.8
     conf.reg_psp_SEL_const = 5e-6
@@ -293,11 +295,11 @@ elif conf.SEL_model_dataset == 'Spiking_C10':
     conf.reg_psp_SEL_BN_ratio_rate = 1e-4
 
 if conf.dataset == 'CIFAR10_DVS':
-    conf.batch_size = 32
-    conf.train_epoch = 200
+    conf.batch_size = 16
+    conf.train_epoch = 106
     conf.time_step = 4
 if conf.dataset == 'ImageNet':
-    conf.batch_size = 50
+    conf.batch_size = 320
     conf.train_epoch = 100
     # conf.step_decay_epoch = 30
 conf.pooling_vgg = 'avg'
