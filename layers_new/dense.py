@@ -220,6 +220,12 @@ class Dense(Layer):
                     original_inputs = tf.RaggedTensor.from_nested_row_splits(
                         inputs, original_inputs.nested_row_splits[:-1])
 
+        # sspark
+        if tf.keras.mixed_precision.global_policy().name == 'mixed_float16':
+            kernel = tf.cast(self.kernel,inputs.dtype)
+        else:
+            kernel = self.kernel
+
         rank = inputs.shape.rank
         if rank == 2 or rank is None:
             # We use embedding_lookup_sparse as a more efficient matmul operation for
@@ -261,7 +267,8 @@ class Dense(Layer):
                     #self.input_accum.assign(self.input_accum*conf.sptr_decay+inputs)
                     self.input_accum.assign(self.input_accum*self.sptr_decay+inputs)
                     #outputs = mat_mul_dense(inputs,self.kernel,self.input_accum, self.sptr_decay)
-                    outputs = self.mat_mul_dense_sptr(inputs,self.kernel,self.input_accum, self.sptr_decay)
+                    #outputs = self.mat_mul_dense_sptr(inputs,self.kernel,self.input_accum, self.sptr_decay)
+                    outputs = self.mat_mul_dense_sptr(inputs,kernel,self.input_accum, self.sptr_decay)
 
                     #print('input_accum: '+self.name)
                     #print(self.input_accum)
@@ -271,13 +278,14 @@ class Dense(Layer):
                 else:
                     #outputs = mat_mul_dense(a=inputs, b=self.kernel)
                     #outputs = tf.matmul(a=inputs, b=self.kernel)
-                    outputs = self.mat_mul_dense(inputs,self.kernel)
-
+                    #outputs = self.mat_mul_dense(inputs,self.kernel)
+                    outputs = self.mat_mul_dense(inputs,kernel)
 
 
         # Broadcast kernel to inputs.
         else:
-            outputs = tf.tensordot(inputs, self.kernel, [[rank - 1], [0]])
+            #outputs = tf.tensordot(inputs, self.kernel, [[rank - 1], [0]])
+            outputs = tf.tensordot(inputs, kernel, [[rank - 1], [0]])
             # Reshape the output back to the original ndim of the input.
             if not tf.executing_eagerly():
                 shape = inputs.shape.as_list()
@@ -327,7 +335,8 @@ class Dense(Layer):
     #def mat_mul_dense(a=0, b=0, input_accum=None, transpose_a=False, transpose_b=False, name=None):
     #def mat_mul_dense(a, b, input_accum, transpose_a, transpose_b, name):
     #def mat_mul_dense(a, b, input_accum, transpose_a=False, transpose_b=False, name=None):
-    def mat_mul_dense(self, a, b, input_accum=None, decay=None):
+    #def mat_mul_dense(self, a, b, input_accum=None, decay=None):
+    def mat_mul_dense(self, a, b, input_accum=None):
 
         r"""Multiply the matrix "a" by the matrix "b".
 
@@ -357,6 +366,7 @@ class Dense(Layer):
         transpose_a = False
         transpose_b = False
         name = None
+
 
         #input_accum = input_accum * decay + a
 
@@ -393,7 +403,7 @@ class Dense(Layer):
             _result = _outputs[:]
             _result, = _result
 
-        def grad(upstream):
+        def grad(upstream, variables=None):
             '''
             from _MatMulGrad in math_grad.py
             '''

@@ -11,6 +11,10 @@ from tensorflow.python.ops import math_ops
 
 import tensorflow_probability as tfp
 
+#
+import keras
+from keras.engine.base_layer import Layer as base_layer
+
 # custom gradient
 
 
@@ -56,6 +60,13 @@ class Layer():
     def __init__(self, use_bn=False, activation=None, last_layer=False, kwargs=None):
         #
         self.depth = -1
+
+
+        #
+        if tf.keras.mixed_precision.global_policy().name == 'mixed_float16':
+            self._dtype = tf.float16
+        else:
+            self._dtype = tf.float32
 
         #
         self.conf = conf
@@ -113,6 +124,10 @@ class Layer():
 
         # temporal_mean_input - temporally reduced input (mean)
         self.temporal_mean_input = kwargs.pop('temporal_mean_input', None)
+
+        # temporal_batch - batch -> t*batch @ synaptic operation
+        self.temporal_batch= kwargs.pop('temporal_batch', None)
+
 
 
         # batch norm.
@@ -217,7 +232,10 @@ class Layer():
         if isinstance(self,lib_snn.layers.InputGenLayer):
             self.output_shape_fixed_batch = input_shapes
         else:
-            self.output_shape_fixed_batch = super().compute_output_shape(input_shapes)
+            if hasattr(self, 'compute_output_shape'):
+                self.output_shape_fixed_batch = super().compute_output_shape(input_shapes)
+            else:
+                self.output_shape_fixed_batch = None
 
         # self.act_snn = lib_snn.layers.Neuron(self.output_shape_fixed_batch,self.conf,\
         # n_type,self.conf.neural_coding,depth,self.name)
@@ -328,7 +346,8 @@ class Layer():
         if hasattr(self, 'f_output_t'):
             if self.f_output_t:
                 self._outputs = tf.TensorArray(
-                    dtype=tf.float32,
+                    #dtype=tf.float32,
+                    dtype=self._dtype,
                     size=conf.time_step,
                     element_shape=self.output_shape_fixed_batch,
                     clear_after_read=False,
@@ -341,7 +360,7 @@ class Layer():
 
     def init_record_output(self):
         #self.record_output = tf.Variable(tf.zeros(self.output_shape_fixed_batch),trainable=False,name='record_output')
-        self.record_output = tf.TensorArray(dtype=tf.float32,
+        self.record_output = tf.TensorArray(dtype=self._dtype,
                                 size=self.conf.time_step,element_shape=self.output_shape_fixed_batch,clear_after_read=False)
 
         #
@@ -1042,6 +1061,35 @@ class InputLayer(Layer, tf.keras.layers.InputLayer):
 
         assert False
 
+# InputGenLayer for temporal batch
+class InputGenLayerTB(Layer, tf.keras.layers.Layer):
+    def __init__(self, **kwargs):
+        tf.keras.layers.Layer.__init__(self, **kwargs)
+        Layer.__init__(self, False, None, kwargs=kwargs)
+
+        # self.act_dnn = tf.identity()
+
+        #
+        Layer.index = 0  # start of models
+        self.depth = Layer.index
+        self.n_type = 'IN'
+        # self.use_bias=conf.use_bias
+        # self.kernel=1           # dummy
+        # self.bias=0
+
+    def call(self, inputs, training):
+        # print('input gen layer - call')
+        if conf.input_data_time_dim:
+            inputs = inputs
+        else:
+            rank = tf.rank(inputs)
+            expanded = tf.expand_dims(inputs, axis=0)
+            tile_axis = tf.concat([[conf.time_step], tf.ones(rank,dtype=tf.int32)],axis=0)
+            inputs = tf.tile(expanded,tile_axis)
+
+        # print(inputs)
+        return inputs
+
 
 # custom input layer - for spike input generation
 class InputGenLayer(Layer, tf.keras.layers.Layer):
@@ -1067,6 +1115,8 @@ class InputGenLayer(Layer, tf.keras.layers.Layer):
 
         #print(inputs)
         return inputs
+
+
 
         #
 #    def call(self, inputs, training):
@@ -1328,6 +1378,50 @@ class Identity(Layer, tf.keras.layers.Layer):
         return config
 
 
+
+# Lambda
+class Lambda(Layer, tf.keras.layers.Lambda):
+
+    def __init__(self,
+                 function,
+                 output_shape=None,
+                 mask=None,
+                 arguments=None,
+                 **kwargs
+                 ):
+
+        Layer.__init__(self, kwargs=kwargs)
+
+        tf.keras.layers.Lambda.__init__(self, function, output_shape, mask, arguments, **kwargs)
+
+        #
+        Layer.index += 1
+        self.depth = Layer.index
+        self.synapse=True
+
+        # integrated output
+        self.f_output_integ = False
+        #self.f_output_integ = True
+        self.f_output_t = conf.debug_syn_output
+
+# Permute
+class Permute(Layer, tf.keras.layers.Permute):
+    def __init__(self, dims, **kwargs):
+
+        Layer.__init__(self, kwargs=kwargs)
+        tf.keras.layers.Permute.__init__(self, dims, **kwargs)
+
+
+        Layer.index += 1
+        self.depth = Layer.index
+        self.synapse=True
+
+        # integrated output
+        self.f_output_integ = False
+        #self.f_output_integ = True
+        self.f_output_t = conf.debug_syn_output
+
+
 # MaxPolling2D
 class MaxPool2D(Layer, tf.keras.layers.MaxPool2D):
     def __init__(self,
@@ -1556,7 +1650,8 @@ def tfn(layer, input):
         #
         if not isinstance(input,tf.TensorArray):
             in_arr = tf.TensorArray(
-                dtype=tf.float32,
+                #dtype=tf.float32,
+                dtype=self._dtype,
                 size=conf.time_step,
                 element_shape=input.shape,
                 clear_after_read=False,
@@ -1573,7 +1668,8 @@ def tfn(layer, input):
 
             #
             out_arr = tf.TensorArray(
-                dtype=tf.float32,
+                #dtype=tf.float32,
+                dtype=self._dtype,
                 size=conf.time_step,
                 element_shape=layer_out.shape,
                 clear_after_read=False,
@@ -1596,7 +1692,8 @@ def tfn(layer, input):
                 #
                 if t-1==0:
                     out_arr = tf.TensorArray(
-                        dtype=tf.float32,
+                        #dtype=tf.float32,
+                        dtype=self._dtype,
                         size=conf.time_step,
                         element_shape=layer_out.shape,
                         clear_after_read=False,
@@ -1841,6 +1938,9 @@ def prob_fit_norm_dist(x):
 
     #return p, grad
     return h, grad
+
+
+
 
 
 # l2 norm

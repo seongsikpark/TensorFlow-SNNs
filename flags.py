@@ -459,8 +459,8 @@ flags.DEFINE_string('root_results', './results', 'root results')
 flags.DEFINE_bool('debug_mode', False, 'debug mode')
 #flags.DEFINE_bool('debug_mode', True, 'debug mode')
 
-#flags.DEFINE_bool('en_record_output', False, 'save intermediate layer output')
-flags.DEFINE_bool('en_record_output', True, 'save intermediate layer output')
+flags.DEFINE_bool('en_record_output', False, 'save intermediate layer output')
+#flags.DEFINE_bool('en_record_output', True, 'save intermediate layer output')
 
 flags.DEFINE_integer('idx_train_data', 0, 'start index of train data')
 flags.DEFINE_integer('num_train_data', -1, 'number of train data - default: -1 (full dataset)')
@@ -512,11 +512,11 @@ flags.DEFINE_bool('binary_spike', True, 'binary spike activation, if false - vth
 #flags.DEFINE_float('n_init_vth', 3.0, 'initial value of vth')
 #flags.DEFINE_float('n_init_vth', 2.0, 'initial value of vth')
 #flags.DEFINE_float('n_init_vth', 1.1, 'initial value of vth')
-#flags.DEFINE_float('n_init_vth', 1.0, 'initial value of vth')
+flags.DEFINE_float('n_init_vth', 1.0, 'initial value of vth')
 #flags.DEFINE_float('n_init_vth', 0.9, 'initial value of vth')
 #flags.DEFINE_float('n_init_vth', 0.7, 'initial value of vth')
 #flags.DEFINE_float('n_init_vth', 0.6, 'initial value of vth')
-flags.DEFINE_float('n_init_vth', 0.5, 'initial value of vth')
+#flags.DEFINE_float('n_init_vth', 0.5, 'initial value of vth')
 #flags.DEFINE_float('n_init_vth', 0.4, 'initial value of vth')
 #flags.DEFINE_float('n_init_vth', 0.3, 'initial value of vth')
 #flags.DEFINE_float('n_init_vth', 0.2, 'initial value of vth')
@@ -554,6 +554,13 @@ flags.DEFINE_integer('time_step_save_interval',8,'snn test save interval')
 #
 #flags.DEFINE_bool('f_record_first_spike_time',True,'flag - recording first spike time of each neuron')
 flags.DEFINE_bool('f_record_first_spike_time',False,'flag - recording first spike time of each neuron')
+
+
+# temporal batch
+flags.DEFINE_bool('temporal_batch',False,'temporal batch')
+
+# detach reset
+flags.DEFINE_bool('neuron_detach_reset',False,'detach reset gradient')
 
 
 ################
