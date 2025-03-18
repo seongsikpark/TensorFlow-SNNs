@@ -3314,6 +3314,10 @@ class Model(tf.keras.Model):
         Returns:
             output_tensors
         """
+        if training and conf.two_stage_train:
+            time_step = 1
+        else:
+            time_step = self.conf.time_step
         inputs = self._flatten_to_reference_inputs(inputs)
         if mask is None:
             masks = [None] * len(inputs)
@@ -3352,13 +3356,13 @@ class Model(tf.keras.Model):
                             # dtype=tf.float32,
                             # dtype=self._dtype,
                             dtype=_input.dtype,
-                            size=self.conf.time_step,
+                            size=time_step,
                             element_shape=_input.shape,
                             clear_after_read=False,
                             tensor_array_name=tensor_array_name)
 
                         glb_t.reset()
-                        for t in range(1, self.conf.time_step + 1):
+                        for t in range(1,time_step + 1):
                             if conf.input_data_time_dim:  # event data
                                 _input_t = _input[:, t - 1, :, :, :]
                             else:  # static image
@@ -3373,7 +3377,7 @@ class Model(tf.keras.Model):
                     else:
                         rank = tf.rank(_input)
                         expanded = tf.expand_dims(_input, axis=0)
-                        multiples = tf.concat([[self.conf.time_step], tf.ones(rank, dtype=tf.int32)], axis=0)
+                        multiples = tf.concat([[time_step], tf.ones(rank, dtype=tf.int32)], axis=0)
                         tiled = tf.tile(expanded, multiples)
 
                         layer_out = tiled
@@ -3430,13 +3434,13 @@ class Model(tf.keras.Model):
                             # dtype=tf.float32,
                             # dtype=self._dtype,
                             dtype=_layer_out.dtype,
-                            size=self.conf.time_step,
+                            size=time_step,
                             element_shape=_layer_out.shape[1:],
                             clear_after_read=False,
                             tensor_array_name=tensor_array_name)
 
                         glb_t.reset()
-                        for t in range(1, self.conf.time_step + 1):
+                        for t in range(1,time_step + 1):
                             layer_out = layer_out.write(t - 1, _layer_out[t - 1])
 
                             glb_t()
@@ -3471,13 +3475,13 @@ class Model(tf.keras.Model):
                             # dtype=tf.float32,
                             # dtype=self._dtype,
                             dtype=_layer_out.dtype,
-                            size=self.conf.time_step,
+                            size=time_step,
                             element_shape=_layer_out.shape,
                             clear_after_read=False,
                             tensor_array_name=tensor_array_name)
 
                         glb_t.reset()
-                        for t in range(1, self.conf.time_step + 1):
+                        for t in range(1,time_step + 1):
                             layer_out = layer_out.write(t - 1, _layer_out)
 
                             glb_t()
@@ -3492,14 +3496,14 @@ class Model(tf.keras.Model):
                         #layer_out = tf.tile(tf.expand_dims(_layer_out, axis=0), [self.conf.time_step,1,1,1])
                         rank = tf.rank(_layer_out)
                         expanded = tf.expand_dims(_layer_out, axis=0)
-                        multiples = tf.concat([[self.conf.time_step], tf.ones(rank,dtype=tf.int32)],axis=0)
+                        multiples = tf.concat([[time_step], tf.ones(rank,dtype=tf.int32)],axis=0)
                         tiled = tf.tile(expanded, multiples)
 
                         layer_out = tiled
 
                     else:
                         glb_t.reset()
-                        for t in range(1, self.conf.time_step + 1):
+                        for t in range(1, time_step + 1):
 
                             if False:
                                 if isinstance(layer_in, list):
@@ -3521,7 +3525,7 @@ class Model(tf.keras.Model):
                                     # dtype=tf.float16,
                                     # dtype=self._dtype,
                                     dtype=_layer_out.dtype,
-                                    size=self.conf.time_step,
+                                    size=time_step,
                                     element_shape=_layer_out.shape,
                                     clear_after_read=False,
                                     tensor_array_name=tensor_array_name)
@@ -3543,7 +3547,7 @@ class Model(tf.keras.Model):
             # output_tensors.append(tensor_dict[x_id].pop())
 
             #output_tensors.append(tensor_dict[x_id].pop().read(self.conf.time_step - 1))
-            output_tensors.append(tensor_dict[x_id].pop()[self.conf.time_step - 1])
+            output_tensors.append(tensor_dict[x_id].pop()[time_step - 1])
 
             #if isinstance(output_tensor, tf.TensorArray):
             #    output_tensor = output_tensors.append(tensor_dict[x_id].pop().read(self.conf.time_step - 1))

@@ -9,7 +9,7 @@ import os
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["NCCL_P2P_DISABLE"]="0"
 # os.environ["CUDA_VISIBLE_DEVICES"]='0,1,2,3,4,6,7,8'#imagenet
-os.environ["CUDA_VISIBLE_DEVICES"]='0'
+os.environ["CUDA_VISIBLE_DEVICES"]='8'
 #
 from config import config
 conf = config.flags
@@ -25,6 +25,8 @@ conf.save_models_max_to_keep = 1
 
 conf.optimizer = 'ADAMW'
 conf.lr_schedule = 'COS'
+
+conf.two_stage_train =True
 
 ####conf.learning_rate_init is used in COS lr_scheduler
 conf.learning_rate_init = 1e-4
@@ -79,7 +81,7 @@ conf.rand_erase_en = True
 # conf.mode='inference'
 # conf.n_conv1_spike_count = True
 # conf.all_layer_spike_count = True
-# conf.time_step=6
+conf.time_step=1
 
 # Method
 # conf.rmp_en = 'True'
@@ -87,12 +89,12 @@ conf.rand_erase_en = True
 # conf.im_en = 'True'
 # conf.im_k = 0.001
 #
-# conf.SEL_en = 'base'
+conf.SEL_en = 'base'
 # conf.SEL_en = 'AT'
 # conf.SEL_en = 'FD'
 # conf.SEL_en = 'DFE'
 # conf.SEL_en = 'AT+FD'
-conf.SEL_en = 'ours'
+# conf.SEL_en = 'ours'
 
 # conf.num_train_data = 100
 # conf.SEL_model_dataset = 'V16_C10'

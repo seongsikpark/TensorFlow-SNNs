@@ -546,6 +546,7 @@ flags.DEFINE_integer('time_step', 4, 'time steps per sample in SNN')
 #flags.DEFINE_integer('time_step', 2, 'time steps per sample in SNN')
 #flags.DEFINE_integer('time_step', 1, 'time steps per sample in SNN')
 
+
 #flags.DEFINE_integer('time_step_save_interval',10,'snn test save interval')
 flags.DEFINE_integer('time_step_save_interval',8,'snn test save interval')
 #flags.DEFINE_integer('time_step_save_interval',2,'snn test save interval')
@@ -866,7 +867,9 @@ flags.DEFINE_float('vrest_std', 0.1, 'initial value of vrest - std for static ra
 
 flags.DEFINE_bool('debug_grad',False,'debug gradient - requires more memory to hold grad_and_vars')
 
-#yc
+##############################kyc################################
+
+flags.DEFINE_bool('two_stage_train',False,'two_stage_train for imagenet')
 
 flags.DEFINE_bool('n_conv1_spike_count',False,'')
 flags.DEFINE_bool('all_layer_spike_count',False,'')
