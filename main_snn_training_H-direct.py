@@ -64,10 +64,10 @@ with dist_strategy.scope():
     ################
     callbacks_train, callbacks_test = \
         callbacks.callbacks_snn_train(model,train_ds_num,valid_ds,test_ds_num)
-    en = 'train'
+    # en = 'train'
     # en = 'sample_spike'
     # en = 'visual'
-    # en = 'channel_count'
+    en = 'channel_count'
     # en = 'mutual'
     # en = 'count_avg_channel'
     # en='alpha'
@@ -368,13 +368,13 @@ with dist_strategy.scope():
                 s = 112
                 sum_spike = 50176
                 img_num = 100 #batch
-                step = 100
+                step = 500
             else:
                 s = 32
                 sum_spike = 1024
                 batch_num = 100
                 img_num = 100
-                step = 500
+                step = 100
 
             for i in range(0, step):
                 result = model.evaluate(test_ds.skip(i).take(1), callbacks=callbacks_test)
