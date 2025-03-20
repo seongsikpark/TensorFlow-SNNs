@@ -3317,7 +3317,7 @@ class Model(tf.keras.Model):
         if training and conf.two_stage_train:
             time_step = 1
         else:
-            time_step = self.conf.time_step
+            time_step = conf.time_step
         inputs = self._flatten_to_reference_inputs(inputs)
         if mask is None:
             masks = [None] * len(inputs)

@@ -50,7 +50,8 @@ def callbacks_snn_train(model,train_ds_num,valid_ds,test_ds_num):
     )
     cb_manage_saved_model = lib_snn.callbacks.ManageSavedModels(filepath=filepath_save,
                                                                 max_to_keep=conf.save_models_max_to_keep)
-    cb_tensorboard = tf.keras.callbacks.TensorBoard(log_dir=path_tensorboard, update_freq='epoch')
+    # cb_tensorboard = tf.keras.callbacks.TensorBoard(log_dir=path_tensorboard, update_freq='epoch')
+    cb_tensorboard = tf.keras.callbacks.TensorBoard(log_dir=conf.root_tensorboard, update_freq='epoch')
     ###
     #cb_max = lib_snn.callbacks.TensorboardBestValAcc(best_val_acc=tf.keras.metrics.categorical_accuracy)
 

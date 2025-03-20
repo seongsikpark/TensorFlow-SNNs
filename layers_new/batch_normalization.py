@@ -27,7 +27,7 @@ from keras.utils import tf_utils
 from tensorflow.python.ops.control_flow_ops import get_enclosing_xla_context
 from tensorflow.python.platform import tf_logging as logging
 from tensorflow.python.util.tf_export import keras_export
-
+import lib_snn
 #
 #from config import conf
 #from config_common import conf
@@ -829,7 +829,25 @@ class BatchNormalizationBase(Layer):
         reduction_axes = [i for i in range(ndims) if i not in self.axis]
         if self.virtual_batch_size is not None:
             del reduction_axes[1]  # Do not reduce along virtual batch dim
+        if conf.reg_psp_SEL_BN:
+            layer_name = ['bn_conv1', 'conv1_conv_bn']
+            if self.name in layer_name:
+                if conf.reg_psp_SEL_BN_const:
+                    gamma_loss = lib_snn.layers.l2_norm(self.gamma-conf.reg_psp_SEL_BN_gamma_const,self.name)
+                    gamma_loss = gamma_loss * conf.reg_psp_SEL_BN_gamma_rate
+                    beta_loss = lib_snn.layers.l2_norm(self.beta+conf.reg_psp_SEL_BN_beta_const,self.name)
+                    beta_loss = beta_loss * conf.reg_psp_SEL_BN_beta_rate
+                    self.add_loss(gamma_loss)
+                    self.add_loss(beta_loss)
+                elif conf.reg_psp_SEL_BN_ratio:
+                    ratio_loss = lib_snn.layers.l2_norm(self.beta/(self.gamma+conf.reg_psp_eps)-conf.reg_psp_SEL_BN_ratio_value,self.name)
+                    ratio_loss = ratio_loss * conf.reg_psp_SEL_BN_ratio_rate
+                    self.add_loss(ratio_loss)
 
+
+
+            else:
+                pass
         # Broadcasting only necessary for single-axis batch norm where the axis is
         # not the last dimension
         broadcast_shape = [1] * ndims

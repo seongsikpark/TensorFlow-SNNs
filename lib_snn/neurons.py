@@ -22,6 +22,8 @@ import functools
 from config import config
 conf = config.flags
 
+# aggregat = tf.VariableAggregation.MEAN
+aggregat = tf.VariableAggregation.ONLY_FIRST_REPLICA
 
 #
 # class Neuron(tf.layers.Layer):
@@ -100,7 +102,7 @@ class Neuron(tf.keras.layers.Layer):
 
         #self.leak_const = tf.Variable(self.leak_const_init,trainable=leak_const_train,dtype=tf.float32,shape=self.dim,name='leak_const')
         #self.leak_const = tf.Variable(self.leak_const_init,trainable=leak_const_train,dtype=tf.float32,shape=self.dim_wo_batch,name='leak_const')
-        self.leak_const = tf.Variable(self.leak_const_init,trainable=leak_const_train,dtype=self._dtype,shape=self.dim_wo_batch,name='leak_const')
+        self.leak_const = tf.Variable(self.leak_const_init,trainable=leak_const_train,dtype=self._dtype,shape=self.dim_wo_batch,name='leak_const',aggregation=aggregat)
 
 
         # vth scheduling
@@ -139,10 +141,10 @@ class Neuron(tf.keras.layers.Layer):
         # SNN training - legacy
         self.snn_training_legacy = False
         if self.snn_training_legacy:
-            self.grad_in_prev = tf.Variable(initial_value=tf.zeros(self.dim), trainable=False, name='grad_in_prev')
+            self.grad_in_prev = tf.Variable(initial_value=tf.zeros(self.dim), trainable=False, name='grad_in_prev',aggregation=aggregat)
 
             # TODO: conditional - SNN direct training, test method
-            self.dL_du_t1_prev = tf.Variable(initial_value=tf.zeros(self.dim),trainable=False,name='dL_du_t1_prev')
+            self.dL_du_t1_prev = tf.Variable(initial_value=tf.zeros(self.dim),trainable=False,name='dL_du_t1_prev',aggregation=aggregat)
             #self.dL_du_t1_prev = None
 
         # stdp
@@ -203,7 +205,7 @@ class Neuron(tf.keras.layers.Layer):
         # self.vth_init = tfe.Variable(vth_init_const)
         #self.vth = tf.Variable(initial_value=tf.constant(vth_init_const,dtype=tf.float32,shape=self.dim), trainable=False, name="vth")
         #self.vth_var = tf.Variable(initial_value=tf.constant(self.vth_init_const,dtype=tf.float32,shape=self.dim_wo_batch), trainable=False, name="vth")
-        self.vth_var = tf.Variable(initial_value=tf.constant(self.vth_init_const,dtype=self._dtype,shape=self.dim_wo_batch), trainable=False, name="vth")
+        self.vth_var = tf.Variable(initial_value=tf.constant(self.vth_init_const,dtype=self._dtype,shape=self.dim_wo_batch), trainable=False, name="vth",aggregation=aggregat)
         #self.vth = tf.constant(vth_init_const,dtype=tf.float32,shape=self.dim, name="vth")
         #self.vth = tf.constant(vth_init_const,dtype=tf.float32,shape=self.dim, name="vth")
         #self.vth = None # should be set in reset function
@@ -262,7 +264,7 @@ class Neuron(tf.keras.layers.Layer):
         #self.spike_count_int = tf.Variable(initial_value=tf.zeros(self.dim, dtype=tf.float32), trainable=False, name="spike_count_int")
         #self.spike_count = tf.Variable(initial_value=tf.zeros(self.dim, dtype=tf.float32), trainable=False, name="spike_count")
         #self.spike_count_int = tf.Variable(initial_value=tf.zeros(self.dim, dtype=self._dtype), trainable=False, name="spike_count_int")
-        self.spike_count = tf.Variable(initial_value=tf.zeros(self.dim, dtype=self._dtype), trainable=False, name="spike_count")
+        self.spike_count = tf.Variable(initial_value=tf.zeros(self.dim, dtype=self._dtype), trainable=False, name="spike_count",aggregation=aggregat)
 
         self.f_fire = tf.Variable(initial_value=tf.constant(False,dtype=tf.bool,shape=self.dim), trainable=False, name="f_fire")
         # shape=self.dim, dtype=tf.bool, trainable=False, name="f_fire")
