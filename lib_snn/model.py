@@ -3298,6 +3298,7 @@ class Model(tf.keras.Model):
     # run internal graph - SNN, temporal first
     # based on _run_internal_graph() function in keras.engine.functional.py
     ###########################################################
+    # temporal batch support by run sequence
     def _run_internal_graph_snn_t_first(self, inputs, training=None, mask=None):
         """ run internal graph - SNN, temporal first
             Computes output tensors for new inputs.
@@ -3543,6 +3544,11 @@ class Model(tf.keras.Model):
 
             #output_tensors.append(tensor_dict[x_id].pop().read(self.conf.time_step - 1))
             output_tensors.append(tensor_dict[x_id].pop()[self.conf.time_step - 1])
+
+            #if isinstance(output_tensor, tf.TensorArray):
+            #    output_tensor = output_tensors.append(tensor_dict[x_id].pop().read(self.conf.time_step - 1))
+            #else:
+            #    output_tensor = output_tensors.append(tensor_dict[x_id].pop().read(self.conf.time_step - 1))
 
         return tf.nest.pack_sequence_as(self._nested_outputs, output_tensors)
 

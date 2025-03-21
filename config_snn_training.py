@@ -130,7 +130,7 @@ conf.randaug_mag_std = 0.4
 conf.randaug_n = 1
 conf.randaug_rate = 0.5
 
-#conf.rand_erase_en = True
+conf.rand_erase_en = True
 
 # test
 conf.neuron_detach_reset = True
