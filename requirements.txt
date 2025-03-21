@@ -23,7 +23,6 @@ easy-tensorflow-models==0.2.3
 einops==0.8.0
 et-xmlfile==1.0.1
 etils==0.6.0
-events-tfds @ file:///home/sspark/Projects/02_SNN_training/events-tfds
 expelliarmus==1.1.12
 fastjsonschema==2.16.2
 flatbuffers==24.12.23
