@@ -17,11 +17,11 @@ import tensorflow as tf
 
 
 
-tf.config.optimizer.set_jit(True)
+#tf.config.optimizer.set_jit(True)
 
 # precision
 #tf.keras.mixed_precision.set_global_policy('mixed_float16')
-tf.keras.mixed_precision.set_global_policy('float32')
+#tf.keras.mixed_precision.set_global_policy('float32')
 #tf.keras.backend.set_floatx('float16')
 
 
