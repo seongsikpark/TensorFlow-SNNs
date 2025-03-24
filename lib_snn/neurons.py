@@ -1744,7 +1744,7 @@ class Neuron(tf.keras.layers.Layer):
                                         self.last_spike_time)
 
     #
-    @tf.function(jit_compile=True)
+    # @tf.function(jit_compile=True)
     def integration(self, inputs, vmem, t):
 
         if conf.neural_coding == "TEMPORAL":
@@ -2184,7 +2184,7 @@ class Neuron(tf.keras.layers.Layer):
         return spike, grad
 
     #
-    @tf.function(jit_compile=True)
+    #@tf.function(jit_compile=True)
     def reset_soft(self, vmem, spike):
         vmem = tf.subtract(vmem, spike)
         return vmem
