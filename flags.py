@@ -913,6 +913,9 @@ flags.DEFINE_integer('sr_ratios',4,'patch size for CIFAR') #num of mlp hidden la
 
 #AdamW
 flags.DEFINE_float('weight_decay_AdamW',1e-6,'weight_decay_factor')
+#integer spike
+flags.DEFINE_bool('integer_spike',False,'integer_spike enable')
+
 ########################################
 # surrogate gradient parameters
 ########################################

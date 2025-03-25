@@ -21,7 +21,7 @@ from tensorflow.python.distribute import collective_all_reduce_strategy
 import pandas as pd
 import logging
 
-tf.config.optimizer.set_jit(True)
+# tf.config.optimizer.set_jit(True)
 logger = logging.getLogger()
 old_level_logger = logger.level
 

@@ -23,8 +23,10 @@ from config import config
 conf = config.flags
 
 # aggregat = tf.VariableAggregation.MEAN
-aggregat = tf.VariableAggregation.ONLY_FIRST_REPLICA
-
+# aggregat = tf.VariableAggregation.ONLY_FIRST_REPLICA
+aggregat = tf.VariableAggregation.NONE
+sync = tf.VariableSynchronization.AUTO
+# sync = tf.VariableSynchronization.ON_READ
 #
 # class Neuron(tf.layers.Layer):
 # loc: neuron location - 'IN'(input), 'HID'(hidden), 'OUT'(output)
@@ -102,7 +104,7 @@ class Neuron(tf.keras.layers.Layer):
 
         #self.leak_const = tf.Variable(self.leak_const_init,trainable=leak_const_train,dtype=tf.float32,shape=self.dim,name='leak_const')
         #self.leak_const = tf.Variable(self.leak_const_init,trainable=leak_const_train,dtype=tf.float32,shape=self.dim_wo_batch,name='leak_const')
-        self.leak_const = tf.Variable(self.leak_const_init,trainable=leak_const_train,dtype=self._dtype,shape=self.dim_wo_batch,name='leak_const',aggregation=aggregat)
+        self.leak_const = tf.Variable(self.leak_const_init,trainable=leak_const_train,dtype=self._dtype,shape=self.dim_wo_batch,name='leak_const',aggregation=aggregat,synchronization=sync)
 
 
         # vth scheduling
@@ -141,10 +143,10 @@ class Neuron(tf.keras.layers.Layer):
         # SNN training - legacy
         self.snn_training_legacy = False
         if self.snn_training_legacy:
-            self.grad_in_prev = tf.Variable(initial_value=tf.zeros(self.dim), trainable=False, name='grad_in_prev',aggregation=aggregat)
+            self.grad_in_prev = tf.Variable(initial_value=tf.zeros(self.dim), trainable=False, name='grad_in_prev',aggregation=aggregat,synchronization=sync)
 
             # TODO: conditional - SNN direct training, test method
-            self.dL_du_t1_prev = tf.Variable(initial_value=tf.zeros(self.dim),trainable=False,name='dL_du_t1_prev',aggregation=aggregat)
+            self.dL_du_t1_prev = tf.Variable(initial_value=tf.zeros(self.dim),trainable=False,name='dL_du_t1_prev',aggregation=aggregat,synchronization=sync)
             #self.dL_du_t1_prev = None
 
         # stdp
@@ -205,7 +207,7 @@ class Neuron(tf.keras.layers.Layer):
         # self.vth_init = tfe.Variable(vth_init_const)
         #self.vth = tf.Variable(initial_value=tf.constant(vth_init_const,dtype=tf.float32,shape=self.dim), trainable=False, name="vth")
         #self.vth_var = tf.Variable(initial_value=tf.constant(self.vth_init_const,dtype=tf.float32,shape=self.dim_wo_batch), trainable=False, name="vth")
-        self.vth_var = tf.Variable(initial_value=tf.constant(self.vth_init_const,dtype=self._dtype,shape=self.dim_wo_batch), trainable=False, name="vth",aggregation=aggregat)
+        self.vth_var = tf.Variable(initial_value=tf.constant(self.vth_init_const,dtype=self._dtype,shape=self.dim_wo_batch), trainable=False, name="vth",aggregation=aggregat,synchronization=sync)
         #self.vth = tf.constant(vth_init_const,dtype=tf.float32,shape=self.dim, name="vth")
         #self.vth = tf.constant(vth_init_const,dtype=tf.float32,shape=self.dim, name="vth")
         #self.vth = None # should be set in reset function
@@ -264,7 +266,7 @@ class Neuron(tf.keras.layers.Layer):
         #self.spike_count_int = tf.Variable(initial_value=tf.zeros(self.dim, dtype=tf.float32), trainable=False, name="spike_count_int")
         #self.spike_count = tf.Variable(initial_value=tf.zeros(self.dim, dtype=tf.float32), trainable=False, name="spike_count")
         #self.spike_count_int = tf.Variable(initial_value=tf.zeros(self.dim, dtype=self._dtype), trainable=False, name="spike_count_int")
-        self.spike_count = tf.Variable(initial_value=tf.zeros(self.dim, dtype=self._dtype), trainable=False, name="spike_count",aggregation=aggregat)
+        self.spike_count = tf.Variable(initial_value=tf.zeros(self.dim, dtype=self._dtype), trainable=False, name="spike_count",aggregation=aggregat,synchronization=sync)
 
         self.f_fire = tf.Variable(initial_value=tf.constant(False,dtype=tf.bool,shape=self.dim), trainable=False, name="f_fire")
         # shape=self.dim, dtype=tf.bool, trainable=False, name="f_fire")
@@ -751,6 +753,12 @@ class Neuron(tf.keras.layers.Layer):
 
     def call(self, inputs, training=None):
 
+        if training and conf.two_stage_train:
+            conf.integer_spike=True
+            conf.binary_spike=False
+        else:
+            conf.binary_spike=True
+            conf.integer_spike=False
         if conf.verbose_snn_train:
             self.inputs_t = inputs
         #t = tf.constant(glb_t.t)
@@ -2058,6 +2066,8 @@ class Neuron(tf.keras.layers.Layer):
 
         if conf.binary_spike:
             spike = tf.where(f_fire, self.fires, self.zeros)
+        elif conf.integer_spike:
+            spike = tf.where(f_fire, tf.math.floor(vmem), self.zeros)
         else:
             spike = tf.where(f_fire, vth, self.zeros)
 
@@ -2074,8 +2084,13 @@ class Neuron(tf.keras.layers.Layer):
             # boxcar
             if conf.fire_surro_grad_func=='boxcar':
                 width_h = conf.surro_grad_alpha
-                cond_lower=tf.math.greater_equal(vmem,vth-width_h)
-                cond_upper=tf.math.less_equal(vmem,vth+width_h)
+                if conf.integer_spike:
+                    cond_upper=tf.math.less_equal(vmem,3)
+                    cond_lower = tf.math.greater_equal(vmem, 0)
+                else:
+                    cond_upper=tf.math.less_equal(vmem,vth+width_h)
+                    cond_lower=tf.math.greater_equal(vmem,vth-width_h)
+
                 cond = tf.math.logical_and(cond_lower,cond_upper)
                 h = tf.constant(1/(2*width_h),shape=cond.shape,dtype=vmem.dtype)
                 #du_do = tf.where(cond,tf.ones(cond.shape),tf.zeros(cond.shape))

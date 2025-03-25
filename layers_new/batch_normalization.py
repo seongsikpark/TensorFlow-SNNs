@@ -843,9 +843,6 @@ class BatchNormalizationBase(Layer):
                     ratio_loss = lib_snn.layers.l2_norm(self.beta/(self.gamma+conf.reg_psp_eps)-conf.reg_psp_SEL_BN_ratio_value,self.name)
                     ratio_loss = ratio_loss * conf.reg_psp_SEL_BN_ratio_rate
                     self.add_loss(ratio_loss)
-
-
-
             else:
                 pass
         # Broadcasting only necessary for single-axis batch norm where the axis is
