@@ -15,9 +15,9 @@ os.environ['TF_CPP_MIN_LOG_LEVEL']='1'  # 0: show all, 1: hide info, 2: hide inf
 
 #
 #os.environ['TF_XLA_FLAGS'] = '--tf_xla_enable_xla_devices'
-os.environ['TF_XLA_FLAGS'] = '--tf_xla_gpu_global_jit'
-os.environ['TF_XLA_FLGAS'] = '--vmodule=xla_compilation_cache=1'
-os.environ['TF_XLA_FLAGS'] = '--tf_xla_auto_jit=2'
+#os.environ['TF_XLA_FLAGS'] = '--tf_xla_gpu_global_jit'
+#os.environ['TF_XLA_FLGAS'] = '--vmodule=xla_compilation_cache=1'
+#os.environ['TF_XLA_FLAGS'] = '--tf_xla_auto_jit=2'
 
 
 #
@@ -137,7 +137,7 @@ conf.randaug_rate = 0.5
 conf.rand_erase_en = True
 
 # test
-conf.neuron_detach_reset = True
+#conf.neuron_detach_reset = True
 
 #
 if False:

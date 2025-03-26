@@ -3294,12 +3294,18 @@ class Model(tf.keras.Model):
         #self.model.get_layer('conv1').set_weights(pre_model.get_layer('vgg16').get_layer('block1_conv1').get_weights())
 
 
+
+    def _run_internal_graph_snn_t_first(self, inputs, training=None, mask=None):
+
+        #return self._run_internal_graph_snn_t_first_tb_tensor(inputs, training=None, mask=None)
+        return self._run_internal_graph_snn_t_first_bck_250304(inputs, training=None, mask=None)
+
     ###########################################################
     # run internal graph - SNN, temporal first
     # based on _run_internal_graph() function in keras.engine.functional.py
     ###########################################################
     # temporal batch support by run sequence
-    def _run_internal_graph_snn_t_first(self, inputs, training=None, mask=None):
+    def _run_internal_graph_snn_t_first_tb_tensor(self, inputs, training=None, mask=None):
         """ run internal graph - SNN, temporal first
             Computes output tensors for new inputs.
 
