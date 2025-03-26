@@ -17,7 +17,7 @@ os.environ["NCCL_P2P_DISABLE"]="0"
 # os.environ["CUDA_VISIBLE_DEVICES"]='1,3,4,6'#imagenet
 # os.environ["CUDA_VISIBLE_DEVICES"]='0,1,2,3'#imagenet
 # os.environ["CUDA_VISIBLE_DEVICES"]='1,3'#imagenet
-os.environ["CUDA_VISIBLE_DEVICES"]='3'
+os.environ["CUDA_VISIBLE_DEVICES"]='8'
 #
 # os.environ['TF_CPP_MIN_LOG_LEVEL']='1'  # 0: show all, 1: hide info, 2: hide info&warning, 3: hide all (info, warning, error)
 
@@ -70,7 +70,7 @@ conf.nn_mode = 'SNN'
 conf.n_init_vth = 1
 
 conf.train_epoch = 310
-conf.batch_size = 100
+conf.batch_size = 40
 
 conf.label_smoothing=0.1
 conf.debug_lr = True
@@ -124,9 +124,9 @@ conf.SEL_en = 'base'
 # conf.SEL_model_dataset = 'R20_DVS'
 # conf.SEL_model_dataset = 'MS34_ImageNet'
 # conf.SEL_model_dataset = '34_ImageNet'
-conf.SEL_model_dataset = 'Spik_C10'
+# conf.SEL_model_dataset = 'Spik_C10'
 # conf.SEL_model_dataset = 'Spik_C100'
-# conf.SEL_model_dataset = 'Spik_Img'
+conf.SEL_model_dataset = 'Spik_Img'
 # conf.SEL_model_dataset = 'Spik_DVS'
 # conf.SEL_model_dataset = 'Spiking_C10'
 

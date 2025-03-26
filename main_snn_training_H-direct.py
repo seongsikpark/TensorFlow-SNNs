@@ -89,10 +89,10 @@ with dist_strategy.scope():
             #train_steps_per_epoch = train_ds_num/batch_size
             train_epoch = config.flags.train_epoch
             init_epoch = config.init_epoch
-            # profiler.start(logdir="./tensorflow_pf")
+            profiler.start(logdir="./tensorflow_pf")
             train_histories = model.fit(train_ds, epochs=train_epoch, steps_per_epoch=train_steps_per_epoch,
                                         initial_epoch=init_epoch, validation_data=valid_ds, callbacks=callbacks_train)
-            # profiler.stop()
+            profiler.stop()
         else:
             print('Test mode')
             result = model.evaluate(test_ds, callbacks=callbacks_test)

@@ -2087,12 +2087,14 @@ class Neuron(tf.keras.layers.Layer):
                 if conf.integer_spike:
                     cond_upper=tf.math.less_equal(vmem,3)
                     cond_lower = tf.math.greater_equal(vmem, 0)
+                    cond = tf.math.logical_and(cond_lower, cond_upper)
+                    h = tf.constant(1/3, shape=cond.shape, dtype=vmem.dtype)
                 else:
                     cond_upper=tf.math.less_equal(vmem,vth+width_h)
                     cond_lower=tf.math.greater_equal(vmem,vth-width_h)
+                    cond = tf.math.logical_and(cond_lower, cond_upper)
+                    h = tf.constant(1/(2*width_h),shape=cond.shape,dtype=vmem.dtype)
 
-                cond = tf.math.logical_and(cond_lower,cond_upper)
-                h = tf.constant(1/(2*width_h),shape=cond.shape,dtype=vmem.dtype)
                 #du_do = tf.where(cond,tf.ones(cond.shape),tf.zeros(cond.shape))
                 du_do = tf.where(cond,h,tf.zeros(cond.shape,dtype=vmem.dtype))
                 #du_do = tf.where(cond,vmem-vth+a,tf.zeros(cond.shape))
