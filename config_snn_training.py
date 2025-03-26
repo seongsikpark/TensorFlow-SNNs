@@ -58,10 +58,10 @@ conf = config.flags
 #
 #conf.train_epoch = 10
 #conf.train_epoch = 10
-#conf.num_train_data = 200
+#conf.num_train_data = 10000
 
 #conf.model='VGG11'
-#conf.model='VGG16'
+conf.model='VGG16'
 #conf.model='ResNet18'
 #conf.model='ResNet19'
 #conf.model='ResNet20'
@@ -73,6 +73,10 @@ conf.model = 'Spikformer_tb'
 #conf.dataset='CIFAR100'
 #conf.dataset='ImageNet'
 #conf.dataset='CIFAR10_DVS'
+
+if conf.dataset=='CIFAR100':
+    conf.learning_rate = 1E-3
+    conf.lmb = 1E-2
 
 conf.pooling_vgg = 'avg'
 

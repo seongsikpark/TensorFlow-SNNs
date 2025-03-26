@@ -1142,6 +1142,34 @@ def set_file_path(batch_size):
 
         # regularization
         reg_spike_str='_r-'
+        if conf.im_en:
+            reg_spike_str += 'im_'+str(conf.im_k)
+        if conf.rmp_en:
+            reg_spike_str += 'rmp_'+str(conf.rmp_k)
+        if conf.reg_psp_SEL:
+            reg_spike_str += '-FD'
+            reg_spike_str += '_'+str(conf.reg_psp_SEL_const)
+        if conf.adaptive_vth_SEL:
+            reg_spike_str += '_AT'
+            reg_spike_str += '_'+str(conf.adaptive_dec_vth_scale)
+        config_name += reg_spike_str
+        if conf.reg_psp_SEL_BN:
+            if conf.reg_psp_SEL_BN_const:
+                reg_BN_str = '-BN_gc'
+                reg_BN_str += '_'+str(conf.reg_psp_SEL_BN_gamma_const)
+                reg_BN_str += '_gr'
+                reg_BN_str += '_'+str(conf.reg_psp_SEL_BN_gamma_rate)
+                reg_BN_str += '_bc'
+                reg_BN_str += '_'+str(conf.reg_psp_SEL_BN_beta_const)
+                reg_BN_str += '_br'
+                reg_BN_str += '_'+str(conf.reg_psp_SEL_BN_beta_rate)
+            elif conf.reg_psp_SEL_BN_ratio:
+                reg_BN_str = '-DFE_rat_val'
+                reg_BN_str += '_'+str(conf.reg_psp_SEL_BN_ratio_value)
+                reg_BN_str += '-r'
+                reg_BN_str += '_'+str(conf.reg_psp_SEL_BN_ratio_rate)
+                config_name += reg_BN_str
+
         if conf.reg_spike_out:
             if conf.reg_spike_out_sc:
                 reg_spike_str += 'sc'
@@ -1204,6 +1232,10 @@ def set_file_path(batch_size):
         model_dataset_name = model_name + '_' + dataset_name
 
 
+    def new_path(root_model_save):
+        if not os.path.exists(root_model_save):
+            pass
+
 
     if conf.name_model_load=='':
         path_model_load = os.path.join(root_model_load, model_dataset_name)
@@ -1218,6 +1250,14 @@ def set_file_path(batch_size):
     if conf.name_model_save=='':
         path_model_save = os.path.join(root_model_save, model_dataset_name)
         filepath_save = os.path.join(path_model_save, config_name)
+        if os.path.exists(filepath_save):
+            folders = [d for d in os.listdir(filepath_save) if os.path.isdir(os.path.join(filepath_save,d))]
+            num_folders = str(len(folders))
+            os.makedirs(filepath_save+'/'+num_folders,exist_ok=True)
+            filepath_save = os.path.join(filepath_save,num_folders)
+        else:
+            os.makedirs(filepath_save+'/'+str(0),exist_ok=True)
+            filepath_save = os.path.join(filepath_save, str(0))
     else:
         path_model_save = conf.name_model_save
         filepath_save = path_model_save

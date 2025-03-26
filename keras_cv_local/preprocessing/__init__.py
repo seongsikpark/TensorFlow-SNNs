@@ -1,1 +1,2 @@
 from keras_cv_local.preprocessing.rand_augment import RandAugment
+from keras_cv_local.preprocessing.mix_up import Mixup

@@ -1,8 +1,9 @@
-
+from models.spikingformer import spikingformer
 from models.vgg16_tr import VGG16_TR
 #from models.vgg16 import VGG16
 from models.vgg11_func import VGG11
 from models.vgg16_func import VGG16
+from models.vggsnn import VGGSNN
 from models.vgg_speck import VGG_SPECK
 
 
@@ -54,6 +55,7 @@ model_sel_tr = {
 model_sel_sc = {
     'VGG11': VGG11,
     'VGG16': VGG16,
+    'VGGSNN' : VGGSNN,
     'VGG_SPECK': VGG_SPECK,
     'ResNet18': ResNet18,
     'ResNet19': ResNet19,
@@ -82,6 +84,7 @@ model_sel_sc = {
     'EfficientNetV2L': EfficientNetV2L,
     'Spikformer':spikformer,
     'Spikformer_tb': spikformer_tb,
+    'Spikingformer':spikingformer
 }
 
 

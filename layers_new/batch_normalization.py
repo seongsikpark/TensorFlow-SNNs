@@ -1326,6 +1326,7 @@ class BatchNormalization(BatchNormalizationBase):
     """
     _USE_V2_BEHAVIOR = True
 
+    # @tf.function(jit_compile=True)
     @utils.allow_initializer_layout
     def __init__(self,
                  axis=-1,

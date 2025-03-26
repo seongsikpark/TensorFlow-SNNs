@@ -190,6 +190,7 @@ class Dense(Layer):
 
         self.built = True
 
+    # @tf.function(jit_compile=True)
     def call(self, inputs):
         if inputs.dtype.base_dtype != self._compute_dtype_object.base_dtype:
             inputs = tf.cast(inputs, dtype=self._compute_dtype_object)

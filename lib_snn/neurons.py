@@ -13,6 +13,7 @@ import lib_snn
 from lib_snn.sim import glb
 
 from lib_snn.sim import glb_t
+from lib_snn.sim import glb_epoch
 
 import functools
 
@@ -369,7 +370,7 @@ class Neuron(tf.keras.layers.Layer):
 
         self.built = True
 
-    #@tf.function
+    # @tf.function(jit_compile=True)
     #@tf.custom_gradient
     #def call(self ,inputs ,t, training):
     # temporal batch
@@ -752,6 +753,7 @@ class Neuron(tf.keras.layers.Layer):
             self.inputs_t = inputs
         #t = tf.constant(glb_t.t)
         t = glb_t.t
+        epoch = glb_epoch.epoch
         #print('neuron call')
         #print(t)
 
@@ -991,6 +993,8 @@ class Neuron(tf.keras.layers.Layer):
         #self.out = spike
         self.out = self.out.write(t-1,spike)
 
+
+
         if conf.SEL_noise_en_spike:
             layer_name = ['n_conv1', 'conv1_conv_n']
             if self.name in layer_name:
@@ -1021,8 +1025,8 @@ class Neuron(tf.keras.layers.Layer):
         #out_ret_int = self.spike_count_int
         out_ret_int = self.spike_count
 
-        self.count_spike(t,spike)
 
+        self.count_spike(t,spike)
         #
         if conf.f_record_first_spike_time:
             self.record_first_spike_time(t)

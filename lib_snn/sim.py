@@ -130,3 +130,15 @@ glb_vth_init = collections.OrderedDict()
 glb_bias_comp = collections.OrderedDict()
 glb_weight_comp = collections.OrderedDict()
 
+class GLB_EPOCH():
+    def __init__(self):
+        GLB_EPOCH.epoch = 1
+    def __call__(self):
+        GLB_EPOCH.epoch += 1
+    def reset(self):
+        GLB_EPOCH.epoch = 1
+    def set(self, epoch):
+        GLB_EPOCH.epoch = epoch
+    def dec(self):
+        GLB_EPOCH.epoch -= 1
+glb_epoch = GLB_EPOCH()
