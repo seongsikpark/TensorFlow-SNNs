@@ -67,8 +67,8 @@ conf = config.flags
 #conf.model='ResNet20'
 #conf.model='ResNet32'
 #conf.model='ResNet20_SEW'   # spike-element-wise block
-#conf.model = 'Spikformer'
-conf.model = 'Spikformer_tb'
+conf.model = 'Spikformer'
+#conf.model = 'Spikformer_tb'
 
 #conf.dataset='CIFAR100'
 #conf.dataset='ImageNet'

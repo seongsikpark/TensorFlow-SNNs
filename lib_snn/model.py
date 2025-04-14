@@ -3655,12 +3655,12 @@ class Model(tf.keras.Model):
 
                     # temporal batch
                     f_temporal_batch = False
-                    if hasattr(node.layer,'temporal_batch') and node.layer.temporal_batch:
-                        f_temporal_batch= True
+                    #if hasattr(node.layer,'temporal_batch') and node.layer.temporal_batch:
+                    #    f_temporal_batch= True
 
                     #
-                    if f_temporal_batch:
-                    #if False:
+                    #if f_temporal_batch:
+                    if False:
                         _layer_in = layer_in.stack()
                         shape_t, shape_b = _layer_in.shape[0], _layer_in.shape[1]
                         shape_tb = shape_t*shape_b

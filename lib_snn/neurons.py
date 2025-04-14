@@ -227,8 +227,8 @@ class Neuron(tf.keras.layers.Layer):
 
         #self.vmem_init = tf.Variable(initial_value=tf.constant(conf.n_init_vinit,dtype=tf.float32,shape=self.dim), trainable=False,name='vmem_init')
         #self.vmem_init = tf.constant(conf.n_init_vinit,dtype=tf.float32,shape=self.dim)
-        self.vmem_init = tf.constant(conf.n_init_vinit,dtype=tf.float16,shape=self.dim)
-        #self.vmem_init = tf.constant(conf.n_init_vinit,dtype=self._dtype,shape=self.dim)
+        #self.vmem_init = tf.constant(conf.n_init_vinit,dtype=tf.float16,shape=self.dim)
+        self.vmem_init = tf.constant(conf.n_init_vinit,dtype=self._dtype,shape=self.dim)
         # old version
         #self.vmem = tf.Variable(initial_value=tf.constant(conf.n_init_vinit,dtype=tf.float32,shape=self.dim), trainable=False,name='vmem')
         self.vmem = None
@@ -2213,14 +2213,6 @@ class Neuron(tf.keras.layers.Layer):
         #    spike = tf.where(f_fire, self.vth, self.zeros)
         #    #spike = tf.where(f_fire, tf.constant(vth,shape=vmem.shape), tf.zeros(shape=vmem.shape))
 
-
-
-
-        # reset
-        # vmem -> vrest
-
-        #vmem = tf.subtract(vmem,spike)
-
         #if False:           # temporary
         if True:           # temporary
             # TODO: functionalize
@@ -2315,12 +2307,6 @@ class Neuron(tf.keras.layers.Layer):
         #if conf.f_isi:
         #    assert False
         #    self.cal_isi(f_fire, t)
-
-
-        #self.out = out
-        #self.f_fire = f_fire
-        #self.f_fire = spike!=0
-
 
         return spike, vmem
 
