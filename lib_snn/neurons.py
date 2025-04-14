@@ -659,11 +659,23 @@ class Neuron(tf.keras.layers.Layer):
                     sc_loss = sc_loss * conf.reg_spike_out_const
 
                     self.add_loss(sc_loss)
-                    # self.add_loss(conf.reg_spike_out_const*tf.reduce_mean(self.out * (self.reg_spike_out_b-sc_norm*self.reg_spike_out_a)))
-                    # self.add_loss(conf.reg_spike_o230822ut_const * tf.reduce_mean(self.out * self.spike_count))
 
-                    # out_ret = self.reg_spike_out_fn(out_ret)
-                    # pass
+                    if False:
+                        # default
+
+                        # sc_loss schedule
+                        train_counter = lib_snn.model.train_counter
+                        sc_loss_end_itr = 150*500
+                        sc_loss_schedule = tf.where(train_counter<sc_loss_end_itr, 1.0, 0.0)
+                        #self.add_loss(sc_loss*sc_loss_schedule)
+
+                        # layer-wise loss
+                        max_depth = 16
+                        layer_wise_rate = 1 - self.depth/max_depth
+
+                        self.add_loss(sc_loss * layer_wise_rate * sc_loss_schedule)
+
+
                 else:
                     # old - previous work
                     if conf.reg_spike_out_norm:
@@ -1744,7 +1756,7 @@ class Neuron(tf.keras.layers.Layer):
                                         self.last_spike_time)
 
     #
-    @tf.function(jit_compile=True)
+    #@tf.function(jit_compile=True)
     def integration(self, inputs, vmem, t):
 
         if conf.neural_coding == "TEMPORAL":
@@ -2052,6 +2064,13 @@ class Neuron(tf.keras.layers.Layer):
 
         if conf.binary_spike:
             spike = tf.where(f_fire, self.fires, self.zeros)
+        elif conf.integer_spike:
+            #vmem_clip = tf.clip_by_value(vmem, 0, 4)+0.5
+            vmem_clip = tf.clip_by_value(vmem, 0, 4)+0.5
+            #spike = tf.where(f_fire, tf.math.floor(vmem_clip), self.zeros)
+            spike = tf.math.floor(vmem_clip)
+            #spike = spike/4
+            spike = spike/5 # considering leakage of LIF
         else:
             spike = tf.where(f_fire, vth, self.zeros)
 
@@ -2067,14 +2086,25 @@ class Neuron(tf.keras.layers.Layer):
 
             # boxcar
             if conf.fire_surro_grad_func=='boxcar':
-                width_h = conf.surro_grad_alpha
-                cond_lower=tf.math.greater_equal(vmem,vth-width_h)
-                cond_upper=tf.math.less_equal(vmem,vth+width_h)
-                cond = tf.math.logical_and(cond_lower,cond_upper)
-                h = tf.constant(1/(2*width_h),shape=cond.shape,dtype=vmem.dtype)
-                #du_do = tf.where(cond,tf.ones(cond.shape),tf.zeros(cond.shape))
-                du_do = tf.where(cond,h,tf.zeros(cond.shape,dtype=vmem.dtype))
-                #du_do = tf.where(cond,vmem-vth+a,tf.zeros(cond.shape))
+                if conf.integer_spike:
+                    width_h = conf.surro_grad_alpha
+                    cond_lower = tf.math.greater_equal(vmem, 0)
+                    cond_upper = tf.math.less_equal(vmem, 4)
+                    cond = tf.math.logical_and(cond_lower, cond_upper)
+                    #h = tf.constant(1 / (2 * width_h), shape=cond.shape, dtype=vmem.dtype)
+                    h = tf.ones(cond.shape, dtype=vmem.dtype)
+                    # du_do = tf.where(cond,tf.ones(cond.shape),tf.zeros(cond.shape))
+                    du_do = tf.where(cond, h, tf.zeros(cond.shape, dtype=vmem.dtype))
+                    # du_do = tf.where(cond,vmem-vth+a,tf.zeros(cond.shape))
+                else:
+                    width_h = conf.surro_grad_alpha
+                    cond_lower=tf.math.greater_equal(vmem,vth-width_h)
+                    cond_upper=tf.math.less_equal(vmem,vth+width_h)
+                    cond = tf.math.logical_and(cond_lower,cond_upper)
+                    h = tf.constant(1/(2*width_h),shape=cond.shape,dtype=vmem.dtype)
+                    #du_do = tf.where(cond,tf.ones(cond.shape),tf.zeros(cond.shape))
+                    du_do = tf.where(cond,h,tf.zeros(cond.shape,dtype=vmem.dtype))
+                    #du_do = tf.where(cond,vmem-vth+a,tf.zeros(cond.shape))
             elif conf.fire_surro_grad_func=='asym':
                 width_h = conf.surro_grad_alpha
                 cond_lower=tf.math.greater_equal(vmem,vth-width_h)
@@ -2184,7 +2214,7 @@ class Neuron(tf.keras.layers.Layer):
         return spike, grad
 
     #
-    @tf.function(jit_compile=True)
+    #@tf.function(jit_compile=True)
     def reset_soft(self, vmem, spike):
         vmem = tf.subtract(vmem, spike)
         return vmem

@@ -431,7 +431,7 @@ class Conv(Layer):
     # TODO(b/213173659): remove this when grouped convolutions are fully supported
     # on the CPU for compiled functions. For now, we need this as a workaround for
     # CPU support.
-    @tf.function(jit_compile=True)
+    #@tf.function(jit_compile=True)
     def _jit_compiled_convolution_op(self, inputs, kernel):
         assert False
         #return self.convolution_op(inputs, kernel)

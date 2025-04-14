@@ -1723,7 +1723,7 @@ class Neuron(tf.keras.layers.Layer):
         return spike, vmem_fire
 
     #
-    @tf.function(jit_compile=True)
+    #@tf.function(jit_compile=True)
     def leak(self,vmem, t):
 
         vmem_leak = tf.multiply(vmem, self.leak_const)
@@ -1746,7 +1746,7 @@ class Neuron(tf.keras.layers.Layer):
                                         self.last_spike_time)
 
     #
-    @tf.function(jit_compile=True)
+    #@tf.function(jit_compile=True)
     def integration(self, inputs, vmem, t):
 
         vmem_integ = self.integration_default(inputs, vmem, t)
@@ -1755,7 +1755,7 @@ class Neuron(tf.keras.layers.Layer):
         return ret
 
     #
-    @tf.function(jit_compile=True)
+    #@tf.function(jit_compile=True)
     def integration_bck_250305(self, inputs, vmem, t):
 
         if conf.neural_coding == "TEMPORAL":
@@ -2195,7 +2195,7 @@ class Neuron(tf.keras.layers.Layer):
         return spike, grad
 
     #
-    @tf.function(jit_compile=True)
+    #@tf.function(jit_compile=True)
     def reset_soft(self, vmem, spike):
         vmem = tf.subtract(vmem, spike)
         return vmem

@@ -504,6 +504,9 @@ flags.DEFINE_bool('binary_spike', True, 'binary spike activation, if false - vth
 #flags.DEFINE_bool('binary_spike', False, 'binary spike activation, if false - vth activation')
 
 #
+flags.DEFINE_bool('integer_spike', False, 'integer spike activation')
+
+#
 #flags.DEFINE_float('n_init_vth', 20.0, 'initial value of vth')
 #flags.DEFINE_float('n_init_vth', 10.0, 'initial value of vth')
 #flags.DEFINE_float('n_init_vth', 8.0, 'initial value of vth')
