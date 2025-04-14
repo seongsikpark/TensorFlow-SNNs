@@ -35,6 +35,7 @@ class GLB():
 
     def model_compile_done_reset(self):
         GLB.model_compiled = False
+        glb_t.reset()
 
     def model_compile_done(self):
         GLB.model_compiled = True

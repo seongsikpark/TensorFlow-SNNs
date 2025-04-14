@@ -50,6 +50,8 @@ conf = config.flags
 train_counter = tf.Variable(0, trainable=False, dtype=tf.int64, name="train_counter")
 #train_counter = 0
 
+layers_w_neuron = []
+
 
 class Model(tf.keras.Model):
     count=0
@@ -134,7 +136,7 @@ class Model(tf.keras.Model):
 
         #
         self.layers_w_kernel = []
-        self.layers_w_neuron = []
+        #self.layers_w_neuron = []
 
         self.total_num_neurons = None
 
@@ -2508,9 +2510,8 @@ class Model(tf.keras.Model):
     # it should be called after compile
     def init_snn(self, model_ann=None):
 
-
-        #
-        #self.set_layers_w_neuron()
+        if self.init_done:
+            return
 
         #
         self.set_layers_w_neuron()
@@ -2519,7 +2520,8 @@ class Model(tf.keras.Model):
         self.spike_max_pool_setup()
 
         # init - neuron
-        for layer in self.layers_w_neuron:
+        #for layer in self.layers_w_neuron:
+        for layer in self.get_layers_w_neuron():
             #print(layer.name)
             #layer.act_snn.init()
             if hasattr(layer.act,'init'):
@@ -2565,12 +2567,13 @@ class Model(tf.keras.Model):
         #assert False
 
         # total spike count init - layer wise at each accuracy time point
-        # TODO: np -> tf.Variables, tf.constant? - nesseccary?
+        # TODO: np -> tf.Variables, tf.constant? - necessary?
         self.total_spike_count=collections.OrderedDict()
         self.total_spike_count_int=collections.OrderedDict()
         self.total_residual_vmem=collections.OrderedDict()
 
-        for layer in self.layers_w_neuron:
+        #for layer in self.layers_w_neuron:
+        for layer in self.get_layers_w_neuron():
             #if isinstance(layer.act_snn,lib_snn.neurons.Neuron):
             #self.total_spike_count_int[layer.name]=np.zeros([self.num_accuracy_time_point])
             #self.total_spike_count_int[layer.name]=np.empty_like([self.num_accuracy_time_point],dtype=object)
@@ -2741,7 +2744,8 @@ class Model(tf.keras.Model):
     #
     def reset_snn_neuron(self):
         #print('reset_snn_neuron')
-        for layer in self.layers_w_neuron:
+        #for layer in self.layers_w_neuron:
+        for layer in self.get_layers_w_neuron():
             layer.reset()
 
     # sptr - only for training
@@ -2755,6 +2759,8 @@ class Model(tf.keras.Model):
 
     # set layers with neuron
     def set_layers_w_neuron(self):
+        #assert False, "due to issue on duplicated tracking - model has nested model structure (250409), use get_layers_w_neuron()"
+
         if False: #old
             #self.layers_w_neuron = []
             for layer in self.layers:
@@ -2765,11 +2771,42 @@ class Model(tf.keras.Model):
                     if not (layer.act_dnn is None):
                         #print(layer.name)
                         self.layers_w_neuron.append(layer)
+
+
+
         for layer in self.layers:
             if isinstance(layer, lib_snn.activations.Activation):
                 if isinstance(layer.act, lib_snn.neurons.Neuron):
-                    self.layers_w_neuron.append(layer)
+                    layers_w_neuron.append(layer)
+            elif isinstance(layer, tf.keras.models.Model):      # for transfer learning
+                for _layer in layer.layers:
+                    if isinstance(_layer, lib_snn.activations.Activation):
+                        if isinstance(_layer.act, lib_snn.neurons.Neuron):
+                            _layer_n = _layer
+                            layers_w_neuron.append(_layer_n)
 
+
+        #self.layers_w_neuron = layers_w_neuron
+
+        pass
+
+    #
+    def get_layers_w_neuron(self):
+        if False:   # slow
+            layers_w_neuron = []
+
+            for layer in self.layers:
+                if isinstance(layer, lib_snn.activations.Activation):
+                    if isinstance(layer.act, lib_snn.neurons.Neuron):
+                        layers_w_neuron.append(layer)
+                elif isinstance(layer, tf.keras.models.Model):  # for transfer learning
+                    for _layer in layer.layers:
+                        if isinstance(_layer, lib_snn.activations.Activation):
+                            if isinstance(_layer.act, lib_snn.neurons.Neuron):
+                                _layer_n = _layer
+                                layers_w_neuron.append(_layer_n)
+
+        return lib_snn.model.layers_w_neuron
 
     ###########################################################
     # BN fusion
@@ -3100,7 +3137,8 @@ class Model(tf.keras.Model):
 
         if False:   # manual set
         #if True:  # manual set
-            for idx_layer, layer in enumerate(self.layers_w_neuron):
+            #for idx_layer, layer in enumerate(self.layers_w_neuron):
+            for idx_layer, layer in enumerate(self.get_layers_w_neuron()):
                 #self.bias_control_th[layer.name] = 0.005
                 self.bias_control_th[layer.name] = 0.01
                 #self.bias_control_th_ch[layer.name] = tf.constant(0.002,shape=layer.f_bias_ctrl.shape)
@@ -3313,6 +3351,12 @@ class Model(tf.keras.Model):
         Returns:
             output_tensors
         """
+
+        if training:
+            time_step = conf.time_step
+        else:
+            time_step = conf.time_step
+
         inputs = self._flatten_to_reference_inputs(inputs)
         if mask is None:
             masks = [None] * len(inputs)
@@ -3349,13 +3393,15 @@ class Model(tf.keras.Model):
                         #dtype=tf.float32,
                         #dtype=self._dtype,
                         dtype=_input.dtype,
-                        size=self.conf.time_step,
+                        #size=self.conf.time_step,
+                        size=time_step,
                         element_shape=_input.shape,
                         clear_after_read=False,
                         tensor_array_name=tensor_array_name)
 
                     glb_t.reset()
-                    for t in range(1,self.conf.time_step+1):
+                    #for t in range(1,self.conf.time_step+1):
+                    for t in range(1, time_step + 1):
                         if conf.input_data_time_dim:    # event data
                             _input_t = _input[:,t-1,:,:,:]
                         else:   # static image
@@ -3419,13 +3465,15 @@ class Model(tf.keras.Model):
                             #dtype=tf.float32,
                             #dtype=self._dtype,
                             dtype=_layer_out.dtype,
-                            size=self.conf.time_step,
+                            #size=self.conf.time_step,
+                            size=time_step,
                             element_shape=_layer_out.shape[1:],
                             clear_after_read=False,
                             tensor_array_name=tensor_array_name)
 
                         glb_t.reset()
-                        for t in range(1,self.conf.time_step+1):
+                        #for t in range(1,self.conf.time_step+1):
+                        for t in range(1, time_step + 1):
                             layer_out= layer_out.write(t-1,_layer_out[t-1])
 
                             glb_t()
@@ -3439,19 +3487,22 @@ class Model(tf.keras.Model):
                             #dtype=tf.float32,
                             #dtype=self._dtype,
                             dtype=_layer_out.dtype,
-                            size=self.conf.time_step,
+                            #size=self.conf.time_step,
+                            size=time_step,
                             element_shape=_layer_out.shape,
                             clear_after_read=False,
                             tensor_array_name=tensor_array_name)
 
                         glb_t.reset()
-                        for t in range(1,self.conf.time_step+1):
+                        #for t in range(1,self.conf.time_step+1):
+                        for t in range(1, time_step + 1):
                             layer_out= layer_out.write(t-1,_layer_out)
 
                             glb_t()
                     else:
                         glb_t.reset()
-                        for t in range(1,self.conf.time_step+1):
+                        #for t in range(1,self.conf.time_step+1):
+                        for t in range(1, time_step + 1):
 
                             if isinstance(layer_in,list) :
                                 _layer_in = [_layer_in.read(t-1) for _layer_in in layer_in]
@@ -3467,7 +3518,8 @@ class Model(tf.keras.Model):
                                     #dtype=tf.float16,
                                     #dtype=self._dtype,
                                     dtype=_layer_out.dtype,
-                                    size=self.conf.time_step,
+                                    #size=self.conf.time_step,
+                                    size=time_step,
                                     element_shape=_layer_out.shape,
                                     clear_after_read=False,
                                     tensor_array_name=tensor_array_name)
@@ -3486,7 +3538,8 @@ class Model(tf.keras.Model):
             assert x_id in tensor_dict, 'Could not compute output ' + str(x)
             #output_tensors.append(tensor_dict[x_id].pop())
 
-            output_tensors.append(tensor_dict[x_id].pop().read(self.conf.time_step-1))
+            #output_tensors.append(tensor_dict[x_id].pop().read(self.conf.time_step-1))
+            output_tensors.append(tensor_dict[x_id].pop().read(time_step-1))
 
         return tf.nest.pack_sequence_as(self._nested_outputs, output_tensors)
 

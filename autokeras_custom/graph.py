@@ -3,7 +3,7 @@ from autokeras import graph
 from tensorflow import keras
 from autokeras import keras_layers
 from keras.optimizers import Adam, SGD
-from keras.optimizers.optimizer_experimental.adamw import AdamW
+#from keras.optimizers.optimizer_experimental.adamw import AdamW
 import lib_snn
 from keras.optimizers.schedules.learning_rate_schedule import CosineDecay, ExponentialDecay
 from tensorflow import nest
@@ -101,7 +101,7 @@ class Graph(graph.Graph):
             optimizer = keras.optimizers.Adam(learning_rate=learning_rate)
         elif optimizer_name == "sgd":
             optimizer = keras.optimizers.SGD(learning_rate=learning_rate, momentum=0.9, name='SGD')
-        elif optimizer_name == "adam_weight_decay":
+        elif optimizer_name == "adam_weight_decay" or 'adamw':
             steps_per_epoch = int(self.num_samples / self.batch_size)
             num_train_steps = steps_per_epoch * self.epochs
             warmup_steps = int(
@@ -121,7 +121,8 @@ class Graph(graph.Graph):
                 )
 
             optimizer = keras.optimizers.experimental.AdamW(
-                learning_rate=lr_schedule,
+                #learning_rate=lr_schedule,
+                learning_rate=learning_rate,
                 weight_decay=0.01,
                 beta_1=0.9,
                 beta_2=0.999,

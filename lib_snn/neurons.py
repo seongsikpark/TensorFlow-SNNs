@@ -188,6 +188,7 @@ class Neuron(tf.keras.layers.Layer):
 
 
 
+
     def build(self, input_shapes):
         #print('neuron build - {}'.format(self.name))
         super().build(input_shapes)
@@ -373,7 +374,6 @@ class Neuron(tf.keras.layers.Layer):
     #@tf.custom_gradient
     #def call(self ,inputs ,t, training):
     def call(self, inputs, training=None):
-
 
 
         if conf.verbose_snn_train:
@@ -855,12 +855,45 @@ class Neuron(tf.keras.layers.Layer):
                         sc_loss = tf.reduce_mean(sc_loss)
                     sc_loss = sc_loss*conf.reg_spike_out_const
 
-                    self.add_loss(sc_loss)
-                    #self.add_loss(conf.reg_spike_out_const*tf.reduce_mean(self.out * (self.reg_spike_out_b-sc_norm*self.reg_spike_out_a)))
-                    #self.add_loss(conf.reg_spike_o230822ut_const * tf.reduce_mean(self.out * self.spike_count))
 
-                    #out_ret = self.reg_spike_out_fn(out_ret)
-                    #pass
+
+                    # default
+                    #self.add_loss(sc_loss)
+
+                    # sc_loss schedule
+                    train_counter = lib_snn.model.train_counter
+                    sc_loss_st_itr = 0*500
+                    sc_loss_end_itr = 300*500
+                    #sc_loss_schedule = tf.where((train_counter>sc_loss_st_itr) and (train_counter<sc_loss_end_itr), 1.0, 0.0)
+                    sc_loss_schedule = tf.cast(train_counter/sc_loss_end_itr,tf.float32)
+                    sc_loss_schedule = tf.where((train_counter>sc_loss_st_itr) and (train_counter<sc_loss_end_itr), sc_loss_schedule, 0.0)
+
+                    #self.add_loss(sc_loss*sc_loss_schedule)
+
+                    # layer-wise loss
+                    #if False:
+                    if True:
+                        max_depth = 16
+                        layer_wise_rate = 1 - self.depth/max_depth
+                    else:
+                        layer_wise_rate = 1.0
+
+                    self.add_loss(sc_loss * layer_wise_rate * sc_loss_schedule)
+
+
+                    if False:
+                        # FD loss test
+                        mean_SEL = tf.reduce_mean(out_ret_int)
+                        std_SEL = tf.math.reduce_std(out_ret_int)
+                        pdf_SEL = tfp.distributions.Normal(mean_SEL, std_SEL)
+                        p_SEL = pdf_SEL.prob(out_ret_int)
+                        nan_mask = tf.math.is_nan(p_SEL)
+                        p_SEL = tf.where(nan_mask, tf.zeros_like(p_SEL), p_SEL)
+                        e_SEL = tf.math.multiply_no_nan(tf.math.log(p_SEL) / tf.math.log(2.0), p_SEL)
+                        e_SEL = tf.where(p_SEL == 0, tf.zeros(e_SEL.shape), e_SEL)
+                        e_SEL = -tf.reduce_mean(e_SEL)
+                        self.add_loss(-e_SEL * conf.reg_psp_SEL_const)
+
                 else:
                     # old - previous work
                     if conf.reg_spike_out_norm:
@@ -876,6 +909,7 @@ class Neuron(tf.keras.layers.Layer):
 
                     sc_loss = conf.reg_spike_out_const*sc_loss
                     self.add_loss(sc_loss)
+
 
         #if True:
         if False:
@@ -2391,11 +2425,7 @@ class Neuron(tf.keras.layers.Layer):
         else:
             vmem_leak = vmem_integ
 
-        #print(vmem_leak)
         fire, vmem_fire = self.fire(vmem_leak,t)
-
-        #self.out = fire
-        #self.count_spike(t)
 
         # noise robustness test
         # gaussian noise

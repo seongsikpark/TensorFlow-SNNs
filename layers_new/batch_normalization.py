@@ -777,6 +777,8 @@ class BatchNormalizationBase(Layer):
                 training = False
         return training
 
+    #
+    #@tf.function(jit_compile=True)
     def call(self, inputs, training=None):
         inputs = tf.cast(inputs, self.compute_dtype)
 

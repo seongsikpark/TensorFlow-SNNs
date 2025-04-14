@@ -39,7 +39,6 @@ conf = flags.FLAGS
 
 from lib_snn.sim import glb_t
 
-
 class Conv(Layer):
     """Abstract N-D convolution layer (private, used as implementation base).
 
@@ -270,7 +269,8 @@ class Conv(Layer):
             use_cudnn_on_gpu = True
 
             # sspark
-            if tf.keras.mixed_precision.global_policy().name == 'mixed_float16':
+            #if tf.keras.mixed_precision.global_policy().name == 'mixed_float16' or self.dtype=='mixed_float16':
+            if self.kernel.dtype != inputs.dtype:
                 _kernel = tf.cast(self.kernel, inputs.dtype)
             else:
                 _kernel = self.kernel
@@ -436,6 +436,8 @@ class Conv(Layer):
         assert False
         #return self.convolution_op(inputs, kernel)
 
+    # sspark
+    @tf.function(jit_compile=True)
     def call(self, inputs):
         input_shape = inputs.shape
 

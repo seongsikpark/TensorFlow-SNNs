@@ -29,6 +29,8 @@ from keras import regularizers
 from layers_new.base_conv import Conv
 from lib_snn import layers
 
+import tensorflow as tf
+
 from tensorflow.python.util.tf_export import keras_export
 
 

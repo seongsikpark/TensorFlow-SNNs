@@ -4,6 +4,7 @@ from lib_snn import model
 from lib_snn import layers
 
 from lib_snn import activations
+from lib_snn import activations_nas
 
 from lib_snn import neurons
 

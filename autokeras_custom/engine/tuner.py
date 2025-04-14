@@ -119,6 +119,9 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
 
     def _build_and_fit_model(self, trial, *args, **kwargs):
         #model = self._try_build(trial.hyperparameters)
+        # sspark, 250411
+        print('print current hyperparameters')
+        print(trial.hyperparameters.values)
         model = self.try_build(trial.hyperparameters)
         (
             pipeline,
@@ -355,7 +358,7 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
                     # Convert to dictionary before calling `update_trial()`
                     # to pass it from gRPC.
                     tuner_utils.convert_to_metrics_dict(
-                        results, self.oracle.objective, "Tuner.run_trial()"
+                        results, self.oracle.objective
                     ),
                 )
             self.on_trial_end(trial)

@@ -36,6 +36,8 @@ import lib_snn
 #from autokeras import DenseBlock as Dense
 from autokeras import ResNetBlock as ResNet
 
+from lib_snn.sim import glb_t
+
 import config_snn_nas
 from config import config
 conf = config.flags
@@ -105,6 +107,7 @@ class DenseBlock(block_module.Block):
         num_units: Optional[Union[int, hyperparameters.Choice]] = None,
         use_batchnorm: Optional[bool] = None,
         dropout: Optional[Union[float, hyperparameters.Choice]] = None,
+        mask_inh_r: Optional[Union[float, hyperparameters.Choice]] = None,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -127,6 +130,13 @@ class DenseBlock(block_module.Block):
             float,
         )
 
+        # sspark, 250409
+        self.mask_inh_r = utils.get_hyperparameter(
+            mask_inh_r,
+            hyperparameters.Choice("mask_inh_r", [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], default=0.0),
+            float,
+        )
+
     def get_config(self):
         config = super().get_config()
         config.update(
@@ -135,6 +145,7 @@ class DenseBlock(block_module.Block):
                 "num_units": io_utils.serialize_block_arg(self.num_units),
                 "use_batchnorm": self.use_batchnorm,
                 "dropout": io_utils.serialize_block_arg(self.dropout),
+                "mask_inh_r": io_utils.serialize_block_arg(self.mask_inh_r),
             }
         )
         return config
@@ -144,6 +155,7 @@ class DenseBlock(block_module.Block):
         config["num_layers"] = io_utils.deserialize_block_arg(config["num_layers"])
         config["num_units"] = io_utils.deserialize_block_arg(config["num_units"])
         config["dropout"] = io_utils.deserialize_block_arg(config["dropout"])
+        config["mask_inh_r"] = io_utils.deserialize_block_arg(config["mask_inh_r"])
         return cls(**config)
 
     def build(self, hp, inputs=None):
@@ -157,8 +169,12 @@ class DenseBlock(block_module.Block):
         if use_batchnorm is None:
             use_batchnorm = hp.Boolean("use_batchnorm", default=False)
 
+
         for i in range(utils.add_to_hp(self.num_layers, hp)):
             units = utils.add_to_hp(self.num_units, hp, "units_{i}".format(i=i))
+
+            #
+            mask_inh_r = utils.add_to_hp(self.mask_inh_r, hp, "mask_inh_r_{i}".format(i=i))
 
             # Ryu, check SNN/DNN
             if conf.nn_mode == 'ANN':
@@ -167,9 +183,10 @@ class DenseBlock(block_module.Block):
                     output_node = layers.BatchNormalization(en_tdbn=tdbn)(output_node)
                 output_node = layers.ReLU()(output_node)
             else:
+                glb_t.reset()
                 output_node = lib_snn.layers.Dense(units, kernel_initializer='glorot_uniform')(output_node)
                 output_node = lib_snn.layers.BatchNormalization(en_tdbn=tdbn)(output_node)
-                output_node = lib_snn.activations.Activation(act_type=act_type,loc='OUT')(output_node)
+                output_node = lib_snn.activations_nas.Activation(act_type=act_type,mask_inh_r=mask_inh_r)(output_node)
             if utils.add_to_hp(self.dropout, hp) > 0:
                 output_node = layers.Dropout(utils.add_to_hp(self.dropout, hp))(
                     output_node

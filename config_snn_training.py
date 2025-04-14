@@ -24,6 +24,10 @@ conf = config.flags
 #
 #conf.debug_mode = True
 #conf.verbose_snn_train = True
+#conf.debug_grad = True
+
+#
+#conf.exp_set_name='EIP-SNN_detail'
 
 
 #
@@ -55,10 +59,10 @@ conf = config.flags
 #
 #conf.train_epoch = 10
 #conf.train_epoch = 10
-#conf.num_train_data = 200
+#conf.num_train_data = 100
 
 #conf.model='VGG11'
-conf.model='VGG16'
+#conf.model='VGG16'
 #conf.model='ResNet18'
 #conf.model='ResNet19'
 #conf.model='ResNet20'
@@ -66,13 +70,9 @@ conf.model='VGG16'
 #conf.model='ResNet20_SEW'   # spike-element-wise block
 #conf.model = 'Spikformer'
 
-#conf.dataset='CIFAR100'
+conf.dataset='CIFAR100'
 #conf.dataset='ImageNet'
 #conf.dataset='CIFAR10_DVS'
-
-if conf.dataset=='CIFAR100':
-    conf.learning_rate = 1E-3
-    conf.lmb = 1E-2
 
 conf.pooling_vgg = 'avg'
 
@@ -91,9 +91,7 @@ conf.leak_const_init = 0.9
 #conf.leak_const_train = True
 
 
-conf.exp_set_name='test'
-
-
+conf.exp_set_name='new_daug'
 
 
 conf.optimizer = 'ADAMW'
@@ -105,14 +103,27 @@ conf.nn_mode = 'SNN'
 conf.n_init_vth = 1.0
 
 conf.train_epoch = 310
-#
+# spikformer
+#conf.learning_rate_init = 1E-4
+#conf.learning_rate = 5E-3
+#conf.weight_decay_AdamW = 2E-2
+# VGG-C10
 #conf.learning_rate_init = 1E-5
 #conf.learning_rate = 6E-3
 #conf.weight_decay_AdamW = 2E-2
-# spikformer - C10
-conf.learning_rate_init = 1E-4
-conf.learning_rate = 5E-3
+# VGG-C100
+conf.learning_rate_init = 1E-5
+conf.learning_rate = 6E-3
 conf.weight_decay_AdamW = 2E-2
+# R19-C10
+#conf.learning_rate_init = 1E-5
+#conf.learning_rate = 6E-3
+#conf.weight_decay_AdamW = 2E-2
+# R19-C100
+#conf.learning_rate_init = 1E-4
+#conf.learning_rate = 5E-3
+#conf.weight_decay_AdamW = 4E-2
+
 
 conf.batch_size = 100
 conf.label_smoothing=0.1
@@ -135,12 +146,12 @@ conf.rand_erase_en = True
 
 
 #
-if False:
-#if True:
+#if False:
+if True:
     if True:    # proposed method
     #if False:
         conf.reg_spike_out=True
-        conf.reg_spike_out_const=5E-6
+        conf.reg_spike_out_const=7E-7
         conf.reg_spike_out_alpha=4  # temperature
         #conf.reg_spike_rate_alpha=8E-1  # coefficient of reg. rate
         conf.reg_spike_out_sc=True
@@ -154,12 +165,15 @@ if False:
         #
         #conf.reg_spike_out_sc_sm_wo_tmp=True
         #conf.reg_spike_out_sc_sm_wo_spa=True
+
+        #
+        conf.reg_psp_SEL_const = -1E-7
     else:   # previous work
         conf.reg_spike_out = True
-        conf.reg_spike_out_const = 4E-6
+        conf.reg_spike_out_const = 7E-7
         conf.reg_spike_out_alpha = 4  # temperature
         # conf.reg_spike_rate_alpha=8E-1  # coefficient of reg. rate
-        #conf.reg_spike_out_sc = True
+        #conf.reg_spike_out_sc = TrueAa
         #conf.reg_spike_out_sc_wta=False
         # conf.reg_spike_out_sc_train=True
         #conf.reg_spike_out_sc_sm = True
