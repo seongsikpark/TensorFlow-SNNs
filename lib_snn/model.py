@@ -3362,15 +3362,15 @@ class Model(tf.keras.Model):
                             _input_t = _input
 
                         #
-                        #if conf.integer_spike and training:
-                        #    _input_t = _input_t*4
-                        #_input_t = _input_t*4
-                        if t==1:
-                            layer_out = layer_out.write(t-1,_input)
+                        if conf.integer_spike:
+                            if t == 1:
+                                layer_out = layer_out.write(t - 1, _input)
+                            else:
+                                layer_out = layer_out.write(t - 1, tf.zeros(_input.shape))
                         else:
-                            layer_out = layer_out.write(t-1,tf.zeros(_input.shape))
-
+                            layer_out = layer_out.write(t-1,_input)
                         glb_t()
+
 
                     #continue  # Input tensors already exist.
 
