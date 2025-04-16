@@ -86,7 +86,8 @@ max_model_size=None
 #model_path = "am/250411_inhibitory"
 
 #model_path = "am/250414_inhibitory_tr20"
-model_path = "am/250416_inhibitory_vgg16_tr50"
+#model_path = "am/250416_inhibitory_vgg16_tr50" # error
+model_path = "am/250417_inhibitory_vgg16_tr50"
 
 
 
