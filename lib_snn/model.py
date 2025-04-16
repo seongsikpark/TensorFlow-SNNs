@@ -2775,12 +2775,12 @@ class Model(tf.keras.Model):
 
 
         for layer in self.layers:
-            if isinstance(layer, lib_snn.activations.Activation):
+            if isinstance(layer, lib_snn.activations.Activation) or isinstance(layer, lib_snn.activations_nas.Activation):
                 if isinstance(layer.act, lib_snn.neurons.Neuron):
                     layers_w_neuron.append(layer)
             elif isinstance(layer, tf.keras.models.Model):      # for transfer learning
                 for _layer in layer.layers:
-                    if isinstance(_layer, lib_snn.activations.Activation):
+                    if isinstance(layer, lib_snn.activations.Activation) or isinstance(layer, lib_snn.activations_nas.Activation):
                         if isinstance(_layer.act, lib_snn.neurons.Neuron):
                             _layer_n = _layer
                             layers_w_neuron.append(_layer_n)

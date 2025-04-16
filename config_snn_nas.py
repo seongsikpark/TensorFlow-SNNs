@@ -24,7 +24,7 @@ conf.root_model_save=conf.exp_set_name
 
 #conf.data_aug_mix='None'
 
-#conf.num_train_data=200
+conf.num_train_data=200
 
 #
 #conf.train_epoch = 100
