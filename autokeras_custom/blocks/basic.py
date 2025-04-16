@@ -332,6 +332,7 @@ class ConvBlock(block_module.Block):
         dropout: Optional[Union[float, hyperparameters.Choice]] = None,
         # sspark
         use_batchnorm: Optional[bool] = None,
+        mask_inh_r: Optional[Union[float, hyperparameters.Choice]] = None,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -372,6 +373,13 @@ class ConvBlock(block_module.Block):
         #
         self.use_batchnorm = use_batchnorm
 
+        # sspark, 250409
+        self.mask_inh_r = utils.get_hyperparameter(
+            mask_inh_r,
+            hyperparameters.Choice("mask_inh_r", [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], default=0.0),
+            float,
+        )
+
 
 
     def get_config(self):
@@ -386,6 +394,7 @@ class ConvBlock(block_module.Block):
                 "separable": self.separable,
                 "dropout": io_utils.serialize_block_arg(self.dropout),
                 "use_batchnorm": self.use_batchnorm,
+                "mask_inh_r": io_utils.serialize_block_arg(self.mask_inh_r),
             }
         )
         return config
@@ -397,6 +406,7 @@ class ConvBlock(block_module.Block):
         config["num_layers"] = io_utils.deserialize_block_arg(config["num_layers"])
         config["filters"] = io_utils.deserialize_block_arg(config["filters"])
         config["dropout"] = io_utils.deserialize_block_arg(config["dropout"])
+        config["mask_inh_r"] = io_utils.deserialize_block_arg(config["mask_inh_r"])
         return cls(**config)
 
     def build(self, hp, inputs=None):
@@ -469,23 +479,17 @@ class ConvBlock(block_module.Block):
                     )(output_node)
             else:
                 for j in range(utils.add_to_hp(self.num_layers, hp)):
+
+                    mask_inh_r = utils.add_to_hp(self.mask_inh_r, hp, "mask_inh_r_{i}_{j}".format(i=i,j=j))
+
                     kernel_size = utils.add_to_hp(self.kernel_size, hp, "kernel_size_{i}_{j}".format(i=i,j=j))
                     filters = utils.add_to_hp(self.filters, hp, "filters_{i}_{j}".format(i=i, j=j))
-                    # for tdbn_first_layer
-                    if j == 0 and i == 0:
-                        output_node = lib_snn.layers.Conv2D(filters, kernel_size=kernel_size,
-                                                            #padding=self._get_padding(kernel_size, output_node)
-                                                            padding='same'
-                                                            )(output_node)
-                        output_node = lib_snn.layers.BatchNormalization(en_tdbn=tdbn)(output_node)
-                        output_node = lib_snn.activations.Activation(act_type=act_type)(output_node)
-                    else:
-                        output_node = lib_snn.layers.Conv2D(filters, kernel_size=kernel_size,
-                                                            #padding=self._get_padding(kernel_size, output_node)
-                                                            padding='same'
-                                                            )(output_node)
-                        output_node = lib_snn.layers.BatchNormalization(en_tdbn=tdbn)(output_node)
-                        output_node = lib_snn.activations.Activation(act_type=act_type)(output_node)
+                    output_node = lib_snn.layers.Conv2D(filters, kernel_size=kernel_size,
+                                                        #padding=self._get_padding(kernel_size, output_node)
+                                                        padding='same'
+                                                        )(output_node)
+                    output_node = lib_snn.layers.BatchNormalization(en_tdbn=tdbn)(output_node)
+                    output_node = lib_snn.activations_nas.Activation(act_type=act_type,mask_inh_r=mask_inh_r)(output_node)
                 if self.pooling:
                     output_node = pool_layer(pool_size=(2, 2),
                                                strides=(2, 2),
