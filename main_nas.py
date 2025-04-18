@@ -86,8 +86,8 @@ max_model_size=None
 #model_path = "am/250411_inhibitory"
 
 #model_path = "am/250414_inhibitory_tr20"
-#model_path = "am/250416_inhibitory_vgg16_tr50" # error
-model_path = "am/250417_inhibitory_vgg16_tr50"
+#model_path = "am/250417_inhibitory_vgg16_tr10"
+model_path = "am/250418_inhibitory_vgg16_tr10"
 
 
 
@@ -204,7 +204,10 @@ tuner = 'bayesian'
 #tuner = 'evolution'
 #tuner = 'hyperband'
 
-filters = hyperparameters.Choice("filters", [64, 128, 256, 512], default=128)
+filters_64 = hyperparameters.Choice("filters_64", [64, 128, 256, 512], default=128)
+filters_128 = hyperparameters.Choice("filters_128", [64, 128, 256, 512], default=128)
+filters_256 = hyperparameters.Choice("filters_256", [64, 128, 256, 512], default=128)
+filters_512 = hyperparameters.Choice("filters_512", [64, 128, 256, 512], default=128)
 #filters = hyperparameters.Choice("filters", [64, 128, 256], default=128)
 #filters = [64, 128, 256, 512, 512]
 kernel_size= hyperparameters.Choice("kernel_size", [3,5,7], default=3)
@@ -235,8 +238,8 @@ class FeatureExtractor(ak.Block):
         # layer = model.get_layer('flatten')
         feature_extractor = lib_snn.model.Model(model.inputs, model.get_layer("flatten").output, conf.batch_size,
                                                 model.inputs[0].shape)
-        #feature_extractor.trainable=False
-        feature_extractor.trainable=True
+        feature_extractor.trainable=False
+        #feature_extractor.trainable=True
 
         output = feature_extractor(inputs)
         #feature_extractor.inputs = inputs
@@ -357,11 +360,11 @@ else:
         pooling = conf.pooling_vgg
         input_node = akc.ImageInput()
         output_node = input_node
-        output_node = akc.ConvBlock(dropout=0, filters=filters, num_blocks=1, num_layers=2, separable=False, pooling=pooling, tunable=True, name='conv1')(output_node)
-        output_node = akc.ConvBlock(dropout=0, filters=filters, num_blocks=1, num_layers=2, separable=False, pooling=pooling, tunable=True, name='conv2')(output_node)
-        output_node = akc.ConvBlock(dropout=0, filters=filters, num_blocks=1, num_layers=3, separable=False, pooling=pooling, tunable=True, name='conv3')(output_node)
-        output_node = akc.ConvBlock(dropout=0, filters=filters, num_blocks=1, num_layers=3, separable=False, pooling=pooling, tunable=True, name='conv4')(output_node)
-        output_node = akc.ConvBlock(dropout=0, filters=filters, num_blocks=1, num_layers=3, separable=False, pooling=pooling, tunable=True, name='conv5')(output_node)
+        output_node = akc.ConvBlock(dropout=0, filters=filters_64, num_blocks=1, num_layers=2, separable=False, pooling=pooling, tunable=True, name='conv1')(output_node)
+        output_node = akc.ConvBlock(dropout=0, filters=filters_128, num_blocks=1, num_layers=2, separable=False, pooling=pooling, tunable=True, name='conv2')(output_node)
+        output_node = akc.ConvBlock(dropout=0, filters=filters_256, num_blocks=1, num_layers=3, separable=False, pooling=pooling, tunable=True, name='conv3')(output_node)
+        output_node = akc.ConvBlock(dropout=0, filters=filters_512, num_blocks=1, num_layers=3, separable=False, pooling=pooling, tunable=True, name='conv4')(output_node)
+        output_node = akc.ConvBlock(dropout=0, filters=filters_512, num_blocks=1, num_layers=3, separable=False, pooling=pooling, tunable=True, name='conv5')(output_node)
         output_node = akc.Flatten()(output_node)
         output_node = akc.DenseBlock(num_units=num_units, dropout=0, num_layers=1, use_batchnorm=True, tunable=True, name='fc1')(output_node)
         output_node = akc.DenseBlock(num_units=num_units, dropout=0, num_layers=1, use_batchnorm=True, tunable=True, name='fc2')(output_node)
