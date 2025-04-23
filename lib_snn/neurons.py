@@ -173,8 +173,7 @@ class Neuron(tf.keras.layers.Layer):
         if conf.debug_surro_grad:
         #if False:
             self.writer = tf.summary.create_file_writer(config.path_tensorboard)
-
-
+        self.writer = tf.summary.create_file_writer(config.path_tensorboard)
 
         #self.vth_init_const = kwargs.pop('vth_init',None)
 
@@ -2648,6 +2647,7 @@ class Neuron(tf.keras.layers.Layer):
         #self.spike_count_int.assign(tf.where(self.f_fire, self.spike_count_int + 1.0, self.spike_count_int))
         #self.spike_count.assign(tf.add(self.spike_count, spike))
         self.spike_count.assign(tf.where(self.f_fire, self.spike_count+ 1.0, self.spike_count))
+
 
         ## here
         #print(self.spike_count)

@@ -34,7 +34,8 @@ conf = config.flags
 #
 #conf.exp_set_name='EIP-SNN_detail'
 #conf.exp_set_name='EIP-SNN_sc_loss_schedule'
-conf.exp_set_name='integer_spike_test'
+#conf.exp_set_name='integer_spike_test'
+conf.exp_set_name='ASY-SNN'
 
 conf.root_model_save=conf.exp_set_name
 
@@ -67,7 +68,7 @@ conf.root_model_save=conf.exp_set_name
 #
 #conf.train_epoch = 10
 #conf.train_epoch = 10
-#conf.num_train_data = 200
+#conf.num_train_data = 1000
 
 #conf.model='VGG11'
 #conf.model='VGG16'
@@ -76,10 +77,10 @@ conf.root_model_save=conf.exp_set_name
 #conf.model='ResNet20'
 #conf.model='ResNet32'
 #conf.model='ResNet20_SEW'   # spike-element-wise block
-#conf.model = 'Spikformer'
+conf.model = 'Spikformer'
 #conf.model = 'Spikformer_tb'
 
-conf.dataset='CIFAR100'
+#conf.dataset='CIFAR100'
 #conf.dataset='ImageNet'
 #conf.dataset='CIFAR10_DVS'
 
@@ -112,13 +113,13 @@ conf.n_init_vth = 1.0
 
 conf.train_epoch = 310
 #
-conf.learning_rate_init = 1E-5
-conf.learning_rate = 6E-3
-conf.weight_decay_AdamW = 2E-2
-# spikformer - C10
-#conf.learning_rate_init = 1E-4
-#conf.learning_rate = 5E-3
+#conf.learning_rate_init = 1E-5
+#conf.learning_rate = 6E-3
 #conf.weight_decay_AdamW = 2E-2
+# spikformer - C10
+conf.learning_rate_init = 1E-4
+conf.learning_rate = 5E-3
+conf.weight_decay_AdamW = 2E-2
 
 conf.batch_size = 100
 conf.label_smoothing=0.1
@@ -143,9 +144,6 @@ conf.rand_erase_en = True
 #conf.integer_spike = True
 #conf.time_step=1
 
-conf.learning_rate_init = 1E-5
-conf.learning_rate = 6E-3
-conf.weight_decay_AdamW = 2E-2
 
 #
 
