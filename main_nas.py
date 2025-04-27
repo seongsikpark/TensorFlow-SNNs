@@ -86,19 +86,14 @@ max_model_size=None
 #model_path = "am/250328_test"
 #model_path = "am/250410_inhibitory"
 #model_path = "am/250411_inhibitory"
+#model_path = "am/250414_inhibitory_fr_tr30"
 
-#model_path = "am/250414_inhibitory_tr20"
-#model_path = "am/250417_inhibitory_vgg16_tr10"
-#model_path = "am/250418_inhibitory_vgg16_tr10"
+#model_path = "am/250416_rand_inhibitory_fr_tr100"  # spike count err - inhibitory not counted
+#model_path = "am/250417_rand_inhibitory_fr_tr100"  # spike count - only processing layer
+#model_path = "am/250418_rand_inhibitory_fr_tr100"
 
 
-
-#model_path = "../02_SNN_training_1/am/250418_rand_inhibitory_fr_tr100"
-
-#model_path = "../02_SNN_training_2/am/250418_rand_inhibitory_fr_tr50"
-#model_path = "../02_SNN_training_3/am/250418_rand_inhibitory_fr_tr30"
-
-model_path = "am/testtest"
+model_path = "am/250428_inhibitory_vgg16_tr30"
 
 
 train_ds, valid_ds, test_ds, train_ds_num, valid_ds_num, test_ds_num, num_class, train_steps_per_epoch = datasets.load()
@@ -206,12 +201,14 @@ metrics = [acc, acc_top5]
 
 loss = tf.keras.losses.CategoricalCrossentropy()
 
-tuner = 'random'
-#tuner = 'bayesian'
+#tuner = 'random'
+tuner = 'bayesian'
 #tuner = 'greedy'
 #tuner = 'evolution'
 #tuner = 'hyperband'
 
+
+#
 filters_64 = hyperparameters.Choice("filters_64", [64], default=64)
 filters_128 = hyperparameters.Choice("filters_128", [64, 128], default=128)
 filters_256 = hyperparameters.Choice("filters_256", [64, 128, 256], default=256)
@@ -233,7 +230,7 @@ Train_mode = "SNN"
 
 
 # wrapper
-#class (tf.keras.layers.Layer):
+#class FeatureExtractor(tf.keras.layers.Layer):
 class FeatureExtractor(ak.Block):
     #def __init__(self, **kwargs):
         #super().__init__(**kwargs)
@@ -407,11 +404,16 @@ else:
         pooling = conf.pooling_vgg
         input_node = akc.ImageInput()
         output_node = input_node
-        output_node = akc.ConvBlock(dropout=0, filters=filters_64, num_blocks=1, num_layers=2, separable=False, pooling=pooling, tunable=True, name='conv1')(output_node)
-        output_node = akc.ConvBlock(dropout=0, filters=filters_128, num_blocks=1, num_layers=2, separable=False, pooling=pooling, tunable=True, name='conv2')(output_node)
-        output_node = akc.ConvBlock(dropout=0, filters=filters_256, num_blocks=1, num_layers=3, separable=False, pooling=pooling, tunable=True, name='conv3')(output_node)
-        output_node = akc.ConvBlock(dropout=0, filters=filters_512, num_blocks=1, num_layers=3, separable=False, pooling=pooling, tunable=True, name='conv4')(output_node)
-        output_node = akc.ConvBlock(dropout=0, filters=filters_512, num_blocks=1, num_layers=3, separable=False, pooling=pooling, tunable=True, name='conv5')(output_node)
+        output_node = akc.ConvBlock(dropout=0, filters=filters_64, num_blocks=1, num_layers=2, separable=False,
+                                    pooling=pooling, use_batchnorm=True, tunable=True, name='conv1')(output_node)
+        output_node = akc.ConvBlock(dropout=0, filters=filters_128, num_blocks=1, num_layers=2, separable=False,
+                                    pooling=pooling, use_batchnorm=True, tunable=True, name='conv2')(output_node)
+        output_node = akc.ConvBlock(dropout=0, filters=filters_256, num_blocks=1, num_layers=3, separable=False,
+                                    pooling=pooling, use_batchnorm=True, tunable=True, name='conv3')(output_node)
+        output_node = akc.ConvBlock(dropout=0, filters=filters_512, num_blocks=1, num_layers=3, separable=False,
+                                    pooling=pooling, use_batchnorm=True, tunable=True, name='conv4')(output_node)
+        output_node = akc.ConvBlock(dropout=0, filters=filters_512, num_blocks=1, num_layers=3, separable=False,
+                                    pooling=pooling, use_batchnorm=True, tunable=True, name='conv5')(output_node)
         output_node = akc.Flatten()(output_node)
         output_node = akc.DenseBlock(num_units=num_units, dropout=0, num_layers=1, use_batchnorm=True, tunable=True, name='fc1')(output_node)
         output_node = akc.DenseBlock(num_units=num_units, dropout=0, num_layers=1, use_batchnorm=True, tunable=True, name='fc2')(output_node)
