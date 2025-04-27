@@ -1609,6 +1609,7 @@ class Model(tf.keras.Model):
     # this function is based on Model.test_step in training.py
     # TODO: override Model.test_step
     def test_step_a(self, data):
+    #def test_step(self, data):
 
         ret = {
             'ANN': self.test_step_ann,
@@ -1677,7 +1678,9 @@ class Model(tf.keras.Model):
         # for test during SNN inference
         self.y = y
         self.sample_weight=sample_weight
+        #def call(self, inputs, training=None, mask=None):
         y_pred = self(x, training=False)
+        #y_pred = self._run_internal_graph_snn_t_first(x, training=False)
         #y_pred = y_pred[:,-1,:]
         # Updates stateful loss metrics.
         self.compiled_loss(
@@ -2395,19 +2398,19 @@ class Model(tf.keras.Model):
                 self.layers_w_kernel.append(layer)
 
         self.layers_w_act = []
-        for layer in self.layers:
-            #if hasattr(layer, 'act'):
-            if isinstance(layer, lib_snn.activations.Activation):
-                #if not isinstance(layer,lib_snn.layers.InputGenLayer):
-                #if not layer.act_dnn is None:
-                #if not (layer.activation is None):
-                #if not (layer.act_dnn is None):
-                #    self.layers_w_act.append(layer)
-                #    #print(layer.name)
+        if False:   # depreciated
+            for layer in self.layers:
+                #if hasattr(layer, 'act'):
+                if isinstance(layer, lib_snn.activations.Activation):
+                    #if not isinstance(layer,lib_snn.layers.InputGenLayer):
+                    #if not layer.act_dnn is None:
+                    #if not (layer.activation is None):
+                    #if not (layer.act_dnn is None):
+                    #    self.layers_w_act.append(layer)
+                    #    #print(layer.name)
 
-                self.layers_w_act.append(layer)
+                    self.layers_w_act.append(layer)
 
-        #assert False
 
         self.layers_w_bias= []
         #for layer in self.layers_w_kernel:
@@ -2773,14 +2776,15 @@ class Model(tf.keras.Model):
                         self.layers_w_neuron.append(layer)
 
 
-
+        global layers_w_neuron
+        layers_w_neuron = []
         for layer in self.layers:
             if isinstance(layer, lib_snn.activations.Activation) or isinstance(layer, lib_snn.activations_nas.Activation):
                 if isinstance(layer.act, lib_snn.neurons.Neuron):
                     layers_w_neuron.append(layer)
             elif isinstance(layer, tf.keras.models.Model):      # for transfer learning
                 for _layer in layer.layers:
-                    if isinstance(layer, lib_snn.activations.Activation) or isinstance(layer, lib_snn.activations_nas.Activation):
+                    if isinstance(_layer, lib_snn.activations.Activation) or isinstance(_layer, lib_snn.activations_nas.Activation):
                         if isinstance(_layer.act, lib_snn.neurons.Neuron):
                             _layer_n = _layer
                             layers_w_neuron.append(_layer_n)
@@ -2792,6 +2796,7 @@ class Model(tf.keras.Model):
 
     #
     def get_layers_w_neuron(self):
+        return lib_snn.model.layers_w_neuron
         if False:   # slow
             layers_w_neuron = []
 
@@ -3352,6 +3357,8 @@ class Model(tf.keras.Model):
             output_tensors
         """
 
+        #print(training)
+
         if training:
             time_step = conf.time_step
         else:
@@ -3383,6 +3390,8 @@ class Model(tf.keras.Model):
         for depth in depth_keys:
             nodes = nodes_by_depth[depth]
             for node in nodes:
+                if isinstance(node.layer, tf.keras.Model):
+                    assert False
                 layer_name = node.layer.name
                 tensor_array_name='out_arr'+layer_name
                 if node.is_input:

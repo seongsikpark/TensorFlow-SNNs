@@ -34,6 +34,7 @@ import warnings
 import numpy as np
 
 #
+import time
 from autokeras_custom.engine import utils as tuner_utils_custom
 
 #
@@ -84,6 +85,13 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
         #
         self._display = tuner_utils_custom.Display(oracle=self.oracle)
 
+
+        # Start time for the overall search - implemented yet
+        self.search_start = None
+
+        # Start time of the latest trial
+        self.trial_start = None
+
     def _populate_initial_space(self):
         # Override the function to prevent building the model during initialization.
         return
@@ -120,8 +128,8 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
     def _build_and_fit_model(self, trial, *args, **kwargs):
         #model = self._try_build(trial.hyperparameters)
         # sspark, 250411
-        print('print current hyperparameters')
-        print(trial.hyperparameters.values)
+        #print('print current hyperparameters')
+        #print(trial.hyperparameters.values)
         model = self.try_build(trial.hyperparameters)
         (
             pipeline,
@@ -131,6 +139,8 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
         pipeline.save(self._pipeline_path(trial.trial_id))
 
         self.adapt(model, kwargs["x"])
+
+        #kwargs["training"]=True
 
         _, history = utils.fit_with_adaptive_batch_size(
             model, self.hypermodel.batch_size, **kwargs
@@ -483,6 +493,12 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
             self.logger.register_trial(trial.trial_id, trial.get_state())
         self._display.on_trial_begin(self.oracle.get_trial(trial.trial_id))
 
+        #
+        self.trial_start = time.time()
+        if self.search_start is None:
+            self.search_start = time.time()
+
+        #
 
 
     # sspark
@@ -497,7 +513,15 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
         if self.logger:
             self.logger.report_trial_state(trial.trial_id, trial.get_state())
 
-        self.oracle.end_trial(trial.trial_id, trial_module.TrialStatus.COMPLETED)
+        #
+        #time_taken_str = self.format_time(time.time() - self.trial_start)
+        time_taken = time.time() - self.trial_start
+        trial.metrics.update('duration', time_taken)
+
+
+        #self.oracle.end_trial(trial.trial_id, trial_module.TrialStatus.COMPLETED)
+        trial.status = trial_module.TrialStatus.COMPLETED
+        self.oracle.end_trial(trial)
         self.oracle.update_space(trial.hyperparameters)
         # Display needs the updated trial scored by the Oracle.
         self._display.on_trial_end(self.oracle.get_trial(trial.trial_id))
@@ -656,5 +680,18 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
     def max_trials(self):
         return self.oracle.max_trials
 
+    # sspark
+    # 250423
+    def format_time(self, t):  # t in seconds
+        # return time.strftime("%Y-%m-%d %Hh %Mm %Ss", time.gmtime(t))
 
+        day = t // (24 * 3600)
+        time = t % (24 * 3600)
+        hour = time // 3600
+        time = time % 3600
+        min = time // 60
+        time = time % 60
+        sec = time
 
+        ret = "{:.0f}d {:.0f}h {:.0f}m {:.0f}s".format(day, hour, min, sec)
+        return ret

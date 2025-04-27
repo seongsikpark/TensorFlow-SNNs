@@ -6,7 +6,7 @@
 # GPU setting
 import os
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="8"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 #
 from config import config
@@ -24,7 +24,7 @@ conf.root_model_save=conf.exp_set_name
 
 #conf.data_aug_mix='None'
 
-#conf.num_train_data=200
+conf.num_train_data=200
 
 #
 #conf.train_epoch = 100
@@ -33,7 +33,7 @@ conf.root_model_save=conf.exp_set_name
 #conf.step_decay_epoch = 50
 
 #conf.train_epoch_search = 120
-conf.train_epoch_search = 10
+conf.train_epoch_search = 1
 conf.step_decay_epoch_search = 40
 conf.train_epoch = 300
 conf.step_decay_epoch = 100

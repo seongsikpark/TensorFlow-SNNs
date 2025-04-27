@@ -7,7 +7,7 @@
 import os
 os.environ['NCCL_P2P_DISABLE']='0'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="8"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1"
 
 #
@@ -57,8 +57,6 @@ conf = config.flags
 #conf.lr_schedule = None
 
 #
-#conf.train_epoch = 10
-#conf.train_epoch = 10
 #conf.num_train_data = 100
 
 #conf.model='VGG11'
@@ -70,7 +68,7 @@ conf = config.flags
 #conf.model='ResNet20_SEW'   # spike-element-wise block
 #conf.model = 'Spikformer'
 
-conf.dataset='CIFAR100'
+#conf.dataset='CIFAR100'
 #conf.dataset='ImageNet'
 #conf.dataset='CIFAR10_DVS'
 
@@ -146,8 +144,8 @@ conf.rand_erase_en = True
 
 
 #
-#if False:
-if True:
+if False:
+#if True:
     if True:    # proposed method
     #if False:
         conf.reg_spike_out=True

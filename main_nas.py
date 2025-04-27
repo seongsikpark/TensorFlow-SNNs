@@ -52,6 +52,8 @@ import pandas as pd
 #
 import lib_snn
 
+from lib_snn.sim import glb_t
+
 
 #
 max_trials = 100
@@ -87,10 +89,16 @@ max_model_size=None
 
 #model_path = "am/250414_inhibitory_tr20"
 #model_path = "am/250417_inhibitory_vgg16_tr10"
-model_path = "am/250418_inhibitory_vgg16_tr10"
+#model_path = "am/250418_inhibitory_vgg16_tr10"
 
 
 
+#model_path = "../02_SNN_training_1/am/250418_rand_inhibitory_fr_tr100"
+
+#model_path = "../02_SNN_training_2/am/250418_rand_inhibitory_fr_tr50"
+#model_path = "../02_SNN_training_3/am/250418_rand_inhibitory_fr_tr30"
+
+model_path = "am/testtest"
 
 
 train_ds, valid_ds, test_ds, train_ds_num, valid_ds_num, test_ds_num, num_class, train_steps_per_epoch = datasets.load()
@@ -198,16 +206,16 @@ metrics = [acc, acc_top5]
 
 loss = tf.keras.losses.CategoricalCrossentropy()
 
-#tuner = 'random'
-tuner = 'bayesian'
+tuner = 'random'
+#tuner = 'bayesian'
 #tuner = 'greedy'
 #tuner = 'evolution'
 #tuner = 'hyperband'
 
-filters_64 = hyperparameters.Choice("filters_64", [64, 128, 256, 512], default=128)
-filters_128 = hyperparameters.Choice("filters_128", [64, 128, 256, 512], default=128)
-filters_256 = hyperparameters.Choice("filters_256", [64, 128, 256, 512], default=128)
-filters_512 = hyperparameters.Choice("filters_512", [64, 128, 256, 512], default=128)
+filters_64 = hyperparameters.Choice("filters_64", [64], default=64)
+filters_128 = hyperparameters.Choice("filters_128", [64, 128], default=128)
+filters_256 = hyperparameters.Choice("filters_256", [64, 128, 256], default=256)
+filters_512 = hyperparameters.Choice("filters_512", [64, 128, 256, 512], default=512)
 #filters = hyperparameters.Choice("filters", [64, 128, 256], default=128)
 #filters = [64, 128, 256, 512, 512]
 kernel_size= hyperparameters.Choice("kernel_size", [3,5,7], default=3)
@@ -217,33 +225,66 @@ num_layers= hyperparameters.Choice("num_layers", [1,2,3], default=2)
 num_units= hyperparameters.Choice("num_units", [64, 128, 256, 512], default=512)
 mask_inh_r=hyperparameters.Choice("mask_inh_r", [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], default=0.0)
 
-#transfer_learning=True
-transfer_learning=False
+transfer_learning=True
+#transfer_learning=False
 
 #Train_mode = "DNN"
 Train_mode = "SNN"
 
 
 # wrapper
-#class FeatureExtractor(tf.keras.layers.Layer):
+#class (tf.keras.layers.Layer):
 class FeatureExtractor(ak.Block):
     #def __init__(self, **kwargs):
         #super().__init__(**kwargs)
     def build(self, hp, inputs):
 
+        if False:
+            model = lib_snn.model_builder.model_builder(num_class, train_steps_per_epoch, valid_ds)
+            model.load_weights("/home/sspark/Models/SNN/CNN_randaug/VGG16_AP_CIFAR10/ep-0304.hdf5")
+            dummy_input = tf.zeros(model.inputs[0].shape)
+            model(dummy_input)
+            # layer = model.get_layer('flatten')
+            feature_extractor = lib_snn.model.Model(model.inputs, model.get_layer("flatten").output, conf.batch_size,
+                                                    model.inputs[0].shape)
+            feature_extractor.trainable=False
+            #feature_extractor.trainable=True
+
+            output = feature_extractor(inputs)
+            #feature_extractor.inputs = inputs
+            #output = feature_extractor.output
+
         model = lib_snn.model_builder.model_builder(num_class, train_steps_per_epoch, valid_ds)
         model.load_weights("/home/sspark/Models/SNN/CNN_randaug/VGG16_AP_CIFAR10/ep-0304.hdf5")
         dummy_input = tf.zeros(model.inputs[0].shape)
         model(dummy_input)
-        # layer = model.get_layer('flatten')
-        feature_extractor = lib_snn.model.Model(model.inputs, model.get_layer("flatten").output, conf.batch_size,
-                                                model.inputs[0].shape)
-        feature_extractor.trainable=False
-        #feature_extractor.trainable=True
+        model.trainable = False
 
-        output = feature_extractor(inputs)
-        #feature_extractor.inputs = inputs
-        #output = feature_extractor.output
+        # layer = model.get_layer('flatten')
+        #feature_extractor = lib_snn.model.Model(model.inputs, model.get_layer("flatten").output, conf.batch_size, model.inputs[0].shape)
+        #feature_extractor.trainable = False
+        # feature_extractor.trainable=True
+
+        #output = feature_extractor(inputs)
+        # feature_extractor.inputs = inputs
+        # output = feature_extractor.output
+        #return output
+
+        last_layer_name = "flatten"
+        flat_layers = []
+        for layer in model.layers:
+            flat_layers.append(layer)
+            if layer.name == last_layer_name:
+                break
+
+
+        #
+        glb_t.reset()
+        x = flat_layers[0](inputs[0])
+        for layer in flat_layers[1:]:
+            x = layer(x)
+
+        output = x
 
         return output
 
@@ -270,15 +311,21 @@ if transfer_learning:
             output_node = akc.ClassificationHead(dropout=0, loss=loss, metrics=metrics, tunable=True)(x)
             input_node = model.inputs
 
+        # before 250428
+        if False:
+            input_node = akc.ImageInput()
+            features = FeatureExtractor()(input_node)
+            x = features
+
         #
         input_node = akc.ImageInput()
-        features = FeatureExtractor()(input_node)
+        x = FeatureExtractor()(input_node)
 
 
         pass
 
 
-        x = akc.DenseBlock(num_units=num_units, mask_inh_r=mask_inh_r, dropout=0, num_layers=1, use_batchnorm=True, tunable=True, name='fc1')(features)
+        x = akc.DenseBlock(num_units=num_units, mask_inh_r=mask_inh_r, dropout=0, num_layers=1, use_batchnorm=True, tunable=True, name='fc1')(x)
         x = akc.DenseBlock(num_units=num_units, mask_inh_r=mask_inh_r, dropout=0, num_layers=1, use_batchnorm=True, tunable=True, name='fc2')(x)
         output_node = akc.ClassificationHead(dropout=0, loss=loss, metrics=metrics, tunable=True)(x)
 
@@ -425,10 +472,10 @@ if f_search:
     # batch_size already in dataset
     hist = clf.fit(train_data=train_ds, validation_data=valid_ds, epochs=epoch, callbacks=callbacks)
 
-
-
-if not f_search:
+else:
     dataset = train_ds
+    validation_split = 0
+    epochs = None
 
     # input pipeline setting
     #self._analyze_data(dataset)
@@ -441,24 +488,35 @@ if not f_search:
     tuner = clf.tuner
 
     trials_dict = tuner.oracle.trials
-
     trials_dict_sorted = sorted(trials_dict.items())
 
     list_num_para = []
     list_acc = []
+    list_hp = []
 
     for key, trial in trials_dict_sorted:
         hp = trial.hyperparameters
         score = trial.score
 
-        tuner._prepare_model_build(hp, x=dataset)
-        model = tuner._build_hypermodel(hp)
-        num_parameters = layer_utils.count_params(model.trainable_weights)
+
+        tuner.hypermodel.set_fit_args(validation_split, epochs=epochs)
+
+        build_for_trial=False
+        if build_for_trial:
+            tuner._prepare_model_build(hp, x=dataset)
+            model = tuner._build_hypermodel(hp)
+            num_parameters = layer_utils.count_params(model.trainable_weights)
+        else:
+            num_parameters=0
 
         list_acc.append(score)
         list_num_para.append(num_parameters)
+        list_hp.append(hp.values)
 
-        print("{:} - # of para: {:.3e}, acc: {:.2f}".format(key, num_parameters, score * 100))
+        best_s_count = trial.metrics.metrics['best_s_count']._observations[0].value[0]
+        print(hp.values)
+        print("{:} - # of para: {:.3e}, acc: {:.2f}, best_s_count: {:.0f}".format(key, num_parameters, score * 100,best_s_count))
+        print("")
 
 
     #df = pd.DataFrame()
