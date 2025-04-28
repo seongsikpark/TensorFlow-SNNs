@@ -16,7 +16,7 @@ conf = config.flags
 
 ##### training setting #####
 # conf.debug_mode = True
-#conf.verbose_snn_train = True
+# conf.verbose_snn_train = True
 conf.save_best_model_only = True
 conf.save_models_max_to_keep = 1
 ##########
@@ -66,34 +66,82 @@ conf.rand_erase_en = True
 ##########
 
 ##### surrogate function setting #####
-#conf.fire_surro_grad_func = 'boxcar'
+conf.fire_surro_grad_func = 'boxcar'
 # conf.fire_surro_grad_func = 'asym'
-# conf.fire_surro_grad_func = 'cpng_tri'
-# conf.fire_surro_grad_func = 'cpng_asy'
-conf.fire_surro_grad_func = 'predictiveness_asy'
+# conf.fire_surro_grad_func = 'predictiveness_asy'
+# conf.fire_surro_grad_func = 'predictiveness_asy_timestep'
+# conf.fire_surro_grad_func = 'predictiveness_asy_all_timestep'
+# conf.fire_surro_grad_func = 'predictiveness_asy_all_timestep_0418'
 
-conf.surro_grad_alpha = 1
-#conf.surro_grad_beth =
+if conf.fire_surro_grad_func == 'predictiveness_asy':
+    conf.surro_grad_beth = 1.0
+    conf.find_beta_low = 1.0
+    conf.find_beta_high = 10.0
+    conf.similarity_alpha = 1.0
+    conf.ema_lambda = 0.0
+    conf.train_beta_candidate_number = 50
+    conf.test_beta_candidate_number = 200
+    conf.accumulate_gradient_iteration = 500
+elif conf.fire_surro_grad_func == 'predictiveness_asy_timestep':
+    conf.surro_grad_beth = 1.0
+    conf.find_beta_low = 1.0
+    conf.find_beta_high = 10.0
+    conf.similarity_alpha = 1.0
+    conf.train_beta_candidate_number = 30
+    conf.test_beta_candidate_number = 100
+elif conf.fire_surro_grad_func == 'predictiveness_asy_all_timestep':
+    conf.surro_grad_beth = 1.0
+    conf.find_beta_low = 1.0
+    conf.find_beta_high = 10.0
+    conf.similarity_alpha = 0.5
+    conf.train_beta_candidate_number = 30
+    conf.test_beta_candidate_number = 100
+elif conf.fire_surro_grad_func == 'predictiveness_asy_all_timestep_0418':
+    conf.surro_grad_beth = 1.0
+    conf.find_beta_low = 1.0
+    conf.find_beta_high = 10.0
+    conf.similarity_alpha = 1.0
+    conf.train_beta_candidate_number = 30
+    conf.test_beta_candidate_number = 100
+elif conf.fire_surro_grad_func == 'cpng_tri':
+    conf.chi_limit = 0.2
+    conf.find_beta_low = 1.0
+    conf.find_beta_high = 10.0
+else :
+    conf.surro_grad_alpha = 1.6
+    conf.accumulate_gradient_iteration = 500
 
-##### CPNG setting #####
-# conf.chi_limit = 0.2
-conf.find_beta_low = 0.5
-conf.find_beta_high = 2.0
-##########
-
+conf.debug_grad = True
 # conf.debug_surro_grad = True
-# conf.debug_surro_grad_per_iter = 100
+# conf.debug_surro_grad_per_iter = 500
 
 ##### model save setting #####
-# conf.root_model_save = f'./model_ckpt/{conf.fire_surro_grad_func}_{conf.surro_grad_alpha}_extent=1/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
+# conf.root_model_save = f'./model_ckpt_1/{conf.fire_surro_grad_func}_sim_{conf.similarity_alpha}_{conf.surro_grad_beth}_accumulate_gradient_5epoch'
+conf.root_model_save = f'./model_ckpt_1/{conf.fire_surro_grad_func}_{conf.surro_grad_alpha}_weight_size'
 # conf.root_model_save = f'./model_ckpt/{conf.fire_surro_grad_func}_alpha={conf.surro_grad_alpha}/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
 # conf.root_model_save = f'./model_ckpt_2/warmup={conf.learning_rate_init} to {conf.learning_rate}, weight_decay={conf.weight_decay_AdamW}'
-conf.root_model_save = f'./model_ckpt_test/'
+# conf.root_model_save = f'./model_ckpt_test/'
+# conf.root_model_save = f'./model_ckpt_distribution/{conf.fire_surro_grad_func}_{conf.surro_grad_alpha}_peak_change/'
 ##########
-
+# conf.exp_set_name = 'cosine_similarity_0414'
+# conf.exp_set_name = '0421'
+# conf.exp_set_name = 'predictiveness_asy_timestep'
+# conf.exp_set_name = 'predictiveness_asy_all_timestep'
+# conf.exp_set_name = 'NeurIPS_2025_predictiveness_asy'
+conf.exp_set_name = 'NeurIPS_2025_weight_size'
 # conf.exp_set_name='surro_grad_new'
+# conf.exp_set_name='confirm_0402'
 # conf.exp_set_name='CPNG'
-conf.exp_set_name='test'
+# conf.exp_set_name='Predictiveness'
+# conf.exp_set_name='Predictiveness_0324'
+# conf.exp_set_name='Predictiveness_0402'
+# conf.exp_set_name='test'
+# conf.exp_set_name='Predictiveness'
+# conf.exp_set_name='distribution'
+# conf.exp_set_name='adaptive_boxcar'
+# conf.exp_set_name='adaptive_asy'
+# conf.exp_set_name = 'younguk_convergencerate'
+
 
 ##### Loss setting #####
 # conf.rmp_en = 'True'
@@ -118,6 +166,9 @@ conf.SEL_model_dataset = 'V16_C10'
 # conf.SEL_model_dataset = 'R19_C10'
 # conf.SEL_model_dataset = 'R19_C100'
 # conf.SEL_model_dataset = 'R19_DVS'
+
+###### MS ResNet19
+# conf.SEL_model_dataset = 'MS_R19_C10'
 
 ###### ResNet20
 # conf.SEL_model_dataset = 'R20_C10'
@@ -175,6 +226,13 @@ elif conf.SEL_model_dataset == 'VSNN_DVS':
     conf.reg_psp_SEL_BN_ratio_rate = 1e-2  # 1e-3
 elif conf.SEL_model_dataset == 'R19_C10':
     conf.model='ResNet19'
+    conf.dataset = 'CIFAR10'
+    conf.adaptive_dec_vth_scale = 0.8 # not fix
+    conf.reg_psp_SEL_const = 5e-6
+    conf.reg_psp_SEL_BN_ratio_value = -1.5
+    conf.reg_psp_SEL_BN_ratio_rate = 1e-4
+elif conf.SEL_model_dataset == 'MS_R19_C10':
+    conf.model='ResNet19_MS'
     conf.dataset = 'CIFAR10'
     conf.adaptive_dec_vth_scale = 0.8 # not fix
     conf.reg_psp_SEL_const = 5e-6

@@ -59,6 +59,12 @@ if conf.model == 'VGG16' :
 
 class Model(tf.keras.Model):
     count=0
+    convergence_rate_dict_init = {}
+    convergence_rate_dict_epoch = {}
+    convergence_rate_dict_fin = {}
+    # younguk
+    count_iter=0
+    count_epoch=1
     def __init__(self, inputs, outputs, batch_size, input_shape, num_class_legacy=None, conf_legacy=None, **kwargs):
     #def __init__(self, batch_size, input_shape, data_format, num_class, conf, **kwargs):
 
@@ -438,7 +444,6 @@ class Model(tf.keras.Model):
         self.h_lab_tot_glb=[0]*10
 
         if conf.debug_grad:
-        #if False:
             self.writer = tf.summary.create_file_writer(config.path_tensorboard)
 
 
@@ -2053,6 +2058,74 @@ class Model(tf.keras.Model):
                     else:
                         assert False, 'compute gradients'
 
+                # # younguk
+                # layer_names = ["predictions/kernel:0", "fc2/kernel:0", "fc1/kernel:0", "conv5_2/kernel:0",
+                #                "conv5_1/kernel:0", "conv5/kernel:0", "conv4_2/kernel:0", "conv4_1/kernel:0",
+                #                "conv4/kernel:0", "conv3_2/kernel:0", "conv3_1/kernel:0", "conv3/kernel:0",
+                #                "conv2_1/kernel:0", "conv2/kernel:0", "conv1_1/kernel:0", "conv1/kernel:0"]
+                #
+                # ############################################################layer_convergence_rate################young
+                # train_step_epoch = 1 + (self._train_counter // 500)
+                #
+                # def deep_copy_tf_dict(source_dict):
+                #     return {key: tf.Variable(var.read_value()) for key, var in source_dict.items()}
+                #
+                # def measure_convergence_rate(weight_dict, dict_init, layernames, t1, t2, dict_fin):
+                #     results = {}
+                #     for ln in layernames:
+                #         theta_star = dict_fin[ln]
+                #         theta_t1 = weight_dict[t1][ln]
+                #         theta_t2 = weight_dict[t2][ln]
+                #         theta_init = dict_init[ln]
+                #         norm_t1 = tf.norm(theta_t1 - theta_star, ord=2)
+                #         norm_t2 = tf.norm(theta_t2 - theta_star, ord=2)
+                #         norm_init = tf.norm(theta_init - theta_star, ord=2)
+                #         # if norm_init < 1e-12:
+                #         #     continue
+                #         C_l = (1.0 / tf.cast(t2 - t1, tf.float32)) * ((norm_t1 - norm_t2) / norm_init)
+                #
+                #         results[ln] = C_l
+                #     return results
+                #
+                # if Model.count_iter % 500 == 1:
+                #
+                #     if train_step_epoch == 1:  ##save initial weight
+                #         convergence_rate_dict_init = {}
+                #         for (g, v) in grads_accum_and_vars:
+                #             if v.name in layer_names:
+                #                 convergence_rate_dict_init[v.name] = v
+                #         Model.convergence_rate_dict_init = deep_copy_tf_dict(convergence_rate_dict_init)
+                #
+                #     if Model.count_epoch % 5 == 1:  ##save_weight_per_()epoch
+                #         convergence_rate_dict = {}
+                #         for (g, v) in grads_accum_and_vars:
+                #             if v.name in layer_names:
+                #                 convergence_rate_dict[v.name] = v
+                #         Model.convergence_rate_dict_epoch[Model.count_epoch] = deep_copy_tf_dict(convergence_rate_dict)
+                #
+                #     Model.count_epoch += 1
+                #
+                # if (Model.count_iter % 500 == 3) & (train_step_epoch == 310):
+                #     convergence_rate_dict_fin = {}
+                #     for (g, v) in grads_accum_and_vars:
+                #         if v.name in layer_names:
+                #             convergence_rate_dict_fin[v.name] = v
+                #     Model.convergence_rate_dict_fin = deep_copy_tf_dict(convergence_rate_dict_fin)
+                #
+                # if (Model.count_iter % 500 == 4) and (train_step_epoch == 310):
+                #     for i in range(1, 306, 5):
+                #         convergence_rate = measure_convergence_rate(Model.convergence_rate_dict_epoch,
+                #                                                     Model.convergence_rate_dict_init, layer_names, i,
+                #                                                     i + 5, Model.convergence_rate_dict_fin)
+                #         with self.writer.as_default(step=i):
+                #             for (g, v) in grads_accum_and_vars:
+                #                 if v.name in layer_names:
+                #                     tf.summary.scalar(v.name + '_convergence_rate', data=convergence_rate[v.name])
+                #                     self.writer.flush()
+                # Model.count_iter += 1
+                ###########################################################layer_convergence_rate
+
+
                 # for grad, var in grads_accum_and_vars:
                 #     print(f"Grad shape: {grad.shape}, Var shape: {var.shape,var.name}")
                 #
@@ -2064,49 +2137,32 @@ class Model(tf.keras.Model):
 
                 # print gradients
                 if conf.debug_grad:
-                #if False:
-                #if True:
-                    #print('')
-                    #print('gradients')
+                    for i, (g, v) in enumerate(grads_accum_and_vars):
+                        w = v[0]
 
-                    g_mean_list = []
-                    g_max_list = []
-                    g_min_list = []
-                    g_std_list = []
+                        def write_grad(i, w):
 
+                            w_mean = tf.reduce_mean(w)
+                            w_max = tf.reduce_max(w)
+                            w_min = tf.reduce_min(w)
+                            w_std = tf.math.reduce_std(w)
 
-                    for gv in grads_accum_and_vars:
-                        g = gv[0]
-                        v = gv[1]
-                        name = v.name
-                        g_mean = tf.reduce_mean(g)
-                        g_max = tf.reduce_max(g)
-                        g_min = tf.reduce_min(g)
-                        g_std = tf.math.reduce_std(g)
-                        #if name == 'conv1/kernel:0':
-                        #    print("{:} - mean: {:e}, max: {:e}, min: {:e}, std: {:e}".format(name, g_mean, g_max, g_min, g_std))
-                        #print("{:} - mean: {:e}, max: {:e}, min: {:e}, std: {:e}".format(name, g_mean, g_max, g_min, g_std))
+                            with self.writer.as_default(step=self._train_counter):
+                                tf.summary.scalar(f"{i}_layer_w_mean", data=w_mean)
+                                tf.summary.scalar(f"{i}_layer_w_max", data=w_max)
+                                tf.summary.scalar(f"{i}_layer_w_min", data=w_min)
+                                tf.summary.scalar(f"{i}_layer_w_std", data=w_std)
 
-                        g_mean_list.append(g_mean)
-                        g_max_list.append(g_max)
-                        g_min_list.append(g_min)
-                        g_std_list.append(g_std)
+                                self.writer.flush()
 
-                    #
-                    grad_mean_mean = tf.reduce_mean(g_mean_list)
-                    grad_mean_max = tf.reduce_mean(g_max_list)
-                    grad_mean_min = tf.reduce_mean(g_min_list)
-                    grad_mean_std = tf.reduce_mean(g_std_list)
+                        condition = tf.equal(tf.math.floormod(train_counter, 500), 0)
 
-                    with self.writer.as_default(step=self._train_counter):
-                        tf.summary.scalar('grad_mean_iter', data=grad_mean_mean)
-                        tf.summary.scalar('grad_max_iter', data=grad_mean_max)
-                        tf.summary.scalar('grad_min_iter', data=grad_mean_min)
-                        tf.summary.scalar('grad_std_iter', data=grad_mean_std)
+                        tf.cond(
+                            condition,
+                            lambda: tf.py_function(write_grad, [i, w], []),
+                            lambda: tf.no_op()
+                        )
 
-                        self.writer.flush()
-
-                #
                 #print(self._train_counter)
                 #current_step = int(self.optimizer.iterations)
                 #print(current_step)
@@ -2120,9 +2176,9 @@ class Model(tf.keras.Model):
                     #
                     #if False:
                     #if True:
-                    if self.conf.verbose_snn_train:
-
-                        self.print_snn_train(grads_accum_and_vars)
+                    # if self.conf.verbose_snn_train:
+                    #
+                    #     self.print_snn_train(grads_accum_and_vars)
 
                     #if tf.reduce_any(nan_test) or (loss > 100):
                     #if tf.reduce_any(nan_test) or (loss > 1000):

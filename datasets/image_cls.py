@@ -40,7 +40,7 @@ def load(dataset_name,batch_size,input_size,input_size_pre_crop_ratio,num_class,
     batch_size = config.batch_size
     #batch_size_inference = conf.batch_size_inf
     batch_size_inference = config.batch_size_inference
-    i24nput_size = input_size
+    input_size = input_size
     input_size_pre_crop_ratio = input_size_pre_crop_ratio
 
     if dataset_name=='imagenet':

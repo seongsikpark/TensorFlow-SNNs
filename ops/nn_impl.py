@@ -175,71 +175,71 @@ def batch_normalization(x,
 
         #if False:
         #if True:
-        if conf.verbose_snn_train:
-            print(name)
-
-            var = x
-            print('{:} - max {:.3g}, min {:.3g}, mean {:.3g}, std {:.3g}, non_zero {:.3g}'
-                  .format('x',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var),tf.math.count_nonzero(var,dtype=tf.int32)/tf.math.reduce_prod(var.shape)))
-
-            var = y_backprop
-            print('{:} - max {:.3g}, min {:.3g}, mean {:.3g}, std {:.3g}'
-                  .format('y_backprop',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var)))
-
-            var = dx
-            print('{:} - max {:.3g}, min {:.3g}, mean {:.3g}, std {:.3g}'
-                  .format('dx',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var)))
-
-            if conf.verbose_visual:
-                import lib_snn
-                from lib_snn.sim import glb_plot_gradient_bn
-                lib_snn.util.plot_hist(glb_plot_gradient_bn,dx,1000,norm_fit=True)
-
-            var = scale
-            print('{:} - max {:.3g}, min {:.3g}, mean {:.3g}, std {:.3g}'
-                  .format('scale',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var)))
-
-            var = inv
-            print('{:} - max {:.3g}, min {:.3g}, mean {:.3g}, std {:.3g}'
-                  .format('inv',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var)))
-
-            var = (y_backprop-tf.reduce_mean(y_backprop,axis=axis)-(x-mm)*tf.reduce_mean(y_backprop*(x-mm),axis=axis)/(mv+epsilon))
-            print('{:} - max {:.3g}, min {:.3g}, mean {:.3g}, std {:.3g}'
-                  .format('last',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var)))
-
-            var = (y_backprop-tf.reduce_mean(y_backprop,axis=axis))
-            print('{:} - max {:.3g}, min {:.3g}, mean {:.3g}, std {:.3g}'
-                  .format('last_1',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var)))
-
-            var = ((x-mm)*tf.reduce_mean(y_backprop*(x-mm),axis=axis)/(mv+epsilon))
-            print('{:} - max {:.3g}, min {:.3g}, mean {:.3g}, std {:.3g}'
-                  .format('last_2',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var)))
-
-            var = (1/(mv+epsilon))
-            print('{:} - max {:.3g}, min {:.3g}, mean {:.3g}, std {:.3g}'
-                  .format('last_2-1',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var)))
-
-            var = (mv)
-            print('{:} - max {:.3g}, min {:.3g}, mean {:.3g}, std {:.3g}'
-                  .format('variance',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var)))
-
-
-
-
-            #var = (x-mm)*tf.reduce_mean(y_backprop*(x-mm),axis=axis)/(mv+epsilon)
-            #print('{:} - max {:.3g}, min {:.3g}, mean {:.3g}, std {:.3g}'
-            #      .format('last_last',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var)))
-
-
-
-
-            print('doffset')
-            print(tf.reduce_max(doffset))
-
-            print('dscale')
-            print(tf.reduce_max(dscale))
-
-            print('')
+        # if conf.verbose_snn_train:
+        #     print(name)
+        #
+        #     var = x
+        #     print('{:} - max {:.3g}, min {:.3g}, mean {:.3g}, std {:.3g}, non_zero {:.3g}'
+        #           .format('x',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var),tf.math.count_nonzero(var,dtype=tf.int32)/tf.math.reduce_prod(var.shape)))
+        #
+        #     var = y_backprop
+        #     print('{:} - max {:.3g}, min {:.3g}, mean {:.3g}, std {:.3g}'
+        #           .format('y_backprop',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var)))
+        #
+        #     var = dx
+        #     print('{:} - max {:.3g}, min {:.3g}, mean {:.3g}, std {:.3g}'
+        #           .format('dx',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var)))
+        #
+        #     if conf.verbose_visual:
+        #         import lib_snn
+        #         from lib_snn.sim import glb_plot_gradient_bn
+        #         lib_snn.util.plot_hist(glb_plot_gradient_bn,dx,1000,norm_fit=True)
+        #
+        #     var = scale
+        #     print('{:} - max {:.3g}, min {:.3g}, mean {:.3g}, std {:.3g}'
+        #           .format('scale',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var)))
+        #
+        #     var = inv
+        #     print('{:} - max {:.3g}, min {:.3g}, mean {:.3g}, std {:.3g}'
+        #           .format('inv',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var)))
+        #
+        #     var = (y_backprop-tf.reduce_mean(y_backprop,axis=axis)-(x-mm)*tf.reduce_mean(y_backprop*(x-mm),axis=axis)/(mv+epsilon))
+        #     print('{:} - max {:.3g}, min {:.3g}, mean {:.3g}, std {:.3g}'
+        #           .format('last',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var)))
+        #
+        #     var = (y_backprop-tf.reduce_mean(y_backprop,axis=axis))
+        #     print('{:} - max {:.3g}, min {:.3g}, mean {:.3g}, std {:.3g}'
+        #           .format('last_1',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var)))
+        #
+        #     var = ((x-mm)*tf.reduce_mean(y_backprop*(x-mm),axis=axis)/(mv+epsilon))
+        #     print('{:} - max {:.3g}, min {:.3g}, mean {:.3g}, std {:.3g}'
+        #           .format('last_2',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var)))
+        #
+        #     var = (1/(mv+epsilon))
+        #     print('{:} - max {:.3g}, min {:.3g}, mean {:.3g}, std {:.3g}'
+        #           .format('last_2-1',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var)))
+        #
+        #     var = (mv)
+        #     print('{:} - max {:.3g}, min {:.3g}, mean {:.3g}, std {:.3g}'
+        #           .format('variance',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var)))
+        #
+        #
+        #
+        #
+        #     #var = (x-mm)*tf.reduce_mean(y_backprop*(x-mm),axis=axis)/(mv+epsilon)
+        #     #print('{:} - max {:.3g}, min {:.3g}, mean {:.3g}, std {:.3g}'
+        #     #      .format('last_last',tf.reduce_max(var),tf.reduce_min(var),tf.reduce_mean(var),tf.math.reduce_std(var)))
+        #
+        #
+        #
+        #
+        #     print('doffset')
+        #     print(tf.reduce_max(doffset))
+        #
+        #     print('dscale')
+        #     print(tf.reduce_max(dscale))
+        #
+        #     print('')
 
 
 

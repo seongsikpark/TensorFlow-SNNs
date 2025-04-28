@@ -916,8 +916,17 @@ flags.DEFINE_integer('debug_surro_grad_per_iter',500,'debug suurogate gradient p
 # cpng parameter
 ########################################
 flags.DEFINE_float('chi_limit', 0.2, 'cpng - chi_limit')
-flags.DEFINE_float('find_beta_low', 0.5, 'cpng - find_beta_low')
-flags.DEFINE_float('find_beta_high', 2.0, 'cpng - find_beta_high')
+########################################
+# predictiveness_asy parameter
+########################################
+flags.DEFINE_integer('accumulate_gradient_iteration', 500, 'predictiveness - accumulate_gradient_iteration')
+
+flags.DEFINE_float('find_beta_low', 1.0, 'predictiveness - find_beta_low')
+flags.DEFINE_float('find_beta_high', 10.0, 'predictiveness - find_beta_high')
+flags.DEFINE_float('similarity_alpha', 0.5, 'predictiveness - similarity_alpha')
+flags.DEFINE_float('ema_lambda', 0.1, 'predictiveness - ema_lambda')
+flags.DEFINE_integer('train_beta_candidate_number', 50, 'predictiveness - train_beta_candidate_number')
+flags.DEFINE_integer('test_beta_candidate_number', 200, 'predictiveness - test_beta_candidate_number')
 
 #
 conf=flags.FLAGS
