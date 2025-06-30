@@ -92,8 +92,10 @@ max_model_size=None
 #model_path = "am/250417_rand_inhibitory_fr_tr100"  # spike count - only processing layer
 #model_path = "am/250418_rand_inhibitory_fr_tr100"
 
-
-model_path = "am/250428_inhibitory_vgg16_tr30"
+model_path = "am/250428_inhibitory_vgg16_tr10"
+model_root = "am"
+exp_set_name = "250428_inhibitory_vgg16_tr10"
+model_path = os.path.join(model_root, exp_set_name)
 
 
 train_ds, valid_ds, test_ds, train_ds_num, valid_ds_num, test_ds_num, num_class, train_steps_per_epoch = datasets.load()
@@ -215,15 +217,16 @@ filters_256 = hyperparameters.Choice("filters_256", [64, 128, 256], default=256)
 filters_512 = hyperparameters.Choice("filters_512", [64, 128, 256, 512], default=512)
 #filters = hyperparameters.Choice("filters", [64, 128, 256], default=128)
 #filters = [64, 128, 256, 512, 512]
-kernel_size= hyperparameters.Choice("kernel_size", [3,5,7], default=3)
+#kernel_size= hyperparameters.Choice("kernel_size", [3,5,7], default=3)
+kernel_size= 3
 #num_layers= hyperparameters.Choice("num_layers", [1,2,3,4,5], default=2)
 num_layers= hyperparameters.Choice("num_layers", [1,2,3], default=2)
 
 num_units= hyperparameters.Choice("num_units", [64, 128, 256, 512], default=512)
 mask_inh_r=hyperparameters.Choice("mask_inh_r", [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], default=0.0)
 
-transfer_learning=True
-#transfer_learning=False
+#transfer_learning=True
+transfer_learning=False
 
 #Train_mode = "DNN"
 Train_mode = "SNN"
@@ -404,15 +407,15 @@ else:
         pooling = conf.pooling_vgg
         input_node = akc.ImageInput()
         output_node = input_node
-        output_node = akc.ConvBlock(dropout=0, filters=filters_64, num_blocks=1, num_layers=2, separable=False,
+        output_node = akc.ConvBlock(dropout=0, kernel_size=kernel_size, filters=filters_64, num_blocks=1, num_layers=2, separable=False,
                                     pooling=pooling, use_batchnorm=True, tunable=True, name='conv1')(output_node)
-        output_node = akc.ConvBlock(dropout=0, filters=filters_128, num_blocks=1, num_layers=2, separable=False,
+        output_node = akc.ConvBlock(dropout=0, kernel_size=kernel_size, filters=filters_128, num_blocks=1, num_layers=2, separable=False,
                                     pooling=pooling, use_batchnorm=True, tunable=True, name='conv2')(output_node)
-        output_node = akc.ConvBlock(dropout=0, filters=filters_256, num_blocks=1, num_layers=3, separable=False,
+        output_node = akc.ConvBlock(dropout=0, kernel_size=kernel_size, filters=filters_256, num_blocks=1, num_layers=3, separable=False,
                                     pooling=pooling, use_batchnorm=True, tunable=True, name='conv3')(output_node)
-        output_node = akc.ConvBlock(dropout=0, filters=filters_512, num_blocks=1, num_layers=3, separable=False,
+        output_node = akc.ConvBlock(dropout=0, kernel_size=kernel_size, filters=filters_512, num_blocks=1, num_layers=3, separable=False,
                                     pooling=pooling, use_batchnorm=True, tunable=True, name='conv4')(output_node)
-        output_node = akc.ConvBlock(dropout=0, filters=filters_512, num_blocks=1, num_layers=3, separable=False,
+        output_node = akc.ConvBlock(dropout=0, kernel_size=kernel_size, filters=filters_512, num_blocks=1, num_layers=3, separable=False,
                                     pooling=pooling, use_batchnorm=True, tunable=True, name='conv5')(output_node)
         output_node = akc.Flatten()(output_node)
         output_node = akc.DenseBlock(num_units=num_units, dropout=0, num_layers=1, use_batchnorm=True, tunable=True, name='fc1')(output_node)
@@ -468,8 +471,8 @@ clf.tuner.loss = loss
 #callbacks.append(cb_libsnn)
 
 #
-f_search=True
-#f_search=False
+#f_search=True
+f_search=False
 if f_search:
     # batch_size already in dataset
     hist = clf.fit(train_data=train_ds, validation_data=valid_ds, epochs=epoch, callbacks=callbacks)
@@ -522,10 +525,19 @@ else:
 
 
     #df = pd.DataFrame()
-    df = pd.DataFrame
-    df = pd.DataFrame(list_acc)
-    df.to_excel('text_out.xlsx')
+    #df = pd.DataFrame
+    #df = pd.DataFrame(list_acc)
+    #df.to_excel('text_out.xlsx')
 
+    trials = tuner.oracle.get_best_trials(max_trials)
+    data = []
+    for t in trials:
+        row={"id":t.trial_id, "acc": t.score}
+        row.update(t.hyperparameters.values)
+        data.append(row)
+
+    df = pd.DataFrame(data)
+    df.to_excel(f'results_nas_{exp_set_name}.xlsx')
 
 
 
