@@ -1,11 +1,13 @@
 #
 
 from lib_snn import model
+from lib_snn import model_tb
 from lib_snn import layers
 
 from lib_snn import activations
 
 from lib_snn import neurons
+from lib_snn import neurons_tb
 
 from lib_snn import utils
 from lib_snn import utils_vis

@@ -176,6 +176,7 @@ class BatchNormalizationBase(Layer):
                  renorm_clipping=None,
                  renorm_momentum=0.99,
                  fused=None,
+                 #fused=True,
                  trainable=True,
                  virtual_batch_size=None,
                  adjustment=None,

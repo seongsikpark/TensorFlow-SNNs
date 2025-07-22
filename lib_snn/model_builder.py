@@ -183,6 +183,11 @@ def model_builder(
     #img_input = tf.keras.layers.Input(shape=image_shape, batch_size=batch_size)
     #model(img_input)
 
+    # mixed precision - float16
+    if tf.keras.mixed_precision.global_policy().name == 'mixed_float16':
+        optimizer = tf.keras.mixed_precision.LossScaleOptimizer(optimizer, dynamic=True)
+
+
     #with dist_strategy.scope():
     # compile
     model.compile(optimizer=optimizer,

@@ -5,10 +5,20 @@
 
 # GPU setting
 import os
-os.environ['NCCL_P2P_DISABLE']='0'
+os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="9"
+os.environ["CUDA_VISIBLE_DEVICES"]="0"
+#os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3,4,5,6,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
+
+#
+os.environ['TF_CPP_MIN_LOG_LEVEL']='1'  # 0: show all, 1: hide info, 2: hide info&warning, 3: hide all (info, warning, error)
+
+#
+#os.environ['TF_XLA_FLAGS'] = '--tf_xla_enable_xla_devices'
+#os.environ['TF_XLA_FLAGS'] = '--tf_xla_gpu_global_jit'
+#os.environ['TF_XLA_FLGAS'] = '--vmodule=xla_compilation_cache=1'
+#os.environ['TF_XLA_FLAGS'] = '--tf_xla_auto_jit=2'
 
 
 #
@@ -18,13 +28,21 @@ conf = config.flags
 #
 #conf.debug_mode = True
 #conf.verbose_snn_train = True
+#conf.debug_grad = True
 
+
+#
+#conf.exp_set_name='EIP-SNN_detail'
+#conf.exp_set_name='EIP-SNN_sc_loss_schedule'
+conf.exp_set_name='integer_spike_test'
+
+conf.root_model_save=conf.exp_set_name
 
 #
 #conf.mode='inference'
 ##conf.batch_size_inf=100
 #conf.batch_size=400
-#conf.batch_size=300
+#conf.batch_size=200
 #conf.batch_size=180
 #conf.batch_size=120
 #conf.time_step=2
@@ -49,24 +67,21 @@ conf = config.flags
 #
 #conf.train_epoch = 10
 #conf.train_epoch = 10
-#conf.num_train_data = 10000
+#conf.num_train_data = 200
 
 #conf.model='VGG11'
-conf.model='VGG16'
+#conf.model='VGG16'
 #conf.model='ResNet18'
 #conf.model='ResNet19'
 #conf.model='ResNet20'
 #conf.model='ResNet32'
 #conf.model='ResNet20_SEW'   # spike-element-wise block
 #conf.model = 'Spikformer'
+#conf.model = 'Spikformer_tb'
 
-#conf.dataset='CIFAR100'
+conf.dataset='CIFAR100'
 #conf.dataset='ImageNet'
 #conf.dataset='CIFAR10_DVS'
-
-if conf.dataset=='CIFAR100':
-    conf.learning_rate = 1E-3
-    conf.lmb = 1E-2
 
 conf.pooling_vgg = 'avg'
 
@@ -85,7 +100,6 @@ conf.leak_const_init = 0.9
 #conf.leak_const_train = True
 
 
-conf.exp_set_name='new_daug'
 
 
 conf.optimizer = 'ADAMW'
@@ -97,19 +111,14 @@ conf.nn_mode = 'SNN'
 conf.n_init_vth = 1.0
 
 conf.train_epoch = 310
-# spikformer
-#conf.learning_rate_init = 1E-4
-#conf.learning_rate = 5E-3
-#conf.weight_decay_AdamW = 2E-2
-# VGG-C10
+#
 conf.learning_rate_init = 1E-5
 conf.learning_rate = 6E-3
 conf.weight_decay_AdamW = 2E-2
-# VGG-C100
-#conf.learning_rate_init = 1E-5
-#conf.learning_rate = 6E-3
+# spikformer - C10
+#conf.learning_rate_init = 1E-4
+#conf.learning_rate = 5E-3
 #conf.weight_decay_AdamW = 2E-2
-
 
 conf.batch_size = 100
 conf.label_smoothing=0.1
@@ -129,16 +138,25 @@ conf.randaug_rate = 0.5
 
 conf.rand_erase_en = True
 
+# integer spike - test
+#conf.binary_spike = False
+#conf.integer_spike = True
+#conf.time_step=1
 
+conf.learning_rate_init = 1E-5
+conf.learning_rate = 6E-3
+conf.weight_decay_AdamW = 2E-2
+
+#
 
 
 #
 if False:
 #if True:
-    if True:
+    if True:    # proposed method
     #if False:
         conf.reg_spike_out=True
-        conf.reg_spike_out_const=5E-7
+        conf.reg_spike_out_const=7E-6
         conf.reg_spike_out_alpha=4  # temperature
         #conf.reg_spike_rate_alpha=8E-1  # coefficient of reg. rate
         conf.reg_spike_out_sc=True
@@ -152,33 +170,18 @@ if False:
         #
         #conf.reg_spike_out_sc_sm_wo_tmp=True
         #conf.reg_spike_out_sc_sm_wo_spa=True
-
-
-
-        #
-        #conf.reg_psp=True
-        conf.reg_psp_const=1E-3
-        conf.reg_psp_eps=1E-10
-        conf.reg_psp_min=True
-    else:
-        conf.reg_spike_out=True
-        conf.reg_spike_out_const=1E-6
-        conf.reg_spike_out_alpha=4
-        #conf.reg_spike_out_sc=True
+    else:   # previous work
+        conf.reg_spike_out = True
+        conf.reg_spike_out_const = 7E-6
+        conf.reg_spike_out_alpha = 4  # temperature
+        # conf.reg_spike_rate_alpha=8E-1  # coefficient of reg. rate
+        #conf.reg_spike_out_sc = True
         #conf.reg_spike_out_sc_wta=False
-        #conf.reg_spike_out_sc_train=True
-        #conf.reg_spike_out_sc_sm=True
-        #conf.reg_spike_out_sc_sq=True
-        conf.reg_spike_out_norm=True
-
-
-#
-#conf.grad_clipnorm = 3.0
-#conf.grad_clipnorm = 1.0
-
-#
-#conf.en_stdp_pathway = True
-conf.stdp_pathway_weight = 0.1
+        # conf.reg_spike_out_sc_train=True
+        #conf.reg_spike_out_sc_sm = True
+        # conf.reg_spike_out_sc_sq=True
+        conf.reg_spike_out_norm = True
+        #conf.reg_spike_out_norm_sq=True
 
 #
 config.set()

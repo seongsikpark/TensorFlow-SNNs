@@ -107,7 +107,7 @@ def VGG16(
     tdbn = conf.nn_mode=='SNN' and conf.tdbn
 
     #
-    img_input = tf.keras.layers.Input(shape=input_shape, batch_size=batch_size)
+    img_input = tf.keras.layers.Input(shape=input_shape, batch_size=batch_size, dtype=tf.float32)
     # x = img_input
     input = lib_snn.layers.InputGenLayer(name='in')(img_input)
     if conf.nn_mode=='SNN':
@@ -118,15 +118,16 @@ def VGG16(
     #syn_c1 = lib_snn.layers.Conv2D(channels, 3, padding='SAME', use_bn=use_bn_feat, kernel_initializer=k_init, name='conv1')(input)
     syn_c1 = lib_snn.layers.Conv2D(channels, 3, padding='SAME', kernel_initializer=k_init, name='conv1')(input)
     if use_bn_feat:
-        norm_c1 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='bn_conv1')(syn_c1)
+        norm_c1 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,dtype=tf.float32,name='bn_conv1')(syn_c1)
     else:
         norm_c1 = syn_c1
     a_c1 = lib_snn.activations.Activation(act_type=act_type,name='n_conv1')(norm_c1)
     a_d_c1 = tf.keras.layers.Dropout(dropout_conv_r[0], name='conv1_do')(a_c1)
+    #a_d_c1 = tf.keras.layers.Dropout(dropout_conv_r[0], dtype=tf.float32, name='conv1_do')(a_c1)
     #x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv1_1')(x)
     syn_c1_1 = lib_snn.layers.Conv2D(channels, 3, padding='SAME', kernel_initializer=k_init, name='conv1_1')(a_d_c1)
     if use_bn_feat:
-        norm_c1_1 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='bn_conv1_1')(syn_c1_1)
+        norm_c1_1 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,dtype=tf.float32,name='bn_conv1_1')(syn_c1_1)
     else:
         norm_c1_1 = syn_c1_1
     a_c1_1 = lib_snn.activations.Activation(act_type=act_type,name='n_conv1_1')(norm_c1_1)
@@ -141,15 +142,16 @@ def VGG16(
     #x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv2')(x)
     syn_c2 = lib_snn.layers.Conv2D(channels, 3, padding='SAME', kernel_initializer=k_init, name='conv2')(a_p_c1_1)
     if use_bn_feat:
-        norm_c2 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='bn_conv2')(syn_c2)
+        norm_c2 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,dtype=tf.float32,name='bn_conv2')(syn_c2)
     else:
         norm_c2 = syn_c2
     a_c2 = lib_snn.activations.Activation(act_type=act_type,name='n_conv2')(norm_c2)
     a_d_c2 = tf.keras.layers.Dropout(dropout_conv_r[0], name='conv2_do')(a_c2)
+    #a_d_c2 = tf.keras.layers.Dropout(dropout_conv_r[0], dtype=tf.float32, name='conv2_do')(a_c2)
     #x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv2_1')(x)
     syn_c2_1 = lib_snn.layers.Conv2D(channels, 3, padding='SAME', kernel_initializer=k_init, name='conv2_1')(a_d_c2)
     if use_bn_feat:
-        norm_c2_1 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='bn_conv2_1')(syn_c2_1)
+        norm_c2_1 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,dtype=tf.float32,name='bn_conv2_1')(syn_c2_1)
     else:
         norm_c2_1 = syn_c2_1
     a_c2_1 = lib_snn.activations.Activation(act_type=act_type,name='n_conv2_1')(norm_c2_1)
@@ -163,23 +165,25 @@ def VGG16(
     #x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv3')(x)
     syn_c3 = lib_snn.layers.Conv2D(channels, 3, padding='SAME', kernel_initializer=k_init, name='conv3')(a_p_c2_1)
     if use_bn_feat:
-        norm_c3 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='bn_conv3')(syn_c3)
+        norm_c3 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,dtype=tf.float32,name='bn_conv3')(syn_c3)
     else:
         norm_c3 = syn_c3
     a_c3 = lib_snn.activations.Activation(act_type=act_type,name='n_conv3')(norm_c3)
     a_d_c3 = tf.keras.layers.Dropout(dropout_conv_r[1], name='conv3_do')(a_c3)
+    #a_d_c3 = tf.keras.layers.Dropout(dropout_conv_r[1], dtype=tf.float32, name='conv3_do')(a_c3)
     #x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv3_1')(x)
     syn_c3_1 = lib_snn.layers.Conv2D(channels, 3, padding='SAME', kernel_initializer=k_init, name='conv3_1')(a_d_c3)
     if use_bn_feat:
-        norm_c3_1 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='bn_conv3_1')(syn_c3_1)
+        norm_c3_1 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,dtype=tf.float32,name='bn_conv3_1')(syn_c3_1)
     else:
         norm_c3_1 = syn_c3_1
     a_c3_1 = lib_snn.activations.Activation(act_type=act_type,name='n_conv3_1')(norm_c3_1)
     a_d_c3_1 = tf.keras.layers.Dropout(dropout_conv_r[1], name='conv3_1_do')(a_c3_1)
+    #a_d_c3_1 = tf.keras.layers.Dropout(dropout_conv_r[1], dtype=tf.float32, name='conv3_1_do')(a_c3_1)
     #x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv3_2')(x)
     syn_c3_2 = lib_snn.layers.Conv2D(channels, 3, padding='SAME', kernel_initializer=k_init, name='conv3_2')(a_d_c3_1)
     if use_bn_feat:
-        norm_c3_2 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='bn_conv3_2')(syn_c3_2)
+        norm_c3_2 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,dtype=tf.float32,name='bn_conv3_2')(syn_c3_2)
     else:
         norm_c3_2 = syn_c3_2
     a_c3_2 = lib_snn.activations.Activation(act_type=act_type,name='n_conv3_2')(norm_c3_2)
@@ -193,23 +197,25 @@ def VGG16(
     #x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv4')(x)
     syn_c4 = lib_snn.layers.Conv2D(channels, 3, padding='SAME', kernel_initializer=k_init, name='conv4')(a_p_c3_2)
     if use_bn_feat:
-        norm_c4 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='bn_conv4')(syn_c4)
+        norm_c4 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,dtype=tf.float32,name='bn_conv4')(syn_c4)
     else:
         norm_c4 = syn_c4
     a_c4 = lib_snn.activations.Activation(act_type=act_type,name='n_conv4')(norm_c4)
     a_d_c4 = tf.keras.layers.Dropout(dropout_conv_r[1], name='conv4_do')(a_c4)
+    #a_d_c4 = tf.keras.layers.Dropout(dropout_conv_r[1], dtype=tf.float32, name='conv4_do')(a_c4)
     #x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv4_1')(x)
     syn_c4_1 = lib_snn.layers.Conv2D(channels, 3, padding='SAME', kernel_initializer=k_init, name='conv4_1')(a_d_c4)
     if use_bn_feat:
-        norm_c4_1 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='bn_conv4_1')(syn_c4_1)
+        norm_c4_1 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,dtype=tf.float32,name='bn_conv4_1')(syn_c4_1)
     else:
         norm_c4_1 = syn_c4_1
     a_c4_1 = lib_snn.activations.Activation(act_type=act_type,name='n_conv4_1')(norm_c4_1)
     a_d_c4_1 = tf.keras.layers.Dropout(dropout_conv_r[1], name='conv4_1_do')(a_c4_1)
+    #a_d_c4_1 = tf.keras.layers.Dropout(dropout_conv_r[1], dtype=tf.float32, name='conv4_1_do')(a_c4_1)
     #x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv4_2')(x)
     syn_c4_2 = lib_snn.layers.Conv2D(channels, 3, padding='SAME', kernel_initializer=k_init, name='conv4_2')(a_d_c4_1)
     if use_bn_feat:
-        norm_c4_2 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='bn_conv4_2')(syn_c4_2)
+        norm_c4_2 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,dtype=tf.float32,name='bn_conv4_2')(syn_c4_2)
     else:
         norm_c4_2 = syn_c4_2
     a_c4_2 = lib_snn.activations.Activation(act_type=act_type,name='n_conv4_2')(norm_c4_2)
@@ -223,7 +229,7 @@ def VGG16(
     #x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv5')(x)
     syn_c5 = lib_snn.layers.Conv2D(channels, 3, padding='SAME', kernel_initializer=k_init, name='conv5')(a_p_c4_2)
     if use_bn_feat:
-        norm_c5 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='bn_conv5')(syn_c5)
+        norm_c5 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,dtype=tf.float32,name='bn_conv5')(syn_c5)
     else:
         norm_c5 = syn_c5
     a_c5 = lib_snn.activations.Activation(act_type=act_type,name='n_conv5')(norm_c5)
@@ -231,7 +237,7 @@ def VGG16(
     #x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv5_1')(x)
     syn_c5_1 = lib_snn.layers.Conv2D(channels, 3, padding='SAME', kernel_initializer=k_init, name='conv5_1')(a_d_c5)
     if use_bn_feat:
-        norm_c5_1 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='bn_conv5_1')(syn_c5_1)
+        norm_c5_1 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,dtype=tf.float32,name='bn_conv5_1')(syn_c5_1)
     else:
         norm_c5_1 = syn_c5_1
     a_c5_1 = lib_snn.activations.Activation(act_type=act_type,name='n_conv5_1')(norm_c5_1)
@@ -239,7 +245,7 @@ def VGG16(
     #x = lib_snn.layers.Conv2D(channels, 3, padding='SAME', activation=act_relu, use_bn=use_bn_feat, kernel_initializer=k_init, name='conv5_2')(x)
     syn_c5_2 = lib_snn.layers.Conv2D(channels, 3, padding='SAME', kernel_initializer=k_init, name='conv5_2')(a_d_c5_1)
     if use_bn_feat:
-        norm_c5_2 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='bn_conv5_2')(syn_c5_2)
+        norm_c5_2 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,dtype=tf.float32,name='bn_conv5_2')(syn_c5_2)
     else:
         norm_c5_2 = syn_c5_2
     a_c5_2 = lib_snn.activations.Activation(act_type=act_type,name='n_conv5_2')(norm_c5_2)
@@ -255,7 +261,7 @@ def VGG16(
     #x = lib_snn.layers.Dense(n_dim_cls, activation=act_relu, use_bn=use_bn_cls, kernel_initializer=k_init, naimg_input, a_p, batch_size, input_shape,  classes, conf, name=model_nameme='fc1')(x)
     syn_fc1 = lib_snn.layers.Dense(n_dim_cls, kernel_initializer=k_init, name='fc1')(a_d_c5_2_f)
     if use_bn_cls:
-        norm_fc1 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='bn_fc1')(syn_fc1)
+        norm_fc1 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,dtype=tf.float32,name='bn_fc1')(syn_fc1)
     else:
         norm_fc1 = syn_fc1
     a_fc1 = lib_snn.activations.Activation(act_type=act_type,name='n_fc1')(norm_fc1)
@@ -263,15 +269,18 @@ def VGG16(
     #x = lib_snn.layers.Dense(n_dim_cls, activation=act_relu, use_bn=use_bn_cls, kernel_initializer=k_init, name='fc2')(x)
     syn_fc2 = lib_snn.layers.Dense(n_dim_cls, kernel_initializer=k_init, name='fc2')(a_d_fc1)
     if use_bn_cls:
-        norm_fc2 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,name='bn_fc2')(syn_fc2)
+        norm_fc2 = lib_snn.layers.BatchNormalization(en_tdbn=tdbn,dtype=tf.float32,name='bn_fc2')(syn_fc2)
     else:
         norm_fc2 = syn_fc2
     a_fc2 = lib_snn.activations.Activation(act_type=act_type,name='n_fc2')(norm_fc2)
     a_d_fc2 = tf.keras.layers.Dropout(dropout_conv_r[2], name='fc2_do')(a_fc2)
     #x = lib_snn.layers.Dense(classes, activation=act_sm, use_bn=False, last_layer=True, kernel_initializer=k_init, name='predictions')(x)
+    #syn_p = lib_snn.layers.Dense(classes, last_layer=True, kernel_initializer=k_init, dtype=tf.float32, name='predictions')(a_d_fc2)
     syn_p = lib_snn.layers.Dense(classes, last_layer=True, kernel_initializer=k_init, name='predictions')(a_d_fc2)
+    #a_p = lib_snn.activations.Activation(act_type=act_type_out,loc='OUT',dtype=tf.float32,name='n_predictions')(syn_p)
     a_p = lib_snn.activations.Activation(act_type=act_type_out,loc='OUT',name='n_predictions')(syn_p)
     if conf.nn_mode=='SNN':
+        #a_p = lib_snn.activations.Activation(act_type='softmax',dtype=tf.float32,name='a_predictions')(a_p)
         a_p = lib_snn.activations.Activation(act_type='softmax',name='a_predictions')(a_p)
 
 

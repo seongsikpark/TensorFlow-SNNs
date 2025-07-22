@@ -263,8 +263,9 @@ def color_policy(magnitude, magnitude_stddev):
 def contrast_policy(magnitude, magnitude_stddev):
     # TODO(lukewood): should we integrate RandomContrast with `factor`?
     # RandomContrast layer errors when factor=0
+    value_range = [0.0,1.0]
     factor = max(magnitude, 0.001)
-    return {"factor": factor}
+    return {"value_range": value_range, "factor": factor}
 
 
 def brightness_policy(magnitude, magnitude_stddev):

@@ -34,8 +34,8 @@ class Neuron(tf.keras.layers.Layer):
 
         self.init_done = False
 
-        self.dim = dim
-        self.dim_wo_batch = self.dim[1:]
+        self.dim = dim[1:]      # [T, B, ...]
+        self.dim_wo_batch = self.dim[2:]
         #self.dim_one_batch = [1 , ] +dim[1:]
 
         self.n_type = n_type
@@ -373,8 +373,8 @@ class Neuron(tf.keras.layers.Layer):
     #@tf.custom_gradient
     #def call(self ,inputs ,t, training):
     # temporal batch
-    def call_tb(self, inputs, training=None):
-    #def call(self, inputs, training=None):
+    #def call_tmp_working_250304(self, inputs, training=None):
+    def call(self, inputs, training=None):
 
         if conf.verbose_snn_train:
             self.inputs_t = inputs
@@ -408,15 +408,16 @@ class Neuron(tf.keras.layers.Layer):
         vmem_prev_t = tf.zeros(shape=self.dim, dtype=self._dtype)
 
         for t in range(1, conf.time_step + 1):
-            if self.loc=='IN':
-                if conf.input_data_time_dim:  # event data
-                    _inputs = inputs[t-1]
-                else:
-                    _inputs = inputs
-            else:
-                inputs = inputs[t-1]
+            #if self.loc=='IN':
+            #    if conf.input_data_time_dim:  # event data
+            #        _inputs = inputs[t-1]
+            #    else:
+            #        _inputs = inputs
+            #else:
+            _inputs = inputs[t-1]
+            #print(_inputs)
 
-            spike, vmem = run_type[self.loc](inputs, vmem_prev_t, t, training)
+            spike, vmem = run_type[self.loc](_inputs, vmem_prev_t, t, training)
 
             vmem_prev_t = vmem
             self.out = self.out.write(t - 1, spike)
@@ -659,23 +660,11 @@ class Neuron(tf.keras.layers.Layer):
                     sc_loss = sc_loss * conf.reg_spike_out_const
 
                     self.add_loss(sc_loss)
+                    # self.add_loss(conf.reg_spike_out_const*tf.reduce_mean(self.out * (self.reg_spike_out_b-sc_norm*self.reg_spike_out_a)))
+                    # self.add_loss(conf.reg_spike_o230822ut_const * tf.reduce_mean(self.out * self.spike_count))
 
-                    if False:
-                        # default
-
-                        # sc_loss schedule
-                        train_counter = lib_snn.model.train_counter
-                        sc_loss_end_itr = 150*500
-                        sc_loss_schedule = tf.where(train_counter<sc_loss_end_itr, 1.0, 0.0)
-                        #self.add_loss(sc_loss*sc_loss_schedule)
-
-                        # layer-wise loss
-                        max_depth = 16
-                        layer_wise_rate = 1 - self.depth/max_depth
-
-                        self.add_loss(sc_loss * layer_wise_rate * sc_loss_schedule)
-
-
+                    # out_ret = self.reg_spike_out_fn(out_ret)
+                    # pass
                 else:
                     # old - previous work
                     if conf.reg_spike_out_norm:
@@ -758,7 +747,7 @@ class Neuron(tf.keras.layers.Layer):
         # return out_ret, grad
         return out_ret
 
-    def call(self, inputs, training=None):
+    def call_bck_250304(self, inputs, training=None):
 
         if conf.verbose_snn_train:
             self.inputs_t = inputs
@@ -1734,6 +1723,7 @@ class Neuron(tf.keras.layers.Layer):
         return spike, vmem_fire
 
     #
+    #@tf.function(jit_compile=True)
     def leak(self,vmem, t):
 
         vmem_leak = tf.multiply(vmem, self.leak_const)
@@ -1758,6 +1748,15 @@ class Neuron(tf.keras.layers.Layer):
     #
     #@tf.function(jit_compile=True)
     def integration(self, inputs, vmem, t):
+
+        vmem_integ = self.integration_default(inputs, vmem, t)
+
+        ret = vmem_integ
+        return ret
+
+    #
+    #@tf.function(jit_compile=True)
+    def integration_bck_250305(self, inputs, vmem, t):
 
         if conf.neural_coding == "TEMPORAL":
             t_int_s = self.time_start_integ_init
@@ -2064,13 +2063,6 @@ class Neuron(tf.keras.layers.Layer):
 
         if conf.binary_spike:
             spike = tf.where(f_fire, self.fires, self.zeros)
-        elif conf.integer_spike:
-            #vmem_clip = tf.clip_by_value(vmem, 0, 4)+0.5
-            vmem_clip = tf.clip_by_value(vmem, 0, 4)+0.5
-            #spike = tf.where(f_fire, tf.math.floor(vmem_clip), self.zeros)
-            spike = tf.math.floor(vmem_clip)
-            #spike = spike/4
-            spike = spike/5 # considering leakage of LIF
         else:
             spike = tf.where(f_fire, vth, self.zeros)
 
@@ -2086,25 +2078,14 @@ class Neuron(tf.keras.layers.Layer):
 
             # boxcar
             if conf.fire_surro_grad_func=='boxcar':
-                if conf.integer_spike:
-                    width_h = conf.surro_grad_alpha
-                    cond_lower = tf.math.greater_equal(vmem, 0)
-                    cond_upper = tf.math.less_equal(vmem, 4)
-                    cond = tf.math.logical_and(cond_lower, cond_upper)
-                    #h = tf.constant(1 / (2 * width_h), shape=cond.shape, dtype=vmem.dtype)
-                    h = tf.ones(cond.shape, dtype=vmem.dtype)
-                    # du_do = tf.where(cond,tf.ones(cond.shape),tf.zeros(cond.shape))
-                    du_do = tf.where(cond, h, tf.zeros(cond.shape, dtype=vmem.dtype))
-                    # du_do = tf.where(cond,vmem-vth+a,tf.zeros(cond.shape))
-                else:
-                    width_h = conf.surro_grad_alpha
-                    cond_lower=tf.math.greater_equal(vmem,vth-width_h)
-                    cond_upper=tf.math.less_equal(vmem,vth+width_h)
-                    cond = tf.math.logical_and(cond_lower,cond_upper)
-                    h = tf.constant(1/(2*width_h),shape=cond.shape,dtype=vmem.dtype)
-                    #du_do = tf.where(cond,tf.ones(cond.shape),tf.zeros(cond.shape))
-                    du_do = tf.where(cond,h,tf.zeros(cond.shape,dtype=vmem.dtype))
-                    #du_do = tf.where(cond,vmem-vth+a,tf.zeros(cond.shape))
+                width_h = conf.surro_grad_alpha
+                cond_lower=tf.math.greater_equal(vmem,vth-width_h)
+                cond_upper=tf.math.less_equal(vmem,vth+width_h)
+                cond = tf.math.logical_and(cond_lower,cond_upper)
+                h = tf.constant(1/(2*width_h),shape=cond.shape,dtype=vmem.dtype)
+                #du_do = tf.where(cond,tf.ones(cond.shape),tf.zeros(cond.shape))
+                du_do = tf.where(cond,h,tf.zeros(cond.shape,dtype=vmem.dtype))
+                #du_do = tf.where(cond,vmem-vth+a,tf.zeros(cond.shape))
             elif conf.fire_surro_grad_func=='asym':
                 width_h = conf.surro_grad_alpha
                 cond_lower=tf.math.greater_equal(vmem,vth-width_h)
@@ -2646,8 +2627,8 @@ class Neuron(tf.keras.layers.Layer):
         # self.spike_count = tf.add(self.spike_count, self.out)
 
         #self.spike_count_int.assign(tf.where(self.f_fire, self.spike_count_int + 1.0, self.spike_count_int))
-        #self.spike_count.assign(tf.add(self.spike_count, spike))
-        self.spike_count.assign(tf.where(self.f_fire, self.spike_count+ 1.0, self.spike_count))
+        self.spike_count.assign(tf.add(self.spike_count, spike))
+        #self.spike_count.assign(tf.where(self.f_fire, self.spike_count+ 1.0, self.spike_count))
 
         ## here
         #print(self.spike_count)
@@ -2817,10 +2798,14 @@ class Neuron(tf.keras.layers.Layer):
 
         vmem_integ = self.integration(inputs, vmem, t)
 
-        if self.n_type=='LIF':
-            vmem_leak = self.leak(vmem_integ, t)
-        else:
-            vmem_leak = vmem_integ
+        #
+        # TODO:
+        #if self.n_type=='LIF':
+        #    vmem_leak = self.leak(vmem_integ, t)
+        #else:
+        #    vmem_leak = vmem_integ
+
+        vmem_leak = self.leak(vmem_integ, t)
 
         fire, vmem_fire = self.fire(vmem_leak,t)
 
