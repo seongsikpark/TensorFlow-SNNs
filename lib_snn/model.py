@@ -3335,11 +3335,16 @@ class Model(tf.keras.Model):
                 if node.is_input:
 
                     _input = tensor_dict[x_id][0]
+                    if conf.input_data_time_dim:  # event data
+                        _input_t_shape = _input.shape[0]+_input.shape[2:]
+                    else:
+                        _input_t_shape = _input.shape
+
                     #args, kwargs = node.map_arguments(tensor_dict)
                     layer_out = tf.TensorArray(
                         dtype=tf.float32,
                         size=self.conf.time_step,
-                        element_shape=_input.shape,
+                        element_shape=_input_t_shape,
                         clear_after_read=False,
                         tensor_array_name=tensor_array_name)
 
@@ -3349,7 +3354,7 @@ class Model(tf.keras.Model):
                             _input_t = _input[:,t-1,:,:,:]
                         else:   # static image
                             _input_t = _input
-                        layer_out = layer_out.write(t-1,_input)
+                        layer_out = layer_out.write(t-1,_input_t)
                         glb_t()
 
                     #continue  # Input tensors already exist.
