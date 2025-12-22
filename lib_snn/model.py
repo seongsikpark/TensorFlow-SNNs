@@ -121,8 +121,6 @@ class Model(tf.keras.Model):
         # time step for SNN
         Model.t=0
 
-
-
         # lists
         #self.list_layer_name=None
         self.list_layer=[]
@@ -591,7 +589,6 @@ class Model(tf.keras.Model):
     ###########################################################################
 
     def call(self, inputs, training=None, mask=None):
-    #def call(self, inputs, training=False, mask=None):
 
         #ret_val = self.run_mode[self.conf.nn_mode](inputs, training, self.conf.time_step, epoch)
         #ret_val = self.run_mode[self.conf.nn_mode](inputs, training)
@@ -1704,10 +1701,9 @@ class Model(tf.keras.Model):
     def train_step(self, data):
 
         ret = {
-            #'ANN': self.train_step_ann,
-            'ANN': self.train_step_snn,
-            #'ANN': self.train_step_ann if not self.conf.input_data_time_dim else self.train_step_snn,
+            'ANN': self.train_step_ann,
             'SNN': self.train_step_snn,
+            #'SNN': self.train_step_ann,
         }[self.nn_mode](data)
 
 
