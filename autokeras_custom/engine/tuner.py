@@ -230,7 +230,7 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
 
         # Train the best model use validation data.
         # Train the best model with enough number of epochs.
-        if validation_split > 0 or early_stopping_inserted:
+        if validation_split > 0:
             copied_fit_kwargs = copy.copy(fit_kwargs)
 
             # Remove early-stopping since no validation data.
@@ -258,7 +258,7 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
             copied_fit_kwargs["verbose"] = verbose
             pipeline, model, history = self.final_fit(**copied_fit_kwargs)
         else:
-            assert False
+            #assert False
             ''' original - old
             # TODO: Add return history functionality in Keras Tuner
             model = self.get_best_models()[0]
@@ -269,15 +269,20 @@ class AutoTuner(keras_tuner.engine.tuner.Tuner):
             '''
             copied_fit_kwargs = copy.copy(fit_kwargs) # train, validation data
             copied_fit_kwargs["callbacks"] = self._remove_early_stopping(callbacks)
-            # TODO: parameterized
-            copied_fit_kwargs["epochs"] = 200
+            # sspark, 251016
+            if not utils.contain_instance(copied_fit_kwargs["callbacks"], tuner_utils_custom.TunerCallback):
+                copied_fit_kwargs["callbacks"].append(tuner_utils_custom.TunerCallback(self, -1))
+
+            epochs_final = conf.train_epoch
+            #copied_fit_kwargs["epochs"] = epochs
+            copied_fit_kwargs["epochs"] = epochs_final
 
             self.hypermodel.set_fit_args(0, epochs=copied_fit_kwargs["epochs"])
             pipeline, model, history = self.final_fit(**copied_fit_kwargs)
             # sspark
             #pipeline, model, history = self.final_fit(**copied_fit_kwargs)
             #print('here')
-            #pass
+            #pas
 
 
         #if conf.nn_mode=='SNN':

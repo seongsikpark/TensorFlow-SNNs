@@ -183,6 +183,8 @@ class BatchNormalizationBase(Layer):
                  name=None,
                  **kwargs):
 
+        # 251021, sspark
+        self.f_skip_bn = kwargs.pop('f_skip_bn', False)
 
         #sspark
         self.en_tdbn = kwargs.pop('en_tdbn', False)
@@ -779,6 +781,10 @@ class BatchNormalizationBase(Layer):
         return training
 
     def call(self, inputs, training=None):
+
+        if self.f_skip_bn:
+            return inputs
+
         inputs = tf.cast(inputs, self.compute_dtype)
 
         # if test

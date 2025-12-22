@@ -15,13 +15,6 @@ os.environ["CUDA_VISIBLE_DEVICES"]="0"
 os.environ['TF_CPP_MIN_LOG_LEVEL']='1'  # 0: show all, 1: hide info, 2: hide info&warning, 3: hide all (info, warning, error)
 
 #
-#os.environ['TF_XLA_FLAGS'] = '--tf_xla_enable_xla_devices'
-#os.environ['TF_XLA_FLAGS'] = '--tf_xla_gpu_global_jit'
-#os.environ['TF_XLA_FLGAS'] = '--vmodule=xla_compilation_cache=1'
-#os.environ['TF_XLA_FLAGS'] = '--tf_xla_auto_jit=2'
-
-
-#
 from config import config
 conf = config.flags
 
@@ -35,7 +28,9 @@ conf = config.flags
 #conf.exp_set_name='EIP-SNN_detail'
 #conf.exp_set_name='EIP-SNN_sc_loss_schedule'
 #conf.exp_set_name='integer_spike_test'
-conf.exp_set_name='ASY-SNN'
+#conf.exp_set_name='ASY-SNN'
+conf.exp_set_name='EIP-SNN'
+
 
 conf.root_model_save=conf.exp_set_name
 
@@ -73,14 +68,14 @@ conf.root_model_save=conf.exp_set_name
 #conf.model='VGG11'
 #conf.model='VGG16'
 #conf.model='ResNet18'
-#conf.model='ResNet19'
+conf.model='ResNet19'
 #conf.model='ResNet20'
 #conf.model='ResNet32'
 #conf.model='ResNet20_SEW'   # spike-element-wise block
-conf.model = 'Spikformer'
+#conf.model = 'Spikformer'
 #conf.model = 'Spikformer_tb'
 
-#conf.dataset='CIFAR100'
+conf.dataset='CIFAR100'
 #conf.dataset='ImageNet'
 #conf.dataset='CIFAR10_DVS'
 
@@ -112,14 +107,41 @@ conf.nn_mode = 'SNN'
 conf.n_init_vth = 1.0
 
 conf.train_epoch = 310
+
 #
-#conf.learning_rate_init = 1E-5
-#conf.learning_rate = 6E-3
-#conf.weight_decay_AdamW = 2E-2
-# spikformer - C10
-conf.learning_rate_init = 1E-4
-conf.learning_rate = 5E-3
-conf.weight_decay_AdamW = 2E-2
+if conf.model=='VGG16':
+    if conf.dataset=='CIFAR10':
+        # VGG-C10
+        conf.learning_rate_init = 1E-5
+        conf.learning_rate = 6E-3
+        conf.weight_decay_AdamW = 2E-2
+    elif conf.dataset=='CIFAR100':
+        # VGG-C100
+        conf.learning_rate_init = 1E-5
+        conf.learning_rate = 6E-3
+        conf.weight_decay_AdamW = 2E-2
+    else:
+        assert False
+elif conf.model=='ResNet19':
+    if conf.dataset=='CIFAR10':
+        # R19-C10
+        conf.learning_rate_init = 1E-5
+        conf.learning_rate = 6E-3
+        conf.weight_decay_AdamW = 2E-2
+    elif conf.dataset=='CIFAR100':
+        # R19-C100
+        conf.learning_rate_init = 1E-4
+        conf.learning_rate = 5E-3
+        conf.weight_decay_AdamW = 4E-2
+    else:
+        assert False
+elif conf.model=='Spikformer':
+    # spikformer
+    conf.learning_rate_init = 1E-4
+    conf.learning_rate = 5E-3
+    conf.weight_decay_AdamW = 2E-2
+else:
+    assert False
 
 conf.batch_size = 100
 conf.label_smoothing=0.1
@@ -147,6 +169,20 @@ conf.rand_erase_en = True
 
 #
 
+conf.exp_set_name = conf.exp_set_name+'_asym'
+conf.fire_surro_grad_func = 'asym'
+
+if conf.fire_surro_grad_func=='asym':
+    if conf.model=='VGG16':
+        conf.surrogate_bias = 0.6
+    elif 'ResNet' in conf.model:
+        conf.surrogate_bias = 0.8
+    elif conf.model=='Spikformer':
+        conf.surrogate_bias = 0.6
+    else:
+        assert False
+
+
 
 #
 if False:
@@ -154,8 +190,8 @@ if False:
     if True:    # proposed method
     #if False:
         conf.reg_spike_out=True
-        conf.reg_spike_out_const=7E-6
-        conf.reg_spike_out_alpha=4  # temperature
+        conf.reg_spike_out_const=1E-6
+        conf.reg_spike_out_alpha=1  # temperature
         #conf.reg_spike_rate_alpha=8E-1  # coefficient of reg. rate
         conf.reg_spike_out_sc=True
         #conf.reg_spike_out_sc_wta=False
@@ -168,6 +204,19 @@ if False:
         #
         #conf.reg_spike_out_sc_sm_wo_tmp=True
         #conf.reg_spike_out_sc_sm_wo_spa=True
+
+
+        #
+        #conf.sc_loss_scd = False
+        conf.sc_loss_scd = True
+        conf.sc_loss_scd_st_ep = 200
+        conf.sc_loss_scd_end_ep = 300
+        #conf.sc_loss_layer_wise = False
+
+        conf.exp_set_name = conf.exp_set_name+'_asym'
+        conf.fire_surro_grad_func = 'asym'
+
+
     else:   # previous work
         conf.reg_spike_out = True
         conf.reg_spike_out_const = 7E-6

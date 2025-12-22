@@ -126,7 +126,7 @@ def model_builder(
         learning_rate = lib_snn.optimizers.LRSchedule_step(learning_rate, train_steps_per_epoch * step_decay_epoch, 0.1)
     elif lr_schedule == 'STEP_WUP':
         learning_rate = lib_snn.optimizers.LRSchedule_step_wup(learning_rate, train_steps_per_epoch * 100, 0.1,
-                                                               train_steps_per_epoch * 30)
+                                                               train_steps_per_epoch * conf.warmup_epoch)
     else:
         #assert False
         pass

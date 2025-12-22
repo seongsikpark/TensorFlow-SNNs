@@ -1241,12 +1241,39 @@ class Neuron(tf.keras.layers.Layer):
                         sc_loss = tf.reduce_mean(sc_loss)
                     sc_loss = sc_loss*conf.reg_spike_out_const
 
-                    self.add_loss(sc_loss)
                     #self.add_loss(conf.reg_spike_out_const*tf.reduce_mean(self.out * (self.reg_spike_out_b-sc_norm*self.reg_spike_out_a)))
                     #self.add_loss(conf.reg_spike_o230822ut_const * tf.reduce_mean(self.out * self.spike_count))
 
                     #out_ret = self.reg_spike_out_fn(out_ret)
                     #pass
+
+                    #self.add_loss(sc_loss)
+
+                    if conf.sc_loss_scd:
+                        # sc_loss schedule
+                        train_counter = lib_snn.model.train_counter
+                        sc_loss_st_itr = conf.sc_loss_scd_st_ep*500
+                        #sc_loss_st_itr = 100*500
+                        #sc_loss_end_itr = 300*500
+                        #sc_loss_end_itr = 200*500
+                        #sc_loss_end_itr = 100*500
+                        sc_loss_end_itr = conf.sc_loss_scd_end_ep*500
+                        #sc_loss_schedule = tf.where((train_counter>sc_loss_st_itr) and (train_counter<sc_loss_end_itr), 1.0, 0.0)
+                        sc_loss_schedule = tf.cast(train_counter/sc_loss_end_itr,tf.float32)
+                        #sc_loss_schedule = 1-tf.cast(train_counter/sc_loss_end_itr,tf.float32)
+                        sc_loss_schedule = tf.where((train_counter>sc_loss_st_itr) and (train_counter<sc_loss_end_itr), sc_loss_schedule, 0.0)
+                    else:
+                        sc_loss_schedule = 1.0
+
+                    if conf.sc_loss_layer_wise:
+                        # layer-wise loss
+                        max_depth = 16
+                        sc_loss_layer_wise_rate = 1 - self.depth/max_depth
+                    else:
+                        sc_loss_layer_wise_rate = 1.0
+
+                    self.add_loss(sc_loss * sc_loss_layer_wise_rate * sc_loss_schedule)
+
                 else:
                     # old - previous work
                     if conf.reg_spike_out_norm:
@@ -1262,6 +1289,7 @@ class Neuron(tf.keras.layers.Layer):
 
                     sc_loss = conf.reg_spike_out_const*sc_loss
                     self.add_loss(sc_loss)
+
 
         #if True:
         if False:
@@ -2110,8 +2138,9 @@ class Neuron(tf.keras.layers.Layer):
                 cond_upper=tf.math.less_equal(vmem,vth+width_h)
                 cond = tf.math.logical_and(cond_lower,cond_upper)
 
+                h = (1-conf.surrogate_bias)*vmem + (1.5*conf.surrogate_bias-0.5)
                 #h = tf.constant(1/(2*width_h),shape=cond.shape)
-                h = tf.multiply(0.5,vmem)+0.25
+                #h = tf.multiply(0.5,vmem)+0.25
                 #du_do = tf.where(cond,tf.ones(cond.shape),tf.zeros(cond.shape))
                 du_do = tf.where(cond,h,tf.zeros(cond.shape,dtype=vmem.dtype))
                 #du_do = tf.where(cond,vmem-vth+a,tf.zeros(cond.shape))
@@ -2815,13 +2844,24 @@ class Neuron(tf.keras.layers.Layer):
 
     def run_type_hid(self, inputs, vmem, t, training):
 
-        vmem_integ = self.integration(inputs, vmem, t)
-
-        if self.n_type=='LIF':
-            vmem_leak = self.leak(vmem_integ, t)
+        # leak test - 250523
+        # original
+        #if False:
+        if True:
+            vmem_integ = self.integration(inputs, vmem, t)
+            if self.n_type=='LIF':
+                vmem_leak = self.leak(vmem_integ, t)
+            else:
+                vmem_leak = vmem_integ
         else:
-            vmem_leak = vmem_integ
+            vmem_integ = vmem
+            if self.n_type == 'LIF':
+                vmem_leak = self.leak(vmem_integ, t)
+            else:
+                vmem_leak = vmem_integ
+            vmem_leak = self.integration(inputs, vmem_leak, t)
 
+        #
         fire, vmem_fire = self.fire(vmem_leak,t)
 
         return fire, vmem_fire

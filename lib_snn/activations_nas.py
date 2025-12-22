@@ -43,11 +43,6 @@ class Activation(keras.engine.base_layer.Layer):
 
     def __init__(self, act_type=None, loc='HID', vth=None, **kwargs):
 
-        #sspark, 251021
-        # inhibition mask ratio
-        self.mask_inh_r = kwargs.pop('mask_inh_r',None)
-
-        super(Activation, self).__init__(**kwargs)
         #
         #self.depth = -1
 
@@ -84,6 +79,12 @@ class Activation(keras.engine.base_layer.Layer):
 
         #self.vth = kwargs.pop('vth',None)
         self.vth = vth
+
+        # inhibition mask ratio
+        self.mask_inh_r = kwargs.pop('mask_inh_r',None)
+
+        #
+        super(Activation, self).__init__(**kwargs)
 
 
 
@@ -124,17 +125,15 @@ class Activation(keras.engine.base_layer.Layer):
         def identity_func(x):
             return x
 
-
         #
-        # sspark, 251021
         # inhibition mask {-1, 1}, shape=input_shapes
-        self.mask_inh =  None
         if self.mask_inh_r is not None:
             seed=None
             rand = tf.random.uniform(shape=self.output_shape_fixed_batch,minval=0.0,maxval=1.0,seed=seed)
             _mask_inh = tf.where(rand < self.mask_inh_r, tf.constant(-1.0,shape=self.output_shape_fixed_batch), \
-                                 tf.constant(1.0,shape=self.output_shape_fixed_batch))
+                                     tf.constant(1.0,shape=self.output_shape_fixed_batch))
             self.mask_inh = tf.Variable(_mask_inh, trainable=False)
+
 
 
         #
@@ -182,14 +181,11 @@ class Activation(keras.engine.base_layer.Layer):
             #ret = self.act(inputs, training)
             ret = self.act(inputs)
 
-
-        # sspark, 251021
-        if self.mask_inh is not None:
-            ret = tf.multiply(ret, self.mask_inh)
-
-
         if self.en_record_output:
             self.record_output_func(ret)
+
+        if self.mask_inh is not None:
+            ret = tf.multiply(ret, self.mask_inh)
 
         return ret
 

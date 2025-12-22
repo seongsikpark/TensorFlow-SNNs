@@ -62,6 +62,10 @@ class Model(tf.keras.Model):
         lmb = kwargs.pop('lmb', None)
         n_dim_classifier = kwargs.pop('n_dim_classifier', None)
 
+
+        # 251016
+        self.snn_output_processing = kwargs.pop('snn_out_proc', 'last_ts')
+
         #
         super(Model, self).__init__(inputs=inputs,outputs=outputs,**kwargs)
         #super(Model, self).__init__(**kwargs)
@@ -116,6 +120,8 @@ class Model(tf.keras.Model):
 
         # time step for SNN
         Model.t=0
+
+
 
         # lists
         #self.list_layer_name=None
@@ -585,6 +591,7 @@ class Model(tf.keras.Model):
     ###########################################################################
 
     def call(self, inputs, training=None, mask=None):
+    #def call(self, inputs, training=False, mask=None):
 
         #ret_val = self.run_mode[self.conf.nn_mode](inputs, training, self.conf.time_step, epoch)
         #ret_val = self.run_mode[self.conf.nn_mode](inputs, training)
@@ -1697,9 +1704,10 @@ class Model(tf.keras.Model):
     def train_step(self, data):
 
         ret = {
-            'ANN': self.train_step_ann,
+            #'ANN': self.train_step_ann,
+            'ANN': self.train_step_snn,
+            #'ANN': self.train_step_ann if not self.conf.input_data_time_dim else self.train_step_snn,
             'SNN': self.train_step_snn,
-            #'SNN': self.train_step_ann,
         }[self.nn_mode](data)
 
 
@@ -1775,25 +1783,26 @@ class Model(tf.keras.Model):
             self.grads_and_vars = grads_and_vars
 
 
-        if self.conf.debug_mode:
+        if False:
+            if self.conf.debug_mode:
 
-            from lib_snn.sim import glb_plot_gradient_kernel
-            from lib_snn.sim import glb_plot_gradient_gamma
-            from lib_snn.sim import glb_plot_gradient_beta
+                from lib_snn.sim import glb_plot_gradient_kernel
+                from lib_snn.sim import glb_plot_gradient_gamma
+                from lib_snn.sim import glb_plot_gradient_beta
 
-            print('\n grads')
-            for grad_accum, var in grads_and_vars:
-                print('{: <10}: - max {:.3e}, min {:.3e}, mean {:.3e}, var {:.3e}'
-                      .format(var.name,tf.reduce_max(grad_accum),tf.reduce_min(grad_accum),
-                              tf.reduce_mean(grad_accum),tf.math.reduce_variance(grad_accum)))
+                print('\n grads')
+                for grad_accum, var in grads_and_vars:
+                    print('{: <10}: - max {:.3e}, min {:.3e}, mean {:.3e}, var {:.3e}'
+                          .format(var.name,tf.reduce_max(grad_accum),tf.reduce_min(grad_accum),
+                                  tf.reduce_mean(grad_accum),tf.math.reduce_variance(grad_accum)))
 
-                if True:
-                    if 'kernel' in var.name:
-                        lib_snn.util.plot_hist(glb_plot_gradient_kernel,grad_accum,1000,norm_fit=True)
-                    elif 'gamma' in var.name:
-                        lib_snn.util.plot_hist(glb_plot_gradient_gamma,grad_accum,1000,norm_fit=True)
-                    elif 'beta' in var.name:
-                        lib_snn.util.plot_hist(glb_plot_gradient_beta,grad_accum,1000,norm_fit=True)
+                    if True:
+                        if 'kernel' in var.name:
+                            lib_snn.util.plot_hist(glb_plot_gradient_kernel,grad_accum,1000,norm_fit=True)
+                        elif 'gamma' in var.name:
+                            lib_snn.util.plot_hist(glb_plot_gradient_gamma,grad_accum,1000,norm_fit=True)
+                        elif 'beta' in var.name:
+                            lib_snn.util.plot_hist(glb_plot_gradient_beta,grad_accum,1000,norm_fit=True)
 
 
 
@@ -3343,32 +3352,53 @@ class Model(tf.keras.Model):
                 tensor_array_name='out_arr'+layer_name
                 if node.is_input:
 
+                    x = node.input_tensors[0]
+                    x_id = str(id(x))
                     _input = tensor_dict[x_id][0]
-                    #args, kwargs = node.map_arguments(tensor_dict)
+
+                    if conf.input_data_time_dim:    # event data
+                        # _input = [B,T,...]
+                        _input_one_ts_shape = _input.shape[0]+_input.shape[2:]
+                    else:
+                        _input_one_ts_shape = _input.shape
+
                     layer_out = tf.TensorArray(
                         #dtype=tf.float32,
                         #dtype=self._dtype,
                         dtype=_input.dtype,
                         size=self.conf.time_step,
-                        element_shape=_input.shape,
+                        element_shape=_input_one_ts_shape,
                         clear_after_read=False,
                         tensor_array_name=tensor_array_name)
 
                     glb_t.reset()
                     for t in range(1,self.conf.time_step+1):
                         if conf.input_data_time_dim:    # event data
-                            _input_t = _input[:,t-1,:,:,:]
+                            #_input_t = _input[:,t-1,:,:,:]
+
+                            # sspark, 251017
+                            if _input.shape.__len__() == 5:
+                                _input_t = _input[:,t-1,:,:,:]
+                            elif _input.shape.__len__() == 4:
+                                _input_t = _input[:,t-1,:,:]
+                            elif _input.shape.__len__() == 3:
+                                _input_t = _input[:,t-1,:]
+                            elif _inputs.shape.__len__() == 2:
+                                _input_t = _input[:,t-1]
+                            else:
+                                assert False
+
                         else:   # static image
                             _input_t = _input
 
                         #
                         if conf.integer_spike:
                             if t == 1:
-                                layer_out = layer_out.write(t - 1, _input)
+                                layer_out = layer_out.write(t - 1, _input_t)
                             else:
-                                layer_out = layer_out.write(t - 1, tf.zeros(_input.shape))
+                                layer_out = layer_out.write(t - 1, tf.zeros(_input_t.shape))
                         else:
-                            layer_out = layer_out.write(t-1,_input)
+                            layer_out = layer_out.write(t-1,_input_t)
                         glb_t()
 
 
@@ -3492,8 +3522,21 @@ class Model(tf.keras.Model):
             x_id = str(id(x))
             assert x_id in tensor_dict, 'Could not compute output ' + str(x)
             #output_tensors.append(tensor_dict[x_id].pop())
+            _output_tensors = tensor_dict[x_id].pop().stack()
 
-            output_tensors.append(tensor_dict[x_id].pop().read(self.conf.time_step-1))
+            if self.snn_output_processing=='last_ts':
+                output_tensors.append(_output_tensors[self.conf.time_step-1])
+            elif self.snn_output_processing=='avg':
+                output_tensors.append(tf.reduce_mean(_output_tensors,axis=0))
+            elif self.snn_output_processing=='all':
+                rank = tf.rank(_output_tensors)
+                perm = tf.concat([
+                    tf.constant([1,0],dtype=tf.int32),
+                    tf.range(2,rank,dtype=tf.int32)
+                    ], axis=0)
+                output_tensors.append(tf.transpose(_output_tensors,perm=perm))
+            else:
+                assert False
 
         return tf.nest.pack_sequence_as(self._nested_outputs, output_tensors)
 

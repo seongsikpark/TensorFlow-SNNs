@@ -249,6 +249,7 @@ flags.DEFINE_string('exp_set_name', 'experiment', 'exp set name')
 flags.DEFINE_enum('mode', 'train', ['train', 'load_and_train', 'inference'], 'run mode')
 
 
+
 #
 flags.DEFINE_bool('save_model', True, 'save trained model')
 
@@ -331,6 +332,7 @@ flags.DEFINE_enum('optimizer', 'SGD', ['SGD', 'ADAM'], 'optimizer')
 
 #
 flags.DEFINE_enum('lr_schedule', 'STEP', ['STEP', 'STEP_WUP', 'COS', 'COSR'], 'learning rate scheduler')
+flags.DEFINE_integer('warmup_ep', 30, 'warmup epoch (step_wup)')
 
 #
 flags.DEFINE_enum('train_type', 'scratch', ['scratch', 'transfer', 'finetuing'], 'training_type')
@@ -869,6 +871,8 @@ flags.DEFINE_float('vrest_std', 0.1, 'initial value of vrest - std for static ra
 
 flags.DEFINE_bool('debug_grad',False,'debug gradient - requires more memory to hold grad_and_vars')
 
+
+
 #yc
 
 flags.DEFINE_bool('n_conv1_spike_count',False,'')
@@ -917,10 +921,27 @@ flags.DEFINE_float('weight_decay_AdamW',1e-6,'weight_decay_factor')
 # surrogate gradient parameters
 ########################################
 flags.DEFINE_enum('fire_surro_grad_func', 'boxcar', ['boxcar', 'sigmoid', 'asym'], 'surrogate gardient function of fire function')
+flags.DEFINE_float('surrogate_bias', 0,'surrogate gradient bias')
 flags.DEFINE_float('surro_grad_alpha', 0.5, 'surro gradient - const alpha')
 flags.DEFINE_float('surro_grad_beth', 0.5, 'surro gradient - const beta')
 flags.DEFINE_bool('debug_surro_grad',False,'debug suurogate gradient - surrogate gradient of spike fire function')
 flags.DEFINE_integer('debug_surro_grad_per_iter',100,'debug suurogate gradient print iter')
+
+
+########################################
+# EIP-SNN
+########################################
+flags.DEFINE_bool('sc_loss_scd',False,'sc loss scheduling') #num of mlp hidden layer
+flags.DEFINE_integer('sc_loss_scd_st_ep',0,'sc loss scheduling - start epoch') #num of mlp hidden layer
+flags.DEFINE_integer('sc_loss_scd_end_ep',100,'sc loss scheduling - start epoch') #num of mlp hidden layer
+flags.DEFINE_bool('sc_loss_layer_wise',False,'sc loss scheduling') #num of mlp hidden layer
+
+
+########################################
+# SPECK
+########################################
+flags.DEFINE_bool('mode_inf_hybrid',False,'hybrid inference (GPU, SPECK)') #num of mlp hidden layer
+
 
 
 #

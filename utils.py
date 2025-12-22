@@ -1176,6 +1176,12 @@ def set_file_path(batch_size):
                 elif conf.reg_spike_out_norm_sq:
                     reg_spike_str+='-nsq'
 
+            if conf.sc_loss_scd:
+                reg_spike_str+='-scd-'+str(conf.sc_loss_scd_st_ep)+'-'+str(conf.sc_loss_scd_end_ep)
+            if conf.sc_loss_layer_wise:
+                reg_spike_str+='-lw'
+
+
             config_name += reg_spike_str+'-'+str(conf.reg_spike_out_const)+'_'+str(conf.reg_spike_out_alpha)
             #config_name += '_r-so-'+str(conf.reg_spike_out_const)+'_'+str(conf.reg_spike_out_alpha)
 

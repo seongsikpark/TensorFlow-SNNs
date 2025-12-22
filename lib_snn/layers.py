@@ -961,10 +961,13 @@ class Layer():
     def bn_fusion(self):
         self._bn_fusion(self.bn)
         self.f_skip_bn = True
+        # 251021, sspark
+        assert False, 'old'
 
     # v2
     def bn_fusion_v2(self,bn_layer):
         self._bn_fusion(bn_layer)
+        bn_layer.f_skip_bn = True
 
     def bn_defusion(self):
 
@@ -1106,12 +1109,27 @@ class InputGenLayer(Layer, tf.keras.layers.Layer):
         #self.use_bias=conf.use_bias
         #self.kernel=1           # dummy
         #self.bias=0
+        self.built_done = False
 
     def call(self, inputs, training):
         # print('input gen layer - call')
-        if conf.input_data_time_dim:
-            if inputs.shape.__len__() > 4:
-                return inputs[:,0,:,:,:]    # for model build
+        if conf.input_data_time_dim and not self.built_done:
+
+            # sspark, 251017
+            if inputs.shape.__len__() == 5:
+                ret = inputs[:,0,:,:,:]    # for model build
+            elif inputs.shape.__len__() == 4:
+                ret = inputs[:,0,:,:]    # for model build
+            elif inputs.shape.__len__() == 3:
+                ret = inputs[:,0,:]    # for model build
+            elif inputs.shape.__len__() == 2:
+                ret = inputs[:,0]    # for model build
+            else:
+                assert False
+
+            self.built_done = True
+
+            return ret
 
         #print(inputs)
         return inputs
@@ -1612,6 +1630,8 @@ class BatchNormalization(Layer, layers_new.batch_normalization.BatchNormalizatio
                  virtual_batch_size=virtual_batch_size,
                  adjustment=adjustment,
                  name=name,
+                 # 251021, sspark
+                 f_skip_bn = self.f_skip_bn,
                  **kwargs)
 
 #    def build(self, input_shape):
@@ -1625,6 +1645,17 @@ class BatchNormalization(Layer, layers_new.batch_normalization.BatchNormalizatio
 #            self.input_spec = InputSpec(ndim=self.input_spec.ndim+1,axes=self.input_spec.axes)
 
 
+
+# Concatenate
+class Concatenate(Layer, tf.keras.layers.Concatenate):
+    def __init__(self,
+                 **kwargs):
+
+        Layer.__init__(self, use_bn=False, activation=None, last_layer=False, kwargs=kwargs)
+
+        tf.keras.layers.Concatenate.__init__(
+            self,
+            **kwargs)
 
 
 ############################################################
