@@ -173,7 +173,8 @@ class Neuron(tf.keras.layers.Layer):
         if conf.debug_surro_grad:
         #if False:
             self.writer = tf.summary.create_file_writer(config.path_tensorboard)
-        self.writer = tf.summary.create_file_writer(config.path_tensorboard)
+
+
 
         #self.vth_init_const = kwargs.pop('vth_init',None)
 
@@ -259,7 +260,7 @@ class Neuron(tf.keras.layers.Layer):
 
         #self.spike_count_int = tf.Variable(initial_value=tf.zeros(self.dim, dtype=tf.float32), trainable=False, name="spike_count_int")
         #self.spike_count = tf.Variable(initial_value=tf.zeros(self.dim, dtype=tf.float32), trainable=False, name="spike_count")
-        #self.spike_count_int = tf.Variable(initial_value=tf.zeros(self.dim, dtype=self._dtype), trainable=False, name="spike_count_int")
+        self.spike_count_int = tf.Variable(initial_value=tf.zeros(self.dim, dtype=self._dtype), trainable=False, name="spike_count_int")
         self.spike_count = tf.Variable(initial_value=tf.zeros(self.dim, dtype=self._dtype), trainable=False, name="spike_count")
 
         self.f_fire = tf.Variable(initial_value=tf.constant(False,dtype=tf.bool,shape=self.dim), trainable=False, name="f_fire")
@@ -371,393 +372,9 @@ class Neuron(tf.keras.layers.Layer):
     #@tf.function
     #@tf.custom_gradient
     #def call(self ,inputs ,t, training):
-    # temporal batch
-    def call_tb(self, inputs, training=None):
-    #def call(self, inputs, training=None):
-
-        if conf.verbose_snn_train:
-            self.inputs_t = inputs
-        # t = tf.constant(glb_t.t)
-        t = glb_t.t
-
-        #
-        if conf.leak_time_dep and (self.n_type != 'OUT'):
-            # if conf.leak_time_dep:
-            self.set_leak_time_dep(t)
-
-        #
-        # vmem = self.vmem
-        #if t - 1 == 0:
-        #    # vmem_prev_t = tf.zeros(shape=self.dim,dtype=tf.float32)
-        #    vmem_prev_t = tf.zeros(shape=self.dim, dtype=self._dtype)
-        #else:
-        #    vmem_prev_t = self.vmem.read(t - 2)
-
-
-
-        # run_fwd
-        run_type = {
-            'IN': self.run_type_in,
-            # 'IF': self.run_type_if,
-            # 'LIF': self.run_type_lif,
-            'HID': self.run_type_hid,
-            'OUT': self.run_type_out
-        }
-
-        vmem_prev_t = tf.zeros(shape=self.dim, dtype=self._dtype)
-
-        for t in range(1, conf.time_step + 1):
-            if self.loc=='IN':
-                if conf.input_data_time_dim:  # event data
-                    _inputs = inputs[t-1]
-                else:
-                    _inputs = inputs
-            else:
-                inputs = inputs[t-1]
-
-            spike, vmem = run_type[self.loc](inputs, vmem_prev_t, t, training)
-
-            vmem_prev_t = vmem
-            self.out = self.out.write(t - 1, spike)
-
-            self.count_spike(t, spike)
-
-
-        if False:
-            if conf.SEL_noise_en_spike:
-                layer_name = ['n_conv1', 'conv1_conv_n']
-                if self.name in layer_name:
-                    rand_spike = tf.random.normal(self.dim, mean=0, stddev=conf.SEL_noise_std)
-                    noise_spike_mask = tf.less(tf.abs(rand_spike), conf.SEL_noise_th)
-                    noised_spike = tf.where(noise_spike_mask, tf.zeros(self.dim), self.out.read(t - 1))
-                    self.out = self.out.write(t - 1, noised_spike)
-
-            if conf.low_test:
-                layer_name = ['n_conv1', 'conv1_conv_n']
-                if self.name in layer_name:
-                    if t == 1:
-                        pass
-                    elif t == 4:
-                        small_mask = tf.less_equal(tf.reduce_sum(self.spike_count_int, axis=[1, 2]), 500)
-                        small_mask = tf.expand_dims(tf.expand_dims(small_mask, axis=1), axis=1)
-                        out_0 = tf.where(small_mask, self.zeros, self.out.read(0))
-                        out_1 = tf.where(small_mask, self.zeros, self.out.read(1))
-                        out_2 = tf.where(small_mask, self.zeros, self.out.read(2))
-                        out_3 = tf.where(small_mask, self.zeros, self.out.read(3))
-                        self.out.write(0, out_0)
-                        self.out.write(1, out_1)
-                        self.out.write(2, out_2)
-                        self.out.write(3, out_3)
-
-        #out_ret = self.out.read(t - 1)
-        out_ret = self.out.stack()
-
-        # out_ret_int = self.spike_count_int
-        out_ret_int = self.spike_count
-
-
-        #
-        if conf.f_record_first_spike_time:
-            self.record_first_spike_time(t)
-
-        # if self.depth==1:
-        # print(self.vmem)
-        # print(tf.reduce_mean(self.out))
-
-        # update vmem
-
-        #
-        # vth adjust - forward-forward?
-        # vmem
-        # self.vth.assign(tf.where(self.vmem.read(t-1) < self.vth*0.5,
-        #                         self.vth*0.9, self.vth*1.1))
-        # fire
-        # self.vth.assign(tf.where(self.f_fire, self.vth*1.1, self.vth*0.9))
-        # self.vth.assign(tf.where(self.f_fire, self.vth*1.1, self.vth/1.1))
-
-        if conf.adaptive_vth:
-            vth_step_scale = conf.adaptive_vth_scale
-            # vth = tf.where(self.f_fire, self.vth*vth_step_scale, self.vth/vth_step_scale)
-            # vth = tf.reduce_mean(vth,axis=0)
-            ##self.vth.assign(tf.where(self.f_fire, self.vth*vth_step_scale, self.vth/vth_step_scale))
-            # self.vth.assign(vth)
-
-            # vth = tf.where(self.f_fire, self.vth*0.1, self.vth/0.1)
-            # self.vth = tf.cond(self.vth==0.5, lambda: self.vth*0.1, lambda: self.vth/0.1)
-            # vth = tf.cond(True, lambda: self.vth*0.1, lambda: self.vth/0.1)
-            # vth = tf.cond(self.f_fire, self.vth*vth_step_scale, self.vth/vth_step_scale)
-            # self.vth = vth
-
-            vth = self.vth.read(t - 1)
-            # vth_update = tf.where(self.f_fire,vth*vth_step_scale,vth/vth_step_scale)
-            # vth_update = vth*0.1
-            # self.vth = self.vth.write(0,vth_update)
-            if t < conf.time_step:
-                self.vth = self.vth.write(t, vth * vth_step_scale)
-        else:
-            vth = self.vth.read(t - 1)
-            if t < conf.time_step:
-                self.vth = self.vth.write(t, vth)
-
-        if conf.reg_psp_SEL:
-            layer_name = ['n_conv1', 'conv1_conv_n']
-            if self.name in layer_name:
-                mean_SEL = tf.reduce_mean(out_ret_int)
-                std_SEL = tf.math.reduce_std(out_ret_int)
-                pdf_SEL = tfp.distributions.Normal(mean_SEL, std_SEL)
-                p_SEL = pdf_SEL.prob(out_ret_int)
-                nan_mask = tf.math.is_nan(p_SEL)
-                p_SEL = tf.where(nan_mask, tf.zeros_like(p_SEL), p_SEL)
-                e_SEL = tf.math.multiply_no_nan(tf.math.log(p_SEL) / tf.math.log(2.0), p_SEL)
-                e_SEL = tf.where(p_SEL == 0, tf.zeros(e_SEL.shape), e_SEL)
-                e_SEL = -tf.reduce_mean(e_SEL)
-                self.add_loss(-e_SEL * conf.reg_psp_SEL_const)
-
-        if conf.adaptive_vth_SEL:
-            layer_name = ['n_conv1', 'conv1_conv_n']
-            if self.name in layer_name:
-                channel_value = tf.reduce_sum(self.spike_count_int, axis=[1, 2])
-                dec_mask = channel_value == 0
-                dec_mask = tf.expand_dims(tf.expand_dims(dec_mask, axis=1), axis=1)
-                # inc_mask = channel_value != 0
-                # inc_mask = tf.expand_dims(tf.expand_dims(inc_mask,axis=1),axis=1)
-                vth = self.vth.read(t - 1)
-                vth_dec_step_scale = conf.adaptive_dec_vth_scale
-                # vth_inc_step_scale = conf.adaptive_inc_vth_scale
-
-                vth = tf.where(dec_mask, vth * vth_dec_step_scale, self.vth_init)
-                # vth = tf.where(inc_mask, vth * vth_inc_step_scale, vth)
-
-                if t < conf.time_step:
-                    self.vth = self.vth.write(t, vth)
-            else:
-                vth = self.vth_init
-                if t < conf.time_step:
-                    self.vth = self.vth.write(t, vth)
-
-        else:
-            vth = self.vth.read(t - 1)
-            if t < conf.time_step:
-                self.vth = self.vth.write(t, vth)
-
-        if conf.rmp_en:
-            if t == 4:
-                rmp = 0
-                for i in range(4):
-                    dis_i = tf.subtract(self.out.read(i), self.vmem.read(i))
-                    q_err_i = lib_snn.layers.l2_norm(abs(dis_i), self.name)
-                    rmp += tf.reduce_sum(q_err_i)
-                rmp = rmp / 4
-                if epoch <= conf.train_epoch / 2:
-                    lamb_rmp = 2 * conf.rmp_k * (epoch / conf.train_epoch)
-                else:
-                    lamb_rmp = 2 * conf.tmp_k * (1 - epoch / conf.train_epoch)
-                self.add_loss(lamb_rmp * rmp)
-
-        if conf.im_en:
-            if t == 4:
-                mem_avg = tf.add_n([self.vmem.read(0), self.vmem.read(1), self.vmem.read(2), self.vmem.read(3)])
-                mem_avg = tf.divide(mem_avg, 4.0)
-                im = tf.subtract(mem_avg, self.vth.read(0))
-                im = im ** 2
-                im = tf.reduce_mean(im)
-                self.add_loss(conf.im_k * im)
-        # if True:
-        # if False:
-        if conf.reg_spike_out:
-
-            assert not (conf.reg_spike_out_norm and conf.reg_spike_out_norm_sq)
-
-            # if self.loc != 'IN':
-            if self.loc == 'HID':
-
-                # self.add_loss(tf.reduce_mean(self.spike_count_int))
-                # self.add_loss(0.001*tf.reduce_mean(self.out))
-                # print(self.name)
-                # print(tf.reduce_mean(self.out))
-
-                # new - 230814
-                # print(self.out)
-                # print(tf.size(tf.shape(self.out)))
-                # dim = tf.size(tf.shape(self.out))
-
-                if conf.reg_spike_out_sc:
-                    n_dim = len(self.dim)
-                    reduce_axis = [i for i in range(1, n_dim)]
-
-                    if conf.reg_spike_out_sc_sm:
-                        if conf.reg_spike_out_sc_train:
-                            sc = tf.math.divide_no_nan(self.spike_count, self.reg_spike_out_a)  # temperature
-                            sc_norm = tf.keras.layers.Softmax(axis=reduce_axis)(sc)
-                        else:
-                            if conf.reg_spike_out_sc_sm_wo_tmp:
-                                sc = spike
-                            else:
-                                sc = self.spike_count
-
-                            if conf.reg_spike_out_sc_sm_wo_spa:
-                                sc_norm = tf.math.divide(sc, conf.time_step)
-                            else:
-                                sc = tf.math.divide_no_nan(sc, conf.reg_spike_out_alpha)  # temperature
-                                sc_norm = tf.keras.layers.Softmax(axis=reduce_axis)(sc)
-
-                        # if conf.reg_spike_out_sc_sm_wo_tmp:
-                        #    sc = tf.math.divide_no_nan(spike,conf.reg_spike_out_alpha) # temperature
-
-                        # sc_norm = tf.nn.softmax(sc,axis=reduce_axis)
-                        # print(sc_norm)
-                        # sc_rate = tf.square(1.0 - sc_norm)
-                        if conf.reg_spike_out_sc_wta:
-                            sc_rate = 1.0 - sc_norm
-                        else:
-                            sc_rate = sc_norm
-
-                    else:
-                        assert False  # conf.reg_spike_out_alpha
-                        # self.add_loss(conf.reg_spike_out_const * tf.reduce_mean(self.out * self.spike_count / tf.reduce_max(self.spike_count)))
-                        sc_norm = tf.math.divide_no_nan(self.spike_count,
-                                                        tf.reduce_max(self.spike_count, axis=reduce_axis,
-                                                                      keepdims=True))
-                        # self.add_loss(conf.reg_spike_out_const*tf.reduce_mean(self.out * (1-sc_norm+eps)))
-                        # self.add_loss(conf.reg_spike_out_const*tf.reduce_mean(self.out * (1-sc_norm*self.reg_spike_out_a+self.reg_spike_out_b)))
-                        # sc_loss = conf.reg_spike_out_const*tf.reduce_mean(self.out * (self.reg_spike_out_b-sc_norm*self.reg_spike_out_a))
-                        # sc_loss = tf.square(sc_loss)
-
-                        if conf.reg_spike_out_sc_wta:
-                            if conf.reg_spike_out_sc_train:
-                                sc_rate = tf.square(1.0 - sc_norm * self.reg_spike_out_a)
-                            else:
-                                eps = conf.reg_spike_out_alpha
-                                sc_rate = 1 - sc_norm + eps
-                        else:
-                            if conf.reg_spike_out_sc_train:
-                                sc_rate = tf.square(sc_norm * self.reg_spike_out_a)
-                            else:
-                                eps = conf.reg_spike_out_alpha
-                                sc_rate = sc_norm + eps
-
-                    if conf.reg_spike_out_sc_sq:
-                        sc_rate = tf.square(sc_rate)
-
-                    #
-                    sc_rate = sc_rate * conf.reg_spike_rate_alpha
-
-                    #
-                    if conf.reg_spike_out_inv_s:
-                        sc_loss = 1.0 - conf.reg_spike_out_inv_s_const * spike
-                    else:
-                        sc_loss = spike * sc_rate
-
-                    if conf.reg_spike_out_norm:
-                        # sc_loss = tf.norm(self.out * sc_rate,ord=2)
-                        sc_loss = lib_snn.layers.l2_norm(sc_loss, self.name)
-                    elif conf.reg_spike_out_norm_sq:
-                        sc_loss = tf.reduce_mean(tf.math.square(spike))
-                    else:
-                        sc_loss = tf.reduce_mean(sc_loss)
-                    sc_loss = sc_loss * conf.reg_spike_out_const
-
-                    self.add_loss(sc_loss)
-
-                    if False:
-                        # default
-
-                        # sc_loss schedule
-                        train_counter = lib_snn.model.train_counter
-                        sc_loss_end_itr = 150*500
-                        sc_loss_schedule = tf.where(train_counter<sc_loss_end_itr, 1.0, 0.0)
-                        #self.add_loss(sc_loss*sc_loss_schedule)
-
-                        # layer-wise loss
-                        max_depth = 16
-                        layer_wise_rate = 1 - self.depth/max_depth
-
-                        self.add_loss(sc_loss * layer_wise_rate * sc_loss_schedule)
-
-
-                else:
-                    # old - previous work
-                    if conf.reg_spike_out_norm:
-                        # sc_loss = tf.norm(self.out, ord=1)
-                        # sc_loss = tf.norm(self.out,ord=2)
-                        # sc_loss = tf.sqrt(tf.reduce_sum(tf.square(self.out))+1.0E-10)
-                        sc_loss = lib_snn.layers.l2_norm(spike, self.name)
-                    elif conf.reg_spike_out_norm_sq:
-                        sc_loss = tf.reduce_mean(tf.math.square(spike))
-                    else:
-                        assert False
-                        sc_loss = tf.reduce_mean(self.out)
-
-                    sc_loss = conf.reg_spike_out_const * sc_loss
-                    self.add_loss(sc_loss)
-
-        # if True:
-        if False:
-            # if self.loc != 'IN':
-            if self.loc == 'HID' and backend.ndim(inputs) == 4:
-
-                # self.add_loss(tf.reduce_mean(self.spike_count_int))
-                # self.add_loss(0.001*tf.reduce_mean(self.out))
-                # print(self.name)
-                # print(tf.reduce_mean(self.out))
-
-                # import tensorflow_probability as tfp
-
-                # if False:
-                if True:
-                    h_min = -1.0
-                    h_max = 2.0
-
-                    n_channel = inputs.shape[-1]
-                    hist_arr = []
-                    neurons_in_channel = tf.reduce_prod(inputs.shape[0, 1, 2])
-                    for i_channel in range(n_channel):
-                        hist = tf.histogram_fixed_width(inputs[:, :, :, i_channel], [h_min, h_max])
-                        num = tf.reduce_sum(hist)
-                        p = tf.cast(hist / num, dtype=tf.float32)
-                        e = tf.math.multiply_no_nan(tf.math.log(p) / tf.math.log(2.0), p)
-                        hist_arr.append(hist)
-
-                    # hist = tf.histogram_fixed_width(inputs,[tf.reduce_min(inputs),tf.reduce_max(inputs)])
-                    hist = tf.histogram_fixed_width(inputs, [h_min, h_max])
-                    num_inputs = tf.reduce_sum(hist)
-                    # hist = tf.where(hist==0,tf.constant(1.0e-5,shape=hist.shape),hist)
-                    p = tf.cast(hist / num_inputs, dtype=tf.float32)
-                    # e = tf.math.multiply_no_nan(tf.math.log(p)/tf.math.log(tf.cast(2.0,dtype=tf.float64)),p)
-                    e = tf.math.multiply_no_nan(tf.math.log(p) / tf.math.log(2.0), p)
-                    # e = tf.where(p==0,tf.zeros(e.shape),e)
-                    e = -tf.reduce_sum(e)
-                    # e = tf.clip_by_value(e, 1,10)
-                    # print(e)
-                    self.add_loss(0.01 * e)
-                    # self.add_loss(0.01*tf.reduce_mean(inputs))
-
-                    # print(e)
-                    # if tf.reduce_any(tf.math.is_nan(e)):
-                    # print(p)
-                    ##print(e)
-
-        if self.en_stdp:
-            self.update_spike_trace(t, spike)
-            ##pass
-
-        # WTA-SNN analysis
-        if False:
-            # if True:
-            if self.loc == 'HID':
-                cond = tf.math.logical_or(self.spike_count_int == t,
-                                          self.spike_count_int == tf.constant(1, shape=self.spike_count_int.shape,
-                                                                              dtype=tf.float32))
-                out_ret = tf.where(cond, out_ret, tf.zeros(shape=out_ret.shape))
-
-        # neuron input analysis
-        if conf.debug_neuron_input:
-            self.inputs = self.inputs.write(t - 1, inputs)
-
-        # return out_ret, grad
-        return out_ret
-
     def call(self, inputs, training=None):
+
+
 
         if conf.verbose_snn_train:
             self.inputs_t = inputs
@@ -1001,7 +618,6 @@ class Neuron(tf.keras.layers.Layer):
         self.vmem = self.vmem.write(t-1,vmem)
         #self.out = spike
         self.out = self.out.write(t-1,spike)
-
         if conf.SEL_noise_en_spike:
             layer_name = ['n_conv1', 'conv1_conv_n']
             if self.name in layer_name:
@@ -1026,11 +642,9 @@ class Neuron(tf.keras.layers.Layer):
                     self.out.write(1, out_1)
                     self.out.write(2, out_2)
                     self.out.write(3, out_3)
-
         out_ret = self.out.read(t-1)
 
-        #out_ret_int = self.spike_count_int
-        out_ret_int = self.spike_count
+        out_ret_int = self.spike_count_int
 
         self.count_spike(t,spike)
 
@@ -1244,6 +858,26 @@ class Neuron(tf.keras.layers.Layer):
                     #self.add_loss(conf.reg_spike_out_const*tf.reduce_mean(self.out * (self.reg_spike_out_b-sc_norm*self.reg_spike_out_a)))
                     #self.add_loss(conf.reg_spike_o230822ut_const * tf.reduce_mean(self.out * self.spike_count))
 
+
+                    # default
+                    #self.add_loss(sc_loss)
+
+                    if conf.sc_loss_scd:
+                        # sc_loss schedule
+                        train_counter = lib_snn.model.train_counter
+                        sc_loss_st_itr = conf.sc_loss_scd_st_ep*500
+                        #sc_loss_st_itr = 100*500
+                        #sc_loss_end_itr = 300*500
+                        #sc_loss_end_itr = 200*500
+                        #sc_loss_end_itr = 100*500
+                        sc_loss_end_itr = conf.sc_loss_scd_end_ep*500
+                        #sc_loss_schedule = tf.where((train_counter>sc_loss_st_itr) and (train_counter<sc_loss_end_itr), 1.0, 0.0)
+                        sc_loss_schedule = tf.cast(train_counter/sc_loss_end_itr,tf.float32)
+                        #sc_loss_schedule = 1-tf.cast(train_counter/sc_loss_end_itr,tf.float32)
+                        sc_loss_schedule = tf.where((train_counter>sc_loss_st_itr) and (train_counter<sc_loss_end_itr), sc_loss_schedule, 0.0)
+                    else:
+                        sc_loss_schedule = 1.0
+
                     #out_ret = self.reg_spike_out_fn(out_ret)
                     #pass
 
@@ -1274,6 +908,21 @@ class Neuron(tf.keras.layers.Layer):
 
                     self.add_loss(sc_loss * sc_loss_layer_wise_rate * sc_loss_schedule)
 
+
+                    if False:
+                        # FD loss test
+                        mean_SEL = tf.reduce_mean(out_ret_int)
+                        std_SEL = tf.math.reduce_std(out_ret_int)
+                        pdf_SEL = tfp.distributions.Normal(mean_SEL, std_SEL)
+                        p_SEL = pdf_SEL.prob(out_ret_int)
+                        nan_mask = tf.math.is_nan(p_SEL)
+                        p_SEL = tf.where(nan_mask, tf.zeros_like(p_SEL), p_SEL)
+                        e_SEL = tf.math.multiply_no_nan(tf.math.log(p_SEL) / tf.math.log(2.0), p_SEL)
+                        e_SEL = tf.where(p_SEL == 0, tf.zeros(e_SEL.shape), e_SEL)
+                        e_SEL = -tf.reduce_mean(e_SEL)
+                        self.add_loss(-e_SEL * conf.reg_psp_SEL_const)
+
+
                 else:
                     # old - previous work
                     if conf.reg_spike_out_norm:
@@ -1289,7 +938,6 @@ class Neuron(tf.keras.layers.Layer):
 
                     sc_loss = conf.reg_spike_out_const*sc_loss
                     self.add_loss(sc_loss)
-
 
         #if True:
         if False:
@@ -1413,7 +1061,7 @@ class Neuron(tf.keras.layers.Layer):
         #self.spike_count.assign(tf.zeros(self.dim ,dtype=tf.float32))
         #self.spike_count_int.assign(tf.zeros(self.dim ,dtype=tf.float32))
         self.spike_count.assign(tf.zeros(self.dim ,dtype=self._dtype))
-        #self.spike_count_int.assign(tf.zeros(self.dim ,dtype=self._dtype))
+        self.spike_count_int.assign(tf.zeros(self.dim ,dtype=self._dtype))
 
         # self.spike_count.assign(self.zeros)
         # self.spike_count.assign(tf.zeros(self.dim))
@@ -1783,7 +1431,6 @@ class Neuron(tf.keras.layers.Layer):
                                         self.last_spike_time)
 
     #
-    #@tf.function(jit_compile=True)
     def integration(self, inputs, vmem, t):
 
         if conf.neural_coding == "TEMPORAL":
@@ -1797,7 +1444,7 @@ class Neuron(tf.keras.layers.Layer):
         # print(type(self.vmem))
         # assert False
 
-        # integration
+        # intergation
         vmem_integ = {
             'TEMPORAL': self.integration_temporal if f_run_int_temporal else lambda inputs, t: None,
             'NON_LINEAR': self.integration_non_lin
@@ -1990,22 +1637,8 @@ class Neuron(tf.keras.layers.Layer):
     ############################################################
     ## fire function
     ############################################################
-    # test only rate coding for fast training
-    def fire(self, vmem, t):
-
-        spike, vmem = self.fire_rate(vmem, t)
-
-        #
-        self.f_fire = tf.where(tf.equal(spike,tf.zeros(spike.shape,dtype=self._dtype)),
-                               tf.constant(False,shape=spike.shape,dtype=tf.bool),
-                               tf.constant(True,shape=spike.shape,dtype=tf.bool))
-
-        return spike, vmem
-
-
-    # old - supporting various neural coding
     #@tf.custom_gradient
-    def fire_old_250304(self, vmem, t):
+    def fire(self, vmem, t):
 
         #
         # for TTFS coding
@@ -2091,13 +1724,6 @@ class Neuron(tf.keras.layers.Layer):
 
         if conf.binary_spike:
             spike = tf.where(f_fire, self.fires, self.zeros)
-        elif conf.integer_spike:
-            #vmem_clip = tf.clip_by_value(vmem, 0, 4)+0.5
-            vmem_clip = tf.clip_by_value(vmem, 0, 4)+0.5
-            #spike = tf.where(f_fire, tf.math.floor(vmem_clip), self.zeros)
-            spike = tf.math.floor(vmem_clip)
-            #spike = spike/4
-            spike = spike/5 # considering leakage of LIF
         else:
             spike = tf.where(f_fire, vth, self.zeros)
 
@@ -2113,34 +1739,22 @@ class Neuron(tf.keras.layers.Layer):
 
             # boxcar
             if conf.fire_surro_grad_func=='boxcar':
-                if conf.integer_spike:
-                    width_h = conf.surro_grad_alpha
-                    cond_lower = tf.math.greater_equal(vmem, 0)
-                    cond_upper = tf.math.less_equal(vmem, 4)
-                    cond = tf.math.logical_and(cond_lower, cond_upper)
-                    #h = tf.constant(1 / (2 * width_h), shape=cond.shape, dtype=vmem.dtype)
-                    h = tf.ones(cond.shape, dtype=vmem.dtype)
-                    # du_do = tf.where(cond,tf.ones(cond.shape),tf.zeros(cond.shape))
-                    du_do = tf.where(cond, h, tf.zeros(cond.shape, dtype=vmem.dtype))
-                    # du_do = tf.where(cond,vmem-vth+a,tf.zeros(cond.shape))
-                else:
-                    width_h = conf.surro_grad_alpha
-                    cond_lower=tf.math.greater_equal(vmem,vth-width_h)
-                    cond_upper=tf.math.less_equal(vmem,vth+width_h)
-                    cond = tf.math.logical_and(cond_lower,cond_upper)
-                    h = tf.constant(1/(2*width_h),shape=cond.shape,dtype=vmem.dtype)
-                    #du_do = tf.where(cond,tf.ones(cond.shape),tf.zeros(cond.shape))
-                    du_do = tf.where(cond,h,tf.zeros(cond.shape,dtype=vmem.dtype))
-                    #du_do = tf.where(cond,vmem-vth+a,tf.zeros(cond.shape))
+                width_h = conf.surro_grad_alpha
+                cond_lower=tf.math.greater_equal(vmem,vth-width_h)
+                cond_upper=tf.math.less_equal(vmem,vth+width_h)
+                cond = tf.math.logical_and(cond_lower,cond_upper)
+                h = tf.constant(1/(2*width_h),shape=cond.shape,dtype=vmem.dtype)
+                #du_do = tf.where(cond,tf.ones(cond.shape),tf.zeros(cond.shape))
+                du_do = tf.where(cond,h,tf.zeros(cond.shape,dtype=vmem.dtype))
+                #du_do = tf.where(cond,vmem-vth+a,tf.zeros(cond.shape))
             elif conf.fire_surro_grad_func=='asym':
                 width_h = conf.surro_grad_alpha
                 cond_lower=tf.math.greater_equal(vmem,vth-width_h)
                 cond_upper=tf.math.less_equal(vmem,vth+width_h)
                 cond = tf.math.logical_and(cond_lower,cond_upper)
 
-                h = (1-conf.surrogate_bias)*vmem + (1.5*conf.surrogate_bias-0.5)
                 #h = tf.constant(1/(2*width_h),shape=cond.shape)
-                #h = tf.multiply(0.5,vmem)+0.25
+                h = tf.multiply(0.5,vmem)+0.25
                 #du_do = tf.where(cond,tf.ones(cond.shape),tf.zeros(cond.shape))
                 du_do = tf.where(cond,h,tf.zeros(cond.shape,dtype=vmem.dtype))
                 #du_do = tf.where(cond,vmem-vth+a,tf.zeros(cond.shape))
@@ -2242,12 +1856,6 @@ class Neuron(tf.keras.layers.Layer):
         return spike, grad
 
     #
-    #@tf.function(jit_compile=True)
-    def reset_soft(self, vmem, spike):
-        vmem = tf.subtract(vmem, spike)
-        return vmem
-
-    #
     def fire_rate(self, vmem, t):
         # self.f_fire = self.vmem >= self.vth
         #self.f_fire = self.fire_condition_check(vmem)
@@ -2255,12 +1863,6 @@ class Neuron(tf.keras.layers.Layer):
 
 
         spike = self.fire_func(vmem)
-
-        # detach reset
-        if conf.neuron_detach_reset:
-            spike_d = tf.stop_gradient(spike)
-        else:
-            spike_d = spike
 
 
         #f_fire = tf.math.greater_equal(vmem, self.vth)
@@ -2308,8 +1910,7 @@ class Neuron(tf.keras.layers.Layer):
                 #    vmem = tf.subtract(vmem, spike * self.vth)
                 #else:
                 #    vmem = tf.subtract(vmem, spike)
-                #vmem = tf.subtract(vmem, spike_d)
-                vmem = self.reset_soft(vmem, spike_d)
+                vmem = tf.subtract(vmem, spike)
 
             # reset to zero
             elif conf.n_reset_type=='reset_to_zero':
@@ -2322,9 +1923,10 @@ class Neuron(tf.keras.layers.Layer):
                 if f_reset_to_zero_custom_g:
 
                     @tf.custom_gradient
-                    def func_reset_to_zero(vmem, spike_d):
+                    def func_reset_to_zero(vmem, spike):
 
-                        f_no_spike = tf.equal(spike_d, tf.zeros(shape=spike_d.shape))
+                        f_no_spike = tf.equal(spike,
+                                              tf.zeros(shape=spike.shape))
 
                         #vrest = -(1.0-self.vth)*0.2
                         #vrest = tf.random.normal(shape=self.dim, mean=-0.0, stddev=0.1)
@@ -2341,7 +1943,7 @@ class Neuron(tf.keras.layers.Layer):
                             du_do = -(vmem-vrest)
 
                         def grad(upstream):
-                            dvmem = tf.where(f_no_spike, tf.zeros(shape=spike_d.shape), du_do)
+                            dvmem = tf.where(f_no_spike, tf.zeros(shape=spike.shape), du_do)
                             #dvmem = tf.where(f_no_spike, tf.zeros(shape=spike.shape), -vmem)
                             #dvmem = tf.where(f_no_spike, tf.zeros(shape=spike.shape), -vmem_clip)
                             #dvmem = tf.where(f_no_spike, tf.zeros(shape=spike.shape), -(vmem-vrest))
@@ -2350,16 +1952,16 @@ class Neuron(tf.keras.layers.Layer):
                             #dvmem = tf.where(f_no_spike, tf.ones(shape=spike.shape), -self.vth)
                             dvmem = upstream * dvmem
 
-                            dspike = tf.zeros(shape=spike_d.shape)
+                            dspike = tf.zeros(shape=spike.shape)
                             return dvmem, dspike
 
                         return vmem_ret, grad
 
 
-                    vmem = func_reset_to_zero(vmem, spike_d)
+                    vmem = func_reset_to_zero(vmem, spike)
 
                 else:
-                    vmem = tf.where(tf.equal(spike_d, tf.zeros(shape=spike_d.shape)),
+                    vmem = tf.where(tf.equal(spike, tf.zeros(shape=spike.shape)),
                                     vmem,
                                     tf.constant(conf.n_init_vrest, self._dtype, vmem.shape))
                 #vmem = tf.where(spike==0,vmem,tf.constant(conf.n_init_vrest,tf.float32,vmem.shape))
@@ -2674,16 +2276,16 @@ class Neuron(tf.keras.layers.Layer):
         # self.spike_count = tf.add(self.spike_count, self.out)
 
         #self.spike_count_int.assign(tf.where(self.f_fire, self.spike_count_int + 1.0, self.spike_count_int))
-        #self.spike_count.assign(tf.add(self.spike_count, spike))
-        self.spike_count.assign(tf.where(self.f_fire, self.spike_count+ 1.0, self.spike_count))
-
+        self.spike_count_int.assign(tf.where(self.f_fire, self.spike_count_int + 1.0, self.spike_count_int))
+        self.spike_count.assign(tf.add(self.spike_count, spike))
 
         ## here
         #print(self.spike_count)
         #print(self.out)
 
     def count_spike_temporal(self, t, spike):
-        #self.spike_count_int = tf.add(self.spike_count_int, spike)
+        #self.spike_count_int = tf.add(self.spike_count_int, self.out)
+        self.spike_count_int = tf.add(self.spike_count_int, spike)
         self.spike_count = tf.where(self.f_fire, tf.add(self.spike_count, self.vth), self.spike_count_int)
 
         if conf.f_record_first_spike_time:
@@ -2844,25 +2446,30 @@ class Neuron(tf.keras.layers.Layer):
 
     def run_type_hid(self, inputs, vmem, t, training):
 
-        # leak test - 250523
-        # original
-        #if False:
-        if True:
-            vmem_integ = self.integration(inputs, vmem, t)
-            if self.n_type=='LIF':
-                vmem_leak = self.leak(vmem_integ, t)
-            else:
-                vmem_leak = vmem_integ
-        else:
-            vmem_integ = vmem
-            if self.n_type == 'LIF':
-                vmem_leak = self.leak(vmem_integ, t)
-            else:
-                vmem_leak = vmem_integ
-            vmem_leak = self.integration(inputs, vmem_leak, t)
+        vmem_integ = self.integration(inputs, vmem, t)
 
-        #
+        if self.n_type=='LIF':
+            vmem_leak = self.leak(vmem_integ, t)
+        else:
+            vmem_leak = vmem_integ
+
+        #print(vmem_leak)
         fire, vmem_fire = self.fire(vmem_leak,t)
+
+        #self.out = fire
+        #self.count_spike(t)
+
+        # noise robustness test
+        # gaussian noise
+        #noise = tf.random.normal(shape=fire.shape,mean=0,stddev=0.2)
+        #fire = fire + noise
+
+        # deletion noise
+        #noise_pr = 0.01
+        #rand = tf.random.uniform(fire.shape, minval=0.0, maxval=1.0)
+        #f_noise_del = tf.less(rand, tf.constant(noise_pr, shape=fire.shape))
+        #fire = tf.where(f_noise_del,tf.zeros(fire.shape),fire)
+
 
         return fire, vmem_fire
 
@@ -2945,9 +2552,9 @@ class Neuron(tf.keras.layers.Layer):
         #print(self.spike_count)
         return self.spike_count
 
-    #def get_spike_count_int(self):
-    #    # spike_count_int = tf.reshape(self.spike_count_int,self.dim)
-    #    return self.spike_count_int
+    def get_spike_count_int(self):
+        # spike_count_int = tf.reshape(self.spike_count_int,self.dim)
+        return self.spike_count_int
 
     def get_spike_rate(self):
         # return self.get_spike_count_int()/conf.time_step

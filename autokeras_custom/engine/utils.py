@@ -136,7 +136,6 @@ class TunerCallback(keras.callbacks.Callback):
         self.writer = tf.summary.create_file_writer(self.log_dir)
 
 
-
     def on_train_begin(self, logs):
         #self.tuner.on_train_begin(self.trial, self.model, epoch, logs=logs)
 
