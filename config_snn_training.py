@@ -29,7 +29,7 @@ conf = config.flags
 #conf.exp_set_name='EIP-SNN_sc_loss_schedule'
 #conf.exp_set_name='integer_spike_test'
 #conf.exp_set_name='ASY-SNN'
-conf.exp_set_name='EIP-SNN'
+conf.exp_set_name='EIP-SNN-26'
 
 
 conf.root_model_save=conf.exp_set_name

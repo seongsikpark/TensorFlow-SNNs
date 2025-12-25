@@ -943,16 +943,6 @@ flags.DEFINE_bool('sc_loss_layer_wise',False,'sc loss scheduling') #num of mlp h
 flags.DEFINE_bool('mode_inf_hybrid',False,'hybrid inference (GPU, SPECK)') #num of mlp hidden layer
 
 
-
-########################################
-# EIP-SNN
-########################################
-flags.DEFINE_bool('sc_loss_scd',False,'sc loss scheduling') #num of mlp hidden layer
-flags.DEFINE_integer('sc_loss_scd_st_ep',0,'sc loss scheduling - start epoch') #num of mlp hidden layer
-flags.DEFINE_integer('sc_loss_scd_end_ep',100,'sc loss scheduling - start epoch') #num of mlp hidden layer
-flags.DEFINE_bool('sc_loss_layer_wise',False,'sc loss scheduling') #num of mlp hidden layer
-
-
 #
 conf=flags.FLAGS
 conf(sys.argv)

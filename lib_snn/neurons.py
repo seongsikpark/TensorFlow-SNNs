@@ -1754,7 +1754,8 @@ class Neuron(tf.keras.layers.Layer):
                 cond = tf.math.logical_and(cond_lower,cond_upper)
 
                 #h = tf.constant(1/(2*width_h),shape=cond.shape)
-                h = tf.multiply(0.5,vmem)+0.25
+                #h = tf.multiply(0.5,vmem)+0.25     # old - 251225
+                h = (1-conf.surrogate_bias)*vmem-0.5+1.5*conf.surrogate_bias
                 #du_do = tf.where(cond,tf.ones(cond.shape),tf.zeros(cond.shape))
                 du_do = tf.where(cond,h,tf.zeros(cond.shape,dtype=vmem.dtype))
                 #du_do = tf.where(cond,vmem-vth+a,tf.zeros(cond.shape))
