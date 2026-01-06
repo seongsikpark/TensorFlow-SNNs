@@ -1,5 +1,6 @@
 
 
+
 #
 # configuration
 from config_snn_training import config
@@ -15,6 +16,9 @@ import callbacks
 #
 import tensorflow as tf
 
+#
+import os
+
 
 
 #tf.config.optimizer.set_jit(True)
@@ -23,6 +27,12 @@ import tensorflow as tf
 #tf.keras.mixed_precision.set_global_policy('mixed_float16')
 #tf.keras.mixed_precision.set_global_policy('float32')
 #tf.keras.backend.set_floatx('float16')
+
+#
+SEED=0
+
+os.environ["PYTHONHASHSEED"] = str(SEED)
+tf.keras.utils.set_random_seed(SEED)
 
 
 ########################################
@@ -77,6 +87,9 @@ with dist_strategy.scope():
         init_epoch = config.init_epoch
         train_histories = model.fit(train_ds, epochs=train_epoch, steps_per_epoch=train_steps_per_epoch,
                                     initial_epoch=init_epoch, validation_data=valid_ds, callbacks=callbacks_train)
+
+        #
+        print(f"[INFO] Training Seed = {SEED}")
     else:
         print('Test mode')
 

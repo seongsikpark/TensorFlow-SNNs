@@ -7,7 +7,7 @@
 import os
 os.environ['NCCL_P2P_DISABLE']='1'
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
+os.environ["CUDA_VISIBLE_DEVICES"]="9"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3,4,5,6,7"
 #os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
 
@@ -185,13 +185,13 @@ if conf.fire_surro_grad_func=='asym':
 
 
 #
-if False:
-#if True:
-    if True:    # proposed method
-    #if False:
+#if False:
+if True:
+    #if True:    # proposed method
+    if False:
         conf.reg_spike_out=True
-        conf.reg_spike_out_const=1E-6
-        conf.reg_spike_out_alpha=1  # temperature
+        conf.reg_spike_out_const=1E-8
+        conf.reg_spike_out_alpha=4  # temperature
         #conf.reg_spike_rate_alpha=8E-1  # coefficient of reg. rate
         conf.reg_spike_out_sc=True
         #conf.reg_spike_out_sc_wta=False
@@ -207,15 +207,11 @@ if False:
 
 
         #
-        #conf.sc_loss_scd = False
-        conf.sc_loss_scd = True
+        conf.sc_loss_scd = False
+        #conf.sc_loss_scd = True
         conf.sc_loss_scd_st_ep = 200
         conf.sc_loss_scd_end_ep = 300
         #conf.sc_loss_layer_wise = False
-
-        conf.exp_set_name = conf.exp_set_name+'_asym'
-        conf.fire_surro_grad_func = 'asym'
-
 
     else:   # previous work
         conf.reg_spike_out = True

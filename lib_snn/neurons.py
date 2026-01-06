@@ -762,7 +762,6 @@ class Neuron(tf.keras.layers.Layer):
         #if False:
         if conf.reg_spike_out:
 
-
             assert not(conf.reg_spike_out_norm and conf.reg_spike_out_norm_sq)
 
             #if self.loc != 'IN':
@@ -878,26 +877,6 @@ class Neuron(tf.keras.layers.Layer):
                     else:
                         sc_loss_schedule = 1.0
 
-                    #out_ret = self.reg_spike_out_fn(out_ret)
-                    #pass
-
-                    #self.add_loss(sc_loss)
-
-                    if conf.sc_loss_scd:
-                        # sc_loss schedule
-                        train_counter = lib_snn.model.train_counter
-                        sc_loss_st_itr = conf.sc_loss_scd_st_ep*500
-                        #sc_loss_st_itr = 100*500
-                        #sc_loss_end_itr = 300*500
-                        #sc_loss_end_itr = 200*500
-                        #sc_loss_end_itr = 100*500
-                        sc_loss_end_itr = conf.sc_loss_scd_end_ep*500
-                        #sc_loss_schedule = tf.where((train_counter>sc_loss_st_itr) and (train_counter<sc_loss_end_itr), 1.0, 0.0)
-                        sc_loss_schedule = tf.cast(train_counter/sc_loss_end_itr,tf.float32)
-                        #sc_loss_schedule = 1-tf.cast(train_counter/sc_loss_end_itr,tf.float32)
-                        sc_loss_schedule = tf.where((train_counter>sc_loss_st_itr) and (train_counter<sc_loss_end_itr), sc_loss_schedule, 0.0)
-                    else:
-                        sc_loss_schedule = 1.0
 
                     if conf.sc_loss_layer_wise:
                         # layer-wise loss
