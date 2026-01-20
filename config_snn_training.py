@@ -168,7 +168,6 @@ conf.rand_erase_en = True
 
 
 #
-
 conf.exp_set_name = conf.exp_set_name+'_asym'
 conf.fire_surro_grad_func = 'asym'
 
@@ -187,11 +186,11 @@ if conf.fire_surro_grad_func=='asym':
 #
 #if False:
 if True:
-    #if True:    # proposed method
-    if False:
+    if True:    # proposed method
+    #if False:
         conf.reg_spike_out=True
         conf.reg_spike_out_const=1E-8
-        conf.reg_spike_out_alpha=4  # temperature
+        conf.reg_spike_out_alpha=3  # temperature
         #conf.reg_spike_rate_alpha=8E-1  # coefficient of reg. rate
         conf.reg_spike_out_sc=True
         #conf.reg_spike_out_sc_wta=False
@@ -215,7 +214,7 @@ if True:
 
     else:   # previous work
         conf.reg_spike_out = True
-        conf.reg_spike_out_const = 7E-6
+        conf.reg_spike_out_const = 5E-9
         conf.reg_spike_out_alpha = 4  # temperature
         # conf.reg_spike_rate_alpha=8E-1  # coefficient of reg. rate
         #conf.reg_spike_out_sc = True

@@ -779,13 +779,26 @@ class Neuron(tf.keras.layers.Layer):
                 #dim = tf.size(tf.shape(self.out))
 
                 if conf.reg_spike_out_sc:
-                    n_dim = len(self.dim)
-                    reduce_axis= [i for i in range(1,n_dim)]
+                    if not hasattr(self, "_reduce_axis"):
+                        n_dim = len(self.dim)
+                        self._reduce_axis= [i for i in range(1,n_dim)]
+                    reduce_axis = self._reduce_axis
+
+
+                    def softmax_over_non_batch(x):
+                        x_shape = tf.shape(x)
+                        b=x_shape[0]
+                        x2 = tf.reshape(x, [b,-1])
+                        y2 = tf.nn.softmax(x2, axis=-1)
+                        return tf.reshape(y2, x_shape)
+
 
                     if conf.reg_spike_out_sc_sm:
                         if conf.reg_spike_out_sc_train:
                             sc = tf.math.divide_no_nan(self.spike_count,self.reg_spike_out_a) # temperature
-                            sc_norm = tf.keras.layers.Softmax(axis=reduce_axis)(sc)
+                            #sc_norm = tf.keras.layers.Softmax(axis=reduce_axis)(sc)
+                            #sc_norm = tf.nn.softmax(sc, axis=reduce_axis)
+                            sc_norm = softmax_over_non_batch(sc)
                         else:
                             if conf.reg_spike_out_sc_sm_wo_tmp:
                                 sc = spike
@@ -796,7 +809,9 @@ class Neuron(tf.keras.layers.Layer):
                                 sc_norm = tf.math.divide(sc,conf.time_step)
                             else:
                                 sc = tf.math.divide_no_nan(sc,conf.reg_spike_out_alpha) # temperature
-                                sc_norm = tf.keras.layers.Softmax(axis=reduce_axis)(sc)
+                                #sc_norm = tf.keras.layers.Softmax(axis=reduce_axis)(sc)
+                                #sc_norm = tf.nn.softmax(sc, axis=reduce_axis)
+                                sc_norm = softmax_over_non_batch(sc)
 
 
                         #if conf.reg_spike_out_sc_sm_wo_tmp:
@@ -873,7 +888,7 @@ class Neuron(tf.keras.layers.Layer):
                         #sc_loss_schedule = tf.where((train_counter>sc_loss_st_itr) and (train_counter<sc_loss_end_itr), 1.0, 0.0)
                         sc_loss_schedule = tf.cast(train_counter/sc_loss_end_itr,tf.float32)
                         #sc_loss_schedule = 1-tf.cast(train_counter/sc_loss_end_itr,tf.float32)
-                        sc_loss_schedule = tf.where((train_counter>sc_loss_st_itr) and (train_counter<sc_loss_end_itr), sc_loss_schedule, 0.0)
+                        sc_loss_schedule = tf.where(tf.logical_and((train_counter>sc_loss_st_itr),(train_counter<sc_loss_end_itr)), sc_loss_schedule, 0.0)
                     else:
                         sc_loss_schedule = 1.0
 

@@ -29,10 +29,9 @@ import os
 #tf.keras.backend.set_floatx('float16')
 
 #
-SEED=0
-
-os.environ["PYTHONHASHSEED"] = str(SEED)
-tf.keras.utils.set_random_seed(SEED)
+#SEED=0
+#os.environ["PYTHONHASHSEED"] = str(SEED)
+#tf.keras.utils.set_random_seed(SEED)
 
 
 ########################################
@@ -89,7 +88,7 @@ with dist_strategy.scope():
                                     initial_epoch=init_epoch, validation_data=valid_ds, callbacks=callbacks_train)
 
         #
-        print(f"[INFO] Training Seed = {SEED}")
+        #print(f"[INFO] Training Seed = {SEED}")
     else:
         print('Test mode')
 
